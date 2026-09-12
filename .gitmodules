@@ -1,0 +1,4 @@
+[submodule "vendor/boardstudio-footprints"]
+	path = vendor/boardstudio-footprints
+	url = https://github.com/runinit/boardstudio-footprints.git
+	branch = boardstudio/models

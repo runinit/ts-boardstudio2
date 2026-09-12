@@ -21,12 +21,13 @@ export GIT_CONFIG_VALUE_1=git+ssh://git@github.com/
 export GIT_CONFIG_KEY_2=url.https://github.com/.insteadOf
 export GIT_CONFIG_VALUE_2=git@github.com:
 
-CEOLOIDE_REV=54a23cc9d025ef3a3d1c42b0452d1ceac681ea5a
-git clone https://github.com/ceoloide/ergogen-footprints.git "$ERGOGEN_BUILD/src/footprints/ceoloide"
-git -C "$ERGOGEN_BUILD/src/footprints/ceoloide" checkout --detach "$CEOLOIDE_REV"
-INFUSED_KIM_REV=bb80a207d8a6fa7b9245caad2c2d97e2adc2f612
-git clone https://github.com/infused-kim/kb_ergogen_fp.git "$ERGOGEN_BUILD/src/footprints/infused-kim"
-git -C "$ERGOGEN_BUILD/src/footprints/infused-kim" checkout --detach "$INFUSED_KIM_REV"
+BOARDSTUDIO_FOOTPRINTS=${BOARDSTUDIO_FOOTPRINTS:-"$PROJECT_ROOT/vendor/boardstudio-footprints"}
+if [ ! -f "$BOARDSTUDIO_FOOTPRINTS/manifest/sources.json" ]; then
+  echo 'Initialize the footprint library with: git submodule update --init --recursive' >&2
+  exit 1
+fi
+node patch/stage_boardstudio.cjs "$BOARDSTUDIO_FOOTPRINTS" "$ERGOGEN_BUILD" "$PROJECT_ROOT/public/footprint-models"
+
 cp patch/footprints_index.js "$ERGOGEN_BUILD/src/footprints/index.js"
 cp -R vendor/bhk/footprints "$ERGOGEN_BUILD/src/footprints/bhkfp"
 

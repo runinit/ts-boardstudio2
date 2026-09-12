@@ -63,10 +63,11 @@
     "lint:js": "eslint --fix \"{src,e2e,patch}/**/*.{ts,tsx,js,jsx}\"",
     "lint:md": "markdownlint --fix \"**/*.md\"",
     "lint": "pnpm lint:md && pnpm lint:js && pnpm knip",
-    "precommit": "pnpm format && pnpm lint && pnpm typecheck && pnpm test:unit",
+    "precommit": "pnpm format && pnpm lint && pnpm typecheck && pnpm test:footprints && pnpm test:unit",
     "test:release": "node --test scripts/tests/*.test.cjs",
     "build-kicanvas": "./patch/kicanvas/build.sh",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:footprints": "pnpm --dir vendor/boardstudio-footprints test"
   },
   "browserslist": {
     "production": [

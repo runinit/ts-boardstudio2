@@ -5,3 +5,4 @@ playwright-report
 e2e/fixtures/footprint-library/LICENSE.md
 ORIGINAL_REQUEST.md
 .agents/**
+vendor/boardstudio-footprints/**

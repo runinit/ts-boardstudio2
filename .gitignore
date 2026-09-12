@@ -35,3 +35,5 @@ yarn_start.log
 src/workers/*.tmp.ts
 # Disposable pinned footprint sources for the worker.
 .generated/
+# Rebuilt from the pinned footprint submodule.
+/public/footprint-models/
