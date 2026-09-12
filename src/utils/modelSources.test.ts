@@ -2,6 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { modelUrl, fetchModel, identifyAsset } from './modelSources';
 
 describe('Model sources', () => {
+  it('resolves bundled Infused-Kim model references at the pinned revision', () => {
+    expect(
+      modelUrl('${EG_INFUSED_KIM_3D_MODELS}/trackpoint/TP_Cap_Red_T460S.step')
+    ).toBe(
+      'https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/3d_models/trackpoint/TP_Cap_Red_T460S.step'
+    );
+  });
   it('uses the public GitLab file API for official KiCad references', () => {
     const url = modelUrl(
       '${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603.step'

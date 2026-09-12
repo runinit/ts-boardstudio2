@@ -4,6 +4,8 @@ const MAX_MODEL_BYTES = 50 * 1024 * 1024;
 const RATE_LIMIT = 429;
 const NOT_FOUND = 404;
 const KICAD_PROJECT = 'kicad/libraries/kicad-packages3D';
+const INFUSED_MODEL_ROOT =
+  'https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/3d_models/';
 const MODEL_EXTENSIONS = /\.(step|stp|stl|wrl|vrml)$/i;
 
 function gitlabFile(project: string, path: string, ref: string) {
@@ -16,6 +18,14 @@ export function modelUrl(input: string): string {
   );
   if (standard) {
     return gitlabFile(KICAD_PROJECT, standard[1], 'master');
+  }
+  // Upstream footprints use this variable for their companion model library.
+  const infused = source.match(/^\$\{EG_INFUSED_KIM_3D_MODELS\}\/(.+)$/);
+  if (infused) {
+    return (
+      INFUSED_MODEL_ROOT +
+      infused[1].split('/').map(encodeURIComponent).join('/')
+    );
   }
   const url = new URL(source);
   if (url.protocol !== 'https:' || url.username || url.password) {
