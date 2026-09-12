@@ -1,8 +1,22 @@
 import { expect, test } from '@playwright/test';
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { CONFIG_LOCAL_STORAGE_KEY } from '../src/context/constants';
 import { openCase, studio } from './utils/studio';
 
+// Independent FreeCAD measurements distinguish source geometry from envelopes.
+const measuredModels: Record<
+  string,
+  {
+    volume: number;
+    models: { path: string; sha256: string; volume: number }[];
+  }
+> = JSON.parse(
+  readFileSync('e2e/fixtures/footprint-library/model-volumes.json', 'utf8')
+);
+
+// Allow 0.1% numerical integration variation between CAD kernels.
+const MAX_VOLUME_RELATIVE_ERROR = 0.001;
 const WORKER_TIMEOUT_MS = 180000;
 test.setTimeout(240000);
 
@@ -105,7 +119,6 @@ for (const sample of [
   {
     name: 'reset',
     model: 'boardstudio/infused-kim/Switch_Reset.step',
-    volume: 12.5794419,
     source,
   },
   {
@@ -179,10 +192,25 @@ for (const sample of [
       );
     }
     expect(result.volume).toBeGreaterThan(0);
-    if ('volume' in sample) {
-      // Compare the imported solid, not the fallback rectangular envelope.
-      expect(result.volume).toBeCloseTo(sample.volume, 4);
+    const measured = measuredModels[sample.name];
+    expect(Math.abs(result.volume! / measured.volume - 1)).toBeLessThan(
+      MAX_VOLUME_RELATIVE_ERROR
+    );
+    for (const model of measured.models) {
+      const bytes = readFileSync(
+        `public/footprint-models/boardstudio/${model.path}`
+      );
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(
+        model.sha256
+      );
     }
+    expect(
+      result
+        .models!.map(({ path }) =>
+          path.replace('${KIPRJMOD}/models/boardstudio/', '')
+        )
+        .sort()
+    ).toEqual(measured.models.map(({ path }) => path).sort());
     expect(result.meshBytes).toBeGreaterThan(84);
   });
   test(`renders the default ${sample.name} assembly`, async ({

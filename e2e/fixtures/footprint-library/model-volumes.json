@@ -1,0 +1,127 @@
+{
+  "trackpoint": {
+    "volume": 697.5969309595756,
+    "models": [
+      {
+        "path": "infused-kim/trackpoint/TP_Cap_Red_T460S.step",
+        "sha256": "6530b226f5c9e4e13bbce5696d9efbaa93a64ceb5312a3d3dfe911bd03126fa3",
+        "volume": 125.08175554980417
+      },
+      {
+        "path": "infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md0.0_pcb1.6.step",
+        "sha256": "c4d4a588c4eed6044441c3f0510e25e991cb13aee4f9702bc98c804d07357da8",
+        "volume": 76.56881854056176
+      },
+      {
+        "path": "infused-kim/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step",
+        "sha256": "feb172578631b76c48a832e94c58b2ffccd73b2d3ae75adb57f4aa1266e97904",
+        "volume": 495.94635686920964
+      }
+    ]
+  },
+  "Choc-solder": {
+    "volume": 1568.6351648760656,
+    "models": [
+      {
+        "path": "infused-kim/Choc_V1_Switch.step",
+        "sha256": "669d72c083f226e1f9ee9e9dc8424c18e9641984223ba5422a1235d773a6a9a8",
+        "volume": 942.135795511108
+      },
+      {
+        "path": "infused-kim/Choc_V1_Keycap_MBK_Black_1u.step",
+        "sha256": "4713e8888e3da1675c5f7cfddd71d447bad04ad7c8c960cdaf32866e119495a2",
+        "volume": 626.4993693649575
+      }
+    ]
+  },
+  "KS33": {
+    "volume": 1067.215096411987,
+    "models": [
+      {
+        "path": "gdek/KS33.stp",
+        "sha256": "e721521543b7d473ca94ea4f72c0cd729670993e7370bc6d66ff6a953b239267",
+        "volume": 1067.215096411987
+      }
+    ]
+  },
+  "infused-nano": {
+    "volume": 2288.900016430119,
+    "models": [
+      {
+        "path": "infused-kim/Nice_Nano_V2.step",
+        "sha256": "77fcad08b9bceca821b32733443e7bc9157230fb6340aa390797f56d5694182f",
+        "volume": 953.6127364301258
+      },
+      {
+        "path": "infused-kim/PinHeader_2.54mm_2x-12.step",
+        "sha256": "888d526c5f1b5d74ad14c7130e44edab5b1601eb99ac62b808baa567bf2f1887",
+        "volume": 95.90599999999992
+      },
+      {
+        "path": "kicad/PinSocket_2x12_W15.24mm_Vertical.step",
+        "sha256": "1d0ad0687f3fd0cbb745c8f51c709080ebb8a4a69f4221cec473669b4654137c",
+        "volume": 1239.3812799999935
+      }
+    ]
+  },
+  "infused-niceview": {
+    "volume": 1176.5953127580049,
+    "models": [
+      {
+        "path": "infused-kim/Nice_View.step",
+        "sha256": "150388b930798f1287f90adb7578e2352191ab8f6db5fa2c80dc1fa47b26d23c",
+        "volume": 898.4104627580072
+      },
+      {
+        "path": "infused-kim/PinHeader_2.54mm_1x-5.step",
+        "sha256": "6a0cdb5042d5bec86879b9a5a4526cadd7d8317a6e453d464aba60d16904d9ae",
+        "volume": 19.980416666667217
+      },
+      {
+        "path": "kicad/PinSocket_1x05_P2.54mm_Vertical.step",
+        "sha256": "c65e07a9f21343c3a79efcdc9c439aab14cb7f68bb491c08d95d1fdc007b20e1",
+        "volume": 258.2044333333306
+      }
+    ]
+  },
+  "niceview": {
+    "volume": 1176.5953127580049,
+    "models": [
+      {
+        "path": "infused-kim/Nice_View.step",
+        "sha256": "150388b930798f1287f90adb7578e2352191ab8f6db5fa2c80dc1fa47b26d23c",
+        "volume": 898.4104627580072
+      },
+      {
+        "path": "infused-kim/PinHeader_2.54mm_1x-5.step",
+        "sha256": "6a0cdb5042d5bec86879b9a5a4526cadd7d8317a6e453d464aba60d16904d9ae",
+        "volume": 19.980416666667217
+      },
+      {
+        "path": "kicad/PinSocket_1x05_P2.54mm_Vertical.step",
+        "sha256": "c65e07a9f21343c3a79efcdc9c439aab14cb7f68bb491c08d95d1fdc007b20e1",
+        "volume": 258.2044333333306
+      }
+    ]
+  },
+  "reset": {
+    "volume": 12.579441898859256,
+    "models": [
+      {
+        "path": "infused-kim/Switch_Reset.step",
+        "sha256": "975e09d47a0a9f58cc539a24ae11acbb05d5548ab2ce309aba8af0a2c51c1b01",
+        "volume": 12.579441898859256
+      }
+    ]
+  },
+  "Supermini": {
+    "volume": 1087.2718781341912,
+    "models": [
+      {
+        "path": "tsuki/nrf52840.step",
+        "sha256": "c841576b727e83402939f7efa75149a68e9a9bd1f71e0315ca37b3bbc1a084b5",
+        "volume": 1087.2718781341912
+      }
+    ]
+  }
+}
