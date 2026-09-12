@@ -8,6 +8,7 @@ import { packageAssets, loadAssets, CaseAssets } from './caseAssets';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import yaml from 'js-yaml';
+import { loadBoardModels } from './bundledModels';
 import { writeSolids } from './solidExports';
 import type { Results } from '../types/results';
 import {
@@ -71,7 +72,10 @@ export const createZip = async (
 ) => {
   const zip = new JSZip();
   injections = resolveLibrary(injections, librarySnapshot());
-  const projectAssets = await exportAssets(injections, assets);
+  const projectAssets = await loadBoardModels(
+    results.pcbs || {},
+    await exportAssets(injections, assets)
+  );
   if (projectAssets) {
     packageAssets(zip, projectAssets, Object.keys(results.pcbs || {}));
   }
