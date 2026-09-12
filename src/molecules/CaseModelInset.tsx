@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { inspectFootprint } from '../utils/footprintService';
 import { modelList } from '../utils/modelGeometry';
-import { findAsset, CaseAssets } from '../utils/caseAssets';
+import { fromInset, toInset } from '../utils/insetModels';
+import type { CaseAssets } from '../utils/caseAssets';
 import { BoardInventory, CaseConfig } from '../types/case';
 import type { FootprintInfo, ModelBinding } from '../types/footprint';
 import FootprintCanvas from './FootprintCanvas';
@@ -61,15 +62,29 @@ export default function CaseModelInset({
 }) {
   const [info, setInfo] = useState<FootprintInfo>();
   const [error, setError] = useState('');
+  const [target, setTarget] = useState<{ id: string; reference: string }>();
   const [mode, setMode] = useState<'translate' | 'rotate' | 'scale'>(
     'translate'
   );
   const component = board.components.find((component) => component.id === id);
+  const footprints = component?.native?.footprints;
+  const reference =
+    target?.id === id &&
+    footprints?.some((item) => item.reference === target.reference)
+      ? target.reference
+      : footprints?.[0]?.reference;
+  const footprintFrame = footprints?.find(
+    (item) => item.reference === reference
+  )?.frame;
   useEffect(() => {
     const controller = new AbortController();
     setInfo(undefined);
     setError('');
-    void inspectFootprint(board.source, { id }, controller.signal)
+    void inspectFootprint(
+      board.source,
+      reference ? { reference } : { id },
+      controller.signal
+    )
       .then((value) => {
         if (!controller.signal.aborted) {
           setInfo(value);
@@ -81,18 +96,14 @@ export default function CaseModelInset({
         }
       });
     return () => controller.abort();
-  }, [board.source, id]);
+  }, [board.source, id, reference]);
   if (!component) {
     return null;
   }
   let models: ModelBinding[];
   try {
     models = modelList(
-      spec.board?.models?.[id] ||
-        (component.models.map((model) => ({
-          ...model,
-          asset: findAsset(model.path, assets),
-        })) as ModelBinding[])
+      spec.board?.models?.[id] || (component.models as ModelBinding[])
     );
   } catch (error) {
     return <p role="alert">{String(error)}</p>;
@@ -101,6 +112,23 @@ export default function CaseModelInset({
     <Inset aria-label="Model alignment inset">
       <header>
         <strong>{component.reference} · model alignment</strong>
+        {footprints && footprints.length > 1 && (
+          <label>
+            Alignment footprint
+            <select
+              value={reference}
+              onChange={(event) =>
+                setTarget({ id, reference: event.target.value })
+              }
+            >
+              {footprints.map((item) => (
+                <option key={item.reference} value={item.reference}>
+                  {item.key} ({item.reference})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {(['translate', 'rotate', 'scale'] as const).map((value) => (
           <button
             key={value}
@@ -117,16 +145,20 @@ export default function CaseModelInset({
       ) : (
         <FootprintCanvas
           info={info}
-          models={models}
+          models={models.map((model) =>
+            toInset(model, footprintFrame, component.side)
+          )}
           assets={assets}
           selected={selected}
           onSelect={onSelect}
           mode={mode}
-          side={component.side === 'bottom' ? 'B' : 'F'}
+          side={info?.side || (component.side === 'bottom' ? 'B' : 'F')}
           onChange={(model) =>
             onChange(
               models.map((previous, index) =>
-                index === selected ? model : previous
+                index === selected
+                  ? fromInset(model, previous, footprintFrame, component.side)
+                  : previous
               )
             )
           }

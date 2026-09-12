@@ -5,13 +5,16 @@ import type { CaseAssets } from './caseAssets';
 
 const DEGREE = Math.PI / 180;
 export function modelMatrix(model: ModelBinding) {
-  return new Matrix4().compose(
+  const local = new Matrix4().compose(
     new Vector3(...model.offset),
     new Quaternion().setFromEuler(
       new Euler(...(model.rotate.map((v) => -v * DEGREE) as Vec3), 'ZYX')
     ),
     new Vector3(...model.scale)
   );
+  return model.frame
+    ? new Matrix4().fromArray(model.frame).transpose().multiply(local)
+    : local;
 }
 export function modelList(
   model: ModelBinding | ModelBinding[] | undefined

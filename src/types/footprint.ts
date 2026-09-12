@@ -8,6 +8,9 @@ export type ModelBinding = {
   sourceUrl?: string;
   hash?: string;
   metadata?: string[];
+  frame?: number[];
+  footprintKey?: string;
+  footprintReference?: string;
 };
 export type FootprintTarget = {
   index?: number;

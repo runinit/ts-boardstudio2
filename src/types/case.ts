@@ -24,7 +24,10 @@ export type CaseAnalysis = {
   parameters: CaseConfig;
 };
 export type BoardComponent = {
-  native?: { matrix: number[] };
+  native?: {
+    matrix: number[];
+    footprints?: { key: string; reference: string; frame?: number[] }[];
+  };
   id: string;
   reference: string;
   footprint: string;

@@ -38,3 +38,14 @@ describe('Aligned model geometry', () => {
     ).toBeNull();
   });
 });
+
+it('applies an emitted footprint frame after the local model transform', () => {
+  const framed = {
+    ...model,
+    frame: [0, -1, 0, 10, 1, 0, 0, 20, 0, 0, 1, 2, 0, 0, 0, 1],
+  };
+  const point = new Vector3(1, 0, 0).applyMatrix4(modelMatrix(framed));
+  expect(point.x).toBeCloseTo(8);
+  expect(point.y).toBeCloseTo(23);
+  expect(point.z).toBeCloseTo(7);
+});

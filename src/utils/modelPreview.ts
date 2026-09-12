@@ -38,7 +38,7 @@ export function attachModelMeshes(results: Results, assets: CaseAssets) {
         const material = new MeshBasicMaterial();
         try {
           geometry.applyMatrix4(modelMatrix(association));
-          if (component.side === 'bottom') {
+          if (component.side === 'bottom' && !association.frame) {
             geometry.rotateX(Math.PI);
           }
           if (component.native) {

@@ -83,7 +83,9 @@ function ModelMesh({
   onChange: Props['onChange'];
   onSelect: () => void;
 }) {
-  const object = useRef<Group>(null);
+  // TransformControls attaches after React assigns the model group ref.
+  const object = useRef<Group>(null!);
+  const changed = useRef(false);
   const source = modelPreview(model, assets);
   const geometry = useMemo(() => {
     if (!source) {
@@ -126,29 +128,39 @@ function ModelMesh({
   if (!active || !onChange) {
     return mesh;
   }
+  // Keep the attachment stable and save one edit when the gesture ends.
   return (
-    <TransformControls
-      mode={mode}
-      onObjectChange={() => {
-        if (!object.current) {
-          return;
-        }
-        const rotation = new Euler().setFromQuaternion(
-          object.current.quaternion,
-          'ZYX'
-        );
-        onChange({
-          ...model,
-          offset: object.current.position.toArray() as Vec3,
-          scale: object.current.scale.toArray() as Vec3,
-          rotate: [rotation.x, rotation.y, rotation.z].map(
-            (value) => (-value * 180) / Math.PI
-          ) as Vec3,
-        });
-      }}
-    >
+    <>
       {mesh}
-    </TransformControls>
+      <TransformControls
+        object={object}
+        mode={mode}
+        onMouseDown={() => {
+          changed.current = false;
+        }}
+        onObjectChange={() => {
+          changed.current = true;
+        }}
+        onMouseUp={() => {
+          if (!changed.current || !object.current) {
+            return;
+          }
+          changed.current = false;
+          const rotation = new Euler().setFromQuaternion(
+            object.current.quaternion,
+            'ZYX'
+          );
+          onChange({
+            ...model,
+            offset: object.current.position.toArray() as Vec3,
+            scale: object.current.scale.toArray() as Vec3,
+            rotate: [rotation.x, rotation.y, rotation.z].map(
+              (value) => (-value * 180) / Math.PI
+            ) as Vec3,
+          });
+        }}
+      />
+    </>
   );
 }
 function PadPlan({ info, pad, onPad }: Pick<Props, 'info' | 'pad' | 'onPad'>) {
