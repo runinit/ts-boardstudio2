@@ -18,7 +18,9 @@ export function editNativeBoard(
     return null;
   }
   const object = value as Record<string, unknown>;
-  const sections = path.length === 1 ? object : { [String(path[1])]: object };
+  // Single-component edits carry a model list, not a map of component IDs.
+  const entries = path.length === 3 ? { [String(path[2])]: object } : object;
+  const sections = path.length === 1 ? object : { [String(path[1])]: entries };
   if (!sections.components && !sections.models) {
     return null;
   }

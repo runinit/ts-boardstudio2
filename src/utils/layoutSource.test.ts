@@ -113,3 +113,26 @@ it('resizes solver freedoms on an alias without changing its source', () => {
   expect(after).toContain('base: &key {kind: key, placement: {solve: [x]}}');
   expect(parse(after).layout.objects.copy.placement.solve).toEqual(['x', 'y']);
 });
+
+it('updates a model list while preserving untouched model text', () => {
+  const source = `schema: ergogen/v1
+layout:
+  objects:
+    mcu:
+      kind: component
+      models:
+        - path: controller.step
+          offset: [0, 0, 0]
+        - path: display.step # keep this model
+          offset: [ 1, 2, 3 ]
+`;
+  const models = parse(source).layout.objects.mcu.models;
+  models[0].offset = [0, 0, 5];
+
+  const changed = setLayout(source, 'objects', 'mcu', ['models'], models);
+
+  expect(parse(changed).layout.objects.mcu.models).toEqual(models);
+  expect(changed).toContain(
+    '- path: display.step # keep this model\n          offset: [ 1, 2, 3 ]'
+  );
+});

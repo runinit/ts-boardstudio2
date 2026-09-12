@@ -1,5 +1,5 @@
 import { isAlias, isMap, isSeq, stringify } from 'yaml';
-import { editDesign, editField, SourcePath } from './designSource';
+import { editField, SourcePath } from './designSource';
 import { sourceDocument, sourceValue } from './sourceSnapshot';
 
 export type LayoutSection = 'objects' | 'clusters';
@@ -90,6 +90,7 @@ export function setLayout(
   ) {
     throw new Error('This object is locked.');
   }
+  const before = sourceValue(result, path);
   const node = document.getIn(path, true);
   if (
     Array.isArray(value) &&
@@ -97,7 +98,12 @@ export function setLayout(
     node.items.length === value.length
   ) {
     value.forEach((item, index) => {
-      result = editDesign(result, [...path, index], item);
+      // Preserve untouched models and their authored comments.
+      if (
+        JSON.stringify((before as unknown[])[index]) !== JSON.stringify(item)
+      ) {
+        result = editField(result, [...path, index], item);
+      }
     });
     return result;
   }
