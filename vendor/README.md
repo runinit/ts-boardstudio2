@@ -71,3 +71,11 @@ Selected dependency: `ergogen-studio-f24848e.tgz` from committed source
 Includes corner-relief repair and native SVG outline injection.
 
 SHA-256: `fc1a51a28329c1bbfb82b80d230005582fb580b76f503c695a10557f75f3eaa8`
+
+## Footprint model frames
+
+`ergogen-footprint-frames-fcd5e0f.tgz` packages engine commit `fcd5e0f`.
+Its source matches that commit; 300 isolated engine tests pass. The GUI
+resolves bundled assets before generating native model solids.
+
+SHA-256: `ca3ee5173801990d9b7ce9b13d027df67ab9d638b36cf44f0351e008bb8dafee`.

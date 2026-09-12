@@ -5,6 +5,7 @@ import { WorkerRequest } from './ergogen.worker.types';
 import { createInjectionModule } from '../utils/injectionEvaluator';
 import { attachModelMeshes } from '../utils/modelPreview';
 import { loadAssets } from '../utils/caseAssets';
+import { loadBoardModels } from '../utils/bundledModels';
 import footprints from '../../.generated/footprints.json';
 import componentFootprints from '../catalogue/footprints.json';
 
@@ -80,7 +81,20 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
     // Run Ergogen generation
     console.log('<-> Running Ergogen in worker');
-    const assets = event.data.assets || (await loadAssets().catch(() => ({})));
+    let assets = event.data.assets || (await loadAssets().catch(() => ({})));
+    if (type === 'generate') {
+      // Resolve emitted model references before native CAD imports them.
+      const inventory = await ergogen.process(inputConfig, {
+        debug: true,
+        analysis: true,
+        assets,
+        solverWasm,
+        loadSolver: () => import('@salusoft89/planegcs'),
+        cadWasm,
+        loadCad: () => import('replicad-opencascadejs'),
+      });
+      assets = await loadBoardModels(inventory.pcbs || {}, assets);
+    }
     const results = await ergogen.process(
       inputConfig,
       {
