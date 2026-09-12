@@ -21,6 +21,7 @@ const Axes = styled.div`
 type Props = {
   models: ModelBinding[];
   assets: CaseAssets;
+  previewAssets?: CaseAssets;
   selected: number;
   onSelect: (index: number) => void;
   onBusy?: (state: 'busy' | 'idle') => void;
@@ -29,6 +30,7 @@ type Props = {
 export default function ModelEditor({
   models,
   assets,
+  previewAssets = assets,
   selected,
   onSelect,
   onChange,
@@ -273,7 +275,7 @@ export default function ModelEditor({
             Origin (0, 0, 0) is marked by the axes. Drag the matching canvas
             controls to align the model.
           </p>
-          {!modelPreview(model, assets) && (
+          {!modelPreview(model, previewAssets) && (
             <p role="status">
               Model unavailable locally. Dimensions and clearance remain
               unchecked.{' '}

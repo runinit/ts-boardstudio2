@@ -1,6 +1,9 @@
 import NativeCaseObjects from './NativeCaseObjects';
 import { editNativeBoard } from '../utils/nativeBoardSource';
 import CaseModelInset from './CaseModelInset';
+import { useBundledPreviews } from '../hooks/useBundledPreviews';
+import { modelList } from '../utils/modelGeometry';
+import type { ModelBinding } from '../types/footprint';
 import { previewModels } from '../utils/modelPreview';
 import { libraryAssets } from '../utils/footprintLibrary';
 import { useFootprintLibrary } from '../hooks/useFootprintLibrary';
@@ -516,6 +519,18 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
   const analysis = session?.analysis || localAnalysis;
   const plan = analysis.result?.designs?.analysis?.[name];
   const board = analysis.result?.designs?.boards?.[name];
+  const modelId = feature.startsWith('board.components.')
+    ? feature.slice('board.components.'.length)
+    : '';
+  const modelPreviews = useBundledPreviews(
+    modelList(
+      spec.board?.models?.[modelId] ||
+        (board?.components.find((item) => item.id === modelId)?.models as
+          | ModelBinding[]
+          | undefined)
+    ),
+    assets
+  );
   const assembly = preview.result?.designs?.assemblies[name];
   const tree = useMemo(
     () => assemblyNodes(name, spec, board, analysis.result?.layout),
@@ -551,14 +566,14 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
           preview.result,
           name,
           spec.board?.models || {},
-          assets
+          modelPreviews.assets
         ),
         error: '',
       };
     } catch (error) {
       return { result: preview.result, error: String(error) };
     }
-  }, [preview.result, name, spec.board?.models, assets]);
+  }, [preview.result, name, spec.board?.models, modelPreviews.assets]);
   const previewCases = useMemo(
     () => ({ ...transformed.result?.cases, ...transformed.result?.solids }),
     [transformed.result]
@@ -1918,6 +1933,8 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
                   }
                   spec={spec}
                   assets={assets}
+                  previewAssets={modelPreviews.assets}
+                  previewError={modelPreviews.error}
                   onAssets={setAssets}
                   onEdit={(path, value) => {
                     if (board?.native) {
@@ -2316,7 +2333,7 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
                         board={board}
                         id={feature.slice('board.components.'.length)}
                         spec={spec}
-                        assets={assets}
+                        assets={modelPreviews.assets}
                         selected={activeModel}
                         onSelect={setActiveModel}
                         onChange={(models) =>

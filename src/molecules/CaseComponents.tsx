@@ -15,6 +15,8 @@ type Props = {
   onSelect?: (id: string) => void;
   spec: CaseConfig;
   assets: CaseAssets;
+  previewAssets?: CaseAssets;
+  previewError?: string;
   onAssets: Dispatch<SetStateAction<CaseAssets>>;
   onEdit: (path: SourcePath, value: unknown) => void;
   onConfig: (source: string) => void;
@@ -35,6 +37,8 @@ export default function CaseComponents({
   onSelect,
   spec,
   assets,
+  previewAssets = assets,
+  previewError = '',
   onAssets,
   onEdit,
   onConfig,
@@ -342,6 +346,7 @@ export default function CaseComponents({
       </label>
       {busy && <p role="status">{busy}</p>}
       {(error || modelError) && <p role="alert">{error || modelError}</p>}
+      {previewError && <p role="alert">{previewError}</p>}
       {!board ? (
         <p>
           Select a generated board or import a KiCad PCB in Layout. Models
@@ -371,6 +376,7 @@ export default function CaseComponents({
                 key={selected}
                 models={modelBindings}
                 assets={assets}
+                previewAssets={previewAssets}
                 selected={activeModel}
                 onSelect={setActiveModel}
                 onChange={updateModels}
@@ -507,8 +513,9 @@ export default function CaseComponents({
               bindings.length > 0 &&
               bindings.every((model) => {
                 try {
-                  const asset = model.asset || findAsset(model.path, assets);
-                  return !!asset && !!assets[`__model_${asset}.json`];
+                  const asset =
+                    model.asset || findAsset(model.path, previewAssets);
+                  return !!asset && !!previewAssets[`__model_${asset}.json`];
                 } catch {
                   return false;
                 }
