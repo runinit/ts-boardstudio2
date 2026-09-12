@@ -179,7 +179,8 @@ const modelPoint = (point, model) => {
     ;[y,z] = [y*Math.cos(rx)-z*Math.sin(rx),y*Math.sin(rx)+z*Math.cos(rx)]
     ;[x,z] = [x*Math.cos(ry)+z*Math.sin(ry),-x*Math.sin(ry)+z*Math.cos(ry)]
     ;[x,y] = [x*Math.cos(rz)-y*Math.sin(rz),x*Math.sin(rz)+y*Math.cos(rz)]
-    return [x,y,z].map((value,index) => value+model.offset[index])
+    const positioned = [x,y,z].map((value,index) => value+model.offset[index])
+    return model.frame ? require('./native/frames').transform(model.frame, positioned) : positioned
 }
 const envelope = (models, assets) => {
     if (!models?.length) { return null }

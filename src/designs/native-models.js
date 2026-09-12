@@ -18,7 +18,9 @@ exports.place = async (kernel, component, assets, z, feature) => {
             const bytes = mesh.startsWith('base64:') ? Uint8Array.from(atob(mesh.slice(7)), char => char.charCodeAt(0)) : new TextEncoder().encode(mesh)
             imported = await kernel.importMesh(bytes)
         }
-        const solid=kernel.placeModel(imported,binding,component.native?{position:[0,0],rotation:0,side:component.side}:component,component.native?0:z)
+        const framed = component.native && binding.frame
+        let solid=kernel.placeModel(imported,binding,component.native?{position:[0,0],rotation:0,side:framed?'top':component.side}:component,component.native?0:z)
+        if (framed) { solid=kernel.placeRigid(solid,binding.frame) }
         solids.push(component.native?kernel.placeRigid(solid,component.native.matrix):solid)
     }
     return kernel.compound(solids)

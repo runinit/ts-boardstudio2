@@ -65,3 +65,11 @@ identity and project-library revision management belong to the GUI service.
 
 See `test/unit/footprint_tools.js` and `test/unit/native_models.js` for conversion,
 byte preservation, transforms and native assembly regression coverage.
+
+Native PCB components inherit emitted footprint model nodes when the object has
+no explicit model list. Each inherited binding carries a row-major `frame` matrix
+from model-local coordinates to the native object's coordinates, plus
+`footprintKey` and `footprintReference`. The frame includes the emitted footprint's
+side and placement. Native CAD and cached preview meshes apply it once before the
+object matrix; the component side must not be applied again. The original KiCad
+model offset, rotation and scale remain unchanged.

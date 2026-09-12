@@ -19,9 +19,11 @@ const compile = (config,scene,outlines,points) => {
         const model=outlines[profile]
         if (!model) { g.fail(`pcbs.${id}.profile`,'Choose an independent named board profile','reference') }
         const nets=Object.assign(Object.create(null),{'':0}), references=new Set(), footprints=[], components=[], owners=new Map()
+        const thickness=scene.number(spec.thickness ?? 1.6,`pcbs.${id}.thickness`)
         const netIndex=name=>ownNet(nets,name)
         const inverse=f.inverse(scene.boardFrame(id).matrix)
         for (const item of Object.values(scene.objects).filter(item=>item.pcb===id).sort((a,b)=>a.id.localeCompare(b.id))) {
+            const defaultModels = [], footprintTargets = []
             for (const [key,binding] of Object.entries(item.footprints).sort(([a],[b])=>a.localeCompare(b))) {
                 const name=`layout.objects.${item.id}.footprints.${key}`
                 const delta=binding.placement || {}
@@ -35,13 +37,17 @@ const compile = (config,scene,outlines,points) => {
                 const factory=renderer._footprint(points,netIndex,()=>reference,scene.units,{references:spec.references})
                 const emitted=factory({what:binding.what,params:JSON.parse(JSON.stringify(binding.params || {}))},name,point)
                 footprints.push(emitted)
+                // Preserve PCB identities independently of object labels and model overrides.
+                footprintTargets.push(...require('./footprint-models').targets(emitted, item, scene.boardFrame(id).matrix, thickness, key))
+                if (!item.models.length) {
+                    defaultModels.push(...require('./footprint-models').collect(emitted, item, scene.boardFrame(id).matrix, thickness, key))
+                }
             }
             const body=item.envelopes.body
             const matrix=f.multiply(inverse,item.matrix), position=f.position(matrix)
             components.push({id:item.id,reference:item.label,footprint:item.part || item.kind,position:position.slice(0,2),rotation:f.yaw(matrix),side:item.side,
-                kind:item.kind,native:{matrix:item.matrix},family:null,size:body?.size || null,height:body?.height || null,models:item.models,populated:true})
+                kind:item.kind,native:{matrix:item.matrix,footprints:footprintTargets},family:null,size:body?.size || null,height:body?.height || null,models:item.models.length ? item.models : defaultModels,populated:true})
         }
-        const thickness=scene.number(spec.thickness ?? 1.6,`pcbs.${id}.thickness`)
         const source=template.body({name:id,version:config.meta?.version || 'v1',author:config.meta?.author || 'Unknown',
             nets:Object.entries(nets).map(([name,index])=>({name,index,str:`(net ${index} ${JSON.stringify(name)})`,toString(){return this.str}})),
             thickness,footprints,outlines:{board:template.convert_outline({paths:Object.fromEntries(g.paths(model).map((path,index)=>[index,path]))},'Edge.Cuts')},custom:spec.params})
