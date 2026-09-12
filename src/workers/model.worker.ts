@@ -2,7 +2,20 @@ import { STLLoader, VRMLLoader, STLExporter } from 'three-stdlib';
 import { BufferGeometry, Mesh, MeshBasicMaterial, Group } from 'three';
 import { assetBytes, encodeAsset } from '../utils/caseAssets';
 import { kiCadVrml } from '../utils/modelExport';
+import { vrmlNames } from '../utils/vrmlNames';
 import cadWasm from 'replicad-opencascadejs/wasm?url';
+
+// Preview meshes need hundredth-millimeter detail; exports retain the source STEP.
+const PREVIEW_TOLERANCE_MM = 0.01;
+const PREVIEW_ANGLE_RADIANS = 0.3;
+
+function exactBuffer(bytes: Uint8Array) {
+  return new Uint8Array(bytes).slice().buffer;
+}
+
+function modelExt(name: string) {
+  return name.split(/[?#]/, 1)[0].toLowerCase();
+}
 
 // Model import is explicit work; ordinary draft analysis never initializes native CAD.
 self.onmessage = async ({
@@ -13,23 +26,30 @@ self.onmessage = async ({
   const geometries: BufferGeometry[] = [];
   try {
     let bytes = assetBytes(data.source);
-    if (/\.(step|stp)$/i.test(data.name)) {
+    const extension = modelExt(data.name);
+    if (/\.(step|stp)$/.test(extension)) {
       const r = await import('replicad'),
         { default: load } = await import('replicad-opencascadejs');
       r.setOC(await load({ locateFile: () => cadWasm }));
-      const shape = await r.importSTEP(new Blob([bytes]));
+      const shape = await r.importSTEP(new Blob([exactBuffer(bytes)]));
       try {
         bytes = new Uint8Array(
-          await shape.blobSTL({ binary: true }).arrayBuffer()
+          await shape
+            .blobSTL({
+              binary: true,
+              tolerance: PREVIEW_TOLERANCE_MM,
+              angularTolerance: PREVIEW_ANGLE_RADIANS,
+            })
+            .arrayBuffer()
         );
       } finally {
         shape.delete();
       }
     }
     const scene = new Group();
-    if (/\.(wrl|vrml)$/i.test(data.name)) {
+    if (/\.(wrl|vrml)$/.test(extension)) {
       const imported = new VRMLLoader().parse(
-        new TextDecoder().decode(bytes),
+        vrmlNames(new TextDecoder().decode(bytes)),
         ''
       );
       imported.updateMatrixWorld(true);
@@ -52,14 +72,7 @@ self.onmessage = async ({
         }
       });
     } else {
-      geometries.push(
-        new STLLoader().parse(
-          bytes.buffer.slice(
-            bytes.byteOffset,
-            bytes.byteOffset + bytes.byteLength
-          )
-        )
-      );
+      geometries.push(new STLLoader().parse(exactBuffer(bytes)));
     }
     const positions: number[] = [];
     for (const input of geometries) {
