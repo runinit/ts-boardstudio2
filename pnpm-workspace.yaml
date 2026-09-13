@@ -1,0 +1,9 @@
+packages:
+  - app
+  - engine
+  - footprints
+
+allowBuilds:
+  core-js: true
+  core-js-pure: true
+  esbuild: true

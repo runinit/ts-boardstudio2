@@ -1,0 +1,70 @@
+{
+    "name": "@runinit/ergogen",
+    "version": "6.0.0-develop",
+    "description": "Ergonomic keyboard layout generator",
+    "author": "B\u00e1n D\u00e9nes <mr@zealot.hu>",
+    "license": "MIT",
+    "homepage": "https://ergogen.xyz",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/runinit/boardstudio.git",
+        "directory": "engine"
+    },
+    "bugs": "https://github.com/runinit/boardstudio/issues",
+    "main": "./src/ergogen.js",
+    "bin": {
+        "ergogen": "./src/cli.js"
+    },
+    "scripts": {
+        "build": "pnpm run build:schema && rollup -c",
+        "test": "mocha -r test/helpers/register test/index.js",
+        "coverage": "c8 --reporter=html --reporter=text pnpm test",
+        "build:schema": "node scripts/build-schema.js"
+    },
+    "dependencies": {
+        "@salusoft89/planegcs": "1.2.0",
+        "ajv": "^8.17.1",
+        "fs-extra": "^11.3.2",
+        "hull": "github:andriiheonia/hull#5847b0a4fa23f8e5aa3c37a8e6d7b8cf58f24082",
+        "js-yaml": "^3.14.1",
+        "jszip": "^3.10.1",
+        "kle-serial": "github:ergogen/kle-serial#61f29f317d87bbfed0b0b7e646e1b91d4384ac02",
+        "makerjs": "0.18.1",
+        "mathjs": "^15.0.0",
+        "replicad": "1.1.0",
+        "replicad-opencascadejs": "1.1.0",
+        "yaml": "^2.8.2",
+        "yargs": "^17.7.2"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^28.0.7",
+        "@rollup/plugin-json": "^6.1.0",
+        "@rollup/plugin-node-resolve": "^16.0.1",
+        "c8": "^12.0.0",
+        "chai": "^4.5.0",
+        "chai-as-promised": "^7.1.2",
+        "dir-compare": "^5.0.0",
+        "glob": "^11.0.3",
+        "mocha": "^11.7.4",
+        "rollup": "^4.52.4",
+        "sinon": "^21.0.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "types": "src/native/index.d.ts",
+    "files": [
+        "src",
+        "dist",
+        "docs",
+        "scripts/build-schema.js",
+        "rollup.config.mjs"
+    ],
+    "c8": {
+        "all": true,
+        "include": [
+            "src/**/*.js"
+        ]
+    },
+    "private": true
+}

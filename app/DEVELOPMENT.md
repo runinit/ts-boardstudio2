@@ -1,0 +1,1120 @@
+# Board Studio development
+
+The app now lives in `app/` within the Board Studio pnpm workspace. Run install,
+build, and verification from the [repository root](../README.md). The engine and
+footprints are local packages; archive overrides and footprint submodules are
+retired. Existing source APIs, project keys, and library namespaces are retained.
+
+## Application architecture & Knowledge Base
+
+Native configuration and physical-layer architecture: [living reference](../engine/docs/architecture.md).
+
+Key outlines follow exposed key edges with local gap closing. Keep the default
+tight wrapping when authoring key regions; hull wrapping is an explicit choice
+that can replace angled edges with diagonal shortcuts. BHK's acceptance test
+checks both thumb angles, a closed perimeter and component pad containment.
+Boundary `simplify` joins short jogs by intersecting retained edges; `corners`
+selects inside fillets or chamfers on all corners. Chamfer mode retains no
+perimeter arcs. Shallow steps merge into one clearance-preserving diagonal.
+BHK uses 8 mm simplification and 3 mm fillets.
+Both run in the generator before PCB and enclosure exports.
+
+This document serves as a knowledge base and architectural guide for the project, tracking implementation details and design decisions.
+
+## BHK rows and columns
+
+BHK uses native `columns` arrangements for the finger matrix and thumbfan.
+Physical `cell` identities remain separate from explicit electrical nets.
+Stagger, widened-column spacing, thumb splay and offsets use `kx`/`ky`
+expressions; intentional holes remain absent objects. `bhk-layout.json`
+records the prior positions and wiring for migration regression tests.
+
+The canvas and cluster tree select rows as well as columns. `RowInspector`
+shares selection adjustments and exposes occupied/missing cells. Row movement
+expands to object targets before deduplication and ancestor filtering;
+row/column intersections move once. Adding a cell with a named native switch
+binding retains its authored circuit, infers peer matrix nets, and gives LEDs
+unique unconnected ports instead of adding a second preset diode. Delete handles both matrix axes while
+preserving locks, ownership and reference checks.
+
+## Board Studio and document session
+
+### Pitch, relationships and setup
+
+`DimensionField` retains expressions such as `0.5u` and shows resolved millimetres.
+`u` is horizontal pitch; `v` is vertical pitch, defaulting to `u` on square layouts.
+`SnapProvider` shares quarter-unit defaults and 1, 1/2, 1/4, 1/8 increments between
+canvas nudges, drag snapping and column stagger controls. Vertical column moves
+edit stagger while preserving authored offsets. Alt temporarily bypasses snapping.
+
+`layoutSnapping` consumes native physical center and row/column guides. Temporary
+center snaps can become labelled native constraints through **Keep relationship**. The
+Inspector also supports mouse-picked center alignment, distance and equal spacing.
+`layoutRelations` validates candidates before committing, tracks owned freedoms,
+and bakes the solved pose when unlinking the final managed relationship.
+
+`DesignSetupPanel` stages Basics, Key assembly and Stackup in the workspace.
+`setupDraft` merges changed settings against current source and rejects conflicts;
+layout edits made while setup is open survive. Existing keys inherit assembly
+changes unless customized or locked. Rows, columns, MCUs and encoders are added in
+Layout. The assembly editor generates a separate two-key KiCad sample using real
+footprints and assets. `componentPlacement` inserts catalogue electronics on the
+chosen PCB; battery envelopes require measured dimensions.
+
+The shared snap-target cache follows immutable analysis reports. Footprint origins
+are independently selectable; center and edge snaps leave the free axis on the
+selected grid. Keys use their column edit frame, including splay; matrices use
+parent coordinates and quantize their own origin. Native alignment seeds followers
+in dependency order before the constraint solve, preserving target positions and
+checking the complete constraint system afterward.
+
+Setup preserves pitch formulas and exposes independent dimensions for new keycaps.
+Assembly samples receive the same unit scope. The staged setup is merged only after
+its own changes are compiled, so concurrent canvas edits are preserved or reported
+as explicit conflicts. Set distance also accepts a mouse-picked canvas target.
+
+### Mechanical material layers
+
+`designs.stackups` defines PCB/plate dimensions and named foam, silicone or gasket
+layers between existing physical surfaces. Named parameters also drive linked
+case assemblies and inherited per-key electronics. Stock thickness and compression
+produce installed thickness; sheets sharing a gap accumulate in order. Interference
+and missing surfaces belong to the affected layer and do not move the stack.
+
+The stack section includes declared switch, keycap and component heights, plus case
+floor/lid surfaces when available. Undeclared heights are reported explicitly.
+Mirrored objects resolve their mounting plane once, retaining material cutouts.
+
+Native stackup compilation derives flat contours from the selected PCB/profile,
+subtracts intersecting bodies, mounts and explicit cutouts, then validates closed
+geometry. Gasket defaults require named contacts or an explicit profile. Each ready
+layer has its own millimetre DXF and nominal reference solid. ZIP exports include
+`outputs/material-layers.json`. Gap fit in setup is distinct from cutting-outline
+readiness in Export; reference solids do not model elastic deformation.
+
+`BoardStudio` is the native workspace: Design → PCB → Case → Export.
+Its tree and inspector surround a shared physical-layout canvas. Phone panels
+replace the docked columns without removing editing controls. Legacy documents
+retain the existing workspace while native projects use Studio.
+
+Design combines layout and component placement, with one part-library entry.
+Settings opens a modal inside the workspace and restores focus when closed;
+selection, camera and the active stage remain mounted. Advanced library source
+appears only after selecting an entry. Schema routing parses YAML, retains the
+active editor during syntax errors and resets when switching projects.
+
+Board Studio owns native analysis and explicit generation across Case, Code,
+library, sketches and Export. Analysis updates sketch editing; full generation
+supplies assembly meshes and converts JSCAD tray parts before publishing success.
+The legacy context never generates native documents, including
+initial imports and migrated thumbnails. Visiting Case does not modify the source;
+**Create case** is an explicit undoable edit. Export groups portable source, PCB,
+outlines and case files. Manufacturing review belongs to the current generated
+result and resets after edits; case failures do not block valid PCB outputs.
+
+`ConfigContext` owns the source, realtime source reference, project assets,
+custom injections and bounded undo/redo history. Code typing coalesces for 750 ms;
+a visual command or completed drag creates one entry. Switching projects resets
+history. IndexedDB stores imported assets per project and retains migration from
+the original asset store. Bundled footprint entries remain immutable; editing a
+library entry creates a custom override.
+
+`studioSource`, `layoutSource` and `designSource` implement document commands.
+They edit YAML ranges and materialize only the selected alias instance. Unrelated
+comments, expressions, object IDs and footprint/net identities stay intact.
+Duplicate keys receive new explicit net names and generated footprint references.
+Resizing an arrangement retains the IDs of existing cells. Deletion refuses
+referenced objects instead of leaving broken attachments.
+
+New projects start from numeric matrix dimensions (5 columns × 4 rows by default).
+Their keys mount on the PCB top surface; new thumb clusters and loose keys reuse
+that layer. Case-height changes therefore move the electronics with the PCB.
+`boardDefaults` preserves explicit spacing defaults on unrelated setup edits;
+only a pitch change relinks future defaults to `u`/`v`. Matrix spacing has one
+Inspector section. `assemblyScope` resolves Board → matrix → column → key recipes,
+preserves descendant overrides when applying a parent, and resets only the chosen
+scope. `AssemblyScopePanel` reuses the footprint editor for every scope.
+
+`SnapControls` owns the single snapping menu. `StudioCanvas` offers a relationship
+only for its latest accepted center/edge drop. `keepSnapRelation` routes center
+alignment to constraints and edge offset to an attachment at the accepted pose.
+`StackupPanel` and `StackDimensions` are shared by Setup and Case; parameter aliases
+remain editable, and the plate height is derived from the case datum, PCB thickness
+and gap. Unlinked legacy case dimensions retain their local storage.
+
+New projects start with an empty canvas and docked Design setup.
+`boardDefaults` creates explicit `u`/`v` pitch and mechanical parameters;
+`boardTopology` links mirrored clusters. Adding physical content initializes a
+missing PCB outline without replacing existing profiles. Keys mount on the PCB
+top surface; new thumb clusters and loose keys reuse that layer. Case-height changes therefore move the electronics with the PCB.
+The floating canvas pill exposes Objects, Columns and Matrices directly, alongside
+Pan and snapping. Selecting a tree item also updates the canvas selection scope.
+`ColumnInspector` edits a whole column's splay, stagger and offsets, and exposes
+its occupied and empty cells. Resizing preserves deleted holes; Add key restores
+a chosen cell. The engine assigns shared column/row nets; individual overrides
+remain available under Wiring. This interaction draws inspiration from the
+[Cosmos editor](https://ryanis.cool/cosmos/beta), using our existing theme,
+native YAML and physical geometry.
+
+`useStudio` coordinates native editing and analysis. `StudioCanvas` updates drag
+feedback on animation frames and commits on release. Nudges and inspector edits
+use the latest source. A synchronous draft resolves dependencies and mirrors
+without solving constraints or rebuilding outlines. Edited axes become fixed
+placement targets; conflicting edits remain saved and block fabrication exports.
+The camera remains stable until an explicit Fit.
+
+A persistent worker settles edits for 180 ms, then publishes layout, outline and
+board-analysis stages using one resolved scene. Only the newest pending request
+survives; superseded workers get a one-second grace period. Document, project,
+injection, library and asset revisions guard publication. Generated source amends
+the originating history entry; undo and project changes invalidate pending work.
+
+Automatic outline defaults on for managed recipes. The previous outline remains
+visible during analysis. Disabling automation stores exact line, arc and circle
+snapshots while retaining recipes. Manual rebuilding replaces snapshots only on
+success. Custom outlines remain authored, and opening a project never rewrites it.
+`StudioCanvas` renders resolved engine envelopes. Pointer motion translates SVG
+objects immediately; only a released drag creates a YAML candidate and invokes the
+layout worker. The accepted pose stays visible until normal analysis catches up.
+The camera freezes at drag start; Fit alone reframes the changed geometry. Cancelled
+pointers, changed source and rejected solutions leave source history unchanged.
+A solved constraint that prevents the requested motion produces a visible error.
+
+`studioTargets` owns Ctrl/Cmd toggling, Shift ranges and containment-aware selection.
+`studioMove` applies world deltas through local edit frames. Selected descendants
+move once with their ancestor, including owned electronics and mirrored members.
+`studioDelete` assembles a single undoable edit, removes owned components, and
+preserves lock and external-reference checks. Delete in text fields or dialogs
+keeps its normal editing behavior.
+
+`snapSpacing` resolves pitch expressions through the native unit evaluator and
+caches scoped defaults. Keys retain their pitch-derived edge gaps, including
+oversized caps and unequal row/column pitch. Independent components use the gap
+chosen in Canvas options. Snapping compares actual rotated envelope edges and
+rejects candidates that crowd another object on the same PCB and mounting layer.
+Owned key electronics retain their intentionally overlapping assembly placements.
+Alt or the Snap toggle explicitly bypasses these placement rules. A same-layer
+component can keep its snapped target and relative offset; stacked, solved and
+key-owned placements keep their existing relationships.
+
+Quick controls open after selection, dismiss before another
+drag, and use free canvas space when possible. The panel respects reduced motion;
+phones use a bottom sheet. Objects show relative translation and rotation, keys add
+chosen in Snapping options. Snapping compares actual rotated envelope edges and
+rejects candidates that crowd another object on the same PCB and mounting layer.
+Owned key electronics retain their intentionally overlapping assembly placements.
+Alt or the Snapping toggle explicitly bypasses these placement rules. A same-layer
+component can keep its snapped target and relative offset; stacked, solved and
+key-owned placements keep their existing relationships.
+
+The Inspector opens explicitly and remembers its state. Desktop properties
+remain beside the canvas; phones use a scrollable drawer. Panels respect reduced
+motion. Objects show relative translation and rotation, keys add
+size/alignment, columns add splay/stagger, and matrices add row/column spacing.
+The compact tree groups owned electronics beneath keys. Pan, pinch, wheel zoom,
+arrow nudges and explicit Fit remain available.
+
+`StudioInspector` edits parameters, arrangements, placement, solver freedoms,
+constraints, layers, physical envelopes and outline finishing. For a profile that
+references a boundary, it edits that boundary's finishing controls, so chamfer
+replaces fillet at its owner. Automatic outlines author explicit bridges between
+physical groups and retain typed selectors for future keys and PCB components.
+
+Embedded `CaseWizard` edits the same source and assets. It has no separate Apply
+or Cancel transaction. Existing analysis, clearance findings, process adaptation,
+mounting tools and reviewed manufacturing exports remain its responsibility.
+`StudioExport` provides editable project archives and current PCB/outline files;
+case solid exports go through the case review. A successful preview is not a
+physical-fit or fabrication approval.
+
+Worker results are revision checked against source, injection, library and asset
+content. Invalid drafts remain saved while the canvas retains last valid geometry.
+Stale results are labelled and cannot authorize exports. Explicit Generate builds
+solids; ordinary edits run analysis without repeatedly rebuilding solid geometry.
+
+The solver contract and source examples live in the engine's
+[living architecture](../engine/docs/architecture.md#layout-constraints).
+The `Constrained layout` gallery example demonstrates named dimensions, fixed
+coordinates, solver-owned movement and an arranged thumb cluster.
+
+## Ergogen CLI
+
+[Ergogen](https://github.com/ergogen/ergogen) is a command line tool that allows users to define the characteristics of ergognomic keyboards (usually split ones) in YAML code, then generating assets to help fabricate the board. Ergogen helps with the general layout of the keys, the creation of a KiCad compatible PCB, the creation of DXF outlines for integration with other CAD software, and OpenJSCAD 3D models for keyboard case creation.
+
+## Component Architecture
+
+The project follows the principles of **Atomic Design** to structure its React components. This methodology helps create a scalable and maintainable component library. Components are organized into the following directories:
+
+- **`src/atoms`**: The smallest, most basic building blocks of the UI. These are individual HTML elements like buttons, inputs, and icons. They are highly reusable and should not contain any business logic.
+- **`src/molecules`**: Groups of atoms that function together as a single unit. For example, a search form might consist of an input atom and a button atom.
+- **`src/organisms`**: More complex UI components composed of molecules and/or atoms. These components represent distinct sections of an interface, like a header or a file download list.
+- **`src/pages`**: The highest-level components that represent entire pages in the application. They are responsible for composing organisms and other components to build a complete user view.
+
+This structure promotes reusability and a clear separation of concerns, making it easier to develop and test components in isolation.
+
+## Resizable Panels
+
+The application uses a custom `ResizablePanel` component (`src/molecules/ResizablePanel.tsx`) for creating resizable split-panel layouts. This component replaced the `react-split` library to provide more control over styling and behavior.
+
+### Features
+
+- **Drag-to-resize**: Supports both mouse and touch interactions for resizing
+- **Flexible constraints**: Supports `minWidth`, `maxWidth` (as pixels, percentages, or numbers), and `initialWidth`
+- **Side-aware**: Can be configured as a left or right panel with appropriate handle positioning
+- **Performance optimized**: Uses inline styles for width to avoid generating excessive CSS classes during resize operations
+
+### Usage
+
+The `ResizablePanel` component is used throughout the application for:
+
+- **Config panel**: Left-side panel containing the configuration editor
+- **Downloads panel**: Right-side panel containing the file downloads list
+- **Settings panel**: Left-side panel containing options and injections list
+
+### Implementation Details
+
+- Width is managed via React state and updated during drag operations
+- Maximum width calculation handles percentage strings (e.g., `"70%"`), pixel strings (e.g., `"600px"`), and numeric values
+- On mobile devices (≤639px), panels automatically expand to 100% width and resize handles are hidden
+- The resize handle includes visual feedback with hover effects and a gap effect using `box-shadow`
+
+## Web Workers
+
+The application offloads long-running, computationally intensive tasks to Web Workers to prevent the main UI thread from freezing. This ensures the user interface remains responsive while processing complex keyboard layouts or generating 3D models.
+
+- **`ergogen.worker.ts`**: This worker is responsible for running the core Ergogen logic. It takes the user's YAML configuration as input and generates the raw output data, including outlines, PCB information, and case designs.
+  - **Lifecycle Management**: To prevent custom injections (footprints, outlines, templates) from lingering in Ergogen's persistent module-level registry inside the worker thread when renamed or deleted, the worker is terminated and recreated fresh every time the settings panel (`showSettings`) transitions from open (`true`) to closed (`false`).
+  - **Auto-Generation Suspension**: Auto-generation runs are suspended while the settings panel is open to ensure maximum performance and responsiveness when editing custom footprint code or modifying settings. Once the settings panel is closed, the worker is restarted and a generation run is triggered immediately to compile all edits.
+  - **Custom Injection Evaluation**: Evaluates custom user-provided injection scripts (such as outlines, templates, or footprints) within the worker context. It binds a custom `require` resolver to support dynamic runtime module resolution for common packages/modules (e.g. `makerjs`, `../utils`, and internal Ergogen helpers like `assert`, `prepare`, etc.).
+
+- **`jscad.worker.ts`**: This worker handles 3D geometry processing. It receives the output from the Ergogen worker and uses JSCAD to generate 3D models for previewing. It is also responsible for converting these models into the STL format for downloading.
+
+Communication with the workers is managed through a standard message-passing system (`postMessage` and `onmessage`), with the main application thread and workers exchanging data as needed.
+
+### Worker Factory & Vitest Testing
+
+To handle Web Worker instantiation in a centralized and testable way, the application uses `src/workers/workerFactory.ts`. This module exports `createErgogenWorker` and `createJscadWorker`.
+
+Since we use Vitest and native ESM, the native worker instantiation using `new Worker(new URL('./jscad.worker', import.meta.url))` runs natively and seamlessly in both development/production builds and the Vitest test runner.
+
+To verify worker instantiation and error boundaries inside `src/workers/workerFactory.test.ts`, we mock `window.Worker` and clean it up inside `finally` blocks to guarantee test run isolation without requiring any temporary file generation hacks.
+
+## Local File Loading
+
+The application supports loading Ergogen configurations from local files on the user's computer. This includes support for multiple file formats and drag-and-drop functionality.
+
+### Supported File Types
+
+- **YAML/JSON files** (`.yaml`, `.yml`, `.json`): Direct configuration files that are loaded as text
+- **ZIP archives** (`.zip`): Archives containing `config.yaml` in the root and optionally `footprints`, `outlines`, or `templates` folders
+- **EKB archives** (`.ekb`): Ergogen keyboard archives (essentially ZIP files with a different extension)
+
+### Archive Structure
+
+When loading ZIP or EKB archives, the application expects:
+
+- **`config.yaml`** (required): Must be present in the root directory of the archive
+- **`footprints/` folder** (optional): Contains custom footprints as `.js` files organized in subfolders
+  - Names are derived from the relative path under `footprints`, excluding the `.js` extension
+- **`outlines/` folder** (optional): Contains custom outlines as `.js` files organized in subfolders
+  - Names are derived from the relative path under `outlines`, excluding the `.js` extension
+- **`templates/` folder** (optional): Contains custom templates as `.js` files organized in subfolders
+  - Names are derived from the relative path under `templates`, excluding the `.js` extension
+
+### Drag and Drop
+
+Users can drag and drop files anywhere on the welcome page to load them. Visual feedback includes:
+
+- Dashed border around the page when dragging
+- Overlay message indicating drop target
+- Automatic file type validation
+- Error messages for invalid file types or missing config.yaml
+
+### Local File Conflict Resolution
+
+When loading footprints, outlines, or templates from local archives, the same unified conflict resolution system applies. Users can choose to skip, overwrite, or keep both versions of conflicting injections. The system works for all injection types and shows type-specific dialogs (e.g., "Footprint Conflict", "Outline Conflict", "Template Conflict").
+
+### Local File Implementation
+
+- **`src/utils/localFiles.ts`**: Contains `loadLocalFile` function that handles all file types:
+  - `loadTextFile`: Reads YAML/JSON files using FileReader
+  - `loadZipArchive`: Extracts config.yaml, footprints, outlines, and templates from ZIP/EKB archives using JSZip
+  - `extractFootprintName` / `extractOutlineName` / `extractTemplateName`: Generates names from relative file paths
+- **`src/pages/Welcome.tsx`**: Integrates local file loading with drag-and-drop handlers and conflict resolution
+
+## GitHub Integration
+
+The application supports loading Ergogen configurations directly from GitHub repositories. This feature includes automatic footprint, outline, and template loading.
+
+### Loading from GitHub
+
+GitHub configurations can be loaded in two ways:
+
+1. **Via Welcome Page Input**: User enters a GitHub URL in the input field on the Welcome page
+2. **Via URL Parameter**: User navigates to a URL with `?github=user/repo` parameter (e.g., `https://ceoloide.github.io/ergogen-gui/?github=ceoloide/corney-island`)
+
+When a user provides a GitHub repository URL (e.g., `user/repo` or `https://github.com/user/repo`), the application:
+
+1. **Fetches the configuration file**: Attempts to load `config.yaml` from standard locations:
+   - Root directory: `/config.yaml`
+   - Ergogen subdirectory: `/ergogen/config.yaml`
+   - Tries both `main` and `master` branches
+
+2. **Fetches custom injections**: Recursively scans for `footprints/`, `outlines/`, and `templates/` folders alongside the config file:
+   - Searches for `.js` files at any depth within these folders
+   - Constructs injection names from the folder path and filename (e.g., `folder1/folder2/file_name`)
+   - Uses the GitHub API to traverse directories
+
+3. **Handles Git Submodules**: Checks for `.gitmodules` file in the repository root:
+   - Parses the `.gitmodules` file to find submodules within footprints, outlines, or templates folders
+   - For each matching submodule, fetches the submodule repository recursively
+   - Loads all `.js` files from the submodule and prefixes names with the relative path
+
+### GitHub Conflict Resolution
+
+The application provides a unified conflict resolution system for all injection types (footprints, templates, and outlines) across multiple loading scenarios:
+
+#### When Conflicts Occur
+
+Conflict resolution is triggered when loading injections from:
+
+1. **GitHub repository URLs** (via the Welcome page input or `?github=` URL parameter)
+2. **Local files** (ZIP/EKB archives with injections)
+3. **Shared configuration links** (hash fragments with injections)
+
+#### Conflict Resolution Dialog
+
+When a conflict is detected, a `ConflictResolutionDialog` is displayed to the user with:
+
+1. **Type-specific messaging**: The dialog shows the specific injection type (e.g., "Footprint Conflict", "Outline Conflict", "Template Conflict") rather than generic "injection" terminology, making it clearer for users.
+
+2. **Three resolution options**:
+   - **Skip**: The new injection is not loaded
+   - **Overwrite**: The new injection replaces the existing one
+   - **Keep Both**: Both injections are retained; the new one gets a unique name with an incremental suffix (e.g., `footprint_1`)
+
+3. **"Apply to all conflicts" checkbox**: Allows the user to use the same resolution strategy for all subsequent conflicts in the current load operation.
+
+#### Generic Implementation
+
+The conflict resolution infrastructure is generic and works with any injection type:
+
+- Uses `checkForInjectionConflict(type, name, existingInjections)` for type-aware conflict detection
+- Uses `mergeInjectionArraysWithResolution(newInjections, existingInjections, resolution)` for merging with conflict resolution
+- The dialog accepts an `injectionType` prop to display type-specific messages
+- Supports footprints, outlines, and templates
+
+### GitHub Implementation
+
+- **`src/utils/github.ts`**: Contains `fetchConfigFromUrl` function that returns config, footprints, outlines, and templates, plus helper functions:
+  - `fetchFootprintsFromDirectory`: Recursive directory traversal for a single directory
+  - `fetchFootprintsFromRepo`: Recursive traversal of an entire repository (for submodules)
+  - `parseGitmodules`: Parses `.gitmodules` file to extract submodule paths and URLs
+  - `bfsForYamlFiles`: Performs breadth-first search to find YAML files in repository
+- **`src/utils/injections.ts`**: Generic utility functions for conflict resolution:
+  - `checkForInjectionConflict(type, name, existingInjections)`: Type-aware conflict detection
+  - `generateUniqueInjectionName(type, baseName, existingInjections)`: Generates unique names for any injection type
+  - `mergeInjectionArraysWithResolution(newInjections, existingInjections, resolution)`: Merges injections with conflict resolution
+  - `mergeInjections(newFootprints, existingInjections, resolution)`: Footprint-specific wrapper (deprecated, use `mergeInjectionArraysWithResolution` instead)
+  - `mergeInjectionArrays(newInjections, existingInjections)`: Default merge with overwrite strategy
+- **`src/molecules/ConflictResolutionDialog.tsx`**: React component for the conflict resolution UI that displays type-specific messages
+- **`src/pages/Welcome.tsx`**: Orchestrates the loading process (both GitHub and local files), handles conflicts sequentially, and manages dialog state. Also includes drag-and-drop handlers for local file loading
+- **`src/context/ConfigContext.tsx`**: Handles conflict resolution for GitHub URI parameter loading (`?github=...`)
+- **`src/App.tsx`**: Handles conflict resolution for shared config hash fragment loading
+
+### GitHub API Rate Limiting
+
+The GitHub loading functionality uses unauthenticated requests, which are subject to GitHub's rate limits:
+
+#### API Requests (api.github.com)
+
+- **Rate Limit**: 60 requests per hour for unauthenticated requests
+- **Detection**: The code checks for HTTP 403 status with `X-RateLimit-Remaining: 0` header
+- **80% Warning**: Displays warning when 80% of hourly allowance is consumed
+- **User Feedback**: When rate limit is exceeded, a clear error message is displayed: "Cannot load from GitHub right now. You've used your hourly request allowance. Please wait about an hour and try again."
+- **Graceful Handling**: The loading process continues even if rate limit is hit, just showing the error to the user
+- **Console Logging**: All rate limit headers (Limit, Remaining, Used, Reset) are logged with `[GitHub Rate Limit]` prefix
+
+#### Raw Content Requests (raw.githubusercontent.com)
+
+- **Rate Limit**: 5,000 requests per hour for unauthenticated requests
+- **Detection**: The code checks for HTTP 429 status
+- **User Feedback**: When rate limit is exceeded, displays: "You've reached your hourly request allowance for loading content from GitHub. Please wait 30 minutes and try again."
+- **No 80% Warning**: raw.githubusercontent.com doesn't provide rate limit headers, so proactive warnings are not possible
+- **Graceful Handling**: The loading process continues even if rate limit is hit, just showing the error to the user
+
+**Future Enhancement**: Implement authenticated GitHub API requests to increase API rate limit to 5,000 requests per hour. This would require:
+
+- OAuth integration or personal access token support
+- Secure token storage
+- UI for token configuration
+- Fallback to unauthenticated requests if no token is provided
+
+## Configuration Sharing
+
+The application supports sharing keyboard configurations via URL hash fragments. Users can generate a shareable link that contains the configuration and only the custom footprints that are actually used, allowing recipients to load the complete setup with a single click.
+
+### Share Link Format
+
+Shareable links use the format: `<baseUrl>#<encoded-config>` (resolving to the deployment domain, e.g. `https://ceoloide.github.io/ergogen-gui/#<encoded-config>`) where the hash fragment contains:
+
+- The keyboard configuration (YAML/JSON string)
+- Only the footprint injections that were selected by the user in the Share dialog (filtered to those actually used in the design)
+- All non-footprint injections (templates, etc.) that were selected by the user
+- **Version metadata**:
+  - `guiVersion`: The version of the GUI in package.json at the time of creation (e.g. `0.8.9`)
+  - `ergogenVersion`: The full Ergogen version used (e.g. `github:ceoloide/ergogen#v4.3.0` or official `github:ergogen/ergogen#v4.2.1`)
+
+The configuration, injections, and version metadata are compressed and URL-encoded using `lz-string`'s `compressToEncodedURIComponent` function for efficient transmission.
+
+### Sharing Process
+
+The sharing flow is a two-step wizard inside `ShareDialog`:
+
+**Step 1 – Selection View:**
+
+1. The user clicks the share button in the header or subheader. The `ShareDialog` opens at Step 1.
+2. An **"Include custom libraries"** toggle is shown (defaulted to ON).
+3. When ON and custom injections are present, the dialog immediately spawns a **temporary background worker** (via `createErgogenWorker()`) and runs Ergogen generation in debug mode.
+4. The worker response includes the `canonical` output. The dialog calls `extractUsedFootprintsFromCanonical(canonical)` to identify which footprint names are referenced in the PCBs section.
+5. The dialog builds a **checklist** of eligible injections:
+   - Footprint injections are only included if they appear in the canonical output.
+   - Template and outline injections are always included.
+   - All items default to checked.
+6. The user can uncheck individual items to exclude them from the share package.
+7. When the toggle is OFF, no worker is spawned and no injections are shared.
+8. The user clicks **Share** to proceed to Step 2.
+
+**Step 2 – Copy Link View:**
+
+1. `createShareableUri` is called with the config and the user-selected injections.
+2. The generated link is displayed in a read-only input and **auto-copied** to the clipboard.
+3. A "Copy link" button provides visual feedback (changes to "Link copied" with a check icon for 2.5 seconds).
+
+### Dialog UI
+
+The `ShareDialog` component provides:
+
+- **Step 1**: Toggle switch, loading spinner (while analyzing), error message (if worker fails), injection checklist with type badges (footprint / outline / template), and a Share button.
+- **Step 2**: Read-only share link input, Copy button with feedback, close button (X), Escape key support.
+
+### Loading Shared Configurations
+
+When a user navigates to a URL with a hash fragment:
+
+1. **Initial Load / Hash Changes**: On page load or hash change, `App.tsx` checks for a hash fragment, decodes, and validates the shared payload structure.
+2. **Version Compatibility Checking**: Before loading the configuration, the application performs environment checks:
+   - If the current GUI version is older than the one in the share link, or if the current Ergogen version is older than the one in the share link, or if the share link used a custom Ergogen version:
+     - The loading is intercepted and a **Version Compatibility Warning Modal** (`ShareVersionCompatibilityDialog`) is shown.
+     - The user is alerted of the version mismatches (e.g., GUI/Ergogen version differences) or that a custom Ergogen fork was used (with a clickable link to the GitHub repository/ref for investigation).
+     - The user can choose to **Accept and Load** (which imports the configuration as is) or **Cancel** (which aborts loading completely).
+   - **Backward Compatibility**: If a parsed share link lacks version information (legacy links), the application assumes it was shared with GUI version `0.9.0` and official Ergogen version `4.2.1` (`github:ergogen/ergogen#v4.2.1`).
+   - If all versions are compatible (or the user accepts the compatibility warning dialog), the configuration loading proceeds.
+
+3. **Conflict Resolution**:
+   - If injections are present, conflict resolution is performed using `ConflictResolutionDialog` for name conflicts.
+   - Updates the configuration state and triggers regeneration.
+
+### Error Handling
+
+The share system provides comprehensive error handling:
+
+- **Decode Errors**: Invalid or corrupted encoded strings display: "The shared configuration link is invalid or corrupted. The encoded data could not be decompressed."
+- **Validation Errors**: Valid strings with invalid structure display: "The shared configuration link does not contain a valid configuration. The decoded data is missing required fields or has an invalid structure."
+- **Console Logging**: All errors are logged to the console with `[Share]` prefix for debugging
+- **Debug Mode**: Adding `?debug` to the URL enables debug logging that shows the decoded configuration object in the console
+
+### Sharing Implementation
+
+- **`src/utils/share.ts`**: Core sharing utilities:
+  - `encodeConfig`: Compresses and encodes configuration and injections, automatically embedding GUI and Ergogen version metadata.
+  - `decodeConfig`: Decompresses and validates shared configurations. Assigns default fallback versions (`0.9.0` for GUI, `github:ergogen/ergogen#v4.2.1` for Ergogen) for backward compatibility when versions are missing in the payload. Returns `DecodeResult`.
+  - `createShareableUri`: Constructs the full shareable URL.
+  - `getConfigFromHash`: Extracts and decodes hash fragment from current URL.
+  - `extractUsedFootprintsFromCanonical`: Extracts footprint names from canonical output's PCBs section.
+  - `filterInjectionsForSharing`: Filters injections to only include used footprints.
+- **`src/utils/version.ts`**: Contains version parsing, comparison, and extraction utilities (`parseVersion`, `compareVersions`, `getSemverFromErgogenVersion`, `isCustomErgogenVersion`).
+- **`src/utils/injections.ts`**: Contains functions for merging injection arrays.
+- **`src/molecules/ShareDialog.tsx`**: Two-step dialog for sharing configurations.
+- **`src/molecules/ShareDialog.test.tsx`**: Unit tests for the two-step sharing flow.
+- **`src/molecules/ShareVersionCompatibilityDialog.tsx`**: Themed warning modal shown when loading a shared config with version mismatches or a custom Ergogen version.
+- **`src/molecules/ShareVersionCompatibilityDialog.test.tsx`**: Unit tests for the warning dialog.
+- **`src/App.tsx`**: Handles initial hash loading, hash change events, and integrates version compatibility warning checks before loading shared configurations.
+- **`src/App.test.tsx`**: Integration tests verifying App's mount and hashchange behavior when receiving compatible, incompatible, and custom-version share links.
+- **`src/atoms/Header.tsx`**: Contains the share button and share functionality.
+
+### Future Enhancements
+
+Several potential improvements could enhance the sharing feature:
+
+1. **URL Length Validation**: Very large configurations might create URLs that exceed browser URL length limits (typically 2048-8192 characters depending on browser). Could add validation to warn users or suggest alternative sharing methods when URLs become too long.
+2. **QR Code Generation**: For easier mobile sharing, could generate QR codes that users can scan to load configurations directly on mobile devices.
+3. **Share Link Shortening**: Very long URLs can be unwieldy. Could integrate with URL shortening services or create a custom short link service with a backend API.
+4. **Mobile Native Sharing**: On mobile devices, could integrate with native sharing APIs (Web Share API) to allow sharing through the device's native share menu (SMS, email, social media, etc.).
+5. **Share Link History**: Track previously generated share links in localStorage, allowing users to easily access and re-share recent configurations.
+6. **Share Link Validation**: Add a "Test Link" feature that validates a share link works correctly before sharing it with others.
+7. **Better Error Recovery**: When encountering partially corrupted share links, attempt to recover and load what's possible rather than showing a complete error (e.g., load config even if injections are corrupted).
+8. **Share Link Expiration**: Add optional expiration dates or time-to-live (TTL) for share links, useful for temporary sharing scenarios.
+9. **Compression Optimization**: Investigate alternative compression algorithms or compression settings that might provide better compression ratios for large configurations while maintaining URL safety.
+
+## Workspace engine build
+
+`ergogen` aliases the local `@runinit/ergogen` package in `../engine`.
+Install with the root frozen lockfile. Browser patches use a temporary copy and
+resolve Rollup from workspace dependencies; they do not install another tree or
+mutate the engine. The old archive override lifecycle is retired.
+
+## Version Information & Custom Build Indicators
+
+To improve transparency and debuggability for users running custom repositories, branches, tags, or commit hashes of Ergogen, the application displays version information directly in the sidebar footer and highlights custom builds using dedicated badges:
+
+- **GUI Version Button**: Displays the GitHub logo alongside "GUI" and the local `package.json` version (e.g., `0.6.3`). Clicking it links directly to the GUI codebase on GitHub.
+- **Ergogen Version Button**: Displays the GitHub logo alongside "Ergogen" and the currently built Ergogen version.
+  - **Standard Releases**: Shows the standard version number (e.g., `4.2.1`) in standard gray.
+  - **Custom Builds**: If built using a custom repository or reference (detected via `isCustom`), the version text is colored in green (`theme.colors.accent`) and a vertical `DEV` badge is shown on the right-hand edge of the button.
+  - **Commit Hashes**: Full 40-character commit hashes are automatically truncated to 7 characters (e.g., `fb2509f`) and link directly to `/commit/` on GitHub instead of `/tree/`.
+  - **Other References**: Shorter labels (such as tags like `v4.3.0` or branch names like `develop`) are kept intact and link to `/tree/` on GitHub.
+
+### Custom DEV Chip & Explanation Modal
+
+When the built Ergogen version is custom (`isCustom` is true), a green superscript DEV chip (`<DevChip>`) is displayed next to the app name in both the Header and Sidebar.
+
+- **Icon and Badge**: Contains a beaker (`science`) icon and `DEV` text.
+- **Hover/Tap Popover**: Hovering (desktop) or tapping (mobile) on the chip triggers a floating explanation popover card.
+- **Close Delay**: Incorporates a 250ms mouse-leave transition delay to allow the user's cursor to navigate into the popover and click the repository link without closing the card prematurely.
+- **Global Click Close**: Sets up global window click listeners to automatically close the popover on touch screens or outer clicks.
+
+## Feature Flags
+
+The application implements a hybrid feature flag system (`src/utils/featureFlags.ts`) to control the visibility and usage of capabilities based on the active environment and loaded Ergogen version.
+
+This is primarily used to control outline and template injections, which require Ergogen `v4.3.0` or higher:
+
+- **Production builds** (running the standard npm package release `v4.2.1`) have these features disabled to prevent compilation errors inside the worker thread.
+- **Development/Custom builds** (running custom refs or versions `>= v4.3.0`) have them enabled.
+
+### Evaluation Lifecycle
+
+When querying `isFeatureEnabled(featureName)`, the system checks conditions in the following priority order:
+
+1. **URL Query Param Overrides**: e.g., `?ff_templates=true` (high-priority override, useful for manual verification/debugging).
+2. **Build-Time Environment Variables**: Checks if `REACT_APP_FEATURE_TEMPLATES` is set to `'true'` or `'false'`.
+3. **Runtime Version Check**: Checks the loaded Ergogen version (`displayText`). If it is standard semver, it compares it against the feature's minimum required version (`4.3.0`). Custom development references (e.g. `develop` branch or commit hashes) default to enabling the feature.
+
+### Integrated Gating
+
+Feature flags are enforced across the following components:
+
+- **Injections Side Panel (`Injections.tsx`)**: Outlines and Templates tabs and action/upload buttons are conditionally hidden.
+- **Local File Loader (`localFiles.ts`)**: Drops and ZIP archive extraction skip outline/template folders if disabled.
+- **GitHub Loader (`github.ts`)**: Traversal of outlines and templates subfolders/submodules is skipped if disabled.
+- **Generation Payload (`ConfigContext.tsx`)**: Injections are filtered on the main thread before invoking `generateNow` on the worker to prevent compile-time crashes from stale/localStorage values.
+
+## Multi-Configuration Management
+
+The application features a built-in Multi-Configuration Management system allowing users to work on multiple YAML/JSON configurations, switch between them instantly, search their lists, rename, duplicate, and delete configurations.
+
+### Key Architecture Components
+
+1. **State & Actions Context (`ConfigContext.tsx`)**:
+   - Manages active configuration ID (`activeConfigId`), active configuration name (`activeConfigName`), list of saved configurations (`configs`), and a temporary read-only state for URL-shared previews (`isPreview`).
+   - Syncs active config code content (`configInput`) to whichever saved configuration is currently active, auto-saving it dynamically to `localStorage`.
+   - Offers helpers like `createNewConfig`, `deleteConfig`, `duplicateConfig`, `renameConfig`, `selectConfig`, and `exportAllConfigs`.
+2. **Persistence (`constants.ts`)**:
+   - Key name: `ergogen:multi-config` maps to a JSON container following the `MultiConfigContainer` scheme.
+   - Automatically migrates legacy configurations (saved on `LOCAL_STORAGE_CONFIG` or `ergogen:config` key) on startup.
+   - **Version 2**: Upgraded to store formatted inline SVG previews (`previewSvg`) in `SavedConfig` metadata inside `ergogen:multi-config`.
+   - **Background Compilation**: Triggers a silent compile on mount for all configurations that lack a preview SVG (e.g. legacy/v1 designs) to generate their SVGs, skipping the heavy STL generation phase.
+3. **ZIP Exporter Utilities (`zip.ts`)**:
+   - Offers background worker compilation sequences that compiles all configurations concurrently or sequentially and zips them up into a single file with custom folder structures.
+   - **Optimization**: Employs a local folder cache Map (`writeInjections`) when injecting footprint, template, and outline files into ZIP archives to bypass redundant JSZip nested folder search and creation overhead, improving creation times by up to ~37%.
+
+## Monaco Editor & Performance Optimization
+
+To prevent editing lag and cursor jumping in the Monaco editor when working with heavy configurations or on slow CPUs:
+
+- **Uncontrolled Editor Component**: The Monaco `Editor` component in `src/molecules/ConfigEditor.tsx` is configured as uncontrolled (using `defaultValue` instead of `value`). This prevents React from forcing value synchronizations on every render.
+- **Debounced Context State Updates**: Keystrokes trigger a debounced context update (500ms delay) using `lodash.debounce`. This avoids triggering heavy React tree re-renders and synchronous `localStorage` disk writes (which stringify all configurations and their SVG previews) during active typing.
+- **Focus Blur Flushing**: Any pending debounced state update is immediately flushed via `debouncedSetConfigInput.flush()` when the editor loses focus (such as when a user clicks the "Download" or "Generate" buttons), ensuring other components have the latest value immediately.
+- **Realtime Context Reference**: The context exposes `getRealtimeConfigInput` and `updateRealtimeConfigInput` to track the synchronous, real-time code buffer value via a React ref. Action handlers (like download and compile generation) prefer this realtime value over the debounced state value to ensure they always operate on the absolute latest changes.
+
+## Progressive Web App (PWA)
+
+The application is configured as a fully offline-capable PWA using Vite's built-in Workbox integration (`vite-plugin-pwa`).
+
+### Service Worker Architecture
+
+The `vite-plugin-pwa` plugin detects `src/service-worker.ts` and automatically uses `InjectManifest` mode (instead of `GenerateSW`), giving full control over the service worker logic. The plugin injects the precache manifest into `self.__WB_MANIFEST` at build time.
+
+### Caching Strategies
+
+| Asset type                         | Strategy                      | Cache name                 |
+| ---------------------------------- | ----------------------------- | -------------------------- |
+| Vite-bundled JS/CSS/HTML           | **Precache** (install-time)   | Workbox default            |
+| `public/dependencies/*.js` scripts | **CacheFirst** (runtime)      | `public-dependencies-v1`   |
+| Google Fonts CSS                   | **StaleWhileRevalidate**      | `google-fonts-stylesheets` |
+| Google Fonts binaries              | **CacheFirst**                | `google-fonts-webfonts`    |
+| gtag.js / GA scripts               | **NetworkFirst** (3s timeout) | `google-analytics-scripts` |
+| GA measurement requests            | **Background Sync queue**     | `workbox-background-sync`  |
+
+### Update Flow
+
+1. Every page load (or every 24 hours max), the browser re-fetches `service-worker.js` from the server.
+2. If the file has changed (new build deployed), the browser installs the new SW in a **"waiting"** state.
+3. `serviceWorkerRegistration.ts` fires its `onUpdate` callback with the waiting `ServiceWorkerRegistration`.
+4. `App.tsx`'s `useServiceWorkerUpdate` hook stores the registration and returns an `onUpdate` handler.
+5. `Header.tsx` renders `UpdateChip` (a pulsing green pill) when `onUpdate` is defined.
+6. User clicks the chip → `SKIP_WAITING` is posted to the new SW → SW activates → page reloads with fresh assets (with a 1-second safety fallback reload if the event doesn't fire).
+
+### Google Analytics & Privacy Controls
+
+To respect user privacy, Google Analytics is dynamically initialized and can be completely disabled via the **"Send Usage Metrics"** option in the settings pane:
+
+- **Web Default**: Enabled by default to collect usage statistics.
+- **PWA Default**: Disabled by default in standalone/PWA mode to ensure a fully private, offline-first experience.
+- **Opt-out Behavior**: When disabled, the Google Analytics script tag (`gtag.js`) is completely omitted/removed from the DOM, and all global objects (`window.gtag`, `window.dataLayer`) are deleted. No interaction with GA4 occurs, and event tracking is entirely skipped.
+
+When enabled:
+
+- Offline queuing: `workbox-google-analytics` intercepts measurement requests and queues them in IndexedDB using Background Sync when the device is offline, replaying them automatically once connection is restored.
+- Asset caching: The `gtag.js` script is cached with a `NetworkFirst` strategy (3-second timeout) to support offline loading.
+
+#### Keyboard Generation Tracking
+
+Upon successful keyboard generation, the layout is analyzed using `configAnalyzer.ts`.
+
+This parses and extracts:
+
+- Outline, PCB, and Case counts
+- Boolean flags like `is_reversible` and `is_mirrored`
+- `keyboard_keys` representing the estimated physical switch count (doubled if reversible and asymmetric, otherwise matching `matrix_keys`)
+- Alpha-sorted granular matrix zone details (zone names, counts, column names, row names, etc.)
+- A deterministic 12-character SHA-256 geometric `config_id` hash of the keyboard layout.
+- A `previous_config_id` chaining layouts together inside the user session.
+
+To ensure accuracy and prevent cluttering Google Analytics / BigQuery:
+
+- **Settlement Debounce**: Keyboard layout generation is logged with a **5-second settlement debounce**. This filters out intermediate states as the user is typing, ensuring only final configurations are logged.
+- **Redundancy Suppression**: The event is skipped if the generated geometric `config_id` is identical to the last successfully tracked `config_id`.
+- **Load Boundary Resets**: Switching, creating, duplicating, or deleting configurations, or viewing previews, immediately clears the lineage context and cancels any pending tracking timeouts, ensuring subsequent builds start fresh.
+- **Safety Exit Flushes**: When navigating away or closing the page, the window listens to `visibilitychange` (transitioning to `hidden`) and `pagehide` to immediately and synchronously flush any pending debounced events.
+
+### PWA Manifest
+
+`public/manifest.json` uses the full PWA manifest spec:
+
+- `id: "./"` — canonical identity for the PWA install
+- `display_override: ["window-controls-overlay", "standalone"]` — enables title-bar area on desktop PWAs
+- `theme_color / background_color: "#2a2a2a"` — matches the app's dark theme for splash screens
+- Icons: `public/icons/icon-192.png` and `public/icons/icon-512.png` (dark background, white logo)
+
+### PWA Implementation Files
+
+- **`src/service-worker.ts`**: Workbox service worker source (compiled by `vite-plugin-pwa`'s InjectManifest mode)
+- **`src/serviceWorkerRegistration.ts`**: SW registration utility with `onUpdate` callback
+- **`src/atoms/UpdateChip.tsx`**: Pulsing chip rendered in Header when an update is waiting
+- **`public/manifest.json`**: Full PWA web app manifest
+- **`public/icons/`**: PWA icon set (192×192 and 512×512)
+
+## Build and validation
+
+Run root `pnpm build` to regenerate the schema, engine bundle, footprint catalog,
+models, previews, and app. The default base is `/boardstudio/`; `VITE_PUBLIC_URL`
+and `PUBLIC_URL` remain configurable. Playwright serves `app/dist` using Vite
+preview and refuses an existing server. Root CI validates without deployment.
+
+## BHK example
+
+The BHK example uses the native Ergogen 6 configuration. Legacy gasket
+anchors and Corne screw-hole objects are removed; enclosure hardware is native. Its two custom footprints are bundled through the existing
+footprint staging flow; provenance is in `vendor/bhk/README.md`. Gallery
+thumbnails generate only points and outlines, without requiring PCB footprints.
+
+## Bundled UI fonts
+
+Roboto, Nunito, and Material Symbols are installed through pinned Fontsource
+packages and bundled by Vite. The icon class is defined locally in the global
+styles. Font assets are precached so menus render with external fonts blocked
+and after offline reload. `e2e/icons.spec.ts` checks both cases.
+
+Application controls use inline SVG icons through `atoms/Icon.tsx`, preserving
+existing icon names and sizing. They work even when the browser rejects all
+web fonts. Material Symbols remains available for the embedded PCB viewer.
+
+Serve fonts from the app's own assets; do not add external font services.
+Reuse packaged fonts and established SVG libraries (currently Lucide), rather
+than drawing replacement icons. KiCanvas uses the same bundled fonts and its
+source patch removes the upstream Google Fonts stylesheet request.
+
+## Full enclosure designer
+
+See [ENCLOSURES.md](ENCLOSURES.md) for the guided flow, source transactions,
+native STEP/STL pipeline, process reports and isolated preview deployment.
+Scalar-to-selection edits use inline YAML collections to retain surrounding
+source. Form edits are parsed before replacing the draft; declared profile
+choices remain available when native generation fails.
+
+The native BHK example retains electrical placements and wiring. Offline CAD
+tests use a synthetic gasket fixture; BHK browser tests cover the repaired
+boundary, native mounting editor and offline generation.
+
+The case designer separates automatic 2D analysis from explicit CAD generation.
+Its board linker resolves mechanical inventory before solids while retaining
+final PCB export after outline publication. Source, injections and asset bytes
+identify a generation revision; Apply adopts that result instead of rebuilding.
+Model assets live outside YAML in IndexedDB and are included in project ZIPs.
+
+Analysis caches retain generated PCB outputs and PCB findings. Mounting edits
+recalculate the plan and merge current native clearance findings once, preserving
+height blockers. Imported-board assemblies append native bodies and service
+openings after linking their board inventory. Layout movement materializes an
+alias before adding to its inherited override; undo restores the original alias.
+
+### Bundled footprint visibility
+
+Custom Libraries lists the worker's generated footprint catalogue in a
+collapsible section. Bundled footprints are already available for generation;
+opening one creates an editable override through the existing injection editor.
+Saved overrides take precedence and are omitted from the bundled choices.
+
+## CAD workspace and reusable footprints
+
+`CaseWizard` hosts Case, Footprint library and YAML views. `AssemblyTree` derives
+selection targets from declarations and board analysis before solids exist.
+`CaseModelInset` and `FootprintCanvas` share numeric/visual model bindings.
+
+UI calls `footprintService`; its worker delegates inspection, conversion and model
+wrapping to `ergogen.footprints`. Model import reuses `model.worker`. The engine
+parser applies changes after dynamic footprint generation and feeds both native
+assembly export and browser previews.
+
+`footprintLibrary` owns IndexedDB entries, revision conflict checks and local/tab
+notifications. Config and case workers capture source, injection, library and asset
+revisions. Stale replies are rejected; asynchronous component lookups apply edits
+to the current draft. Cached portable bindings remain library-owned.
+
+`zip` and `ergogenBundleLoader` package/restore snapshots and cached models.
+See [CAD-WORKSPACE.md](CAD-WORKSPACE.md) for identity and portability rules.
+
+On Node 26, run unit tests with `NODE_OPTIONS=--no-experimental-webstorage` so
+Vitest uses jsdom storage. `PLAYWRIGHT_PORT=3002` isolates browser validation
+from an existing development server. Repack the engine dependency before a full
+`pnpm run build`; the prebuild step regenerates the served engine bundle.
+
+Run `pnpm run typecheck` to check application code and unit tests together.
+Precommit includes this check, so both CI workflows enforce it. Tests use Vitest
+globals and `vi.mocked` for typed mocks; there is no Jest runtime alias. DOM
+matchers come from `@testing-library/jest-dom/vitest`. The existing ESLint Jest
+rules remain lint-only, configured to recognize Vitest's `vi` API.
+
+## Gasket plan editing
+
+Changing to gasket mounting removes rigid ledges and assembly supports in one
+undoable edit while retaining case-closing screws. Saved incompatible gasket
+configs offer Remove rigid supports without redistributing their contacts. Inline YAML assembly mappings
+remain inline during batch updates. Redistribution preserves manual contacts.
+
+Clearance analysis preserves rotated body contours, leaving usable thumb-edge
+spans available for gaskets. The 2D plan owns a separate viewport for wheel/pinch zoom and pointer panning;
+The main mounting plan flexes into the remaining preview height; compact profile
+diagrams retain their height cap. Fit restores the boundary view. Dragging keeps the grab offset and commits the
+release position once. The contact editor sits below the canvas. Contextual
+hints dismiss during manipulation and do not appear on touch-down.
+
+### CNC pocket preparation
+
+The generator prepares cutter relief per manufactured part before exporting solids.
+`designs/pocket-plan.js` validates proposed removal against shell walls, plate webs,
+and mounting posts; `tooling.js` owns relief geometry and measured corner radii.
+CNC selection uses the declared cutter diameter automatically. FDM parts retain
+nominal geometry. The plate uses its own smaller cutter and wall defaults.
+
+Shell cavities, cover openings, gasket pockets, ledges, registration recesses,
+hardware pockets and switch cutouts register their depth intervals with the
+compiler. Only additional removal reaches the solid kernel, preserving existing
+supports. Rejected relief retains the nominal pocket and emits a blocker at the
+specific feature. Generated plate outlines include the applied corner relief.
+
+Plate pockets are extracted from the completed nominal plate, including holes
+in a supplied plate profile and mounting holes. Overlapping cutouts become one
+void before relief; outer contours bound perimeter checks. Post clearance uses
+both XY geometry and overlapping Z intervals, excluding face-only contact.
+
+### Layout editing during board failures
+
+Board Studio resolves editable objects with the layout-only worker. Outline and
+PCB analysis runs separately: its errors cannot hide newly authored keys or
+prevent moving them. Old outlines are hidden while their analysis is stale;
+PCB exports still require successful current board analysis.
+
+Source editing retains one parsed YAML snapshot, shared by field readers and
+editors. Documents and values are cloned before exposure; aliases, source ranges
+and independent edits remain covered by regression tests. A different source
+replaces the snapshot, bounding retained configuration data.
+
+While Case is active, Board Studio suspends its lightweight layout worker and
+keeps board analysis and full generation at workspace level. Standalone legacy
+case drafts retain their own jobs. Explicit 3D builds reuse a successfully
+completed worker when injections are unchanged,
+retaining the initialized CAD runtime. Busy, failed or changed-injection workers
+are replaced. Source, asset and request revisions still reject stale results;
+each build regenerates solids without reducing mesh precision or validation.
+
+Local source-edit benchmark (2026-09-10, warm median of three runs): creating a
+5×4 matrix fell from 1,631 ms to 955 ms; resizing the supplied Keyboard example's
+first column fell from 138 ms to 63 ms. These measure source transformations,
+not end-to-end browser latency. CAD initialization is now amortized across builds;
+complex Boolean operations and exports still run for every generation.
+
+`ClusterTree` keeps every authored cluster visible, including empty clusters.
+Columns and keys stay nested under their owner, with independent expansion.
+Deleting a cluster removes its members in one history entry; references from
+outside the deleted subtree and locked members still prevent deletion.
+
+`studioPlacement` stages additions beside the last resolved geometry. Additions
+refit the canvas without changing placement. MX presets in `keySizes` use a
+nominal 19.05 mm pitch and an 18 mm 1u envelope; custom millimetre dimensions remain
+editable. Presets change the selected keycap envelope, preserving switch holes,
+footprint bindings and other keys.
+
+`keyResize` stores explicit horizontal/vertical alignment in
+`properties.key_alignment`. Auto grows outside columns outward, keeping their inward edges fixed. Left/centre/right and top/centre/bottom are
+available for manual control. Compensation uses the key's rotated axes and
+preserves manual offsets and expressions. Undo restores size and position together.
+
+`SelectionControls` provides batch sizing and relative adjustments inside the
+manually opened Inspector. Selection changes leave its visibility unchanged. `studioSelection` applies a whole selection in one source transaction;
+locked members reject the edit rather than partially updating it.
+
+`keyOptions` expands editor recipes into native object envelopes and footprint
+bindings. Project defaults live in `meta.studio.defaults`, matrix overrides in
+`meta.studio.layouts`, and column size overrides in `meta.studio.columns`.
+They affect newly created keys; Apply defaults updates existing cluster members
+explicitly. No background migration modifies saved layouts.
+
+New keys include an optional diode by default. LED placement is opt-in and uses
+the bundled `ceoloide/led_sk6812mini-e` provider. Both bindings use key-relative
+placement. Diodes split the switch/row connection with a unique per-key net;
+LEDs expose VCC, GND and per-key DIN/DOUT nets for PCB routing. These options add
+PCB footprints, not measured enclosure component bodies. Managed binding
+ownership in `meta.studio.electronics` supports removal and duplication without
+mutating shared parts. Standalone generation needs the LED provider injected.
+
+Rebuild board outline replaces the selected boundary in place, preserving profile
+references and finishing settings in one undoable edit. Initial creation and
+rebuilding share outline defaults: close key gaps by 2 mm, leave component
+envelopes unclosed, and fill incidental holes. Rebuilding retains an explicit
+`holes: preserve`; imports never rewrite the outline. Generated bridges are tracked in
+`meta.studio.bridges`; deleting their endpoints removes those bridges in the same
+edit. Manually authored external references remain protected.
+
+## Native new-design setup workspace
+
+`NewDesignWorkspace` owns an isolated setup draft. Layout, key assembly,
+controller/power, accessories and review are freely accessible sections. Cancel
+leaves the project untouched. Creation embeds resolved native YAML and selected
+model assets. Board Studio can reopen setup or apply an assembly to selected keys.
+
+```text
+Setup controls / assembly placement
+              |
+              v
+ designSetup compiler / applyAssembly / updateSetup
+              |
+              v
+ native parts + clusters + objects + PCB profiles
+              |
+              v
+ existing analysis / PCB / case services
+```
+
+`designSetup` allocates deterministic row/column nets and accessory GPIO in a
+single compilation. `properties.owner` links native diode/LED objects to keys;
+relative placements follow key transforms. Mirrored clusters use native mirror
+links and board-specific overrides. Templates are embedded under
+`meta.studio.templates`; personal-library revisions are snapshots, never implicit
+project updates. `updateSetup` compares the previous compiled setup with the new
+one and preserves manually changed YAML fields. `applyAssembly` scopes changes
+to selected keys and preserves customized placements by default.
+
+`keyAssembly` is the shared compiler for setup, added cells/clusters and assembly
+updates. Switch bodies and generated models follow footprint placement while
+keycap/plate openings stay at the key origin. Explicit dimensions, model transforms
+and switch nets survive a template update. Applying a template to a column or
+cluster records its default for future keys; changed snapshots receive a new
+embedded revision rather than replacing another key's template.
+
+`assemblyWiring` maintains managed per-board LED chains: SK6812 pad 4 is DIN,
+pad 2 is DOUT. Geometry edits leave nets unchanged. Topology changes reconnect
+managed links; custom wiring remains intact and produces a review finding.
+`assemblyMirrors` updates generated board-specific overrides by three-way merge.
+`assemblyNets` reuses existing matrix net names and allocates only unused MCU pins;
+pin shortages become electrical findings instead of replacing manual assignments.
+
+Automatic key regions use keycap envelopes; separate component regions still
+support PCB-mounted electronics. `assemblySupport` adds or removes generated
+component regions as options change, including mirrored objects. `setupRepair`
+upgrades recognizable published
+setup drafts once, guarded by `meta.studio.setupRevision`. It repairs generated
+LED mappings and key regions, preserves authored fields and leaves non-setup
+projects untouched. This metadata revision does not change `ergogen/v1`.
+
+Shrinks build a complete candidate before changing the project. `ResizeReview`
+carries the before/after source and affected keys when a key or its owned
+components were edited. Cancel keeps the draft; confirmation removes the keys
+and their owned components atomically. Locks and external references block the
+candidate, and source changes invalidate an open review. `commitProject` records
+source, model assets and custom injections as one undoable transaction; resolved
+library injections are not copied into project overrides. Pending generation is
+cancelled when its callback changes or the project session unmounts.
+
+Footprint previews use the existing footprint service and a provider/parameter
+cache. Model STEP/STL assets load on demand through `componentModels`; dragging
+changes local placement only and does not invoke PCB or case generation. Pinned
+sources, hashes, licenses and current verification status live in
+`public/components/manifest.json` and `public/components/README.md`.
+
+Readiness is deliberately separate from generation: setup findings enter Board
+Studio's export review. Successful generation does not verify physical envelopes,
+model alignment, reversible jumpers or cable power mappings. The catalogue README
+records the current coverage and unresolved release requirements.
+
+Model preview recovery resolves cached meshes by full portable path when imported
+KiCad bindings lack an asset identifier. The model editor can rebuild a missing
+preview from a local WRL/STEP asset without attempting to download a project path.
+`cachedModelPreview` owns this lookup; `modelPreview` retains case mesh placement.
+
+Switch assembly model bindings negate the template angle because KiCad model
+rotations are clockwise while native footprint placements are counterclockwise.
+The model downloader resolves `EG_INFUSED_KIM_3D_MODELS` against the same pinned
+Infused-Kim revision as the footprint build. The model worker recognizes URL
+query/fragment suffixes and gives STEP/STL parsers an owned byte buffer.
+
+`build-ergogen` consumes the workspace `../footprints` package.
+`BOARDSTUDIO_FOOTPRINTS` can select a local library checkout for development.
+`patch/stage_boardstudio.cjs` verifies source and model hashes, applies the
+library's filename defaults, and stages assets under `public/footprint-models`.
+The GDEK namespace supplies the unchanged KS-33 `.stp` and its repository license.
+Its footprint selects different automatic transforms for hotswap and solder-only
+mounting; explicit XYZ overrides retain precedence. KS-33 coverage does not imply
+KS-27 body equivalence or include a hotswap socket model. The default trackpoint
+extension requires a center drill of at least 5 mm; generation rejects smaller
+drills unless a custom model or transform overrides that default. This guard
+prevents a known intersection and does not validate custom geometry.
+Browser coverage verifies that incompatible drill edits disable both PCB export
+actions and that correcting the drill clears the error and exports the corrected
+revision, including its new drill diameter.
+Browser regressions in
+`bundled-model-export.spec.ts` and `default-model-assembly.spec.ts` cover default
+ZIP delivery, native worker geometry, and visible assembly rendering.
+`model-worker.spec.ts` also enumerates every staged STEP/STP/WRL/STL asset in
+independent browser cases, checking finite bounds and nonempty binary STL with
+consistent triangle counts. This parser coverage does not prove physical fit.
+Selected component defaults are also prepared for the placement editor through
+`useBundledPreviews`. Its transient meshes feed the alignment inset and live
+assembly transforms without storing bundled source as project-owned overrides.
+Changing selection aborts the previous request; late results cannot replace the
+current preview. Explicit project asset bytes remain authoritative.
+
+Generation resolves emitted default references before native CAD import; ZIP
+export also loads referenced defaults and their licences. Project-owned asset
+bytes take precedence. Bundled URL paths preserve literal plus signs while
+encoding spaces and URL delimiters; encoding a plus as `%2B` can cause the
+preview server to return its HTML fallback for an existing model. A trackpoint
+ZIP regression covers the affected filename and exact asset bytes. This does
+not establish physical pin alignment.
+
+Native PCB inventory retains each emitted model's local offset, scale and
+rotation, plus a component-local matrix derived from the emitted footprint's
+position and side. Native CAD and GUI meshes apply that matrix once. Explicit
+object model lists retain precedence over emitted defaults.
+
+### Studio release integration
+
+Browser tests enter native projects through Board Studio. Case settings update
+project history directly; Code is an explicit view. Source assertions read the
+active saved project so they also cover edits made with Code closed.
+
+Embedded case initialization renders the new case definition before adopting it
+into the project. Key position controls edit local placement overrides. Editing
+a source invalidates pending generation and releases the busy state; late worker
+responses cannot replace the current project.
+
+New and empty sessions open Board Studio with a saved native draft. The `/new`
+route creates a draft directly; `/import` contains file, repository and example
+loading, reached through Projects → Import. Existing projects retain their editor.
+
+Bundled footprint models also include the pinned Keebio and Foostan namespaces. Asset staging
+copies its STEP sources and license; portable PCB exports include the exact
+referenced bytes, including filenames containing spaces. The curated LED default
+handles normal/reverse mounting, and PJ-320A placement follows side and reversible
+layout. Upstream patch hashes and scoped alignment evidence live in the footprint package.
+
+`node scripts/qa/model-contacts.cjs` runs the optional installed-CAD contact check:
+it generates native PCB fixtures, invokes `kicad-cli pcb export step`, then compares
+model solids with copper/drill geometry using FreeCAD Python. `FREECAD_LIBDIR`
+can override `/usr/lib/freecad/lib`. It checks selected models and variants;
+it does not certify the entire library or fabrication readiness.
+
+The footprint package runs its Node tests through root `pnpm test:footprints`.
+Its source bytes and attribution remain outside GUI formatting and linting.
+
+VRML import normalizes DEF/USE and ROUTE node identifiers before Three's
+lexer runs. This accepts hyphenated KiCad StepUp material names without
+rewriting comments, strings or route fields. A real upstream capacitor WRL
+fixture complements synthetic import tests and checks millimetre bounds
+against the STEP version.
+
+### Native model alignment targets
+
+Native component inventories retain each emitted footprint's key and KiCad
+reference independently of object labels and model overrides. The case alignment
+inset uses these references for inspection and offers a target selector when an
+object emits multiple footprints. Imported PCB inventories retain ID lookup.
+
+The alignment inset converts object-local model transforms into the selected
+footprint's frame and converts edits back while retaining authored model frames.
+Unframed bottom-side models retain their existing side transform. The selected
+footprint's own side controls preview orientation.
+
+Transform controls attach directly to the model group and keep that attachment
+stable throughout a gesture. Releasing the pointer saves one source edit, so undo
+restores the full drag. Clicking a handle without movement does not save an edit.
+Preview lookup resolves bundled paths without adding transient asset identifiers
+to authored bindings. Native board edits accept a component-specific model path;
+model-list updates preserve unchanged members and their source comments.
+
+Bundled Choc V2 models come from koktoh with source attribution and a copied
+license. V2-only footprints use the V2 switch, retain the hotswap socket and
+omit the incompatible MBK keycap. STEP preview meshing uses 0.01 mm linear
+and 0.3 radian angular tolerances; portable exports retain original STEP
+bytes. The real Choc V2 browser regression checks bounds and prevents the
+previous 1.2-million-triangle preview expansion.
+
+### Shared inspector and resize clearance
+
+Board Studio owns the Inspector toggle and session section state. Desktop sessions
+start with the object browser and properties docked around the canvas. Narrow
+screens start with the inspector closed and use a drawer with separate
+Browse objects and Edit properties views. Selection updates properties without
+opening a closed drawer. At phone widths, drawers fill the workspace; a sticky
+selection summary keeps the active object visible while scrolling properties.
+Escape restores focus to Inspector.
+
+The part library uses the same pane widths and control tokens. Save and undo
+remain in its sticky identity header; selecting a prepared import collapses the
+batch list. Each catalogue source retains one editable draft and undo history.
+Board Studio keeps the library mounted while changing views within a project.
+Model number fields hold temporary text locally and commit on blur or Enter;
+Escape restores the last committed value. Native model transforms therefore
+produce one edit per completed field change.
+
+`sizeSelection` is the shared key, column and matrix size command. It resolves the
+current native draft without the solver, applies all sizes, then computes polygon
+clearance using pitch-derived gaps. `resizeSpacing` changes only downstream
+columns and rows in affected matrices. Native placement and arrangement fields
+hold the result; `meta.studio.resizeAnchors` and `meta.studio.resizeSpacing` track
+ownership so unchanged generated adjustments can be removed on shrink. Authored
+expressions remain expressions. Locks and constraints prevent automatic movement;
+unresolved resize clearance is surfaced as an export blocker. The source is
+committed once through project history and the existing background outline pipeline.

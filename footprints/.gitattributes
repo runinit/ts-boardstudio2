@@ -1,0 +1,4 @@
+# CAD assets retain upstream bytes and are reviewed through rendered geometry.
+*.step binary
+*.stp binary
+*.stl binary

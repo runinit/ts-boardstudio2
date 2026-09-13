@@ -1,0 +1,136 @@
+{
+  "ceoloide/switch_choc_v1_v2": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Switch.step",
+    "hotswap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Hotswap.step",
+    "keycap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Keycap_MBK_Black_1u.step",
+    "switch_3dmodel_xyz_offset": "",
+    "switch_3dmodel_xyz_rotation": "",
+    "hotswap_3dmodel_xyz_offset": "",
+    "hotswap_3dmodel_xyz_rotation": "",
+    "keycap_3dmodel_xyz_offset": "",
+    "keycap_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/mcu_nice_nano": {
+    "mcu_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Nice_Nano_V2.step",
+    "mcu_3dmodel_xyz_offset": "",
+    "mcu_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/display_nice_view": {
+    "niceview_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Nice_View.step",
+    "pin_header_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/PinHeader_2.54mm_1x-5.step",
+    "pin_socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kicad/PinSocket_1x05_P2.54mm_Vertical.step",
+    "niceview_3dmodel_xyz_offset": "",
+    "niceview_3dmodel_xyz_rotation": "",
+    "pin_header_3dmodel_xyz_offset": "",
+    "pin_header_3dmodel_xyz_rotation": "",
+    "pin_socket_3dmodel_xyz_offset": "",
+    "pin_socket_3dmodel_xyz_rotation": ""
+  },
+  "infused-kim/choc": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Switch.step",
+    "hotswap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Hotswap.step",
+    "keycap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Choc_V1_Keycap_MBK_Black_1u.step"
+  },
+  "infused-kim/conn_molex_pico_ezmate_1x02": {
+    "socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Socket_2pin.step",
+    "cable_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Cable_2pin.step"
+  },
+  "infused-kim/conn_molex_pico_ezmate_1x05": {
+    "socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Socket_5pin.step",
+    "cable_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Cable_5pin.step"
+  },
+  "infused-kim/nice_nano_pretty": {
+    "mcu_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Nice_Nano_V2.step",
+    "header_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/PinHeader_2.54mm_2x-12.step",
+    "socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kicad/PinSocket_2x12_W15.24mm_Vertical.step"
+  },
+  "infused-kim/nice_view": {
+    "display_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Nice_View.step",
+    "header_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/PinHeader_2.54mm_1x-5.step",
+    "socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kicad/PinSocket_1x05_P2.54mm_Vertical.step"
+  },
+  "infused-kim/switch_power": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Switch_Power.step"
+  },
+  "infused-kim/switch_reset": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Switch_Reset.step"
+  },
+  "infused-kim/diode": {
+    "diode_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Diode_1N4148W.step"
+  },
+  "infused-kim/trackpoint_mount": {
+    "tp_cap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/trackpoint/TP_Cap_Red_T460S.step",
+    "tp_extension_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md0.0_pcb1.6.step",
+    "tp_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step"
+  },
+  "ceoloide/switch_mx": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kiswitch/SW_Cherry_MX_PCB.stp",
+    "hotswap_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kiswitch/SW_Hotswap_Kailh_MX.stp",
+    "switch_3dmodel_xyz_offset": "",
+    "switch_3dmodel_xyz_rotation": "",
+    "hotswap_3dmodel_xyz_offset": "",
+    "hotswap_3dmodel_xyz_rotation": ""
+  },
+  "infused-kim/smd_0805": {
+    "component_1_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step",
+    "component_2_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step",
+    "component_3_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step",
+    "component_4_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step",
+    "component_5_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step",
+    "component_6_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/SMD_0805_Resistor.step"
+  },
+  "ceoloide/power_switch_smd_side": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Switch_Power.step",
+    "switch_3dmodel_xyz_rotation": [
+      -90,
+      0,
+      -90
+    ]
+  },
+  "ceoloide/diode_tht_sod123": {
+    "diode_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Diode_1N4148W.step",
+    "diode_3dmodel_xyz_rotation": [
+      -90,
+      0,
+      0
+    ],
+    "diode_3dmodel_xyz_offset": [
+      0,
+      0,
+      0.7
+    ]
+  },
+  "ceoloide/battery_connector_molex_pico_ezmate_1x02": {
+    "socket_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Socket_2pin.step",
+    "cable_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/infused-kim/Molex_Ezmate_Pico_Cable_2pin.step"
+  },
+  "ceoloide/led_sk6812mini-e": {
+    "led_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/keebio/SK6812MINI-E v1.step",
+    "led_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/trrs_pj320a": {
+    "trrs_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/keebio/PJ-320A.step"
+  },
+  "ceoloide/display_ssd1306": {
+    "display_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/foostan/OLED-Module-with-Pins.step"
+  },
+  "ceoloide/reset_switch_smd_side": {
+    "reset_switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kicad/Panasonic_EVQPUJ_EVQPUA.step",
+    "reset_switch_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/battery_connector_jst_ph_2": {
+    "battery_connector_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/kicad/JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal.step",
+    "battery_connector_3dmodel_xyz_offset": "",
+    "battery_connector_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/mcu_supermini_nrf52840": {
+    "mcu_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/tsuki/nrf52840.step",
+    "mcu_3dmodel_xyz_offset": "",
+    "mcu_3dmodel_xyz_rotation": ""
+  },
+  "ceoloide/switch_gateron_ks27_ks33": {
+    "switch_3dmodel_filename": "${KIPRJMOD}/models/boardstudio/gdek/KS33.stp",
+    "switch_3dmodel_xyz_offset": "",
+    "switch_3dmodel_xyz_rotation": ""
+  }
+}

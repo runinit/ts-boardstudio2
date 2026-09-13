@@ -1,0 +1,419 @@
+import { stringify } from 'yaml';
+import { footprintUses } from './footprintLinks';
+import {
+  compressToEncodedURIComponent,
+  decompressFromEncodedURIComponent,
+} from 'lz-string';
+import guiPkg from '../../package.json';
+import { getFullErgogenVersion } from './version';
+
+/**
+ * Structure for sharing keyboard configuration.
+ * This structure allows for future expansion to include injections (footprints).
+ */
+export interface ShareableConfig {
+  config: string;
+  injections?: string[][];
+  guiVersion?: string;
+  ergogenVersion?: string;
+}
+
+/**
+ * Encodes and compresses a keyboard configuration for sharing via URI.
+ * Includes both config and injections (footprints, templates, etc.) when present.
+ *
+ * @param config - The YAML/JSON configuration string
+ * @param injections - Optional array of injections (footprints, templates, etc.)
+ * @param guiVersion - Optional override for GUI version (defaults to package.json version)
+ * @param ergogenVersion - Optional override for Ergogen version (defaults to resolved env version)
+ * @returns Encoded and compressed string suitable for URI fragment
+ */
+export const encodeConfig = (
+  config: string,
+  injections?: string[][],
+  guiVersion?: string,
+  ergogenVersion?: string
+): string => {
+  const shareableConfig: ShareableConfig = {
+    config,
+    // Include all injections if present
+    ...(injections && injections.length > 0 ? { injections } : {}),
+    guiVersion: guiVersion || guiPkg.version,
+    ergogenVersion:
+      ergogenVersion ||
+      getFullErgogenVersion(import.meta.env.VITE_ERGOGEN_VERSION),
+  };
+
+  const jsonString = JSON.stringify(shareableConfig);
+  return compressToEncodedURIComponent(jsonString);
+};
+
+/**
+ * Result of decoding a shared configuration.
+ */
+type DecodeResult =
+  | { success: true; config: ShareableConfig }
+  | {
+      success: false;
+      error: 'DECODE_ERROR' | 'VALIDATION_ERROR';
+      message: string;
+    };
+
+/**
+ * Checks if debug mode is enabled via URL parameter.
+ */
+const isDebugMode = (): boolean => {
+  const queryParameters = new URLSearchParams(window.location.search);
+  return queryParameters.get('debug') !== null;
+};
+
+/**
+ * Decodes and decompresses a shared keyboard configuration from a URI fragment.
+ *
+ * @param encodedString - The encoded and compressed string from URI fragment
+ * @returns A DecodeResult indicating success or failure with error details
+ */
+export const decodeConfig = (encodedString: string): DecodeResult => {
+  const debug = isDebugMode();
+
+  try {
+    const decompressed = decompressFromEncodedURIComponent(encodedString);
+    if (!decompressed) {
+      console.error(
+        '[Share] DECODE_ERROR: Failed to decompress encoded string'
+      );
+      return {
+        success: false,
+        error: 'DECODE_ERROR',
+        message:
+          'The shared configuration link is invalid or corrupted. The encoded data could not be decompressed.',
+      };
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(decompressed);
+    } catch (parseError) {
+      console.error('[Share] DECODE_ERROR: Failed to parse decompressed JSON', {
+        parseError,
+        decompressedLength: decompressed.length,
+        decompressedPreview: decompressed.substring(0, 100),
+      });
+      return {
+        success: false,
+        error: 'DECODE_ERROR',
+        message:
+          'The shared configuration link is invalid or corrupted. The decompressed data is not valid JSON.',
+      };
+    }
+
+    // Validate the structure
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !('config' in parsed) ||
+      typeof (parsed as { config: unknown }).config !== 'string'
+    ) {
+      console.error('[Share] VALIDATION_ERROR: Invalid object structure', {
+        parsed,
+        hasConfig: parsed && typeof parsed === 'object' && 'config' in parsed,
+        configType:
+          parsed && typeof parsed === 'object' && 'config' in parsed
+            ? typeof (parsed as { config: unknown }).config
+            : 'N/A',
+      });
+      return {
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message:
+          'The shared configuration link does not contain a valid configuration. The decoded data is missing required fields or has an invalid structure.',
+      };
+    }
+
+    const shareableConfig = parsed as ShareableConfig;
+
+    // Apply fallbacks if version information is missing or invalid
+    if (
+      !shareableConfig.guiVersion ||
+      typeof shareableConfig.guiVersion !== 'string'
+    ) {
+      shareableConfig.guiVersion = '0.9.0';
+    }
+    if (
+      !shareableConfig.ergogenVersion ||
+      typeof shareableConfig.ergogenVersion !== 'string'
+    ) {
+      shareableConfig.ergogenVersion = 'github:ergogen/ergogen#v4.2.1';
+    }
+
+    // Validate injections if present
+    if (
+      'injections' in shareableConfig &&
+      shareableConfig.injections !== undefined
+    ) {
+      if (
+        !Array.isArray(shareableConfig.injections) ||
+        !shareableConfig.injections.every(
+          (inj) =>
+            Array.isArray(inj) &&
+            inj.length === 3 &&
+            typeof inj[0] === 'string' &&
+            typeof inj[1] === 'string' &&
+            typeof inj[2] === 'string'
+        )
+      ) {
+        console.error(
+          '[Share] VALIDATION_ERROR: Invalid injections structure',
+          {
+            injections: shareableConfig.injections,
+            isArray: Array.isArray(shareableConfig.injections),
+          }
+        );
+        return {
+          success: false,
+          error: 'VALIDATION_ERROR',
+          message:
+            'The shared configuration link contains invalid injections data. Injections must be an array of [type, name, content] tuples.',
+        };
+      }
+    }
+
+    // Debug logging: log the decoded object when debug mode is enabled
+    if (debug) {
+      console.log('[Share] DEBUG: Decoded configuration object', {
+        configLength: shareableConfig.config.length,
+        hasInjections: shareableConfig.injections !== undefined,
+        injectionsCount: shareableConfig.injections?.length ?? 0,
+        fullObject: shareableConfig,
+      });
+    }
+
+    return { success: true, config: shareableConfig };
+  } catch (error) {
+    console.error('[Share] DECODE_ERROR: Unexpected error during decoding', {
+      error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+    });
+    return {
+      success: false,
+      error: 'DECODE_ERROR',
+      message:
+        'The shared configuration link is invalid or corrupted. An unexpected error occurred while decoding.',
+    };
+  }
+};
+
+/**
+ * Options for creating a shareable URI.
+ */
+type CreateShareableUriOptions = {
+  /** The YAML/JSON configuration string */
+  config: string;
+  /** Optional array of injections (footprints, templates, etc.) */
+  injections?: string[][];
+  /**
+   * Optional canonical output from Ergogen (results.canonical).
+   * When provided, injections are filtered to only include those actually
+   * used in the configuration (footprints from pcbs, templates from pcbs,
+   * outline injections from outlines).
+   */
+  canonical?: unknown;
+};
+
+/**
+ * Creates a shareable URI with the encoded configuration as a hash fragment.
+ * When canonical output is provided, injections are filtered per type so only
+ * those actually referenced in the configuration are included.
+ *
+ * @param options - Configuration options for creating the shareable URI
+ * @returns Full URL with encoded config in hash fragment
+ */
+export const createShareableUri = (
+  options: CreateShareableUriOptions
+): string => {
+  const { config, injections, canonical } = options;
+
+  // Filter injections if canonical output is provided
+  let injectionsToShare = injections;
+  if (canonical && injections && injections.length > 0) {
+    const usedInjections = extractUsedInjectionsFromCanonical(canonical);
+    injectionsToShare = filterInjectionsForSharing(injections, usedInjections);
+  }
+
+  // Only include injections if there are any after filtering
+  const finalInjections =
+    injectionsToShare && injectionsToShare.length > 0
+      ? injectionsToShare
+      : undefined;
+
+  const encoded = encodeConfig(config, finalInjections);
+  const baseUrl = window.location.origin + window.location.pathname;
+  return `${baseUrl}#${encoded}`;
+};
+
+/**
+ * Extracts and decodes configuration from the current page's hash fragment.
+ *
+ * @returns A DecodeResult indicating success or failure with error details, or null if no hash fragment exists
+ */
+export const getConfigFromHash = (): DecodeResult | null => {
+  const hash = window.location.hash;
+  if (!hash || hash.length <= 1) {
+    return null;
+  }
+
+  // Remove the '#' prefix
+  const encodedString = hash.substring(1);
+  return decodeConfig(encodedString);
+};
+
+/**
+ * Type definition for the canonical output structure from Ergogen.
+ * The canonical output contains the fully resolved configuration after all
+ * YAML substitutions and anchors have been processed.
+ */
+type CanonicalPcbFootprint = {
+  what?: string;
+  [key: string]: unknown;
+};
+
+type CanonicalPcb = {
+  footprints?: Record<string, CanonicalPcbFootprint>;
+  template?: string;
+  [key: string]: unknown;
+};
+
+type CanonicalOutlineOperation = {
+  what?: string;
+  [key: string]: unknown;
+};
+
+type CanonicalOutput = {
+  pcbs?: Record<string, CanonicalPcb>;
+  outlines?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+/**
+ * Groups used injection names by type, as returned by extractUsedInjectionsFromCanonical.
+ */
+type UsedInjections = {
+  footprints: Set<string>;
+  templates: Set<string>;
+  outlines: Set<string>;
+};
+
+/**
+ * Extracts all used injection names from the canonical output, covering all three
+ * injection types:
+ *
+ * - **footprints**: collected from `pcbs[*].footprints[*].what`
+ * - **templates**: collected from `pcbs[*].template`
+ * - **outlines**: collected from `outlines[*][op].what` — the `what` field of every
+ *   outline operation. Custom outline injections appear here as a `what` value (just
+ *   like footprint injections appear as `what` in the pcbs section).
+ *
+ * The caller is responsible for intersecting these sets with the loaded custom
+ * injections to determine which ones to include in a share package.
+ *
+ * @param canonical - The canonical output from Ergogen (results.canonical)
+ * @returns An object with three Sets, one per injection type
+ */
+export const extractUsedInjectionsFromCanonical = (
+  canonical: unknown
+): UsedInjections => {
+  const footprints = new Set<string>();
+  const templates = new Set<string>();
+  const outlines = new Set<string>();
+
+  if (!canonical || typeof canonical !== 'object') {
+    return { footprints, templates, outlines };
+  }
+
+  if ('schema' in canonical && canonical.schema === 'ergogen/v1') {
+    for (const use of footprintUses(stringify(canonical))) {
+      footprints.add(use.what);
+    }
+    return { footprints, templates, outlines };
+  }
+  const canonicalOutput = canonical as CanonicalOutput;
+
+  // --- Footprints and templates from pcbs section ---
+  if (canonicalOutput.pcbs && typeof canonicalOutput.pcbs === 'object') {
+    for (const pcb of Object.values(canonicalOutput.pcbs)) {
+      if (!pcb || typeof pcb !== 'object') continue;
+
+      // Template: pcbs[pcb].template is a string naming the template used
+      if (typeof pcb.template === 'string') {
+        templates.add(pcb.template);
+      }
+
+      // Footprints: pcbs[pcb].footprints[fp].what is the footprint injection name
+      if (pcb.footprints && typeof pcb.footprints === 'object') {
+        for (const fp of Object.values(pcb.footprints)) {
+          if (fp && typeof fp.what === 'string') {
+            footprints.add(fp.what);
+          }
+        }
+      }
+    }
+  }
+
+  // --- Outline injection names from outlines section ---
+  // Each outline is a collection of operations (object or array). Each operation
+  // may have a `what` field naming the shape type — custom injections appear here
+  // as their injection name, just like footprint injections appear in pcbs.
+  if (
+    canonicalOutput.outlines &&
+    typeof canonicalOutput.outlines === 'object'
+  ) {
+    for (const outlineEntry of Object.values(canonicalOutput.outlines)) {
+      if (!outlineEntry || typeof outlineEntry !== 'object') continue;
+
+      // Operations can be stored as an array (YAML list) or as a named object
+      const ops: unknown[] = Array.isArray(outlineEntry)
+        ? outlineEntry
+        : Object.values(outlineEntry as Record<string, unknown>);
+
+      for (const op of ops) {
+        const operation = op as CanonicalOutlineOperation;
+        if (operation && typeof operation.what === 'string') {
+          outlines.add(operation.what);
+        }
+      }
+    }
+  }
+
+  return { footprints, templates, outlines };
+};
+
+/**
+ * Filters injections to only include those actually used in the configuration,
+ * based on the sets extracted from canonical output. Each injection type is
+ * checked against its corresponding set: footprints against usedInjections.footprints,
+ * templates against usedInjections.templates, outlines against usedInjections.outlines.
+ *
+ * @param injections - The array of injections [type, name, content]
+ * @param usedInjections - Sets of used names per injection type
+ * @returns A filtered array of injections
+ */
+export const filterInjectionsForSharing = (
+  injections: string[][] | undefined,
+  usedInjections: UsedInjections
+): string[][] => {
+  if (!injections || injections.length === 0) {
+    return [];
+  }
+
+  return injections.filter((injection) => {
+    const [type, name] = injection;
+
+    if (type === 'footprint') return usedInjections.footprints.has(name);
+    if (type === 'template') return usedInjections.templates.has(name);
+    if (type === 'outline') return usedInjections.outlines.has(name);
+
+    // Unknown injection types are included by default
+    return true;
+  });
+};

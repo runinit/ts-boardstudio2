@@ -1,0 +1,332 @@
+const m = require('makerjs')
+const a = require('../assert')
+const filter = require('../filter')
+const anchor = require('../anchor').parse
+const Point = require('../point')
+const g = require('./geometry')
+const {deepcopy} = require('../utils')
+
+const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies']
+const analysisCache = new WeakMap()
+const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
+
+// Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
+const snapshot = (spec, name) => {
+    const model = {paths: {}}
+    for (const [index, path] of spec.snapshot.paths.entries()) {
+        const id = `${path.type}_${index}`
+        const at = `${name}.snapshot.paths.${index}`
+        const finite = values => {
+            if (!values.every(Number.isFinite)) { g.fail(at, 'Snapshot values must be finite', 'dimension') }
+        }
+        if (path.type === 'line') {
+            finite([...path.origin, ...path.end])
+            model.paths[id] = new m.paths.Line(path.origin, path.end)
+            continue
+        }
+        finite([...path.center, path.radius])
+        if (path.radius <= 0) { g.fail(at, 'Snapshot radius must be positive', 'dimension') }
+        if (path.type === 'arc') {
+            finite([path.startAngle, path.endAngle])
+            model.paths[id] = new m.paths.Arc(path.center, path.radius, path.startAngle, path.endAngle)
+        } else {
+            model.paths[id] = new m.paths.Circle(path.center, path.radius)
+        }
+    }
+    return model
+}
+
+// Cache board checks with their geometry, but rebuild layout and mounting findings per request.
+const appendFindings = (analysis, boards, scene, boardFindings = []) => {
+    if (scene) { scene.findings.push(...deepcopy(boardFindings)) }
+    for (const [id, plan] of Object.entries(analysis)) {
+        plan.findings.push(...deepcopy(boards[id]?.findings || []), ...deepcopy(scene?.findings || []))
+    }
+}
+
+exports.parse = async (config, points, outlines, units, options = {}) => {
+    a.unexpected(config, 'designs', sections)
+    const cached = options.analysis && options.analysisCache && analysisCache.get(options.analysisCache)
+    if (cached && cached.key === options.analysisKey) {
+        const assemblies = Object.fromEntries(Object.entries(cached.config.assemblies).map(([id, spec]) => {
+            const next = {...spec}
+            for (const key of ['mounts', 'gaskets', 'mount_count', 'spacing']) {
+                delete next[key]
+                if (own(config.assemblies[id], key)) { next[key] = config.assemblies[id][key] }
+            }
+            return [id, next]
+        }))
+        const analysis = require('./enclosure-analysis').analyze({...cached.config, assemblies}, cached.context)
+        appendFindings(analysis, cached.context.boards, options.scene, cached.result.boardBundle?.findings)
+        return {...cached.result, report:{...cached.result.report, analysis}}
+    }
+
+    // Imported outlines also feed the wizard thumbnails before its generated regions resolve.
+    config = {...config,regions:{...config.regions}}
+    outlines = {...outlines}
+    for (const [id,spec] of Object.entries(config.assemblies || {})) {
+        if (spec.board?.source !== 'asset' || !options.assets?.[spec.board.name]) { continue }
+        const imported = require('./board-inventory').read(options.assets[spec.board.name])
+        const ref = `__import_${id}`
+        outlines[ref] = imported.model
+        if (config.regions[`${id}_keys`]) { config.regions[`${id}_keys`] = {outline:ref} }
+        if (config.regions[`${id}_switches`]) { config.regions[`${id}_switches`] = {outline:ref} }
+    }
+    const features = {}, resolved = {}, active = new Set(), generated = {}, cases = {}
+    const report = {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE}
+    const dim = (value, name) => g.number(value, name, units)
+
+    const locate = (spec, name) => {
+        if (spec && typeof spec === 'object' && spec.feature) {
+            const target = resolve(spec.feature)
+            const bounds = m.measure.modelExtents(target.model)
+            const point = new Point(...bounds.low.map((v, i) => (v + bounds.high[i]) / 2))
+            return anchor({shift: spec.shift || [0, 0], rotate: spec.rotate || 0}, name, points, point)(units)
+        }
+        try { return anchor(spec || {}, name, points)(units) }
+        catch (error) { g.fail(name, error.message, 'reference') }
+    }
+    const shape = (spec, name, point = locate(spec.anchor, `${name}.anchor`)) => {
+        if (options.shape) { return options.shape(spec,name,point) }
+        let model
+        if (spec.radius !== undefined) {
+            model = {paths: {circle: new m.paths.Circle([0, 0], g.positive(spec.radius, `${name}.radius`, units))}}
+        } else {
+            const scope = {...units, ...point.meta}
+            const size = a.wh(spec.size || [point.meta.width, point.meta.height], `${name}.size`)(scope)
+            size.forEach(value => g.positive(value, `${name}.size`))
+            const corner = g.number(spec.corner_radius || 0, `${name}.corner_radius`, scope)
+            if (corner < 0 || corner > Math.min(...size) / 2) { g.fail(name, 'Corner radius must fit the declared width and length') }
+            model = m.model.center(corner ? new m.models.RoundRectangle(...size, corner) : new m.models.Rectangle(...size))
+            const relief = g.number(spec.corner_relief || 0, `${name}.corner_relief`, scope)
+            if (relief < 0 || relief > Math.min(...size) / 4 || (relief && corner)) {
+                g.fail(name, 'Corner relief must fit the opening and cannot be combined with rounded corners')
+            }
+            // Dogbones leave the nominal opening and the central retaining edges intact.
+            if (relief) {
+                for (const x of [-1, 1]) {
+                    for (const y of [-1, 1]) {
+                        const center = [x * (size[0] / 2 - relief / Math.SQRT2 + g.TOLERANCE), y * (size[1] / 2 - relief / Math.SQRT2 + g.TOLERANCE)]
+                        model = g.combine(model, {paths: {relief: new m.paths.Circle(center, relief)}})
+                    }
+                }
+            }
+        }
+        return point.position(model)
+    }
+    const publish = (name, model, source) => {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+            g.fail(source, `Invalid output name ${name}`)
+        }
+        if (own(outlines, name) || own(generated, name)) {
+            g.fail(source, `Output-name collision: ${name}`, 'collision')
+        }
+        generated[name] = model
+    }
+    const modify = (model, spec, name, occupied) => {
+        for (const [id, modification] of Object.entries(spec.modifications || {})) {
+            const path = `${name}.modifications.${id}`
+            const tool = modification.from ? resolve(modification.from).model : shape(modification, path)
+            model = g.combine(model, tool, modification.operation || 'add')
+            g.validate(model, path)
+            g.requireContains(model, occupied, path)
+            features[path.slice('designs.'.length)] = g.describe(tool, path)
+        }
+        return model
+    }
+    const finish = (model, spec, name, occupied) => {
+        const clearance = dim(spec.clearance || 0, `${name}.clearance`)
+        const rounding = dim(spec.round || 0, `${name}.round`)
+        if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative') }
+        model = g.offset(model, clearance)
+        model = g.round(model, rounding)
+        const simplification = dim(spec.simplify || 0, `${name}.simplify`)
+        if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative') }
+        if (simplification) { model = require('./finishing').simplify(model, simplification) }
+        if (spec.corners) {
+            a.unexpected(spec.corners, `${name}.corners`, ['fillet', 'chamfer'])
+            const styles = Object.keys(spec.corners)
+            if (styles.length !== 1) { g.fail(`${name}.corners`, 'Choose fillet or chamfer') }
+            const style = styles[0]
+            const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units)
+            model = require('./finishing').corners(model, {[style]:size}, `${name}.corners`)
+        }
+        const required = !g.empty(occupied) && clearance > 0 ? g.offset(occupied, clearance) : occupied
+        model = modify(model, spec, name, required)
+        g.validate(model, name, spec.connected || 'multiple')
+        g.requireContains(model, required, name)
+        return model
+    }
+    const resolve = ref => {
+        if (typeof ref !== 'string') { g.fail('designs', 'Expected a named feature reference', 'reference') }
+        if (own(resolved, ref)) { return resolved[ref] }
+        if (active.has(ref)) { g.fail(`designs.${ref}`, `Cyclic design reference: ${[...active, ref].join(' -> ')}`, 'cycle') }
+        const [section, id, ...tail] = ref.split('.')
+        const name = `designs.${ref}`
+        if (tail.length || !config[section] || !own(config[section], id)) { g.fail(name, 'Missing named feature; repair the reference', 'reference') }
+        const spec = config[section][id]
+        if (!spec || typeof spec !== 'object') { g.fail(name, 'Expected a feature mapping') }
+        active.add(ref)
+        try {
+            let model, occupied = {paths: {}}, groups = [], cutouts = [], gaps = []
+            if (spec.snapshot && ['regions', 'boundaries', 'profiles'].includes(section)) {
+                model = snapshot(spec, name)
+                resolved[ref] = {model, occupied: g.clone(model), groups: [model], cutouts, gaps}
+                features[ref] = g.describe(model, name)
+                if (section === 'profiles') { publish(id, model, name) }
+                return resolved[ref]
+            }
+            if (section === 'regions') {
+                a.unexpected(spec, name, ['select', 'envelope', 'wrap', 'shape', 'where', 'asym', 'size', 'corner_radius', 'corner_relief', 'outline', 'snapshot', 'close', 'clearance', 'round', 'connected', 'modifications'])
+                if (options.region && spec.select) {
+                    groups = options.region(spec, name)
+                } else if (spec.shape) {
+                    groups = [shape(spec.shape, name)]
+                } else if (spec.outline) {
+                    if (!own(outlines, spec.outline)) { g.fail(name, `Missing outline ${spec.outline}`, 'reference') }
+                    groups = [g.clone(outlines[spec.outline])]
+                } else {
+                    const selected = filter.parse(spec.where ?? true, `${name}.where`, points, units, a.asym(spec.asym || 'source', name))
+                    // Close each half independently, even when their gap is small.
+                    for (const mirrored of [false, true]) {
+                        const models = selected.filter(p => !!p.meta.mirrored === mirrored && !p.meta.skip).map(p => shape(spec, name, p.clone()))
+                        if (models.length) { groups.push(g.union(models)) }
+                    }
+                }
+                occupied = g.union(groups)
+                const radius = dim(spec.close || 0, `${name}.close`)
+                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
+                groups = groups.map(group => finish(g.close(group, radius), spec, name, group))
+                model = g.union(groups)
+                if (g.chains(model).length < groups.reduce((count, group) => count + g.chains(group).length, 0)) {
+                    g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected')
+                }
+            } else if (section === 'boundaries' || section === 'profiles') {
+                a.unexpected(spec, name, ['from', 'snapshot', 'close', 'clearance', 'round', 'simplify', 'corners', 'connected', 'modifications', 'bridges', 'cutouts', 'gaps', 'holes'])
+                const holes = spec.holes ?? 'preserve'
+                if (!['preserve', 'fill'].includes(holes)) { g.fail(`${name}.holes`, 'Choose preserve or fill') }
+                const refs = Array.isArray(spec.from) ? spec.from : [spec.from]
+                const sources = refs.map(resolve)
+                cutouts = [...new Set([...sources.flatMap(source => source.cutouts), ...(spec.cutouts || [])])]
+                gaps = [...new Set([...sources.flatMap(source => source.gaps), ...(spec.gaps || [])])]
+                occupied = g.union(sources.map(source => source.occupied))
+                groups = sources.flatMap(source => source.groups)
+                const radius = dim(spec.close || 0, `${name}.close`)
+                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
+                groups = groups.map(group => g.close(group, radius))
+                model = g.union(groups)
+                for (const [bridge, bridgeSpec] of Object.entries(spec.bridges || {})) {
+                    const path = `${name}.bridges.${bridge}`
+                    const from = locate(bridgeSpec.from, `${path}.from`).p
+                    const to = locate(bridgeSpec.to, `${path}.to`).p
+                    const width = g.positive(bridgeSpec.width, `${path}.width`, units)
+                    if (m.measure.pointDistance(from, to) < g.EPSILON) { g.fail(path, 'Bridge anchors coincide') }
+                    let bridgeModel
+                    if (bridgeSpec.align) {
+                        if (!['top','bottom','left','right'].includes(bridgeSpec.align)) { g.fail(path,'Unknown bridge alignment') }
+                        if ([bridgeSpec.from,bridgeSpec.to].some(anchor=>!anchor.feature || Object.keys(anchor).length!==1) || bridgeSpec.ends) {
+                            g.fail(path,'Aligned bridges require feature-only anchors and no ends setting')
+                        }
+                        bridgeModel = require('./bridges').aligned(resolve(bridgeSpec.from.feature).model,resolve(bridgeSpec.to.feature).model,width,bridgeSpec.align,path)
+                    } else if (bridgeSpec.ends === 'flat') {
+                        // Flat webs stop at their attachments instead of adding circular lobes.
+                        const length = m.measure.pointDistance(from, to)
+                        const normal = [-(to[1]-from[1]), to[0]-from[0]].map(v => v*width/(2*length))
+                        const corner = (point, side) => point.map((v,i) => v+side*normal[i])
+                        bridgeModel = new m.models.ConnectTheDots(true,[corner(from,1),corner(to,1),corner(to,-1),corner(from,-1)])
+                    } else {
+                        bridgeModel = new m.models.Slot(from, to, width / 2)
+                    }
+                    for (const point of [from, to]) {
+                        if (!m.measure.isPointInsideModel(point, model)) { g.fail(path, 'Bridge attachment is outside its region') }
+                    }
+                    model = g.combine(model, bridgeModel)
+                    features[`${ref}.bridges.${bridge}`] = g.describe(bridgeModel, path)
+                }
+                // Fill incidental voids before finishing; protected gaps and cutouts remain explicit.
+                if (holes === 'fill') {
+                    g.validate(model, name)
+                    model = {models: Object.fromEntries(g.chains(model).map((chain, index) => [index, m.chain.toNewModel(chain)]))}
+                }
+                for (const gap of gaps) { model = g.combine(model, resolve(gap).model, 'subtract') }
+                const before = g.chains(model).length
+                model = finish(model, spec, name, occupied)
+                for (const gap of gaps) {
+                    if (!g.empty(g.combine(model, resolve(gap).model, 'intersect'))) { g.fail(name, `Boundary enters protected gap ${gap}`, 'clearance') }
+                }
+                if (!Object.keys(spec.bridges || {}).length && g.chains(model).length < before) {
+                    g.fail(name, 'Profiles cannot join separate regions without a named bridge', 'disconnected')
+                }
+                // Intentional cutouts remove material after occupied-area validation.
+                for (const cutout of holes === 'fill' ? cutouts : spec.cutouts || []) {
+                    model = g.combine(model, resolve(cutout).model, 'subtract')
+                    g.validate(model, `${name}.cutouts`)
+                }
+                groups = g.partition(model)
+                if (section === 'profiles') { publish(id, model, name) }
+            } else if (section === 'components') {
+                a.unexpected(spec, name, ['anchor', 'size', 'radius', 'corner_radius', 'height', 'clearance', 'motion'])
+                model = shape(spec, name)
+                const height = a.numarr(spec.height, `${name}.height`, 2)(units)
+                if (height[0] >= height[1]) { g.fail(name, 'Height range must increase') }
+                model = g.offset(model, dim(spec.clearance || 0, `${name}.clearance`))
+                occupied = model
+                groups = [model]
+            } else if (section === 'sketches') {
+                const sketch = solvedSketches[id]
+                model = sketch.model
+                groups = [model]
+                report.adjustments.push(...sketch.adjustments)
+                features[ref] = {...g.describe(model, name), sketch: sketch.geometry, constraints: spec.constraints || {}}
+            } else { g.fail(name, 'Cannot use an assembly as a 2D reference') }
+            active.delete(ref)
+            resolved[ref] = {model, occupied, groups, cutouts, gaps}
+            features[ref] = {...g.describe(model, name), ...features[ref]}
+            return resolved[ref]
+        } catch (error) {
+            if (error instanceof g.DesignError && error.diagnostics[0].feature === 'designs') { g.fail(name, error.diagnostics[0].message, error.diagnostics[0].code) }
+            throw error
+        } finally { active.delete(ref) }
+    }
+
+    // Solving is asynchronous; the geometry graph remains deterministic afterwards.
+    const solvedSketches = {}
+    for (const [id, sketch] of Object.entries(config.sketches || {})) {
+        const solver = require('./sketches')
+        solvedSketches[id] = await solver.parse(sketch, `designs.sketches.${id}`, units, points, options)
+    }
+    for (const section of sections.filter(section => section !== 'assemblies')) {
+        for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`) }
+    }
+    if (options.outlineOnly) {
+        return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
+    }
+    const boardSources = options.boardSources ? options.boardSources(generated) : {}
+    const boardBundle = options.scene ? boardSources : undefined
+    const boards = boardBundle ? boardBundle.boards : boardSources
+    config = options.scene ? require('../native/boards').attach(config, boards, {resolved, features, units, shape, scene:options.scene, assets:options.assets}) : require('./board-link').attach(config, boards, {resolved, features, units, shape, assets:options.assets})
+    report.boards = boards
+    if (Object.keys(config.assemblies || {}).length) {
+        const assemblies = require('./assemblies')
+        const legacy = Object.fromEntries(Object.entries(config.assemblies).filter(([, spec]) => spec.preset !== 'enclosure'))
+        assemblies.compile({...config, assemblies: legacy}, {resolve, locate, shape, publish, units, cases, report, outlines: generated})
+    }
+    report.analysis = require('./enclosure-analysis').analyze(config, {resolve, locate, shape, units, boards})
+    appendFindings(report.analysis, boards, options.scene, boardBundle?.findings)
+    if (options.analysis) {
+        const result = {outlines: generated, cases, report, solids: {}, boardBundle}
+        if (options.analysisCache && options.analysisKey) {
+            analysisCache.set(options.analysisCache, {key:options.analysisKey, config, context:{resolve, locate, shape, units, boards}, result})
+        }
+        return result
+    }
+    const earlyCodes = ['mounting','mounting-conflict','seam','disconnected','edge-reference','component-height']
+    const early = Object.entries(report.analysis).flatMap(([id,plan])=>plan.findings.filter(f=>f.severity==='error'&&(config.assemblies[id].board||earlyCodes.includes(f.code))))
+    if (early.length) { const error=new Error(early.map(f=>f.message).join(' ')); error.diagnostics=early; throw error }
+    for (const board of Object.values(boards)) {
+        const errors=board.findings.filter(f=>f.severity==='error')
+        if (errors.length) { const error = new Error(errors.map(f => f.message).join(' ')); error.diagnostics = errors; throw error }
+    }
+    const solids = await require('./enclosures').compile(config, {resolve, locate, shape, publish, units, cases, report, boards}, options)
+    return {outlines: generated, cases, report, solids, boardBundle}
+}

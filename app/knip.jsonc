@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/service-worker.ts",
+    "scripts/tests/*.test.cjs",
+    "**/*.test.{ts,tsx}",
+    "src/workers/*.worker.{ts,tsx}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}"
+  ],
+  "ignoreDependencies": [
+    // Resolved by patch/patch_ergogen.sh to stage verified workspace assets.
+    "@boardstudio/footprints",
+    "@jscad/csg",
+    "@jscad/stl-serializer",
+    "@testing-library/user-event",
+    "@types/styled-components",
+    "@typescript-eslint/parser",
+    "baseline-browser-mapping",
+    "eslint-plugin-prettier",
+    "markdownlint"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "boardstudio",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.26.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --dir app start",
+    "start": "pnpm run dev",
+    "build": "pnpm --dir engine build && pnpm --dir app build",
+    "test": "pnpm run test:engine && pnpm run test:footprints && pnpm --dir app test:unit",
+    "test:engine": "pnpm --dir engine test",
+    "test:footprints": "pnpm --dir footprints test",
+    "test:release": "pnpm --dir app test:release",
+    "test:e2e": "pnpm --dir app test:e2e",
+    "typecheck": "pnpm --dir app typecheck",
+    "precommit": "pnpm --dir app precommit",
+    "check": "pnpm run test:engine && pnpm run test:footprints && pnpm run test:release && pnpm run precommit && pnpm run build && pnpm run test:e2e"
+  }
+}
