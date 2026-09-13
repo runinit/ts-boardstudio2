@@ -7,8 +7,11 @@ const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const PRECISION = 1_000_000;
 
 // Only materialize the selected instance; leave the shared alias definition intact.
-function instance(source: string, path: SourcePath): string {
-  const document = sourceDocument(source);
+function instance(
+  source: string,
+  path: SourcePath,
+  document = sourceDocument(source)
+): string {
   if (document.errors.length) {
     throw new Error(document.errors[0].message);
   }
@@ -81,15 +84,19 @@ export function setLayout(
   value: unknown
 ): string {
   const { root, locked, generated } = target(source, section, id);
-  let result = generated ? source : instance(source, root);
+  const original = sourceDocument(source);
+  let result = generated ? source : instance(source, root, original);
   const path = [...root, ...field];
-  const document = sourceDocument(result);
+  const document = result === source ? original : sourceDocument(result);
   if (
     locked ||
     (document.getIn([...root, 'locked']) && field[0] !== 'locked')
   ) {
     throw new Error('This object is locked.');
   }
+  const coordinate = field[1] === 'override' ? field[2] : field[1];
+  const fixedPath = [...root, 'placement', 'override', 'fixed'];
+  const prior = sourceValue(result, fixedPath);
   const before = sourceValue(result, path);
   const node = document.getIn(path, true);
   if (
@@ -98,16 +105,41 @@ export function setLayout(
     node.items.length === value.length
   ) {
     value.forEach((item, index) => {
-      // Preserve untouched models and their authored comments.
+      // Preserve unchanged collection members, including their comments.
       if (
         JSON.stringify((before as unknown[])[index]) !== JSON.stringify(item)
       ) {
         result = editField(result, [...path, index], item);
       }
     });
+  } else {
+    result = editField(result, path, value);
+  }
+  if (
+    field[0] !== 'placement' ||
+    !['at', 'rotate'].includes(String(coordinate))
+  ) {
     return result;
   }
-  return editField(result, path, value);
+  const fixed: Record<string, boolean> = Array.isArray(prior)
+    ? Object.fromEntries(prior.map((axis) => [axis, true]))
+    : { ...((prior as Record<string, boolean>) || {}) };
+  if (coordinate === 'rotate') {
+    fixed.rotate = true;
+  } else if (Array.isArray(value)) {
+    const previous = (before || [0, 0, 0]) as unknown[];
+    value.forEach((item, index) => {
+      if (item !== previous[index]) {
+        fixed[['x', 'y', 'z'][index]] = true;
+      }
+    });
+  } else {
+    fixed[['x', 'y', 'z'][Number(field.at(-1))]] = true;
+  }
+  // Repeated nudges do not need to rewrite axes that are already fixed.
+  return JSON.stringify(prior) === JSON.stringify(fixed)
+    ? result
+    : editField(result, fixedPath, fixed);
 }
 
 export function moveLayout(
@@ -115,7 +147,8 @@ export function moveLayout(
   section: LayoutSection,
   id: string,
   delta: number[],
-  frame: number[] = IDENTITY
+  frame: number[] = IDENTITY,
+  solved: number[] = [0, 0, 0]
 ): string {
   const local = [0, 1, 2].map(
     (axis) =>
@@ -126,25 +159,20 @@ export function moveLayout(
         ) * PRECISION
       ) / PRECISION
   );
-  const { root, generated } = target(source, section, id);
-  const materialized = generated ? source : instance(source, root);
-  const current = sourceDocument(materialized).getIn([
+  const { root } = target(source, section, id);
+  const coordinates = (sourceValue(source, [
     ...root,
     'placement',
     'override',
     'at',
-  ]) as { toJSON?: () => unknown } | undefined;
-  const coordinates = (current?.toJSON?.() || [0, 0, 0]) as (number | string)[];
+  ]) || [0, 0, 0]) as (number | string)[];
+  const targets = local.map((value, index) =>
+    value ? value + solved[index] : value
+  );
   const next = coordinates.map((value, index) =>
     typeof value === 'number'
-      ? value + local[index]
-      : `(${value}) + ${local[index]}`
+      ? value + targets[index]
+      : `(${value}) + ${targets[index]}`
   );
-  return setLayout(
-    materialized,
-    section,
-    id,
-    ['placement', 'override', 'at'],
-    next
-  );
+  return setLayout(source, section, id, ['placement', 'override', 'at'], next);
 }

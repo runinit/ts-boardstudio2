@@ -41,3 +41,16 @@ it('keeps a batch edit atomic when a member is locked', () => {
     )
   ).toThrow(/locked/);
 });
+
+it('adjusts a sparse row containing one key', () => {
+  const result = parse(
+    adjustSelection(
+      source,
+      { section: 'rows', cluster: 'fingers', id: 'r2' },
+      [2, 0, 0],
+      0
+    )
+  );
+  expect(result.layout.objects.b.placement.override.at).toEqual([2, 0, 0]);
+  expect(result.layout.objects.a.placement).toBeUndefined();
+});

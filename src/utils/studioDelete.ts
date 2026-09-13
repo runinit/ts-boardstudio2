@@ -25,22 +25,25 @@ export function removeSelection(
 ): string {
   const { layout } = readStudio(source);
   const selected = targets(selection);
-  const columns = selected.filter((item) => item.section === 'columns');
+  const axes = selected.filter(
+    (item) => item.section === 'columns' || item.section === 'rows'
+  );
   const pending = selected.flatMap((item) => {
     if (item.section === 'objects' || item.section === 'clusters') {
       return [{ section: item.section, id: item.id }];
     }
-    if (item.section !== 'columns') {
-      throw new Error('Select objects, columns or matrices to delete.');
+    if (item.section !== 'columns' && item.section !== 'rows') {
+      throw new Error('Select objects, rows, columns or matrices to delete.');
     }
     const cluster = layout.clusters?.[item.cluster || ''];
     if (!cluster || cluster.locked || cluster.mirror) {
-      throw new Error('Unlock and select an authored column.');
+      throw new Error('Unlock and select an authored row or column.');
     }
     return Object.entries(layout.objects || {})
       .filter(
         ([, spec]) =>
-          spec.cluster === item.cluster && spec.cell?.[0] === item.id
+          spec.cluster === item.cluster &&
+          spec.cell?.[item.section === 'rows' ? 1 : 0] === item.id
       )
       .map(([id]) => ({ section: 'objects' as const, id }));
   });
@@ -71,24 +74,35 @@ export function removeSelection(
       throw failure;
     }
   }
-  for (const id of Array.from(
-    new Set(columns.map((item) => item.cluster || ''))
-  )) {
-    const cluster = readStudio(result).layout.clusters?.[id];
-    if (!cluster) {
-      continue;
-    }
-    const removed = columns
-      .filter((item) => item.cluster === id)
-      .map((item) => item.id);
-    const keep = (cluster.arrangement?.columns || []).filter(
-      (column) => !removed.includes(column)
-    );
-    result = keep.length
-      ? resizeCluster(result, id, { columns: keep })
-      : removeObject(result, 'clusters', id);
-    for (const column of removed) {
-      result = removeValue(result, ['meta', 'studio', 'columns', id, column]);
+  for (const axis of ['columns', 'rows'] as const) {
+    const groups = axes.filter((item) => item.section === axis);
+    for (const id of Array.from(
+      new Set(groups.map((item) => item.cluster || ''))
+    )) {
+      const cluster = readStudio(result).layout.clusters?.[id];
+      if (!cluster) {
+        continue;
+      }
+      const removed = groups
+        .filter((item) => item.cluster === id)
+        .map((item) => item.id);
+      const keep = (cluster.arrangement?.[axis] || []).filter(
+        (name) => !removed.includes(name)
+      );
+      result = keep.length
+        ? resizeCluster(result, id, { [axis]: keep })
+        : removeObject(result, 'clusters', id);
+      if (axis === 'columns') {
+        for (const column of removed) {
+          result = removeValue(result, [
+            'meta',
+            'studio',
+            'columns',
+            id,
+            column,
+          ]);
+        }
+      }
     }
   }
   return result;

@@ -247,6 +247,34 @@ export default function ClusterTree({
                     </Branch>
                   );
                 })}
+                {item.arrangement.rows?.map((row, index) => {
+                  const target: StudioTarget = {
+                    section: 'rows',
+                    cluster: id,
+                    id: row,
+                  };
+                  return (
+                    <TreeButton
+                      key={`row-${row}`}
+                      role="treeitem"
+                      aria-label={`Row ${index + 1} · ${row}`}
+                      aria-selected={selected(target)}
+                      onClick={(event) =>
+                        choose(
+                          target,
+                          selectionMode(event),
+                          item.arrangement!.rows!.map((value) => ({
+                            section: 'rows',
+                            cluster: id,
+                            id: value,
+                          }))
+                        )
+                      }
+                    >
+                      <Name>Row · {row}</Name>
+                    </TreeButton>
+                  );
+                })}
                 {direct
                   .filter(([, key]) => !key.cell)
                   .map((key) =>

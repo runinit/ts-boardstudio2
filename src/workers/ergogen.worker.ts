@@ -1,6 +1,7 @@
 import * as ergogen from 'ergogen';
 import solverWasm from '@salusoft89/planegcs/dist/planegcs_dist/planegcs.wasm?url';
 import cadWasm from 'replicad-opencascadejs/wasm?url';
+import { runStudio } from './studioPipeline';
 import { WorkerRequest } from './ergogen.worker.types';
 import { createInjectionModule } from '../utils/injectionEvaluator';
 import { attachModelMeshes } from '../utils/modelPreview';
@@ -18,6 +19,8 @@ for (const [name, source] of Object.entries({
 }
 
 const analysisCache = {};
+let studioRevision = '';
+
 console.log('<-> Ergogen worker module starting...');
 
 /**
@@ -41,9 +44,21 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   const { type, inputConfig, injectionInput, requestId, revisions } =
     event.data || {};
 
+  if (type === 'supersede') {
+    studioRevision = event.data.revision || '';
+    return;
+  }
+  if (type === 'studio') {
+    studioRevision = event.data.revision || '';
+  }
   console.log(`<<< Ergogen worker request: ${type} ${requestId}`);
 
-  if (type !== 'generate' && type !== 'analyze' && type !== 'layout') {
+  if (
+    type !== 'generate' &&
+    type !== 'analyze' &&
+    type !== 'layout' &&
+    type !== 'studio'
+  ) {
     console.log('>>> Unknown message type:', type);
     self.postMessage({
       type: 'error',
@@ -72,6 +87,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
                 (injectionError as Error).message || String(injectionError),
               requestId,
               revisions,
+              revision: event.data.revision,
             });
             return true;
           }
@@ -83,7 +99,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     console.log('<-> Running Ergogen in worker');
     let assets = event.data.assets || (await loadAssets().catch(() => ({})));
     if (type === 'generate') {
-      // Resolve emitted model references before native CAD imports them.
+      // Resolve the actual emitted model references before native CAD imports them.
       const inventory = await ergogen.process(inputConfig, {
         debug: true,
         analysis: true,
@@ -94,6 +110,29 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         loadCad: () => import('replicad-opencascadejs'),
       });
       assets = await loadBoardModels(inventory.pcbs || {}, assets);
+    }
+    if (type === 'studio') {
+      const revision = event.data.revision || '';
+      await runStudio(
+        {
+          inputConfig: String(inputConfig),
+          requestId,
+          revision,
+          outline: event.data.outline,
+        },
+        {
+          debug: true,
+          svg: true,
+          assets,
+          solverWasm,
+          loadSolver: () => import('@salusoft89/planegcs'),
+          cadWasm,
+          loadCad: () => import('replicad-opencascadejs'),
+        },
+        () => studioRevision === revision,
+        (reply) => self.postMessage(reply)
+      );
+      return;
     }
     const results = await ergogen.process(
       inputConfig,
@@ -132,6 +171,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       type: 'error',
       error: errorMessage,
       diagnostics: (error as { diagnostics?: unknown }).diagnostics,
+      revision: event.data.revision,
       requestId,
       revisions,
     });

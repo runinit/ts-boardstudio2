@@ -36,8 +36,8 @@ importers:
         specifier: 1.2.0
         version: 1.2.0
       ergogen:
-        specifier: file:vendor/ergogen-footprint-frames-fcd5e0f.tgz
-        version: '@runinit/ergogen@file:vendor/ergogen-footprint-frames-fcd5e0f.tgz'
+        specifier: file:vendor/ergogen-footprint-frames-a71246ca138c.tgz
+        version: '@runinit/ergogen@file:vendor/ergogen-footprint-frames-a71246ca138c.tgz'
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
@@ -1508,8 +1508,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@runinit/ergogen@file:vendor/ergogen-footprint-frames-fcd5e0f.tgz':
-    resolution: {integrity: sha512-oawzglfrCHntZrKf9YMM8YfgBIHEh7LOX5LTfABaRe+GeJ8A0vXHw8dpMRcGYfpHIjJAQ6EtN0QTHcGwgZvjbA==, tarball: file:vendor/ergogen-footprint-frames-fcd5e0f.tgz}
+  '@runinit/ergogen@file:vendor/ergogen-footprint-frames-a71246ca138c.tgz':
+    resolution: {integrity: sha512-I3I+ygINKVG+vbkptci3hC8ei4cEdD+6zd/9+657OApObjap3Qhua+kyJgHe/pbHYOF1a+4DTTbLeAU3lUTQpQ==, tarball: file:vendor/ergogen-footprint-frames-a71246ca138c.tgz}
     version: 6.0.0-develop
     hasBin: true
 
@@ -5811,7 +5811,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@runinit/ergogen@file:vendor/ergogen-footprint-frames-fcd5e0f.tgz':
+  '@runinit/ergogen@file:vendor/ergogen-footprint-frames-a71246ca138c.tgz':
     dependencies:
       '@salusoft89/planegcs': 1.2.0
       ajv: 8.17.1

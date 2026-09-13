@@ -1,5 +1,11 @@
 import { stringify } from 'yaml';
 import { assemblyParts, compileKey, SETUP_REVISION } from './keyAssembly';
+import {
+  OUTLINE_CLEARANCE,
+  OUTLINE_FILLET,
+  OUTLINE_HOLES,
+  OUTLINE_KEY_CLOSE,
+} from './outlineDefaults';
 
 export type AssemblyPlacement = {
   at: [number, number];
@@ -461,7 +467,7 @@ export function compileSetup(setup: DesignSetup): string {
     regions[board] = {
       select: { pcb: board, kind: 'key' },
       envelope: 'keycap',
-      close: 2,
+      close: OUTLINE_KEY_CLOSE,
     };
     const hasComponents = Object.values(objects).some(
       (item) => item.pcb === board && item.kind === 'component'
@@ -478,9 +484,10 @@ export function compileSetup(setup: DesignSetup): string {
         ...(hasComponents ? [`regions.${board}_components`] : []),
       ],
       bridges,
-      clearance: 2,
+      clearance: OUTLINE_CLEARANCE,
+      holes: OUTLINE_HOLES,
       connected: 'single',
-      corners: { fillet: 2 },
+      corners: { fillet: OUTLINE_FILLET },
     };
     profiles[board] = { from: `boundaries.${board}` };
     pcbs[board] = { profile: `profiles.${board}`, thickness: PCB_THICKNESS };

@@ -14,6 +14,7 @@ import {
   nextId,
 } from '../utils/studioSource';
 import ColumnInspector from './ColumnInspector';
+import RowInspector from './RowInspector';
 import SelectionControls from './SelectionControls';
 import LayoutDefaults from './LayoutDefaults';
 import { KEY_SIZES } from '../utils/keySizes';
@@ -248,6 +249,24 @@ export default function StudioInspector({
         />
         <ColumnInspector
           source={source}
+          data={data}
+          selection={selection}
+          edit={edit}
+          select={select}
+        />
+      </>
+    );
+  }
+  if (section === 'rows') {
+    return (
+      <>
+        <SelectionControls
+          source={source}
+          selection={selection}
+          report={report}
+          edit={edit}
+        />
+        <RowInspector
           data={data}
           selection={selection}
           edit={edit}

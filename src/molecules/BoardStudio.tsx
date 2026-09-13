@@ -1,7 +1,6 @@
 import type { PwaState } from '../App';
 import { removeSelection, isDeleteShortcut } from '../utils/studioDelete';
 import { ResizeReview, type ResizeProposal } from '../utils/resizeReview';
-import { repairSetup } from '../utils/setupRepair';
 import { keySetup } from '../utils/keyOptions';
 import ResizeReviewDialog from './ResizeReviewDialog';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
@@ -24,17 +23,13 @@ import {
   X,
 } from 'lucide-react';
 import { useConfigContext } from '../context/ConfigContext';
-import {
-  useCasePreview,
-  useCaseAnalysis,
-  useLayoutAnalysis,
-} from '../hooks/useCasePreview';
+import { useCasePreview } from '../hooks/useCasePreview';
+import { useStudio } from '../hooks/useStudio';
 import {
   getValue,
   readStudio,
   addCluster,
   addObject,
-  addOutline,
   nextId,
   setValue,
   StudioDoc,
@@ -134,22 +129,6 @@ export default function BoardStudio({
     proposal: ResizeProposal;
     finish: (source: string) => void;
   } | null>(null);
-  const repaired = useRef(new Set<string>());
-  const editSource = context?.editSource;
-  useEffect(() => {
-    if (parsed.error || repaired.current.has(source)) {
-      return;
-    }
-    try {
-      const next = repairSetup(source);
-      if (next !== source) {
-        repaired.current.add(source);
-        editSource?.(next);
-      }
-    } catch (caught) {
-      setError(String(caught));
-    }
-  }, [source, parsed.error, editSource]);
   const [quickRequest, setQuickRequest] = useState(0);
   const [quickIntent, setQuickIntent] = useState<'select' | 'focus'>('select');
   const treeTrigger = useRef<HTMLButtonElement>(null),
@@ -172,7 +151,17 @@ export default function BoardStudio({
     cad?.(true);
     return () => cad?.(false);
   }, [cad]);
-  const analysis = useCaseAnalysis(source, context?.injectionInput, assets);
+  const studio = useStudio({
+    source,
+    project: context?.activeConfigId,
+    injections: context?.injectionInput,
+    assets,
+    revision: context?.sourceRevision || 0,
+    action: context?.sourceAction || 'restore',
+    amend: context?.amendSource || (() => false),
+    edit: (next) => context?.editSource(next),
+  });
+  const analysis = studio.analysis;
   const preview = useCasePreview(source, context?.injectionInput, assets);
   const published = useRef(preview.result);
   const adoptGenerated = context?.adoptGenerated;
@@ -187,14 +176,9 @@ export default function BoardStudio({
     published.current = preview.result;
     adoptGenerated?.(source, preview.result, assets);
   }, [preview.result, preview.stale, source, assets, adoptGenerated]);
-  const layout = useLayoutAnalysis(
-    source,
-    context?.injectionInput,
-    stage !== 'case'
-  );
-  const report = layout.result?.layout;
-  const stale =
-    layout.stale || layout.pending || !!layout.error || !!parsed.error;
+  const layout = analysis;
+  const report = studio.report;
+  const stale = analysis.stale || analysis.pending || !!parsed.error;
   const boardStale =
     analysis.stale || analysis.pending || !!analysis.error || !!parsed.error;
   const edit = (
@@ -217,7 +201,7 @@ export default function BoardStudio({
     }
   };
   const deleteSelected = () => {
-    if (stale || !selection.id) {
+    if (parsed.error || !selection.id) {
       return;
     }
     edit(
@@ -246,15 +230,13 @@ export default function BoardStudio({
     before: string,
     candidate?: string
   ) => {
-    if (before !== context?.getRealtimeConfigInput()) {
-      setError('The source changed during this move. Retry.');
+    if (!report || parsed.error) {
       return false;
     }
-    if (!report || stale) {
-      return false;
-    }
-    return edit(
-      (current) => candidate || moveTargets(current, target, delta, report)
+    return edit((current) =>
+      candidate && before === current
+        ? candidate
+        : moveTargets(current, target, delta, report)
     );
   };
   const changeStage = (next: Stage) => {
@@ -373,9 +355,7 @@ export default function BoardStudio({
   const selectedProfile =
     data.pcbs?.[Object.keys(data.pcbs || {})[0]]?.profile ||
     `profiles.${Object.keys(data.designs?.profiles || {})[0]}`;
-  const model = boardStale
-    ? undefined
-    : analysis.result?.designs?.features[selectedProfile]?.model;
+  const model = analysis.result?.designs?.features[selectedProfile]?.model;
   const pcb = Object.entries(analysis.result?.pcbs || {})[0];
   const savedSetup = (
     parsed.error ? undefined : getValue(source, ['meta', 'studio', 'setup'])
@@ -395,7 +375,7 @@ export default function BoardStudio({
       message,
     })),
     ...(report?.findings || []),
-    ...(layout.diagnostics || []),
+    ...(analysis.result?.layout?.findings || []),
     ...analysis.diagnostics,
   ];
   const uniqueFindings = Array.from(
@@ -410,8 +390,8 @@ export default function BoardStudio({
     (item) => item.severity === 'error'
   ).length;
   const solver =
-    report && 'constraints' in report
-      ? (report.constraints as { status: string; dof: number })
+    analysis.result?.layout && 'constraints' in analysis.result.layout
+      ? (analysis.result.layout.constraints as { status: string; dof: number })
       : undefined;
   const navigateFinding = (path: string) => {
     const chunks = path.split('.');
@@ -960,6 +940,16 @@ export default function BoardStudio({
                       onClick={() => choose({ section: 'constraints', id })}
                     >
                       {item.label || id}
+                      {analysis.diagnostics
+                        .filter(
+                          (issue) =>
+                            issue.feature === `layout.constraints.${id}`
+                        )
+                        .map((issue) => (
+                          <small role="alert" key={issue.code}>
+                            {issue.message}
+                          </small>
+                        ))}
                     </TreeButton>
                   )
                 )}
@@ -990,20 +980,6 @@ export default function BoardStudio({
                     <small>Outline</small>
                   </TreeButton>
                 ))}
-                <button
-                  onClick={() =>
-                    edit((before) =>
-                      addOutline(
-                        before,
-                        Object.keys(data.pcbs || {})[0] || 'main',
-                        report,
-                        'replace'
-                      )
-                    )
-                  }
-                >
-                  Rebuild board outline
-                </button>
                 <StudioActions>
                   <button
                     onClick={() => {
@@ -1017,16 +993,43 @@ export default function BoardStudio({
               </details>
             </StudioPane>
             <StudioMain>
-              {stale && (
-                <StudioStatus role="status">
-                  {layout.pending
-                    ? 'Updating layout…'
-                    : 'Showing the last valid geometry.'}
-                  {layout.error && (
-                    <button onClick={layout.generate}>Retry analysis</button>
-                  )}
-                </StudioStatus>
-              )}
+              <StudioBar aria-label="Outline controls">
+                <label>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    aria-label="Automatic outline"
+                    checked={studio.automatic}
+                    disabled={
+                      !!parsed.error ||
+                      !analysis.result?.designs ||
+                      studio.managed === false
+                    }
+                    title={
+                      studio.managed === false
+                        ? 'Custom outlines keep their authored recipes.'
+                        : undefined
+                    }
+                    onChange={() => {
+                      try {
+                        studio.toggle();
+                      } catch (caught) {
+                        setError(String(caught));
+                      }
+                    }}
+                  />
+                  Automatic outline
+                </label>
+                {!studio.automatic && (
+                  <button onClick={studio.rebuild}>Rebuild outline</button>
+                )}
+                {analysis.error && (
+                  <button onClick={studio.rebuild}>Retry outline</button>
+                )}
+                {analysis.pending && (
+                  <span role="status">Updating outline…</span>
+                )}
+              </StudioBar>
               {view === 'sketch' ? (
                 <Suspense fallback={<p>Opening sketches…</p>}>
                   <DesignView session={{ analysis, preview }} />

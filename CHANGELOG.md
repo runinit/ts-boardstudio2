@@ -1,5 +1,26 @@
 # Changelog
 
+## BHK rows and columns
+
+September 12, 2026
+
+BHK now uses editable, named rows and columns instead of fixed key positions.
+Its 33 keys retain their placement, thumb angles and electrical assignments.
+Select rows from the canvas or Objects tree, then use Inspector to adjust keys
+or add/remove individual cells. Matrix resizing preserves intentional holes.
+
+## Continuous editing and automatic outlines
+
+September 11, 2026
+
+Edits save immediately while solving and outline updates run in the background.
+Consecutive moves accumulate without waiting; conflicts stay visible for repair.
+The canvas keeps its camera position and previous outline during updates.
+
+**Automatic outline** rebuilds managed recipes after edits. Turn it off to freeze
+the exact contour; **Rebuild outline** updates it manually. Custom outlines stay
+unchanged. Generated outline updates share the originating edit’s undo step.
+
 ## A simpler design workflow
 
 September 11, 2026
@@ -22,6 +43,9 @@ the part library.
   Advanced library code appears when an entry is selected.
 - **Explicit case creation:** Opening Case leaves the source and undo history
   untouched until you choose Create case.
+- **Board outline recovery:** Rebuild board outline fills incidental voids and
+  retains component envelopes, layout positions, and authored finishing settings.
+  Explicit hole preservation remains supported; one undo restores the prior design.
 - **Reliable editing:** Unfinished YAML keeps its editor, and legacy automatic
   generation no longer starts extra native builds.
 

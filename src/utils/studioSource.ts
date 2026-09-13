@@ -10,6 +10,12 @@ import { editField as setValue, SourcePath } from './designSource';
 export { editField as setValue } from './designSource';
 import { LayoutSection, setLayout } from './layoutSource';
 import { applyKeyDefaults, keyOptions } from './keyOptions';
+import {
+  OUTLINE_CLEARANCE,
+  OUTLINE_FILLET,
+  OUTLINE_HOLES,
+  OUTLINE_KEY_CLOSE,
+} from './outlineDefaults';
 
 type Arrangement = 'free' | 'columns' | 'arc';
 export interface StudioItem {
@@ -439,12 +445,36 @@ function clearAutoBridges(
   };
   let result = source;
   for (const [boundary, ids] of Object.entries(owned)) {
-    const removed = ids.filter((id) =>
-      usesTarget(
-        getValue(result, ['designs', 'boundaries', boundary, 'bridges', id])
-      )
-    );
+    const removed = ids.filter((id) => {
+      const bridge = getValue(result, [
+        'designs',
+        'boundaries',
+        boundary,
+        'bridges',
+        id,
+      ]);
+      const recorded = getValue(result, [
+        'meta',
+        'studio',
+        'outline',
+        'bridges',
+        boundary,
+        id,
+      ]);
+      return (
+        usesTarget(bridge) &&
+        (!recorded || JSON.stringify(recorded) === JSON.stringify(bridge))
+      );
+    });
     for (const id of removed) {
+      result = removeValue(result, [
+        'meta',
+        'studio',
+        'outline',
+        'bridges',
+        boundary,
+        id,
+      ]);
       result = removeValue(result, [
         'designs',
         'boundaries',
@@ -511,7 +541,10 @@ export function removeObject(
   const references: string[] = [];
   const scan = (value: unknown, path: string[]) => {
     // Membership and links inside a deleted subtree are removed in the same edit.
-    if (removed.has(path.join('.'))) {
+    if (
+      removed.has(path.join('.')) ||
+      path.join('.') === 'meta.studio.outline'
+    ) {
       return;
     }
     if (typeof value === 'string') {
@@ -848,15 +881,17 @@ export function addOutline(
     mode === 'replace' && selected?.startsWith('profiles.')
       ? selected.slice('profiles.'.length)
       : '';
-  const previousFrom = data.designs?.profiles?.[previousProfile]?.from;
+  const previousProfileSpec = data.designs?.profiles?.[previousProfile];
+  const previousFrom = previousProfileSpec?.from;
   const previousBoundary =
     typeof previousFrom === 'string' && previousFrom.startsWith('boundaries.')
       ? previousFrom.slice('boundaries.'.length)
       : '';
   const previous = (data.designs?.boundaries?.[previousBoundary] ||
     {}) as Record<string, unknown>;
+  const objects = { ...report?.objects, ...data.layout.objects };
   const groups: Record<string, string[]> = {};
-  for (const [id, item] of Object.entries(data.layout.objects || {})) {
+  for (const [id, item] of Object.entries(objects)) {
     if (
       item.kind === 'anchor' ||
       (item.pcb && item.pcb !== board) ||
@@ -864,7 +899,7 @@ export function addOutline(
     ) {
       continue;
     }
-    const envelopes = {
+    const envelopes: Record<string, unknown> = {
       ...data.parts?.[item.part || '']?.envelopes,
       ...item.envelopes,
     };
@@ -887,20 +922,104 @@ export function addOutline(
   }
   let result = source;
   const sources = [];
+  const previousRegionRefs = Array.isArray(previous.from)
+    ? previous.from
+        .filter((item): item is string => typeof item === 'string')
+        .filter((item) => item.startsWith('regions.'))
+        .map((item) => item.slice('regions.'.length))
+    : typeof previous.from === 'string' && previous.from.startsWith('regions.')
+      ? [previous.from.slice('regions.'.length)]
+      : [];
+  const otherUses = {
+    ...data,
+    designs: {
+      ...data.designs,
+      boundaries: {
+        ...data.designs?.boundaries,
+        [previousBoundary]: { ...previous, from: undefined },
+      },
+    },
+  };
+  const references = (value: unknown, ref: string): boolean => {
+    if (value === ref) {
+      return true;
+    }
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+    return Object.values(value).some((child) => references(child, ref));
+  };
+  // Only replace exclusive automatic recipes; authored or shared regions keep their identity.
+  const previousRegions = previousRegionRefs.filter((id) => {
+    const candidate = data.designs?.regions?.[id] as
+      | { select?: Record<string, unknown> }
+      | undefined;
+    const select = candidate?.select;
+    return (
+      candidate &&
+      select?.pcb === board &&
+      Object.keys(select).every((key) => ['kind', 'pcb'].includes(key)) &&
+      Object.keys(candidate).every((key) =>
+        [
+          'select',
+          'envelope',
+          'close',
+          'clearance',
+          'round',
+          'wrap',
+          'connected',
+          'modifications',
+        ].includes(key)
+      ) &&
+      !references(otherUses, `regions.${id}`)
+    );
+  });
+  const reusedRegions = new Set<string>();
   for (const group of Object.keys(groups)) {
     const [kind, envelope] = group.split(':');
-    const region = nextId(
-      Object.keys(readStudio(result).designs?.regions || {}),
-      `${board}_${envelope}`
-    );
+    const current = readStudio(result);
+    const region =
+      previousRegions.find((id) => {
+        if (reusedRegions.has(id)) {
+          return false;
+        }
+        const candidate = current.designs?.regions?.[id] as
+          | { envelope?: string; select?: { kind?: string } }
+          | undefined;
+        return (
+          candidate?.envelope === envelope && candidate.select?.kind === kind
+        );
+      }) ||
+      nextId(
+        Object.keys(current.designs?.regions || {}),
+        `${board}_${envelope}`
+      );
+    reusedRegions.add(region);
+    const recipe = { ...(current.designs?.regions?.[region] || {}) } as Record<
+      string,
+      unknown
+    >;
+    if (kind !== 'key' && recipe.close === OUTLINE_KEY_CLOSE) {
+      delete recipe.close;
+    }
     result = setValue(result, ['designs', 'regions', region], {
+      ...recipe,
       select:
         Object.keys(groups).filter((key) => key.startsWith(`${kind}:`))
           .length === 1
           ? { kind, pcb: board }
           : { ids: groups[group] },
       envelope,
-      close: 2,
+      ...(kind === 'key'
+        ? {
+            close:
+              (
+                current.designs?.regions?.[region] as
+                  | { close?: unknown }
+                  | undefined
+              )?.close ?? OUTLINE_KEY_CLOSE,
+          }
+        : {}),
     });
     sources.push(`regions.${region}`);
   }
@@ -926,8 +1045,8 @@ export function addOutline(
     );
     pairs.sort((a, b) => a.distance - b.distance);
     const pair = pairs[0];
-    const a = data.layout.objects![pair.a],
-      b = data.layout.objects![pair.b];
+    const a = objects[pair.a],
+      b = objects[pair.b];
     if (
       (!a.cluster || a.cluster !== b.cluster) &&
       (!report || pair.distance > 0.001)
@@ -944,34 +1063,50 @@ export function addOutline(
   const boundary =
     previousBoundary ||
     nextId(Object.keys(data.designs?.boundaries || {}), `${board}_edge`);
+  const previousBridges = (previous.bridges || {}) as Record<string, unknown>;
+  const fingerprints = (getValue(source, [
+    'meta',
+    'studio',
+    'outline',
+    'bridges',
+    boundary,
+  ]) || {}) as Record<string, unknown>;
+  const authoredBridges = Object.fromEntries(
+    Object.entries(previousBridges).filter(([id, value]) => {
+      if (id in fingerprints) {
+        return JSON.stringify(value) !== JSON.stringify(fingerprints[id]);
+      }
+      // Legacy ownership lacks fingerprints; preserve it until explicitly authored again.
+      return true;
+    })
+  );
   result = setValue(result, ['designs', 'boundaries', boundary], {
-    clearance: 2,
+    clearance: OUTLINE_CLEARANCE,
     simplify: 2,
-    corners: { fillet: 1 },
+    corners: { fillet: OUTLINE_FILLET },
+    holes:
+      (getValue(source, ['designs', 'profiles', previousProfile, 'holes']) as
+        | 'preserve'
+        | 'fill'
+        | undefined) ?? OUTLINE_HOLES,
     connected: 'single',
     ...previous,
     from: sources,
     bridges: {
       ...bridges,
-      ...((previous.bridges as Record<string, unknown>) || {}),
+      ...authoredBridges,
     },
   });
-  const ownedBridges = (getValue(source, [
-    'meta',
-    'studio',
-    'bridges',
-    boundary,
-  ]) || []) as string[];
   result = setValue(
     result,
     ['meta', 'studio', 'bridges', boundary],
-    Array.from(
-      new Set([
-        ...ownedBridges,
-        ...Object.keys(bridges).filter(
-          (id) => !(id in ((previous.bridges as Record<string, unknown>) || {}))
-        ),
-      ])
+    Object.keys(bridges)
+  );
+  result = setValue(
+    result,
+    ['meta', 'studio', 'outline', 'bridges', boundary],
+    Object.fromEntries(
+      Object.entries(bridges).filter(([id]) => !(id in authoredBridges))
     )
   );
   result = setValue(result, ['designs', 'profiles', profile], {

@@ -144,6 +144,10 @@ type ContextProps = {
   updateRealtimeConfigInput: (val: string | undefined) => void;
   setConfigInput: Dispatch<SetStateAction<string | undefined>>;
   editSource: (source: string, kind?: EditKind) => void;
+  sourceRevision: number;
+  sourceAction: 'edit' | 'restore' | 'amend';
+  getSourceRevision: () => number;
+  amendSource: (revision: number, before: string, after: string) => boolean;
   commitProject: (
     snapshot: ProjectSnapshot,
     additions?: { assets?: CaseAssets; injections?: string[][] }
@@ -534,7 +538,7 @@ const ConfigContextProvider = ({
   );
   const replaying = useRef(false);
   const editKind = useRef<EditKind>('command');
-  const [, setHistoryRevision] = useState(0);
+  const [historyRevision, setHistoryRevision] = useState(0);
   useEffect(() => {
     history.current.reset({ source: configInputRef.current || '' });
     setHistoryRevision((revision) => revision + 1);
@@ -1510,6 +1514,31 @@ const ConfigContextProvider = ({
     },
     [setConfigInput]
   );
+  const getSourceRevision = useCallback(() => history.current.revision, []);
+  const amendSource = useCallback(
+    (revision: number, before: string, after: string) => {
+      if (before !== realtimeConfigInputRef.current) {
+        return false;
+      }
+      if (
+        !history.current.amend(revision, {
+          source: after,
+          assets: caseAssets.current || {},
+          injections: storedInjectionsRef.current || [],
+        })
+      ) {
+        return false;
+      }
+      replaying.current = true;
+      try {
+        setConfigInput(after);
+      } finally {
+        replaying.current = false;
+      }
+      return true;
+    },
+    [setConfigInput]
+  );
   const commitProject = useCallback(
     (
       snapshot: ProjectSnapshot,
@@ -2045,6 +2074,11 @@ const ConfigContextProvider = ({
       setConfigInput,
       configs,
       editSource,
+      sourceRevision: history.current.revision,
+      sourceAction: history.current.action,
+      historyRevision,
+      getSourceRevision,
+      amendSource,
       commitProject,
       undo,
       redo,
@@ -2119,6 +2153,10 @@ const ConfigContextProvider = ({
       projectAssets,
       setProjectAssets,
       editSource,
+      // History can change without changing source (undo of an asset edit).
+      historyRevision,
+      getSourceRevision,
+      amendSource,
       commitProject,
       undo,
       redo,

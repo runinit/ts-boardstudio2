@@ -88,6 +88,8 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      // Draft expressions share a cacheable chunk without pulling math into the app shell.
+      rollupOptions: { output: { manualChunks: (id) => id.includes('/mathjs/') ? 'math' : undefined } },
       commonjsOptions: {
         include: [/node_modules/, /public\/dependencies\/openjscad\.js$/],
       },

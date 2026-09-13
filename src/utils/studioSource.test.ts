@@ -89,6 +89,25 @@ it('creates an outline selection that includes future keys', () => {
     kind: 'key',
     pcb: 'main',
   });
+  expect(result.designs.regions.main_keycap.close).toBe(2);
+  expect(result.designs.boundaries.main_edge.holes).toBe('fill');
+});
+
+it('leaves component envelopes open when creating automatic outlines', () => {
+  const withComponent = setValue(
+    addObject(source, 'mcu', 'component'),
+    ['layout', 'objects', 'mcu', 'envelopes'],
+    { pcb: { size: [10, 10] } }
+  );
+  const placed = setValue(
+    withComponent,
+    ['layout', 'objects', 'mcu', 'pcb'],
+    'main'
+  );
+  const result = parse(addOutline(placed));
+
+  expect(result.designs.regions.main_pcb.close).toBeUndefined();
+  expect(result.designs.boundaries.main_edge.holes).toBe('fill');
 });
 it('allocates new footprint references when duplicating a BHK-style key', () => {
   let original = addObject(source, 'a', 'key');
@@ -165,6 +184,89 @@ it('rebuilds the current outline without leaving an invalid old boundary', () =>
   ).toBeGreaterThan(0);
   expect(result.pcbs.main.profile).toBe('profiles.main_outline');
 });
+
+it('preserves an explicit hole policy while rebuilding', () => {
+  const initial = createMatrix(source, 2, 2);
+  const preserved = setValue(
+    initial,
+    ['designs', 'boundaries', 'main_edge', 'holes'],
+    'preserve'
+  );
+
+  expect(
+    parse(addOutline(preserved, 'main', undefined, 'replace')).designs
+      .boundaries.main_edge.holes
+  ).toBe('preserve');
+});
+
+it('retains layout, bridges, clearance, and corners while rebuilding', () => {
+  const initial = createMatrix(source, 2, 2);
+  const authored = setValue(
+    setValue(
+      setValue(
+        setValue(
+          initial,
+          ['designs', 'boundaries', 'main_edge', 'clearance'],
+          4
+        ),
+        ['designs', 'boundaries', 'main_edge', 'corners'],
+        { fillet: 7 }
+      ),
+      ['designs', 'boundaries', 'main_edge', 'bridges', 'manual'],
+      {
+        from: { ref: 'fingers_c1_r1' },
+        to: { ref: 'fingers_c2_r2' },
+        width: 12,
+      }
+    ),
+    ['layout', 'objects', 'fingers_c1_r1', 'placement'],
+    { override: { at: [9, 8, 0] } }
+  );
+  const result = parse(addOutline(authored, 'main', undefined, 'replace'));
+
+  expect(result.layout.objects.fingers_c1_r1.placement.override.at).toEqual([
+    9, 8, 0,
+  ]);
+  expect(result.designs.boundaries.main_edge.clearance).toBe(4);
+  expect(result.designs.boundaries.main_edge.corners).toEqual({ fillet: 7 });
+  expect(result.designs.boundaries.main_edge.bridges.manual).toEqual({
+    from: { ref: 'fingers_c1_r1' },
+    to: { ref: 'fingers_c2_r2' },
+    width: 12,
+  });
+});
+
+it('reuses generated regions so old component closing is removed on rebuild', () => {
+  const initial = addOutline(
+    setValue(
+      addObject(source, 'mcu', 'component'),
+      ['layout', 'objects', 'mcu'],
+      { kind: 'component', pcb: 'main', envelopes: { pcb: { size: [10, 10] } } }
+    )
+  );
+  const legacy = setValue(
+    initial,
+    ['designs', 'regions', 'main_pcb', 'close'],
+    2
+  );
+  const rebuilt = parse(addOutline(legacy, 'main', undefined, 'replace'));
+
+  expect(rebuilt.designs.regions.main_pcb.close).toBeUndefined();
+  expect(Object.keys(rebuilt.designs.regions)).toEqual(['main_pcb']);
+});
+
+it('respects a profile hole policy when its boundary has no policy', () => {
+  const legacy = parse(createMatrix(source, 2, 2));
+  delete legacy.designs.boundaries.main_edge.holes;
+  legacy.designs.profiles.main_outline.holes = 'preserve';
+
+  const rebuilt = parse(
+    addOutline(JSON.stringify(legacy), 'main', undefined, 'replace')
+  );
+  expect(rebuilt.designs.boundaries.main_edge.holes).toBe('preserve');
+  expect(rebuilt.designs.profiles.main_outline.holes).toBe('preserve');
+});
+
 it('removes generated bridges with a deleted cluster but protects manual links', () => {
   const expanded = addCluster(createMatrix(source, 2, 2), 'thumbs', 'arc');
   const rebuilt = addOutline(expanded, 'main', undefined, 'replace');
@@ -181,4 +283,31 @@ it('removes generated bridges with a deleted cluster but protects manual links',
     }
   );
   expect(() => removeObject(manual, 'clusters', 'thumbs')).toThrow(/manual/);
+});
+
+it('preserves shared automatic regions during rebuild', () => {
+  const initial = createMatrix(source, 2, 2);
+  const shared = setValue(initial, ['designs', 'profiles', 'other'], {
+    from: 'regions.main_keycap',
+  });
+  const rebuilt = parse(addOutline(shared, 'main', undefined, 'replace'));
+  expect(rebuilt.designs.boundaries.main_edge.from).not.toContain(
+    'regions.main_keycap'
+  );
+  expect(rebuilt.designs.regions.main_keycap).toEqual(
+    parse(shared).designs.regions.main_keycap
+  );
+});
+
+it('preserves custom selectors when rebuilding an outline', () => {
+  const initial = createMatrix(source, 2, 2);
+  const custom = setValue(
+    initial,
+    ['designs', 'regions', 'main_keycap', 'select', 'cluster'],
+    'fingers'
+  );
+  const rebuilt = parse(addOutline(custom, 'main', undefined, 'replace'));
+  expect(rebuilt.designs.regions.main_keycap).toEqual(
+    parse(custom).designs.regions.main_keycap
+  );
 });

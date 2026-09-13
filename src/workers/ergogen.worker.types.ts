@@ -3,7 +3,9 @@
  */
 
 export type WorkerRequest = {
-  type: 'generate' | 'analyze' | 'layout';
+  type: 'generate' | 'analyze' | 'layout' | 'studio' | 'supersede';
+  revision?: string;
+  outline?: 'keep' | 'rebuild' | 'freeze';
   revisions?: {
     source: string;
     injection: string;

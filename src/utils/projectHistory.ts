@@ -5,6 +5,8 @@ const HISTORY_LIMIT = 100;
 // Keep history outside editors so closing a panel cannot discard a transaction.
 export function createHistory<T>(initial: T) {
   let current = initial;
+  let revision = 0;
+  let action: 'edit' | 'restore' | 'amend' = 'restore';
   let past: T[] = [];
   let future: T[] = [];
   let previousKind: EditKind = 'command';
@@ -12,6 +14,22 @@ export function createHistory<T>(initial: T) {
   return {
     sync(next: T) {
       current = next;
+    },
+    get action() {
+      return action;
+    },
+    get revision() {
+      return revision;
+    },
+    // Generated geometry belongs to its edit and must preserve redo entries.
+    amend(expected: number, next: T) {
+      if (expected !== revision) {
+        return false;
+      }
+      current = next;
+      revision += 1;
+      action = 'amend';
+      return true;
     },
     get canUndo() {
       return past.length > 0;
@@ -31,6 +49,8 @@ export function createHistory<T>(initial: T) {
         past = [...past.slice(-(HISTORY_LIMIT - 1)), current];
       }
       current = next;
+      revision += 1;
+      action = 'edit';
       future = [];
       previousKind = kind;
       previousTime = now;
@@ -42,6 +62,8 @@ export function createHistory<T>(initial: T) {
       }
       future.push(current);
       current = next;
+      revision += 1;
+      action = 'restore';
       previousKind = 'command';
       return current;
     },
@@ -52,11 +74,15 @@ export function createHistory<T>(initial: T) {
       }
       past.push(current);
       current = next;
+      revision += 1;
+      action = 'restore';
       previousKind = 'command';
       return current;
     },
     reset(next: T) {
       current = next;
+      revision += 1;
+      action = 'restore';
       past = [];
       future = [];
       previousKind = 'command';

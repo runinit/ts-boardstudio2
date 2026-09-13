@@ -11,6 +11,7 @@ describe('Native layout transactions', () => {
     const value = parse(result).layout.objects.thumb;
     expect(value.placement.at).toEqual(['pitch', 0, 0]);
     expect(value.placement.override.at).toEqual([5, 0, 0]);
+    expect(value.placement.override.fixed).toEqual({ x: true });
     expect(result).toContain('# Keep this formula');
     expect(result).toContain('# Keep this document');
   });
@@ -19,6 +20,14 @@ describe('Native layout transactions', () => {
     const locked = setLayout(source, 'objects', 'thumb', ['locked'], true);
     expect(() => moveLayout(locked, 'objects', 'thumb', [1, 0, 0])).toThrow(
       /locked/
+    );
+  });
+
+  it('keeps fixed axes across cumulative moves', () => {
+    const moved = moveLayout(source, 'objects', 'thumb', [1, 0, 0]);
+    const result = moveLayout(moved, 'objects', 'thumb', [0, 1, 0]);
+    expect(parse(result).layout.objects.thumb.placement.override.fixed).toEqual(
+      { x: true, y: true }
     );
   });
 });
@@ -112,6 +121,27 @@ it('resizes solver freedoms on an alias without changing its source', () => {
   );
   expect(after).toContain('base: &key {kind: key, placement: {solve: [x]}}');
   expect(parse(after).layout.objects.copy.placement.solve).toEqual(['x', 'y']);
+});
+
+it('keeps inspector coordinate and rotation targets fixed', () => {
+  const positioned = setLayout(
+    source,
+    'objects',
+    'thumb',
+    ['placement', 'override', 'at'],
+    [5, 0, 0]
+  );
+  const rotated = setLayout(
+    positioned,
+    'objects',
+    'thumb',
+    ['placement', 'override', 'rotate'],
+    15
+  );
+  expect(parse(rotated).layout.objects.thumb.placement.override.fixed).toEqual({
+    x: true,
+    rotate: true,
+  });
 });
 
 it('updates a model list while preserving untouched model text', () => {

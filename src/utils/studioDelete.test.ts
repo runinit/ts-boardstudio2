@@ -60,3 +60,15 @@ it('leaves Delete alone in editable fields and dialogs', () => {
     false
   );
 });
+
+it('deletes a named row and its owned electronics while retaining other rows', () => {
+  const rows = source
+    .replace('rows: [r1]', 'rows: [r1,r2]')
+    .replace('cell: [c2,r1]', 'cell: [c2,r2]');
+  const result = parse(
+    removeSelection(rows, { section: 'rows', cluster: 'main', id: 'r1' })
+  );
+  expect(Object.keys(result.layout.objects)).toEqual(['b', 'encoder']);
+  expect(result.layout.clusters.main.arrangement.rows).toEqual(['r2']);
+  expect(result.layout.clusters.main.arrangement.columns).toEqual(['c1', 'c2']);
+});

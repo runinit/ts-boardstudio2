@@ -49,7 +49,12 @@ export function moveTargets(
             target.section as 'objects' | 'clusters',
             target.id,
             delta,
-            frame.editMatrix
+            frame.editMatrix,
+            (
+              report as LayoutReport & {
+                offsets?: Record<string, { at: number[] }>;
+              }
+            ).offsets?.[`layout.${target.section}.${target.id}.placement`]?.at
           );
   }
   return result;

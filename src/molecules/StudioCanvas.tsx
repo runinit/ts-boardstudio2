@@ -5,8 +5,7 @@ import { layoutPolygon } from '../utils/layoutDrawing';
 import { Drawing } from './CasePlanPreview';
 import { theme } from '../theme/theme';
 import CanvasTools from './CanvasTools';
-import { layoutSpacing, hasSpacing } from '../utils/snapSpacing';
-import { useLayoutAnalysis } from '../hooks/useCasePreview';
+import { layoutSpacing } from '../utils/snapSpacing';
 import {
   moveTargets,
   movingIds,
@@ -33,8 +32,7 @@ const DRAG_THRESHOLD = 4,
   MIN_SIZE = 40,
   ZOOM_STEP = 1.25,
   MIN_SCALE = 0.1,
-  MAX_SCALE = 5,
-  MOVE_TOLERANCE = 0.01;
+  MAX_SCALE = 5;
 export default function StudioCanvas({
   report,
   quickEdit,
@@ -43,13 +41,11 @@ export default function StudioCanvas({
   onQuickEdit,
   onMove,
   onDelete,
-  stale,
   source,
   model,
   side,
   onSide,
   rules,
-  injections,
 }: {
   report?: LayoutReport;
   quickEdit?: ReactNode;
@@ -75,7 +71,7 @@ export default function StudioCanvas({
   const [tool, setTool] = useState('select');
   // Selection changes must not replace the tool chosen for the next click.
   const [scope, setScope] = useState(() =>
-    ['columns', 'clusters'].includes(selection.section)
+    ['columns', 'rows', 'clusters'].includes(selection.section)
       ? selection.section
       : 'keys'
   );
@@ -83,10 +79,6 @@ export default function StudioCanvas({
   const [gap, setGap] = useState(2);
   const [relative, setRelative] = useState(false);
   const clicked = useRef<StudioSelection | null>(null);
-  const [committed, setCommitted] = useState<{
-    source: string;
-    report: LayoutReport;
-  } | null>(null);
   const spacing = useMemo(() => {
     try {
       return report ? layoutSpacing(source, report) : {};
@@ -94,11 +86,6 @@ export default function StudioCanvas({
       return {};
     }
   }, [source, report]);
-  useEffect(() => {
-    if (committed && (source !== committed.source || !stale)) {
-      setCommitted(null);
-    }
-  }, [source, stale, committed]);
   const items = Object.values(report?.objects || {}).filter(
     (item) => item.kind !== 'anchor'
   );
@@ -126,13 +113,11 @@ export default function StudioCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report, side]);
   const [camera, setCamera] = useState<Box | null>(null);
-  const objectIds = Object.keys(report?.objects || {})
-    .sort()
-    .join('|');
-  useEffect(() => {
-    setCamera(null);
-  }, [objectIds]);
-  const box = camera || fit;
+  const initialFit = useRef<Box | null>(null);
+  if (!initialFit.current && items.length) {
+    initialFit.current = fit;
+  }
+  const box = camera || initialFit.current || fit;
   const liveBox = useRef(box);
   liveBox.current = box;
   const fitRef = useRef(fit);
@@ -154,53 +139,32 @@ export default function StudioCanvas({
     checkSpacing?: boolean;
   } | null>(null);
   const [moveError, setMoveError] = useState('');
-  const proposal = useMemo(() => {
-    if (
-      !drag ||
-      drag.phase !== 'released' ||
-      drag.source !== source ||
-      !report
-    ) {
-      return { source: '', error: '' };
+  const frame = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (frame.current !== null) {
+        cancelAnimationFrame(frame.current);
+      }
+    },
+    []
+  );
+  const pendingDrag = useRef<typeof drag>(null);
+  const visible = report;
+  const commitMove = (next: StudioSelection, delta: number[]) => {
+    if (!report) {
+      return;
     }
     try {
-      if (
-        drag.checkSpacing &&
-        !hasSpacing(
-          report,
-          movingIds(source, drag.selection, report),
-          drag.delta,
-          gap,
-          spacing
-        )
-      ) {
-        throw new Error(
-          'Not enough room for the configured spacing. Move farther away or turn off snapping.'
-        );
+      const nextSource = moveTargets(source, next, delta, report);
+      if (onMove(next, delta, source, nextSource) === false) {
+        setMoveError('The project changed during this move. Retry.');
+        return;
       }
-      return {
-        source: drag.attach
-          ? attachObject(
-              source,
-              drag.selection.id,
-              drag.attach,
-              drag.delta,
-              report
-            )
-          : moveTargets(source, drag.selection, drag.delta, report),
-        error: '',
-      };
+      setMoveError('');
     } catch (error) {
-      return { source: '', error: String(error) };
+      setMoveError(String(error));
     }
-  }, [drag, source, report, gap, spacing]);
-  const candidate = proposal.source;
-  const preview = useLayoutAnalysis(candidate, injections, !!candidate);
-  const previewReady =
-    !!candidate && !preview.stale && !preview.pending && !preview.error;
-  const visible = previewReady
-    ? preview.result?.layout || report
-    : committed?.report || report;
+  };
   const drawn = Object.values(visible?.objects || {}).filter(
     (item) => item.kind !== 'anchor'
   );
@@ -218,64 +182,6 @@ export default function StudioCanvas({
         .map((item) => item.id);
     }
   }, [dragSource, dragSelection, report]);
-  useEffect(() => {
-    if (!drag || drag.phase !== 'released') {
-      return;
-    }
-    if (drag.source !== source || !candidate || preview.error) {
-      setMoveError(
-        proposal.error ||
-          preview.error ||
-          'The project changed. Retry the move.'
-      );
-      setDrag(null);
-      return;
-    }
-    if (previewReady) {
-      const checked = preview.result?.layout;
-      const blocked = draggedIds.find((id) => {
-        const before = report?.objects[id],
-          after = checked?.objects[id];
-        return (
-          before &&
-          (!after ||
-            before.position.some(
-              (value, axis) =>
-                Math.abs(value + drag.delta[axis] - after.position[axis]) >
-                MOVE_TOLERANCE
-            ))
-        );
-      });
-      if (!checked || blocked) {
-        setMoveError(
-          blocked
-            ? `Placement constraints hold ${blocked}. Adjust its constraints before moving it.`
-            : 'The moved layout could not be validated.'
-        );
-      } else if (
-        onMove(drag.selection, drag.delta, drag.source, candidate) === false
-      ) {
-        setMoveError('The project changed during this move. Retry.');
-      } else {
-        // Keep the accepted pose visible until the main analysis catches up.
-        setCommitted({ source: candidate, report: checked });
-        onQuickEdit?.(drag.selection);
-      }
-      setDrag(null);
-    }
-  }, [
-    drag,
-    candidate,
-    previewReady,
-    preview.error,
-    proposal.error,
-    preview.result,
-    draggedIds,
-    report,
-    onQuickEdit,
-    onMove,
-    source,
-  ]);
   const convert = (x: number, y: number) => {
     const matrix = svg.current?.getScreenCTM();
     if (!matrix) {
@@ -326,14 +232,18 @@ export default function StudioCanvas({
       selection.section === 'columns' &&
       item.cluster === selection.cluster &&
       item.cell?.[0] === selection.id;
+    const sameRow =
+      selection.section === 'rows' &&
+      item.cluster === selection.cluster &&
+      item.cell?.[1] === selection.id;
     const next: StudioSelection =
-      tool === 'move' && (sameCluster || sameColumn)
+      tool === 'move' && (sameCluster || sameColumn || sameRow)
         ? selection
-        : scope === 'columns' && item.cell && item.cluster
+        : (scope === 'columns' || scope === 'rows') && item.cell && item.cluster
           ? {
-              section: 'columns',
+              section: scope,
               cluster: item.cluster,
-              id: item.cell[0],
+              id: item.cell[scope === 'rows' ? 1 : 0],
             }
           : scope === 'clusters' && item.cluster
             ? { section: 'clusters', id: item.cluster }
@@ -341,7 +251,7 @@ export default function StudioCanvas({
     return next;
   };
   const reset = () => {
-    setCamera(null);
+    setCamera(fitRef.current);
     gesture.current = null;
     setDrag(null);
   };
@@ -352,23 +262,48 @@ export default function StudioCanvas({
     };
   };
   const end = (id: number, commit: 'commit' | 'cancel') => {
+    const released = pendingDrag.current || drag;
+    pendingDrag.current = null;
+    if (frame.current !== null) {
+      cancelAnimationFrame(frame.current);
+      frame.current = null;
+    }
     if (
-      drag &&
+      released &&
       commit === 'commit' &&
       pointers.current.size === 1 &&
-      drag.delta.some((value) => Math.abs(value) > 0.001)
+      released.delta.some((value) => Math.abs(value) > 0.001)
     ) {
-      setDrag({ ...drag, phase: 'released' });
-    } else {
-      setDrag(null);
-      if (
-        commit === 'commit' &&
-        pointers.current.size === 1 &&
-        clicked.current
-      ) {
-        onQuickEdit?.(clicked.current);
+      try {
+        if (!report) {
+          throw new Error('Layout is unavailable.');
+        }
+        const candidate = released.attach
+          ? attachObject(
+              source,
+              released.selection.id,
+              released.attach,
+              released.delta,
+              report
+            )
+          : moveTargets(source, released.selection, released.delta, report);
+        if (
+          onMove(released.selection, released.delta, source, candidate) !==
+          false
+        ) {
+          setMoveError('');
+        }
+      } catch (error) {
+        setMoveError(String(error));
       }
+    } else if (
+      commit === 'commit' &&
+      pointers.current.size === 1 &&
+      clicked.current
+    ) {
+      onQuickEdit?.(clicked.current);
     }
+    setDrag(null);
     clicked.current = null;
     pointers.current.delete(id);
     gesture.current = null;
@@ -398,7 +333,7 @@ export default function StudioCanvas({
         setRelative={setRelative}
         relativeReason={attachmentReason(source, selection)}
         quickEdit={quickEdit}
-        onDelete={selection.id && !stale ? onDelete : undefined}
+        onDelete={selection.id ? onDelete : undefined}
       />
       {(drag || moveError) && (
         <div
@@ -428,6 +363,11 @@ export default function StudioCanvas({
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.stopPropagation();
+            if (frame.current !== null) {
+              cancelAnimationFrame(frame.current);
+              frame.current = null;
+            }
+            pendingDrag.current = null;
             setDrag(null);
             clicked.current = null;
             setMoveError('');
@@ -451,6 +391,11 @@ export default function StudioCanvas({
           });
           svg.current?.setPointerCapture(event.pointerId);
           if (pointers.current.size > 1) {
+            if (frame.current !== null) {
+              cancelAnimationFrame(frame.current);
+              frame.current = null;
+            }
+            pendingDrag.current = null;
             setDrag(null);
             clicked.current = null;
             startGesture();
@@ -482,7 +427,7 @@ export default function StudioCanvas({
             if (mode !== 'replace') {
               return;
             }
-            if (!stale && !item.locked) {
+            if (!item.locked) {
               setCamera({ ...liveBox.current });
               setDrag({
                 selection: next,
@@ -534,13 +479,20 @@ export default function StudioCanvas({
                 ? snap.target
                 : undefined;
             clicked.current = null;
-            setDrag({
+            pendingDrag.current = {
               ...drag,
               delta: snap?.delta || delta,
               snap,
               attach,
               checkSpacing: snapping && !event.altKey && side === 'top',
-            });
+            };
+            if (frame.current === null) {
+              frame.current = requestAnimationFrame(() => {
+                setDrag(pendingDrag.current);
+                pendingDrag.current = null;
+                frame.current = null;
+              });
+            }
             return;
           }
           const start = gesture.current,
@@ -618,9 +570,7 @@ export default function StudioCanvas({
         {drawn.map((item) => {
           const active = includesObject(selection, item);
           const delta =
-            drag && !previewReady && draggedIds.includes(item.id)
-              ? drag.delta
-              : [0, 0, 0];
+            drag && draggedIds.includes(item.id) ? drag.delta : [0, 0, 0];
           return (
             <g
               key={item.id}
@@ -669,7 +619,6 @@ export default function StudioCanvas({
                 }
                 if (
                   !active ||
-                  stale ||
                   item.locked ||
                   !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(
                     event.key
@@ -688,14 +637,7 @@ export default function StudioCanvas({
                     ? -1
                     : 1) * (event.shiftKey ? 5 : 1);
                 setCamera({ ...liveBox.current });
-                setDrag({
-                  selection,
-                  start: [0, 0, 0],
-                  screen: [0, 0],
-                  delta,
-                  source,
-                  phase: 'released',
-                });
+                commitMove(selection, delta);
               }}
             >
               {item.cell && (

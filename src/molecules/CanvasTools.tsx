@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   MousePointer2,
   Columns3,
+  Rows3,
   Grid2X2,
   Trash2,
   Hand,
@@ -143,6 +144,7 @@ export default function CanvasTools({
         {[
           [MousePointer2, 'keys', 'Objects'],
           [Columns3, 'columns', 'Columns'],
+          [Rows3, 'rows', 'Rows'],
           [Grid2X2, 'clusters', 'Matrices'],
         ].map(([Icon, id, label]) => {
           const Glyph = Icon as typeof Hand;

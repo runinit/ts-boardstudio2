@@ -84,7 +84,7 @@ export function adjustSelection(
     throw new Error('Enter numeric relative adjustments.');
   }
   const members = movingTargets(source, selection);
-  if (members.length > 1 || selection.members) {
+  if (members.length > 1 || selection.members || selection.section === 'rows') {
     return members.reduce(
       (current, member) =>
         adjustSelection(current, member, offset, rotation, stagger),

@@ -1,4 +1,5 @@
 import { applyAssembly } from './applyAssembly';
+import { keyNets } from './assemblyNets';
 import {
   defaultSetup,
   type DesignSetup,
@@ -325,7 +326,7 @@ export function applyKeyDefaults(source: string, id: string): string {
     return source;
   }
   const options = keyOptions(source, item.cluster, item.cell?.[0]);
-  let result = setLayout(
+  const result = setLayout(
     source,
     'objects',
     id,
@@ -333,8 +334,28 @@ export function applyKeyDefaults(source: string, id: string): string {
     options.size
   );
   const setup = keySetup(source, id);
-  result = setup
-    ? applyAssembly(result, [id], setup, 'preserve')
-    : keyElectronics(result, id, options);
-  return result;
+  if (setup) {
+    return applyAssembly(result, [id], setup, 'preserve');
+  }
+  const part = readStudio(source).parts?.[item.part || ''];
+  const authored =
+    !part?.footprints?.switch &&
+    Object.values(part?.footprints || {}).some((binding) => {
+      const provider = (binding as { what?: string })?.what;
+      return typeof provider === 'string' && /(?:^|\/)switch_/.test(provider);
+    });
+  if (!authored) {
+    return keyElectronics(result, id, options);
+  }
+  // Named native circuits already own their diode/LED bindings. Keep that recipe
+  // and give new cells explicit nets; new LED ports remain unconnected.
+  const { columnNet, rowNet } = keyNets(source, id);
+  return setLayout(result, 'objects', id, ['properties'], {
+    column_net: columnNet,
+    row_net: rowNet,
+    colrow: item.cell?.join('_') || id,
+    led_prev: `${id}_led_in`,
+    led_next: `${id}_led_out`,
+    ...item.properties,
+  });
 }

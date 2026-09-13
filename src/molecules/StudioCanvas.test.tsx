@@ -1,12 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { LayoutReport } from 'ergogen/src/native';
 import StudioCanvas from './StudioCanvas';
-import { useLayoutAnalysis } from '../hooks/useCasePreview';
-import { process as generate } from 'ergogen';
-
-vi.mock('../hooks/useCasePreview', () => ({
-  useLayoutAnalysis: vi.fn(() => ({ pending: false, stale: true, error: '' })),
-}));
 const report = {
   objects: {
     key: {
@@ -144,55 +138,23 @@ it('keeps the camera fixed when a dropped object changes the layout bounds', () 
   }
 });
 
-it('holds the validated drop while the main report is stale', async () => {
-  const source =
-    'schema: ergogen/v1\nlayout: {objects: {key: {kind: key, envelopes: {keycap: {size: [18,18]}}}}}';
-  const original = (await generate(source)).layout as LayoutReport;
+it('commits keyboard nudges while analysis is stale', () => {
   const move = vi.fn();
   const props = {
     selection: { section: 'objects' as const, id: 'key' },
     onSelect: vi.fn(),
     onMove: move,
     stale: false,
-    source,
+    source: 'schema: ergogen/v1\nlayout: {objects: {key: {kind: key}}}',
     side: 'top' as const,
     onSide: vi.fn(),
     rules: {},
   };
-  const view = render(<StudioCanvas {...props} report={original} />);
+  render(<StudioCanvas {...props} report={report} stale />);
   fireEvent.keyDown(screen.getByRole('button', { name: 'Select key' }), {
     key: 'ArrowRight',
   });
-  const candidate = vi.mocked(useLayoutAnalysis).mock.calls.at(-1)![0];
-  let accepted: LayoutReport;
-  await act(async () => {
-    accepted = (await generate(candidate)).layout as LayoutReport;
-  });
-  const onMove = vi.fn(() => {
-    view.rerender(
-      <StudioCanvas {...props} source={candidate} stale report={original} />
-    );
-    return true;
-  });
-  vi.mocked(useLayoutAnalysis).mockReturnValue({
-    pending: false,
-    stale: false,
-    error: '',
-    result: { layout: accepted! },
-  } as ReturnType<typeof useLayoutAnalysis>);
-  view.rerender(<StudioCanvas {...props} onMove={onMove} report={original} />);
-  expect(onMove).toHaveBeenCalledOnce();
-  vi.mocked(useLayoutAnalysis).mockReturnValue({
-    pending: false,
-    stale: true,
-    error: '',
-  } as ReturnType<typeof useLayoutAnalysis>);
-  view.rerender(
-    <StudioCanvas {...props} source={candidate} stale report={original} />
-  );
-  expect(
-    screen.getByRole('button', { name: 'Select key' }).querySelector('polygon')
-  ).toHaveAttribute('points', '-8,9 10,9 10,-9 -8,-9');
+  expect(move).toHaveBeenCalledOnce();
 });
 it('opens selection controls after a click without opening them during pointer movement', () => {
   Object.defineProperty(SVGSVGElement.prototype, 'setPointerCapture', {
@@ -252,4 +214,112 @@ it('preserves the chosen scope when selection changes outside the canvas', () =>
   expect(
     screen.getByRole('button', { name: 'Select Matrices' })
   ).toHaveAttribute('aria-pressed', 'true');
+});
+
+it('flushes the final pointer delta on release before its animation frame', () => {
+  const move = vi.fn();
+  vi.stubGlobal('PointerEvent', MouseEvent);
+  vi.stubGlobal(
+    'requestAnimationFrame',
+    vi.fn(() => 1)
+  );
+  vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  vi.stubGlobal(
+    'DOMPoint',
+    class {
+      constructor(
+        public x: number,
+        public y: number
+      ) {}
+      matrixTransform() {
+        return this;
+      }
+    }
+  );
+  Object.defineProperty(SVGSVGElement.prototype, 'getScreenCTM', {
+    configurable: true,
+    value: () => ({ a: 1, b: 0, inverse: () => ({}) }),
+  });
+  Object.defineProperty(SVGSVGElement.prototype, 'setPointerCapture', {
+    configurable: true,
+    value: vi.fn(),
+  });
+  Object.defineProperty(SVGSVGElement.prototype, 'hasPointerCapture', {
+    configurable: true,
+    value: () => false,
+  });
+  const props = {
+    report,
+    selection: { section: 'objects' as const, id: 'key' },
+    onSelect: vi.fn(),
+    onMove: move,
+    stale: true,
+    source: 'schema: ergogen/v1\nlayout: {objects: {key: {kind: key}}}\n',
+    side: 'top' as const,
+    onSide: vi.fn(),
+    rules: {},
+  };
+  try {
+    const view = render(<StudioCanvas {...props} />);
+    const key = screen.getByRole('button', { name: 'Select key' });
+    const svg = screen.getByRole('group', { name: 'Interactive board layout' });
+    fireEvent.pointerDown(key, { button: 0, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(svg, { clientX: 5, clientY: 0, altKey: true });
+    view.rerender(
+      <StudioCanvas
+        {...props}
+        source={props.source + 'meta: {name: changed}\n'}
+      />
+    );
+    fireEvent.pointerUp(svg, { clientX: 5, clientY: 0 });
+    expect(move).toHaveBeenCalledOnce();
+    expect(move.mock.calls[0][1]).toEqual([5, 0, 0]);
+    expect(move.mock.calls[0][3]).toContain('name: changed');
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(1);
+  } finally {
+    vi.unstubAllGlobals();
+    for (const name of [
+      'getScreenCTM',
+      'setPointerCapture',
+      'hasPointerCapture',
+    ]) {
+      Reflect.deleteProperty(SVGSVGElement.prototype, name);
+    }
+  }
+});
+
+it('selects the physical row from the canvas row tool', () => {
+  const select = vi.fn();
+  Object.defineProperty(SVGSVGElement.prototype, 'setPointerCapture', {
+    configurable: true,
+    value: vi.fn(),
+  });
+  Object.defineProperty(SVGSVGElement.prototype, 'getScreenCTM', {
+    configurable: true,
+    value: () => null,
+  });
+  try {
+    render(
+      <StudioCanvas
+        report={report}
+        selection={{ section: 'objects', id: '' }}
+        onSelect={select}
+        onMove={vi.fn()}
+        stale={false}
+        source=""
+        side="top"
+        onSide={vi.fn()}
+        rules={{}}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Select Rows' }));
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Select key' }));
+    expect(select).toHaveBeenLastCalledWith(
+      { section: 'rows', cluster: 'fingers', id: 'r1' },
+      'keep'
+    );
+  } finally {
+    Reflect.deleteProperty(SVGSVGElement.prototype, 'setPointerCapture');
+    Reflect.deleteProperty(SVGSVGElement.prototype, 'getScreenCTM');
+  }
 });

@@ -101,7 +101,8 @@ export function compileKey(
       path: '${KIPRJMOD}/models/' + name,
       asset: name,
       offset: [...sw.at, 0],
-      rotate: [0, 0, sw.rotate],
+      // Model rotations use KiCad's clockwise convention; placement uses CCW.
+      rotate: [0, 0, -sw.rotate],
       scale: [1, 1, 1],
     })),
     properties: {

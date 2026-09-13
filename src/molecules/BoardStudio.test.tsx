@@ -4,11 +4,8 @@ import { parse } from 'yaml';
 import { compileSetup, defaultSetup } from '../utils/designSetup';
 import { setValue } from '../utils/studioSource';
 import BoardStudio from './BoardStudio';
-import {
-  useLayoutAnalysis,
-  useCaseAnalysis,
-  useCasePreview,
-} from '../hooks/useCasePreview';
+import { useCasePreview } from '../hooks/useCasePreview';
+import { useStudio } from '../hooks/useStudio';
 
 let current = '';
 const hooks = vi.hoisted(() => ({ useConfigContext: vi.fn() }));
@@ -23,18 +20,30 @@ vi.mock('../hooks/useCasePreview', () => ({
     generate: vi.fn(),
     cancel: vi.fn(),
   })),
-  useLayoutAnalysis: vi.fn(() => ({
-    result: null,
-    stale: true,
-    pending: false,
-    error: '',
-  })),
-  useCaseAnalysis: vi.fn(() => ({
-    result: { layout: { objects: {}, clusters: {}, layers: {}, findings: [] } },
-    diagnostics: [],
-    error: '',
-    pending: false,
-    stale: false,
+}));
+vi.mock('../hooks/useStudio', () => ({
+  useStudio: vi.fn(() => ({
+    analysis: {
+      result: {
+        layout: {
+          objects: {},
+          clusters: {},
+          layers: {},
+          units: {},
+          findings: [],
+        },
+      },
+      diagnostics: [],
+      error: '',
+      pending: false,
+      stale: false,
+      generate: vi.fn(),
+      cancel: vi.fn(),
+    },
+    report: { objects: {}, clusters: {}, layers: {}, units: {}, findings: [] },
+    automatic: true,
+    toggle: vi.fn(),
+    rebuild: vi.fn(),
   })),
 }));
 vi.mock('./StudioCanvas', () => ({
@@ -124,14 +133,18 @@ it('uses the same generation controller across case and export navigation', () =
     generate,
     cancel: vi.fn(),
   });
-  vi.mocked(useLayoutAnalysis).mockReturnValue({
-    result: null,
-    stale: false,
-    pending: false,
-    error: '',
-    diagnostics: [],
-    generate: vi.fn(),
-    cancel: vi.fn(),
+  vi.mocked(useStudio).mockReturnValue({
+    ...vi.mocked(useStudio).mock.results[0].value,
+    analysis: {
+      ...vi.mocked(useStudio).mock.results[0].value.analysis,
+      result: null,
+      stale: false,
+      pending: false,
+      error: '',
+      diagnostics: [],
+      generate: vi.fn(),
+      cancel: vi.fn(),
+    },
   });
   render(<Harness />);
   fireEvent.click(screen.getByRole('button', { name: 'Generate project' }));
@@ -189,56 +202,6 @@ it('keeps an empty free cluster selectable and deletable', () => {
   expect(parse(current).layout.clusters.free).toBeUndefined();
 });
 
-it('keeps fresh layout geometry editable when board analysis fails', () => {
-  vi.mocked(useLayoutAnalysis).mockReturnValueOnce({
-    result: {
-      layout: {
-        objects: { new_key: { kind: 'key' } },
-        clusters: {},
-        findings: [],
-      },
-    },
-    stale: false,
-    pending: false,
-    error: '',
-    diagnostics: [],
-  } as unknown as ReturnType<typeof useLayoutAnalysis>);
-  vi.mocked(useCaseAnalysis).mockReturnValueOnce({
-    result: null,
-    stale: true,
-    pending: false,
-    error: 'Disconnected outline',
-    diagnostics: [],
-  } as unknown as ReturnType<typeof useCaseAnalysis>);
-  render(<Harness />);
-  expect(screen.getByLabelText('Layout canvas')).toHaveTextContent('new_key');
-  expect(screen.getByLabelText('Layout canvas')).toHaveAttribute(
-    'data-stale',
-    'false'
-  );
-});
-it('keeps board exports stale when only layout resolution succeeds', () => {
-  vi.mocked(useLayoutAnalysis).mockReturnValue({
-    result: { layout: { objects: {}, clusters: {}, findings: [] } },
-    stale: false,
-    pending: false,
-    error: '',
-    diagnostics: [],
-  } as unknown as ReturnType<typeof useLayoutAnalysis>);
-  vi.mocked(useCaseAnalysis).mockReturnValue({
-    result: null,
-    stale: true,
-    pending: false,
-    error: 'Disconnected outline',
-    diagnostics: [],
-  } as unknown as ReturnType<typeof useCaseAnalysis>);
-  render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Export' }));
-  expect(
-    screen.getByRole('button', { name: 'Download PCB and outlines ZIP' })
-  ).toBeDisabled();
-});
-
 it('opens the case from the footprint library preview action', async () => {
   render(<Harness />);
   fireEvent.click(screen.getByRole('button', { name: 'Part library' }));
@@ -281,13 +244,25 @@ it('reviews an edited column removal and preserves the source on Cancel', () => 
 });
 
 it('deletes the selected column but leaves Delete in text fields alone', () => {
-  vi.mocked(useLayoutAnalysis).mockReturnValue({
-    result: { layout: { objects: {}, clusters: {}, findings: [] } },
-    pending: false,
-    stale: false,
-    error: '',
-    diagnostics: [],
-  } as unknown as ReturnType<typeof useLayoutAnalysis>);
+  vi.mocked(useStudio).mockReturnValue({
+    ...vi.mocked(useStudio).mock.results[0].value,
+    analysis: {
+      ...vi.mocked(useStudio).mock.results[0].value.analysis,
+      result: {
+        layout: {
+          objects: {},
+          clusters: {},
+          layers: {},
+          units: {},
+          findings: [],
+        },
+      },
+      pending: false,
+      stale: false,
+      error: '',
+      diagnostics: [],
+    },
+  });
   render(
     <Harness
       initial={
@@ -323,32 +298,6 @@ it('keeps cancellation available while Case is generating', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Case' }));
   fireEvent.click(screen.getByRole('button', { name: 'Cancel generation' }));
   expect(cancel).toHaveBeenCalledOnce();
-});
-
-it('retries failed board analysis from Export', () => {
-  const generate = vi.fn();
-  vi.mocked(useCaseAnalysis).mockReturnValue({
-    result: null,
-    stale: true,
-    pending: false,
-    error: 'Worker stopped',
-    diagnostics: [],
-    generate,
-    cancel: vi.fn(),
-  });
-  vi.mocked(useCasePreview).mockReturnValue({
-    result: null,
-    stale: true,
-    pending: false,
-    error: '',
-    diagnostics: [],
-    generate: vi.fn(),
-    cancel: vi.fn(),
-  });
-  render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Export' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Retry board analysis' }));
-  expect(generate).toHaveBeenCalledOnce();
 });
 
 it('returns to the part library after closing Code', async () => {

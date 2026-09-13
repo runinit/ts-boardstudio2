@@ -72,6 +72,25 @@ Includes corner-relief repair and native SVG outline injection.
 
 SHA-256: `fc1a51a28329c1bbfb82b80d230005582fb580b76f503c695a10557f75f3eaa8`
 
+## Matrix outline recovery
+
+Selected dependency: `ergogen-outlines-f7ae08662ede.tgz`, built from consolidated engine
+`d83f04115c33c57f5139b72b1705b5dc266d4db2` plus the local outline-recovery changes.
+Includes exact-radius gap-closing repair and `holes: preserve | fill`.
+The generated schema and engine bundle are rebuilt from those sources.
+This is an uncommitted local snapshot, not a published release.
+
+SHA-256: `f7ae08662ede8a9d13a6a19f74c8284d38019912423a024c9612e5369c68b966`
+
+## Continuous editing and frozen outlines
+
+Selected dependency: `ergogen-continuous-1510d1b1ff58.tgz` from consolidated engine `d83f04115c33c57f5139b72b1705b5dc266d4db2`
+plus local outline repairs and continuous editing changes. Includes synchronous
+draft resolution, reusable solved layouts, fixed placement axes, and exact
+native contour snapshots. Built locally; no publication.
+
+SHA-256: `1510d1b1ff581780b28c66d7b8adaafbdca31e06b7bf7e3318af4f6b7375e76e`
+
 ## Footprint models
 
 `boardstudio-footprints` is a pinned Git submodule containing upstream sources,

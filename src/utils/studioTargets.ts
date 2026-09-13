@@ -5,6 +5,7 @@ export interface StudioTarget {
   section:
     | 'objects'
     | 'columns'
+    | 'rows'
     | 'clusters'
     | 'parameters'
     | 'constraints'
@@ -85,9 +86,11 @@ export function includesObject(
       ? target.id === item.id
       : target.section === 'clusters'
         ? target.id === item.cluster
-        : target.section === 'columns' &&
-          target.cluster === item.cluster &&
-          target.id === item.cell?.[0]
+        : target.section === 'columns'
+          ? target.cluster === item.cluster && target.id === item.cell?.[0]
+          : target.section === 'rows' &&
+            target.cluster === item.cluster &&
+            target.id === item.cell?.[1]
   );
 }
 
@@ -97,8 +100,24 @@ export function movingTargets(
   selection: StudioSelection
 ): StudioTarget[] {
   const { layout } = readStudio(source);
-  const selected = targets(selection).filter((item) =>
-    ['objects', 'columns', 'clusters'].includes(item.section)
+  // Rows cross column frames; expand them before ancestor and overlap filtering.
+  const expanded = targets(selection).flatMap((target): StudioTarget[] => {
+    if (target.section !== 'rows') {
+      return [target];
+    }
+    return Object.entries(layout.objects || {})
+      .filter(
+        ([, item]) =>
+          item.kind === 'key' &&
+          item.cluster === target.cluster &&
+          item.cell?.[1] === target.id
+      )
+      .map(([id]) => ({ section: 'objects', id }));
+  });
+  const selected = expanded.filter(
+    (item, index) =>
+      ['objects', 'columns', 'clusters'].includes(item.section) &&
+      expanded.findIndex((other) => sameTarget(item, other)) === index
   );
   const parents = (item: StudioTarget): StudioTarget[] => {
     if (item.section === 'columns') {

@@ -127,3 +127,26 @@ it('refuses a flush-edge snap that would crowd another neighbour', async () => {
   const report = (await generate(source)).layout as LayoutReport;
   expect(snapEdges(report, ['encoder'], [-15, 9, 0], 2, 1.5)).toBeUndefined();
 });
+
+it('starts a fixed movement from the visible solved placement', async () => {
+  const source = `schema: ergogen/v1
+layout:
+  objects:
+    a: {kind: anchor}
+    b: {kind: anchor, placement: {at: [10, 0, 0], solve: [x]}}
+  constraints:
+    distance: {type: distance, refs: [a, b], value: 20}
+`;
+  const report = (await generate(source, { layoutOnly: true }))
+    .layout as LayoutReport;
+  const after = moveTargets(
+    source,
+    { section: 'objects', id: 'b' },
+    [1, 0, 0],
+    report
+  );
+  expect(parse(after).layout.objects.b.placement.override.at[0]).toBeCloseTo(
+    11
+  );
+  expect(parse(after).layout.objects.b.placement.override.fixed.x).toBe(true);
+});

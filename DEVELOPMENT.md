@@ -14,6 +14,22 @@ Both run in the generator before PCB and enclosure exports.
 
 This document serves as a knowledge base and architectural guide for the project, tracking implementation details and design decisions.
 
+## BHK rows and columns
+
+BHK uses native `columns` arrangements for the finger matrix and thumbfan.
+Physical `cell` identities remain separate from explicit electrical nets.
+Stagger, widened-column spacing, thumb splay and offsets use `kx`/`ky`
+expressions; intentional holes remain absent objects. `bhk-layout.json`
+records the prior positions and wiring for migration regression tests.
+
+The canvas and cluster tree select rows as well as columns. `RowInspector`
+shares selection adjustments and exposes occupied/missing cells. Row movement
+expands to object targets before deduplication and ancestor filtering;
+row/column intersections move once. Adding a cell with a named native switch
+binding retains its authored circuit, infers peer matrix nets, and gives LEDs
+unique unconnected ports instead of adding a second preset diode. Delete handles both matrix axes while
+preserving locks, ownership and reference checks.
+
 ## Board Studio and document session
 
 `BoardStudio` is the native workspace: Design → PCB → Case → Export.
@@ -62,12 +78,23 @@ remain available under Wiring. This interaction draws inspiration from the
 [Cosmos editor](https://ryanis.cool/cosmos/beta), using our existing theme,
 native YAML and physical geometry.
 
-`StudioCanvas` renders resolved engine envelopes. Pointer motion translates SVG
-objects immediately; only a released drag creates a YAML candidate and invokes the
-layout worker. The accepted pose stays visible until normal analysis catches up.
-The camera freezes at drag start; Fit alone reframes the changed geometry. Cancelled
-pointers, changed source and rejected solutions leave source history unchanged.
-A solved constraint that prevents the requested motion produces a visible error.
+`useStudio` coordinates native editing and analysis. `StudioCanvas` updates drag
+feedback on animation frames and commits on release. Nudges and inspector edits
+use the latest source. A synchronous draft resolves dependencies and mirrors
+without solving constraints or rebuilding outlines. Edited axes become fixed
+placement targets; conflicting edits remain saved and block fabrication exports.
+The camera remains stable until an explicit Fit.
+
+A persistent worker settles edits for 180 ms, then publishes layout, outline and
+board-analysis stages using one resolved scene. Only the newest pending request
+survives; superseded workers get a one-second grace period. Document, project,
+injection, library and asset revisions guard publication. Generated source amends
+the originating history entry; undo and project changes invalidate pending work.
+
+Automatic outline defaults on for managed recipes. The previous outline remains
+visible during analysis. Disabling automation stores exact line, arc and circle
+snapshots while retaining recipes. Manual rebuilding replaces snapshots only on
+success. Custom outlines remain authored, and opening a project never rewrites it.
 
 `studioTargets` owns Ctrl/Cmd toggling, Shift ranges and containment-aware selection.
 `studioMove` applies world deltas through local edit frames. Selected descendants
@@ -86,7 +113,7 @@ Alt or the Snap toggle explicitly bypasses these placement rules. A same-layer
 component can keep its snapped target and relative offset; stacked, solved and
 key-owned placements keep their existing relationships.
 
-Quick controls open after selection or a completed move, dismiss before another
+Quick controls open after selection, dismiss before another
 drag, and use free canvas space when possible. The panel respects reduced motion;
 phones use a bottom sheet. Objects show relative translation and rotation, keys add
 size/alignment, columns add splay/stagger, and matrices add row/column spacing.
@@ -804,7 +831,10 @@ ownership in `meta.studio.electronics` supports removal and duplication without
 mutating shared parts. Standalone generation needs the LED provider injected.
 
 Rebuild board outline replaces the selected boundary in place, preserving profile
-references and finishing settings. Generated bridges are tracked in
+references and finishing settings in one undoable edit. Initial creation and
+rebuilding share outline defaults: close key gaps by 2 mm, leave component
+envelopes unclosed, and fill incidental holes. Rebuilding retains an explicit
+`holes: preserve`; imports never rewrite the outline. Generated bridges are tracked in
 `meta.studio.bridges`; deleting their endpoints removes those bridges in the same
 edit. Manually authored external references remain protected.
 
