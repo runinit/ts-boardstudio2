@@ -32,6 +32,14 @@ export interface StackupReport {
   plate?: number;
   gap?: number;
   surfaces?: Record<string, number>;
+  sections?: {
+    id: string;
+    label: string;
+    kind: string;
+    envelope: string;
+    bottom?: number;
+    top?: number;
+  }[];
   layers: Record<string, SheetReport>;
   error?: string;
 }

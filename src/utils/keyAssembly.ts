@@ -25,7 +25,7 @@ export function assemblyParts(setup: DesignSetup) {
     revision: '1',
     envelopes: {
       pcb: { size: [18, 18] },
-      keycap: { size: isMx ? [18, 18] : [17.5, 16.5] },
+      keycap: { size: setup.keycap || (isMx ? [18, 18] : [17.5, 16.5]) },
       plate: { size: [14, 14] },
       body: { size: [14, 14], height: [0, isMx ? 11.6 : 5.2] },
     },

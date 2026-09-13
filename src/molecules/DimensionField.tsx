@@ -32,8 +32,10 @@ export default function DimensionField({
   suffix = 'mm',
   disabled = false,
   name,
+  help,
 }: {
   name?: string;
+  help?: string;
   label: string;
   value: Dimension;
   units: Record<string, number>;
@@ -141,7 +143,8 @@ export default function DimensionField({
           {error ||
             (actual === undefined
               ? 'Number or expression'
-              : `= ${formatDimension(actual)} ${suffix}`)}
+              : `${typeof dimensionValue(draft) === 'string' ? 'Expression ' : ''}= ${formatDimension(actual)} ${suffix}`)}
+          {help && <span> · {help}</span>}
         </small>
       </div>
     </StudioField>

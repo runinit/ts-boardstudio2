@@ -193,6 +193,21 @@ function edges(points: Point[]): Edge[] {
     ];
   });
 }
+const edgeCache = new WeakMap<
+  LayoutReport,
+  { item: LayoutReport['objects'][string]; edges: Edge[] }[]
+>();
+
+function edgeTargets(report: LayoutReport) {
+  let cached = edgeCache.get(report);
+  if (!cached) {
+    cached = Object.values(report.objects)
+      .filter((item) => item.kind !== 'anchor')
+      .map((item) => ({ item, edges: edges(polygonPoints(item)) }));
+    edgeCache.set(report, cached);
+  }
+  return cached;
+}
 // Compare real envelope edges, including rotated thumbs; tolerance is screen-scaled.
 export function snapEdges(
   report: LayoutReport,
@@ -204,12 +219,7 @@ export function snapEdges(
     Object.keys(report.objects).map((id) => [id, [gap, gap]])
   )
 ): EdgeSnap | undefined {
-  const polygons = Object.values(report.objects)
-    .filter((item) => item.kind !== 'anchor')
-    .map((item) => ({
-      item,
-      edges: edges(polygonPoints(item)),
-    }));
+  const polygons = edgeTargets(report);
   const candidates: {
     distance: number;
     normal: Point;

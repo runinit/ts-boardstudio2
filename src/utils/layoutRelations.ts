@@ -1,3 +1,5 @@
+import type { LayoutSnap } from './layoutSnapping';
+import { attachObject } from './studioMove';
 import { resolve } from 'ergogen/src/native/layout';
 import type { LayoutReport } from 'ergogen/src/native';
 import {
@@ -6,25 +8,37 @@ import {
   removeValue,
   setValue,
   nextId,
+  type StudioRule,
 } from './studioSource';
 import { moveTargets } from './studioMove';
+import { snapTargets } from './snapTargets';
+import { ensurePitchUnits, type Dimension } from './designUnits';
 
-export function alignObject(
+export type RelationPick =
+  | { kind: 'align'; id: string; axis: 'x' | 'y' }
+  | { kind: 'distance'; id: string; value: Dimension };
+
+function relationTarget(
   source: string,
   id: string,
   target: string,
-  axis: 'x' | 'y',
   report: LayoutReport
-): string {
+) {
   const data = readStudio(source),
     item = data.layout.objects?.[id];
   if (!item || report.objects[id]?.locked) {
     throw new Error('Select an unlocked object to align.');
   }
-  const guide = report.guides?.[target];
+  const guide = snapTargets(report).guides[target];
   if (!guide || guide.members.includes(id)) {
     throw new Error('Choose a different alignment target.');
   }
+  if (guide.pcb !== report.objects[id]?.pcb) {
+    throw new Error('Choose an alignment target on the same PCB.');
+  }
+  const follower = `${id}.${target.endsWith('.origin') ? 'origin' : 'center'}`;
+  const relations = (getValue(source, ['meta', 'studio', 'relations']) ||
+    {}) as Record<string, Ownership>;
   const depends = (members: string[], seen = new Set<string>()): boolean =>
     members.some((member) => {
       if (member === id) {
@@ -34,12 +48,22 @@ export function alignObject(
         return false;
       }
       seen.add(member);
-      const refs = Object.values(data.layout.constraints || {})
+      const refs = Object.entries(data.layout.constraints || {})
         .filter(
-          (rule) =>
-            rule.type === 'aligned' && rule.refs[0] === `${member}.center`
+          ([name, rule]) =>
+            (rule.type === 'aligned' &&
+              [`${member}.center`, `${member}.origin`].includes(
+                rule.refs[0]
+              )) ||
+            ownersOf(relations[name] || {}).some(
+              (owner) => owner.object === member
+            )
         )
-        .flatMap((rule) => report.guides?.[rule.refs[1]]?.members || []);
+        .flatMap(([, rule]) =>
+          rule.refs
+            .flatMap((ref) => snapTargets(report).guides[ref]?.members || [])
+            .filter((id) => id !== member)
+        );
       const parent = data.layout.objects?.[member]?.placement?.ref
         ?.replace(/^objects\./, '')
         .split('.')[0];
@@ -48,33 +72,73 @@ export function alignObject(
   if (depends(guide.members)) {
     throw new Error('This alignment would create a dependency cycle.');
   }
+  return { data, item, guide, follower };
+}
+
+function addRelation(source: string, id: string, rule: StudioRule): string {
+  const data = readStudio(source);
+  const name = nextId(
+    Object.keys(data.layout.constraints || {}),
+    rule.type === 'aligned' ? 'alignment' : 'distance'
+  );
+  const solve = data.layout.objects![id].placement?.solve || [];
+  const added = ['x', 'y'].filter((axis) => !solve.includes(axis));
+  let next = setValue(
+    source,
+    ['layout', 'objects', id, 'placement', 'solve'],
+    Array.from(new Set([...solve, ...added]))
+  );
+  next = setValue(next, ['layout', 'constraints', name], rule);
+  return setValue(next, ['meta', 'studio', 'relations', name], {
+    object: id,
+    added,
+  });
+}
+
+export function alignObject(
+  source: string,
+  id: string,
+  target: string,
+  axis: 'x' | 'y',
+  report: LayoutReport
+): string {
+  const { data, item, guide, follower } = relationTarget(
+    source,
+    id,
+    target,
+    report
+  );
   const existing = Object.values(data.layout.constraints || {}).some(
     (rule) =>
       rule.type === 'aligned' &&
-      rule.refs[0] === `${id}.center` &&
+      rule.refs[0] === follower &&
       rule.refs[1] === target &&
       rule.axis === axis
   );
   if (existing) {
     return source;
   }
-  const name = nextId(Object.keys(data.layout.constraints || {}), 'alignment');
-  const solve = item.placement?.solve || [];
-  const added = ['x', 'y'].filter((value) => !solve.includes(value));
-  source = setValue(
-    source,
-    ['layout', 'objects', id, 'placement', 'solve'],
-    Array.from(new Set([...solve, ...added]))
-  );
-  source = setValue(source, ['layout', 'constraints', name], {
+  return addRelation(source, id, {
     type: 'aligned',
-    refs: [`${id}.center`, target],
+    refs: [follower, target],
     axis,
-    label: `${item.label || id} centered on ${guide.label}`,
+    label: `${item.label || id} ${target.endsWith('.origin') ? 'origin aligned with' : 'centered on'} ${guide.label}`,
   });
-  return setValue(source, ['meta', 'studio', 'relations', name], {
-    object: id,
-    added,
+}
+
+export function distanceObject(
+  source: string,
+  id: string,
+  target: string,
+  value: Dimension,
+  report: LayoutReport
+): string {
+  const { item, guide } = relationTarget(source, id, target, report);
+  return addRelation(ensurePitchUnits(source), id, {
+    type: 'distance',
+    refs: [target, `${id}.center`],
+    value,
+    label: `${item.label || id} · ${value} from ${guide.label}`,
   });
 }
 
@@ -147,4 +211,21 @@ export function unlinkRelation(
     );
   }
   return next;
+}
+
+// Retain the accepted drop pose; the relationship is a separate undoable edit.
+export function keepSnapRelation(
+  source: string,
+  snap: LayoutSnap,
+  report: LayoutReport
+): string {
+  if ((snap.kind === 'center' || snap.kind === 'origin') && snap.axis) {
+    return alignObject(source, snap.moving, snap.target, snap.axis, report);
+  }
+  if (snap.kind === 'edge') {
+    return attachObject(source, snap.moving, snap.target, [0, 0, 0], report);
+  }
+  throw new Error(
+    'Snap to an object or center guide before keeping a relationship.'
+  );
 }

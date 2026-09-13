@@ -1,11 +1,14 @@
 import type { LayoutReport } from 'ergogen/src/native';
 import { snapEdges, type EdgeSnap } from './studioMove';
+import { hasSpacing } from './snapSpacing';
+import { snapTargets } from './snapTargets';
 import type { SnapSpacing } from './snapSpacing';
 import { DEFAULT_STEP, formatDimension } from './designUnits';
 
 export interface SnapOptions {
   grid: boolean;
   centers: boolean;
+  origins?: boolean;
   edges: boolean;
   step: number;
   millimetres: number;
@@ -14,6 +17,7 @@ export interface SnapOptions {
 export const defaultSnapping: SnapOptions = {
   grid: true,
   centers: true,
+  origins: false,
   edges: true,
   step: DEFAULT_STEP,
   millimetres: 0,
@@ -21,9 +25,10 @@ export const defaultSnapping: SnapOptions = {
 };
 export interface LayoutSnap extends EdgeSnap {
   axis?: 'x' | 'y';
-  kind: 'grid' | 'center' | 'edge';
+  kind: 'grid' | 'center' | 'origin' | 'edge';
 }
 const dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1];
+const HYSTERESIS = 1.5;
 
 // Reuse resolved geometry during pointer movement; no source parsing or generation here.
 export function snapLayout(
@@ -35,7 +40,8 @@ export function snapLayout(
   tolerance: number,
   spacing: SnapSpacing,
   parent?: number[],
-  previous?: LayoutSnap
+  previous?: LayoutSnap,
+  anchor?: number[]
 ): LayoutSnap {
   const moving = report.objects[ids[0]];
   const result: LayoutSnap = {
@@ -51,9 +57,10 @@ export function snapLayout(
   }
   if (options.grid) {
     const basis = parent || [1, 0, 0, 0, 0, 1, 0, 0];
+    const origin = anchor || moving.position;
     const proposed = [
-      moving.position[0] + delta[0] - basis[3],
-      moving.position[1] + delta[1] - basis[7],
+      origin[0] + delta[0] - basis[3],
+      origin[1] + delta[1] - basis[7],
     ];
     for (const axis of [0, 1]) {
       const direction = [basis[axis], basis[4 + axis]];
@@ -74,7 +81,12 @@ export function snapLayout(
       ? `${options.millimetres} mm grid`
       : `${options.step}u × ${options.step}v grid`;
   }
-  if (options.centers) {
+  if (options.centers || options.origins) {
+    const targets = snapTargets(report);
+    const eligible = [
+      ...Object.values(options.centers ? targets.centers : {}),
+      ...Object.values(options.origins ? targets.origins : {}),
+    ];
     const candidates: {
       target: NonNullable<LayoutReport['guides']>[string];
       moving: string;
@@ -85,16 +97,20 @@ export function snapLayout(
     }[] = [];
     for (const id of ids) {
       const object = report.objects[id];
-      const origin =
-        report.guides?.[`${id}.center`]?.position || object.position;
-      const proposed = [origin[0] + delta[0], origin[1] + delta[1]];
-      for (const target of Object.values(report.guides || {})) {
+      if (!object) {
+        continue;
+      }
+      for (const target of eligible) {
         if (
           target.pcb !== object.pcb ||
           target.members.some((member) => ids.includes(member))
         ) {
           continue;
         }
+        const origin = target.id.endsWith('.origin')
+          ? object.position
+          : targets.centers[`${id}.center`]?.position || object.position;
+        const proposed = [origin[0] + delta[0], origin[1] + delta[1]];
         for (const axis of target.axes) {
           const index = axis === 'x' ? 0 : 1,
             tangent = [target.matrix[index], target.matrix[4 + index]],
@@ -108,7 +124,7 @@ export function snapLayout(
           );
           const retained =
             previous?.target === target.id && previous.axis === axis;
-          if (Math.abs(correction) <= tolerance * (retained ? 1.5 : 1)) {
+          if (Math.abs(correction) <= tolerance * (retained ? HYSTERESIS : 1)) {
             candidates.push({
               target,
               moving: id,
@@ -147,20 +163,40 @@ export function snapLayout(
       wanted[1] += chosen.normal[1] * correction;
       const at = [chosen.origin[0] + wanted[0], chosen.origin[1] + wanted[1]];
       return {
-        kind: 'center',
+        kind: chosen.target.id.endsWith('.origin') ? 'origin' : 'center',
         delta: wanted.map(formatDimension),
         target: chosen.target.id,
         moving: chosen.moving,
         axis: chosen.axis,
         guides: [{ a: chosen.target.position, b: at }],
-        label: `Centered on ${chosen.target.label}`,
+        label: `${chosen.target.id.endsWith('.origin') ? 'Origin aligned with' : 'Centered on'} ${chosen.target.label}`,
       };
     }
   }
   const edge = options.edges
     ? snapEdges(report, ids, delta, options.gap, tolerance, spacing)
     : undefined;
-  return edge
-    ? { ...edge, kind: 'edge' }
-    : { ...result, delta: result.delta.map(formatDimension) };
+  if (!edge) {
+    return { ...result, delta: result.delta.map(formatDimension) };
+  }
+  // Keep edge-normal coordinates exact while the grid supplies the free axis.
+  const wanted = [...result.delta];
+  for (const guide of edge.guides) {
+    const tangent = [guide.b[0] - guide.a[0], guide.b[1] - guide.a[1]];
+    const length = Math.hypot(...tangent);
+    const normal = [-tangent[1] / length, tangent[0] / length];
+    const correction = dot(
+      [edge.delta[0] - wanted[0], edge.delta[1] - wanted[1]],
+      normal
+    );
+    wanted[0] += normal[0] * correction;
+    wanted[1] += normal[1] * correction;
+  }
+  return {
+    ...edge,
+    kind: 'edge',
+    delta: hasSpacing(report, ids, wanted, options.gap, spacing)
+      ? wanted.map(formatDimension)
+      : edge.delta,
+  };
 }

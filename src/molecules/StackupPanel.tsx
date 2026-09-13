@@ -1,4 +1,6 @@
-import { setStackDimension } from '../utils/stackDimensions';
+import StackDimensions from './StackDimensions';
+import type { GeometryJob } from '../hooks/useCasePreview';
+import { setStackDimension, stackDimensions } from '../utils/stackDimensions';
 import { useState } from 'react';
 import { Layers, Trash2 } from 'lucide-react';
 import {
@@ -32,26 +34,33 @@ const FIT_LABELS = {
 export default function StackupPanel({
   source,
   onChange,
+  boardId,
+  assembly,
+  analysis,
 }: {
   source: string;
+  boardId?: string;
+  assembly?: string;
+  analysis?: Pick<GeometryJob, 'result' | 'error'>;
   onChange: (source: string) => void;
 }) {
   const data = readStudio(source),
     boards = Object.keys(data.pcbs || {});
-  const [board, setBoard] = useState(boards[0] || 'main');
+  const [chosenBoard, setBoard] = useState(boards[0] || 'main');
+  const board = boardId || chosenBoard;
   const [selected, setSelected] = useState('');
   const stacks = (getValue(source, ['designs', 'stackups']) || {}) as Record<
     string,
     StackupSpec
   >;
-  const name =
-    Object.keys(stacks).find((id) => stacks[id].pcb === board) || board;
+  const name = stackDimensions(source, board, assembly).stack || board;
   const spec = stacks[name] || {
     pcb: board,
     plate: { thickness: 1.5, gap: 5.4 },
     layers: {},
   };
-  const preview = useLayoutAnalysis(source, undefined, true);
+  const local = useLayoutAnalysis(source, undefined, !analysis);
+  const preview = analysis || local;
   const report = preview.result?.stackups?.[name];
   const units = pitchUnits(source);
   const patch = (path: (string | number)[], value: unknown) => {
@@ -114,24 +123,39 @@ export default function StackupPanel({
   const low = Math.min(-2, ...Object.values(surfaces)),
     high = Math.max(15, ...Object.values(surfaces));
   const y = (value: number) => 110 - ((value - low) / (high - low)) * 90;
+  const sections = (report?.sections || []).filter(
+    (entry, index, all) =>
+      all.findIndex(
+        (other) =>
+          other.kind === entry.kind &&
+          other.envelope === entry.envelope &&
+          other.bottom === entry.bottom &&
+          other.top === entry.top
+      ) === index
+  );
+  const bodies = sections.filter(
+    (entry) => entry.bottom !== undefined && entry.top !== undefined
+  );
   const layer = spec.layers?.[selected];
   return (
     <section aria-label="Mechanical stack">
-      <StudioField>
-        <span>Board</span>
-        <select
-          aria-label="Stack board"
-          value={board}
-          onChange={(event) => {
-            setBoard(event.target.value);
-            setSelected('');
-          }}
-        >
-          {boards.map((id) => (
-            <option key={id}>{id}</option>
-          ))}
-        </select>
-      </StudioField>
+      {!boardId && (
+        <StudioField>
+          <span>Board</span>
+          <select
+            aria-label="Stack board"
+            value={board}
+            onChange={(event) => {
+              setBoard(event.target.value);
+              setSelected('');
+            }}
+          >
+            {boards.map((id) => (
+              <option key={id}>{id}</option>
+            ))}
+          </select>
+        </StudioField>
+      )}
       <svg
         viewBox="0 0 220 125"
         role="img"
@@ -183,6 +207,40 @@ export default function StackupPanel({
             </text>
           </g>
         )}
+        {surfaces['case.lid'] !== undefined && (
+          <g>
+            <line
+              x1="12"
+              x2="208"
+              y1={y(surfaces['case.lid'])}
+              y2={y(surfaces['case.lid'])}
+              stroke={theme.colors.textDark}
+            />
+            <title>Case lid · {formatDimension(surfaces['case.lid'])} mm</title>
+          </g>
+        )}
+        {bodies.map((entry, index) => (
+          <rect
+            key={`${entry.id}-${entry.envelope}`}
+            x={120 + (index * 80) / bodies.length}
+            width={Math.min(14, 60 / bodies.length)}
+            y={y(entry.top!)}
+            height={Math.max(1, y(entry.bottom!) - y(entry.top!))}
+            fill={
+              entry.kind === 'key' ? theme.studio.key : theme.studio.component
+            }
+            fillOpacity=".5"
+          >
+            <title>
+              {entry.envelope === 'keycap'
+                ? 'Keycap'
+                : entry.kind === 'key'
+                  ? 'Switch'
+                  : entry.label}{' '}
+              · {formatDimension(entry.top! - entry.bottom!)} mm
+            </title>
+          </rect>
+        ))}
         {Object.entries(report?.layers || {})
           .filter(
             ([, entry]) =>
@@ -215,6 +273,24 @@ export default function StackupPanel({
       </svg>
       {preview.error && <p role="alert">{preview.error}</p>}
       <small>Section in millimetres, measured from the PCB underside.</small>
+      {sections.length > 0 && (
+        <details>
+          <summary>Switch, keycap and component heights</summary>
+          {sections.map((entry) => (
+            <p key={`${entry.id}-${entry.envelope}`}>
+              {entry.envelope === 'keycap'
+                ? 'Keycap'
+                : entry.kind === 'key'
+                  ? 'Switch'
+                  : entry.label}
+              :{' '}
+              {entry.top === undefined || entry.bottom === undefined
+                ? 'height not declared'
+                : `${formatDimension(entry.top - entry.bottom)} mm · ${formatDimension(entry.bottom)} to ${formatDimension(entry.top)} mm`}
+            </p>
+          ))}
+        </details>
+      )}
       <StudioActions aria-label="Material section legend">
         {Object.entries(spec.layers || {}).map(([id, item]) => {
           const entry = report?.layers[id];
@@ -239,18 +315,12 @@ export default function StackupPanel({
           );
         })}
       </StudioActions>
-      <DimensionField
-        label="PCB thickness"
-        value={data.pcbs?.[board]?.thickness ?? 1.6}
-        units={units}
-        onCommit={(value) =>
-          onChange(
-            setStackDimension(source, ['pcbs', board, 'thickness'], value)
-          )
-        }
+      <StackDimensions
+        source={source}
+        board={board}
+        assembly={assembly}
+        onChange={onChange}
       />
-      {field('Plate thickness', ['plate', 'thickness'], 1.5)}
-      {field('PCB to plate gap', ['plate', 'gap'], 5.4)}
       <h3>Material layers</h3>
       <StudioActions>
         <button onClick={() => add('plate')}>

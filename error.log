@@ -1,0 +1,122 @@
+[2026-09-11T04:47:26.305679845+00:00] startup: base_url=https://chatgpt.com/backend-api path_style=wham
+[2026-09-11T04:47:26.306566044+00:00] auth: mode=ChatGPT account_id=75e7ba9c-6f81-4e3d-90b3-517e99e01a29
+[2026-09-11T04:47:26.307240816+00:00] auth: set ChatGPT-Account-Id header: 75e7ba9c-6f81-4e3d-90b3-517e99e01a29
+[2026-09-11T04:47:26.566231083+00:00] http.list_tasks: env=<all> limit=20 cursor_in=<none> cursor_out=<none> items=0
+[2026-09-11T04:47:36.969173746+00:00] startup: base_url=https://chatgpt.com/backend-api path_style=wham
+[2026-09-11T04:47:36.969245952+00:00] auth: mode=ChatGPT account_id=75e7ba9c-6f81-4e3d-90b3-517e99e01a29
+[2026-09-11T04:47:36.969291588+00:00] auth: set ChatGPT-Account-Id header: 75e7ba9c-6f81-4e3d-90b3-517e99e01a29
+[2026-09-11T04:47:36.983745163+00:00] startup: wham_force_internal=false ua=codex_cli_rs/0.153.4 (CachyOS Linux Rolling Release; x86_64) dumb (codex_cloud_tasks_tui)
+[2026-09-11T04:47:37.031318987+00:00] env: git origins: [SanitizedGitUrl("https://github.com/ceoloide/ergogen-gui.git"), SanitizedGitUrl("https://github.com/ergogen/ergogen-gui.git"), SanitizedGitUrl("https://github.com/runinit/ergogen-gui.git")]
+[2026-09-11T04:47:37.031419837+00:00] env: parsed HTTP GitHub origin => ceoloide/ergogen-gui
+[2026-09-11T04:47:37.031467206+00:00] env: GET https://chatgpt.com/backend-api/wham/environments/by-repo/github/ceoloide/ergogen-gui
+[2026-09-11T04:47:37.031516569+00:00] env: parsed HTTP GitHub origin => ceoloide/ergogen-gui
+[2026-09-11T04:47:37.421266339+00:00] http.list_tasks: env=<all> limit=20 cursor_in=<none> cursor_out=<none> items=0
+[2026-09-11T04:47:37.421387648+00:00] refresh.apply: env=<all> count=0
+[2026-09-11T04:47:37.839364005+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:37.839834481+00:00] env: by-repo returned 0 env(s) for ceoloide/ergogen-gui
+[2026-09-11T04:47:37.839885918+00:00] env: parsed HTTP GitHub origin => ergogen/ergogen-gui
+[2026-09-11T04:47:37.839925743+00:00] env: GET https://chatgpt.com/backend-api/wham/environments/by-repo/github/ergogen/ergogen-gui
+[2026-09-11T04:47:38.188372114+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:38.188435133+00:00] env: parsed HTTP GitHub origin => ergogen/ergogen-gui
+[2026-09-11T04:47:38.933262778+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:38.933406118+00:00] env: by-repo returned 0 env(s) for ergogen/ergogen-gui
+[2026-09-11T04:47:38.933487691+00:00] env: parsed HTTP GitHub origin => runinit/ergogen-gui
+[2026-09-11T04:47:38.933568544+00:00] env: GET https://chatgpt.com/backend-api/wham/environments/by-repo/github/runinit/ergogen-gui
+[2026-09-11T04:47:39.209496797+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:39.209610531+00:00] env: parsed HTTP GitHub origin => runinit/ergogen-gui
+[2026-09-11T04:47:39.984333736+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:39.984442411+00:00] env: by-repo returned 0 env(s) for runinit/ergogen-gui
+[2026-09-11T04:47:39.984483819+00:00] env: GET https://chatgpt.com/backend-api/wham/environments
+[2026-09-11T04:47:40.183263109+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:40.186306805+00:00] env: /environments JSON (pretty):
+[
+  {
+    "id": "687942f048908191bd8c2542d0f9638e",
+    "machine_id": "wham-public/wham-universal",
+    "label": "runinit/zmk-sofle",
+    "is_pinned": false,
+    "description": "",
+    "workspace_dir": "/workspace",
+    "agent_network_access": {
+      "mode": "on",
+      "preset_allowlist": "all",
+      "allowlist_domains": "",
+      "allowlist_rules": null,
+      "denylist_domains": null,
+      "safe_methods_only": null
+    },
+    "codex_github_direct": null,
+    "github_connector_id": null,
+    "enable_gitlab_webhooks": false,
+    "repos": [
+      "github-1004678565"
+    ],
+    "setup": [
+      ""
+    ],
+    "maintenance_setup": null,
+    "repo_map": {
+      "github-1004678565": {
+        "id": "1004678565",
+        "name": "zmk-sofle",
+        "owner": {
+          "login": "runinit",
+          "id": 1857485,
+          "type": "User",
+          "avatar_url": "https://avatars.githubusercontent.com/u/1857485?v=4",
+          "url": "https://api.github.com/users/runinit"
+        },
+        "repository_full_name": "runinit/zmk-sofle",
+        "clone_url": "https://github.com/runinit/zmk-sofle.git",
+        "default_branch": "main",
+        "git_commits_url": "https://api.github.com/repos/runinit/zmk-sofle/git/commits{/sha}",
+        "git_refs_url": "https://api.github.com/repos/runinit/zmk-sofle/git/refs{/sha}",
+        "git_url": "git://github.com/runinit/zmk-sofle.git",
+        "visibility": "public",
+        "archived": null,
+        "allow_auto_merge": false,
+        "allow_merge_commit": true,
+        "allow_rebase_merge": true,
+        "allow_squash_merge": true,
+        "allow_update_branch": false,
+        "language": null,
+        "size": 196,
+        "master_branch": null,
+        "permissions": null
+      }
+    },
+    "env_vars": {},
+    "secrets": {},
+    "secrets_with_domains": null,
+    "task_count": 1,
+    "creator_id": "user-9zm3ROrNPOespXM7dJYg6bBQ",
+    "share_settings": "workspace",
+    "share_targets": [],
+    "permissions": {
+      "can_write": true,
+      "can_delete": true
+    },
+    "created_at": 1752777456.283646,
+    "auto_setup_settings": null,
+    "cache_settings": {
+      "post_setup_cache_enabled": true,
+      "cache_invalidation_key": ""
+    },
+    "etag": "\"f500da0b-0000-0200-0000-69ebaa4a0000\"",
+    "enable_authtranslator": false,
+    "enable_docker_in_docker": false
+  }
+]
+[2026-09-11T04:47:40.186936842+00:00] env: single environment available; selecting it
+[2026-09-11T04:47:40.187160964+00:00] env.select: autodetected id=687942f048908191bd8c2542d0f9638e label=runinit/zmk-sofle
+[2026-09-11T04:47:40.224255962+00:00] env: parsed HTTP GitHub origin => ceoloide/ergogen-gui
+[2026-09-11T04:47:40.366414211+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:40.431778437+00:00] http.list_tasks: env=687942f048908191bd8c2542d0f9638e limit=20 cursor_in=<none> cursor_out=<none> items=0
+[2026-09-11T04:47:40.431903002+00:00] refresh.apply: env=687942f048908191bd8c2542d0f9638e count=0
+[2026-09-11T04:47:40.589971401+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:41.035939049+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:41.036068753+00:00] env: parsed HTTP GitHub origin => ergogen/ergogen-gui
+[2026-09-11T04:47:41.762015765+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:41.762084955+00:00] env: parsed HTTP GitHub origin => runinit/ergogen-gui
+[2026-09-11T04:47:42.772194471+00:00] env: status=200 OK content-type=application/json
+[2026-09-11T04:47:42.972606417+00:00] env: status=200 OK content-type=application/json

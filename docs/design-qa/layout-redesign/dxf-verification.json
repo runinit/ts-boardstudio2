@@ -1,0 +1,24 @@
+{
+  "tool": "ezdxf",
+  "units": "mm",
+  "scale": "1:1",
+  "entities": {
+    "LINE": 20,
+    "ARC": 4
+  },
+  "closed_contours": 5,
+  "holes": 4,
+  "min": [
+    -11,
+    -11,
+    0
+  ],
+  "max": [
+    30.05,
+    30.05,
+    0
+  ],
+  "preview_bounds_match": true,
+  "zip_matches_download": true,
+  "sha256": "6b1adad6193a7e7102f2e00632c03849cdaecc7edc51fac8f60452e98284fe30"
+}

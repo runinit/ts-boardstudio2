@@ -655,8 +655,9 @@ export default function StudioInspector({
             Select a column to adjust splay and offsets, or select a key to edit
             it individually. Nets follow the matrix automatically.
           </p>
-          {field('Column pitch', ['arrangement', 'pitch', 0], 19)}
-          {field('Row pitch', ['arrangement', 'pitch', 1], 19)}
+          <h3>Spacing</h3>
+          {field('Column spacing', ['arrangement', 'pitch', 0], 19)}
+          {field('Row spacing', ['arrangement', 'pitch', 1], 19)}
           {item.arrangement.columns?.map((column, index) => (
             <StudioActions key={column}>
               <button

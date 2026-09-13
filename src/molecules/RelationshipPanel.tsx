@@ -8,7 +8,7 @@ import {
   ensurePitchUnits,
   type Dimension,
 } from '../utils/designUnits';
-import { unlinkRelation } from '../utils/layoutRelations';
+import { unlinkRelation, type RelationPick } from '../utils/layoutRelations';
 import DimensionField from './DimensionField';
 import { StudioActions } from './StudioStyles';
 
@@ -23,7 +23,7 @@ export default function RelationshipPanel({
   source: string;
   selection: StudioSelection;
   report: LayoutReport;
-  onPick: (id: string, axis: 'x' | 'y') => void;
+  onPick: (value: RelationPick) => void;
   onPropose: (source: string) => void;
   edit: (change: (source: string) => string) => void;
 }) {
@@ -39,7 +39,9 @@ export default function RelationshipPanel({
   const related = Object.entries(data.layout.constraints || {}).filter(
     ([, rule]) =>
       rule.refs.some((ref) =>
-        ids.includes(ref.replace(/^objects\./, '').replace(/\.center$/, ''))
+        ids.includes(
+          ref.replace(/^objects\./, '').replace(/\.(center|origin)$/, '')
+        )
       )
   );
   const command = (kind: 'distance' | 'equal_spacing') => {
@@ -104,20 +106,20 @@ export default function RelationshipPanel({
           <StudioActions>
             <button
               disabled={report.objects[ids[0]]?.locked}
-              onClick={() => onPick(ids[0], 'y')}
+              onClick={() => onPick({ kind: 'align', id: ids[0], axis: 'y' })}
             >
               Align vertically
             </button>
             <button
               disabled={report.objects[ids[0]]?.locked}
-              onClick={() => onPick(ids[0], 'x')}
+              onClick={() => onPick({ kind: 'align', id: ids[0], axis: 'x' })}
             >
               Align horizontally
             </button>
           </StudioActions>
         </>
       )}
-      {ids.length >= 2 && (
+      {ids.length >= 1 && (
         <>
           <DimensionField
             label="Center distance"
@@ -126,7 +128,16 @@ export default function RelationshipPanel({
             onCommit={setDistance}
           />
           <StudioActions>
-            <button onClick={() => command('distance')}>Set distance</button>
+            <button
+              disabled={ids.length === 1 && report.objects[ids[0]]?.locked}
+              onClick={() =>
+                ids.length === 1
+                  ? onPick({ kind: 'distance', id: ids[0], value: distance })
+                  : command('distance')
+              }
+            >
+              Set distance
+            </button>
             {ids.length >= 3 && (
               <button onClick={() => command('equal_spacing')}>
                 Distribute evenly

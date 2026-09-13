@@ -1,5 +1,5 @@
 import { Maximize2, Minimize2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import styled from 'styled-components';
 import { theme } from '../theme/theme';
 import { StudioShell, StudioActions, StudioField } from './StudioStyles';
@@ -31,7 +31,7 @@ const Workspace = styled(StudioShell)<{
   z-index: ${(p) => (p.$embedded ? 'auto' : 620)};
   ${(p) =>
     p.$embedded &&
-    `height:auto; overflow:visible; > div {display:flex; flex-direction:column; overflow:visible;} > div > nav {display:none;} > div > main, > div > aside {padding:0; border:0; overflow:visible;} > div > main {flex:none; min-height:0;} svg[aria-label="Key assembly footprint editor"] {height:${p.$expanded ? theme.studio.expandedPreviewHeight : theme.studio.setupPreviewHeight};min-height:0;flex:none;} `}
+    `height:auto; overflow:visible; header {flex-wrap:wrap; padding:0 0 ${theme.spacing.md};} header h1 {flex-basis:100%; font-size:${theme.fontSizes.base};} > div {display:flex; flex-direction:column; overflow:visible;} > div > nav {display:none;} > div > main, > div > aside {padding:0; border:0; overflow:visible;} > div > main {flex:none; min-height:0;} svg[aria-label="Key assembly footprint editor"] {height:${p.$expanded ? theme.studio.expandedPreviewHeight : theme.studio.setupPreviewHeight};min-height:0;flex:none;} `}
   header {
     padding: ${theme.spacing.md};
     display: flex;
@@ -137,6 +137,8 @@ export default function NewDesignWorkspace({
   mode = 'design',
   embedded = false,
   onDraft,
+  scopeControls,
+  applyLabel,
 }: {
   onCreate: (
     source: string,
@@ -148,6 +150,8 @@ export default function NewDesignWorkspace({
   embedded?: boolean;
   onDraft?: (setup: DesignSetup) => void;
   mode?: 'design' | 'assembly';
+  scopeControls?: ReactNode;
+  applyLabel?: string;
 }) {
   const [setup, setSetup] = useState(() =>
     initial ? structuredClone(initial) : defaultSetup()
@@ -430,17 +434,19 @@ export default function NewDesignWorkspace({
           </h1>
           <button onClick={onCancel}>Cancel</button>
           <button onClick={create} disabled={creating} data-primary="true">
-            {mode === 'assembly'
-              ? 'Apply to selection'
-              : initial
-                ? 'Apply setup'
-                : findings.length
-                  ? 'Create draft'
-                  : 'Create design'}
+            {applyLabel ||
+              (mode === 'assembly'
+                ? 'Apply to selection'
+                : initial
+                  ? 'Apply setup'
+                  : findings.length
+                    ? 'Create draft'
+                    : 'Create design')}
           </button>
         </header>
       )}
       {error && <p role="alert">{error}</p>}
+      {scopeControls}
       <Body>
         <nav aria-label="Design setup">
           {(mode === 'assembly' ? (['Key assembly'] as const) : SECTIONS).map(

@@ -25,7 +25,7 @@ canvas nudges, drag snapping and column stagger controls. Vertical column moves
 edit stagger while preserving authored offsets. Alt temporarily bypasses snapping.
 
 `layoutSnapping` consumes native physical center and row/column guides. Temporary
-snaps can become labelled native constraints through **Keep aligned**. The
+center snaps can become labelled native constraints through **Keep relationship**. The
 Inspector also supports mouse-picked center alignment, distance and equal spacing.
 `layoutRelations` validates candidates before committing, tracks owned freedoms,
 and bakes the solved pose when unlinking the final managed relationship.
@@ -38,6 +38,18 @@ Layout. The assembly editor generates a separate two-key KiCad sample using real
 footprints and assets. `componentPlacement` inserts catalogue electronics on the
 chosen PCB; battery envelopes require measured dimensions.
 
+The shared snap-target cache follows immutable analysis reports. Footprint origins
+are independently selectable; center and edge snaps leave the free axis on the
+selected grid. Keys use their column edit frame, including splay; matrices use
+parent coordinates and quantize their own origin. Native alignment seeds followers
+in dependency order before the constraint solve, preserving target positions and
+checking the complete constraint system afterward.
+
+Setup preserves pitch formulas and exposes independent dimensions for new keycaps.
+Assembly samples receive the same unit scope. The staged setup is merged only after
+its own changes are compiled, so concurrent canvas edits are preserved or reported
+as explicit conflicts. Set distance also accepts a mouse-picked canvas target.
+
 ### Mechanical material layers
 
 `designs.stackups` defines PCB/plate dimensions and named foam, silicone or gasket
@@ -45,6 +57,10 @@ layers between existing physical surfaces. Named parameters also drive linked
 case assemblies and inherited per-key electronics. Stock thickness and compression
 produce installed thickness; sheets sharing a gap accumulate in order. Interference
 and missing surfaces belong to the affected layer and do not move the stack.
+
+The stack section includes declared switch, keycap and component heights, plus case
+floor/lid surfaces when available. Undeclared heights are reported explicitly.
+Mirrored objects resolve their mounting plane once, retaining material cutouts.
 
 Native stackup compilation derives flat contours from the selected PCB/profile,
 subtracts intersecting bodies, mounts and explicit cutouts, then validates closed
@@ -87,6 +103,19 @@ Duplicate keys receive new explicit net names and generated footprint references
 Resizing an arrangement retains the IDs of existing cells. Deletion refuses
 referenced objects instead of leaving broken attachments.
 
+`boardDefaults` preserves explicit spacing defaults on unrelated setup edits;
+only a pitch change relinks future defaults to `u`/`v`. Matrix spacing has one
+Inspector section. `assemblyScope` resolves Board → matrix → column → key recipes,
+preserves descendant overrides when applying a parent, and resets only the chosen
+scope. `AssemblyScopePanel` reuses the footprint editor for every scope.
+
+`SnapControls` owns the single snapping menu. `StudioCanvas` offers a relationship
+only for its latest accepted center/edge drop. `keepSnapRelation` routes center
+alignment to constraints and edge offset to an attachment at the accepted pose.
+`StackupPanel` and `StackDimensions` are shared by Setup and Case; parameter aliases
+remain editable, and the plate height is derived from the case datum, PCB thickness
+and gap. Unlinked legacy case dimensions retain their local storage.
+
 New projects start with an empty canvas and docked Design setup.
 `boardDefaults` creates explicit `u`/`v` pitch and mechanical parameters;
 `boardTopology` links mirrored clusters. Adding physical content initializes a
@@ -118,10 +147,10 @@ keeps its normal editing behavior.
 `snapSpacing` resolves pitch expressions through the native unit evaluator and
 caches scoped defaults. Keys retain their pitch-derived edge gaps, including
 oversized caps and unequal row/column pitch. Independent components use the gap
-chosen in Canvas options. Snapping compares actual rotated envelope edges and
+chosen in Snapping options. Snapping compares actual rotated envelope edges and
 rejects candidates that crowd another object on the same PCB and mounting layer.
 Owned key electronics retain their intentionally overlapping assembly placements.
-Alt or the Snap toggle explicitly bypasses these placement rules. A same-layer
+Alt or the Snapping toggle explicitly bypasses these placement rules. A same-layer
 component can keep its snapped target and relative offset; stacked, solved and
 key-owned placements keep their existing relationships.
 

@@ -1,15 +1,34 @@
 import { stringify } from 'yaml';
 import { defaultSetup, type DesignSetup } from './designSetup';
 import { assemblyParts } from './keyAssembly';
-import { applyAssembly } from './applyAssembly';
-import { getValue, readStudio, setValue } from './studioSource';
+import { applyScopeAssembly, scopeAssembly } from './assemblyScope';
+import { getValue, setValue } from './studioSource';
 import { syncBoardTopology } from './boardTopology';
-import { ensurePitchUnits, pitchUnits } from './designUnits';
+import {
+  ensurePitchUnits,
+  pitchUnits,
+  dimension,
+  type Dimension,
+} from './designUnits';
 
 const BOARD_REVISION = 3;
 const MECHANICAL_DEFAULTS = { pcb: 1.6, plate: 1.5, gap: 5.4 };
+function setupPitch(setup: DesignSetup, units: Record<string, number> = {}) {
+  const values = [setup.pitch, setup.pitchY ?? setup.pitch];
+  return values.map((value, axis) => {
+    const expression = setup.pitchExpressions?.[axis];
+    if (
+      expression !== undefined &&
+      dimension(expression, { ...units, u: values[0], v: values[1] }) === value
+    ) {
+      return expression;
+    }
+    return axis === 1 && value === values[0] ? 'u' : value;
+  });
+}
 export function createBoard(setup: DesignSetup = defaultSetup()): string {
   const boards = setup.topology === 'mirrored' ? ['left', 'right'] : ['main'];
+  const pitch = setupPitch(setup);
   return stringify(
     {
       schema: 'ergogen/v1',
@@ -24,8 +43,8 @@ export function createBoard(setup: DesignSetup = defaultSetup()): string {
         },
       },
       units: {
-        u: setup.pitch,
-        v: (setup.pitchY ?? setup.pitch) === setup.pitch ? 'u' : setup.pitchY,
+        u: pitch[0],
+        v: pitch[1],
         pcb_thickness: MECHANICAL_DEFAULTS.pcb,
         plate_thickness: MECHANICAL_DEFAULTS.plate,
         plate_gap: MECHANICAL_DEFAULTS.gap,
@@ -65,25 +84,48 @@ export function setupFromSource(source: string): DesignSetup {
     | Partial<DesignSetup>
     | undefined;
   const units = pitchUnits(source);
-  return { ...defaultSetup(), ...saved, pitch: units.u, pitchY: units.v };
+  const inherited = getValue(source, [
+    'meta',
+    'studio',
+    'defaults',
+    'pitch',
+  ]) as Dimension[] | undefined;
+  return {
+    ...defaultSetup(),
+    ...saved,
+    ...scopeAssembly(source, { kind: 'board' }),
+    pitch: dimension(inherited?.[0] ?? 'u', units),
+    pitchY: dimension(inherited?.[1] ?? 'v', units),
+    pitchExpressions: (inherited &&
+    JSON.stringify(inherited) !== JSON.stringify(['u', 'v'])
+      ? inherited
+      : ['u', 'v'].map(
+          (name) => getValue(source, ['units', name]) ?? units[name]
+        )) as [Dimension, Dimension],
+    keycap: getValue(source, [
+      'parts',
+      'key',
+      'envelopes',
+      'keycap',
+      'size',
+    ]) as DesignSetup['keycap'],
+  };
 }
 
 // Defaults update inherited definitions, never regenerate the authored layout.
 export function applyBoardDefaults(source: string, setup: DesignSetup): string {
-  const previous = setupFromSource(source),
-    data = readStudio(source);
+  const previous = setupFromSource(source);
   let next = ensurePitchUnits(source);
-  if (setup.pitch !== previous.pitch) {
-    next = setValue(next, ['units', 'u'], setup.pitch);
-  }
-  if ((setup.pitchY ?? setup.pitch) !== (previous.pitchY ?? previous.pitch)) {
-    next = setValue(
-      next,
-      ['units', 'v'],
-      (setup.pitchY ?? setup.pitch) === setup.pitch
-        ? 'u'
-        : (setup.pitchY ?? setup.pitch)
-    );
+  const pitchChanged =
+    setup.pitch !== previous.pitch ||
+    (setup.pitchY ?? setup.pitch) !== (previous.pitchY ?? previous.pitch) ||
+    (setup.pitchExpressions !== undefined &&
+      JSON.stringify(setup.pitchExpressions) !==
+        JSON.stringify(previous.pitchExpressions));
+  if (pitchChanged) {
+    const pitch = setupPitch(setup, pitchUnits(source));
+    next = setValue(next, ['units', 'u'], pitch[0]);
+    next = setValue(next, ['units', 'v'], pitch[1]);
   }
   const assemblyChanged = [
     'family',
@@ -98,43 +140,17 @@ export function applyBoardDefaults(source: string, setup: DesignSetup): string {
       JSON.stringify(setup[key as keyof DesignSetup])
   );
   if (assemblyChanged) {
-    const inherited =
-      getValue(source, ['meta', 'studio', 'defaults', 'assemblyTemplate']) ||
-      previous.template.name;
-    const matching = (name: unknown) => {
-      if (!name || name === inherited) {
-        return true;
-      }
-      const recipe = getValue(source, [
-        'meta',
-        'studio',
-        'templates',
-        String(name),
-      ]) as DesignSetup['template'] | undefined;
-      return (
-        !!recipe &&
-        ['switch', 'diode', 'led'].every(
-          (key) =>
-            JSON.stringify(recipe[key as 'switch']) ===
-            JSON.stringify(previous.template[key as 'switch'])
-        ) &&
-        (!recipe.options ||
-          ['family', 'mounting', 'diode', 'led'].every(
-            (key) =>
-              recipe.options?.[key as 'family'] === previous[key as 'family']
-          ))
-      );
-    };
-    const keys = Object.entries(data.layout.objects || {})
-      .filter(
-        ([, item]) =>
-          item.kind === 'key' &&
-          !item.locked &&
-          !data.layout.clusters?.[item.cluster || '']?.locked &&
-          matching(item.properties?.assembly_template)
-      )
-      .map(([id]) => id);
-    next = applyAssembly(next, keys, setup, 'preserve', 'layout');
+    next = applyScopeAssembly(next, { kind: 'board' }, setup);
+  }
+  if (
+    setup.keycap &&
+    JSON.stringify(setup.keycap) !== JSON.stringify(previous.keycap)
+  ) {
+    next = setValue(
+      next,
+      ['parts', 'key', 'envelopes', 'keycap', 'size'],
+      setup.keycap
+    );
   }
   next = setValue(next, ['meta', 'studio', 'openSetup'], false);
   next = setValue(next, ['meta', 'name'], setup.name);
@@ -144,7 +160,7 @@ export function applyBoardDefaults(source: string, setup: DesignSetup): string {
     {}) as object;
   next = setValue(next, ['meta', 'studio', 'defaults'], {
     ...defaults,
-    pitch: ['u', 'v'],
+    ...(pitchChanged ? { pitch: ['u', 'v'] } : {}),
   });
   return syncBoardTopology(next);
 }

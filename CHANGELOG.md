@@ -1,5 +1,28 @@
 # Changelog
 
+## Layout expressions and physical alignment
+
+September 12, 2026
+
+Setup retains pitch formulas and offers separate dimensions for new keycaps.
+Snapping follows splayed edit frames, keeps a free axis on the grid, and offers
+footprint origins separately from physical centers. Set distance now accepts a
+canvas target. Row guides account for mixed key sizes; mirrored sheets retain
+switch cutouts. Mechanical sections show declared component heights.
+
+## Fewer settings, clear inheritance
+
+September 12, 2026
+
+Design setup owns board pitch; renaming a board preserves existing spacing.
+The Inspector has one matrix Spacing section. One assembly editor exposes Board,
+matrix, column and key scopes, with **Reset to inherited** and preserved overrides.
+
+**Snapping** now combines increments, guides and component edge gap. After a
+snapped drop, **Keep relationship** retains either center alignment or edge offset.
+Setup and Case reuse the mechanical stack editor, showing gap and derived plate
+height together.
+
 ## Units, alignment and in-place setup
 
 September 12, 2026

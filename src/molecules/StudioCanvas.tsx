@@ -8,15 +8,11 @@ import { theme } from '../theme/theme';
 import CanvasTools from './CanvasTools';
 import SnapControls from './SnapControls';
 import { snapLayout, type LayoutSnap } from '../utils/layoutSnapping';
+import { snapFrame } from '../utils/snapFrame';
 import { pitchUnits } from '../utils/designUnits';
 import { layoutSpacing, hasSpacing } from '../utils/snapSpacing';
 import { useLayoutAnalysis } from '../hooks/useCasePreview';
-import {
-  moveTargets,
-  movingIds,
-  attachObject,
-  attachmentReason,
-} from '../utils/studioMove';
+import { moveTargets, movingIds, attachmentReason } from '../utils/studioMove';
 import {
   includesObject,
   targets,
@@ -51,11 +47,11 @@ export default function StudioCanvas({
   onSide,
   rules,
   injections,
-  onAlign,
+  onKeepSnap,
   onPickTarget,
 }: {
   onPickTarget?: (ref: string) => void;
-  onAlign?: (id: string, target: string, axis: 'x' | 'y') => void;
+  onKeepSnap?: (snap: LayoutSnap) => void;
   report?: LayoutReport;
   inspector?: ReactNode;
   injections?: string[][];
@@ -85,7 +81,9 @@ export default function StudioCanvas({
   );
   const [snapping, setSnapping] = useState(true);
   const [snapOptions, setSnapOptions] = useSnapOptions();
-  const [lastSnap, setLastSnap] = useState<LayoutSnap | null>(null);
+  const [lastSnap, setLastSnap] = useState<
+    (LayoutSnap & { source: string }) | null
+  >(null);
   const pitchValues = useMemo(() => {
     try {
       return pitchUnits(source);
@@ -93,8 +91,10 @@ export default function StudioCanvas({
       return { u: 19, v: 19 };
     }
   }, [source]);
-  const [gap, setGap] = useState(2);
-  const [relative, setRelative] = useState(false);
+  const gap = snapOptions.gap;
+  useEffect(() => {
+    setLastSnap((current) => (current?.source === source ? current : null));
+  }, [source]);
   const [committed, setCommitted] = useState<{
     source: string;
     report: LayoutReport;
@@ -159,7 +159,6 @@ export default function StudioCanvas({
     start: number[];
     screen: number[];
     snap?: LayoutSnap;
-    attach?: string;
     delta: number[];
     source: string;
     phase: 'moving' | 'released';
@@ -191,15 +190,7 @@ export default function StudioCanvas({
         );
       }
       return {
-        source: drag.attach
-          ? attachObject(
-              source,
-              drag.selection.id,
-              drag.attach,
-              drag.delta,
-              report
-            )
-          : moveTargets(source, drag.selection, drag.delta, report),
+        source: moveTargets(source, drag.selection, drag.delta, report),
         error: '',
       };
     } catch (error) {
@@ -271,7 +262,11 @@ export default function StudioCanvas({
       } else {
         // Keep the accepted pose visible until the main analysis catches up.
         setCommitted({ source: candidate, report: checked });
-        setLastSnap(drag.snap?.kind === 'center' ? drag.snap : null);
+        setLastSnap(
+          drag.snap && drag.snap.kind !== 'grid'
+            ? { ...drag.snap, source: candidate }
+            : null
+        );
       }
       setDrag(null);
     }
@@ -382,14 +377,17 @@ export default function StudioCanvas({
   return (
     <>
       <SnapControls
-        options={{ ...snapOptions, gap }}
+        options={snapOptions}
         enabled={snapping}
+        onEnabled={setSnapping}
         onChange={setSnapOptions}
         units={pitchValues}
       />
-      {lastSnap?.axis &&
+      {lastSnap &&
+        lastSnap.source === source &&
+        (lastSnap.kind !== 'edge' || !attachmentReason(source, selection)) &&
         selection.section === 'objects' &&
-        onAlign &&
+        onKeepSnap &&
         lastSnap.moving === selection.id && (
           <div
             style={{
@@ -400,15 +398,22 @@ export default function StudioCanvas({
             }}
           >
             <button
+              disabled={stale}
               onClick={() => {
-                onAlign(lastSnap.moving, lastSnap.target, lastSnap.axis!);
+                onKeepSnap(lastSnap);
                 setLastSnap(null);
               }}
             >
-              Keep aligned · {lastSnap.label.replace('Centered on ', '')}
+              Keep relationship ·{' '}
+              {lastSnap.kind === 'center'
+                ? 'Center alignment'
+                : lastSnap.kind === 'origin'
+                  ? 'Origin alignment'
+                  : 'Edge offset'}{' '}
+              · {lastSnap.label.replace('Centered on ', '')}
             </button>
             <button
-              aria-label="Dismiss alignment"
+              aria-label="Dismiss relationship"
               onClick={() => setLastSnap(null)}
             >
               Dismiss
@@ -427,13 +432,6 @@ export default function StudioCanvas({
           zoom(direction === 'in' ? 1 / ZOOM_STEP : ZOOM_STEP)
         }
         scale={Math.round((fit.w / box.w) * 100)}
-        snapping={snapping}
-        setSnapping={setSnapping}
-        gap={gap}
-        setGap={setGap}
-        relative={relative}
-        setRelative={setRelative}
-        relativeReason={attachmentReason(source, selection)}
         inspector={inspector}
         onDelete={selection.id && !stale ? onDelete : undefined}
       />
@@ -453,7 +451,7 @@ export default function StudioCanvas({
             (drag?.phase === 'released'
               ? 'Checking placement…'
               : drag?.snap
-                ? `${drag.snap.label}${drag.attach ? ' · keep relative' : ''}`
+                ? drag.snap.label
                 : 'Drag to move · Alt bypasses snap · Esc cancels')}
         </div>
       )}
@@ -569,27 +567,15 @@ export default function StudioCanvas({
                     pitchValues,
                     tolerance,
                     spacing,
-                    report.clusters[
-                      drag.selection.cluster ||
-                        (drag.selection.section === 'clusters'
-                          ? drag.selection.id
-                          : report.objects[drag.selection.id]?.cluster) ||
-                        ''
-                    ]?.matrix,
-                    drag.snap
+                    snapFrame(report, drag.selection).matrix,
+                    drag.snap,
+                    snapFrame(report, drag.selection).origin
                   )
-                : undefined;
-            const attach =
-              relative &&
-              snap?.kind === 'edge' &&
-              !attachmentReason(source, drag.selection)
-                ? snap.target
                 : undefined;
             setDrag({
               ...drag,
               delta: snap?.delta || delta,
               snap,
-              attach,
               checkSpacing: snapping && !event.altKey && side === 'top',
             });
             return;

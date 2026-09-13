@@ -26,6 +26,8 @@ export type DesignSetup = {
   thumbs: number;
   pitch: number;
   pitchY?: number;
+  pitchExpressions?: [number | string, number | string];
+  keycap?: [number | string, number | string];
   topology: 'single' | 'mirrored' | 'reversible';
   connection: 'wired' | 'wireless';
   link: 'trrs' | 'usbc' | 'rj45';
@@ -216,7 +218,10 @@ export function setupFindings(setup: DesignSetup): string[] {
 }
 
 // Compile once from structured state; do not repeatedly parse YAML while building matrices.
-export function compileSetup(setup: DesignSetup): string {
+export function compileSetup(
+  setup: DesignSetup,
+  units: Record<string, number> = {}
+): string {
   setup = {
     ...setup,
     template: {
@@ -524,6 +529,7 @@ export function compileSetup(setup: DesignSetup): string {
   const source = stringify(
     {
       schema: 'ergogen/v1',
+      units: { ...units, u: setup.pitch, v: setup.pitchY ?? setup.pitch },
       meta: {
         name: setup.name,
         studio: {

@@ -4,8 +4,13 @@ import styled from 'styled-components';
 import { theme } from '../theme/theme';
 import { applyBoardDefaults, setupFromSource } from '../utils/boardDefaults';
 import { compileSetup } from '../utils/designSetup';
-import { pitchUnits, dimension } from '../utils/designUnits';
-import { getValue, readStudio } from '../utils/studioSource';
+import {
+  pitchUnits,
+  dimension,
+  ensurePitchUnits,
+  type Dimension,
+} from '../utils/designUnits';
+import { getValue, readStudio, setValue } from '../utils/studioSource';
 import { loadComponentModel, setupModels } from '../utils/componentModels';
 import { useCasePreview } from '../hooks/useCasePreview';
 import { createZip } from '../utils/zip';
@@ -73,23 +78,30 @@ export default function DesignSetupPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sampleAssets, setSampleAssets] = useState<Record<string, string>>({});
-  const units = pitchUnits(draftSource);
+  const units = {
+    ...pitchUnits(draftSource),
+    u: draft.pitch,
+    v: draft.pitchY ?? draft.pitch,
+  };
   const sampleSource = useMemo(() => {
     try {
-      return compileSetup({
-        ...draft,
-        columns: 2,
-        rows: 1,
-        thumbs: 0,
-        controller: '',
-        encoder: false,
-        reset: false,
-        connection: 'wired',
-      });
+      return compileSetup(
+        {
+          ...draft,
+          columns: 2,
+          rows: 1,
+          thumbs: 0,
+          controller: '',
+          encoder: false,
+          reset: false,
+          connection: 'wired',
+        },
+        pitchUnits(draftSource)
+      );
     } catch {
       return '';
     }
-  }, [draft]);
+  }, [draft, draftSource]);
   const sample = useCasePreview(sampleSource, injections, sampleAssets);
   const generateSample = sample.generate;
   useEffect(() => {
@@ -113,9 +125,10 @@ export default function DesignSetupPanel({
     try {
       const assets = await loadAssets();
       onApply(
-        applyBoardDefaults(
-          mergeSetupDraft(base.current, draftSource, currentSource()),
-          draft
+        mergeSetupDraft(
+          base.current,
+          applyBoardDefaults(draftSource, draft),
+          currentSource()
         ),
         assets
       );
@@ -125,22 +138,28 @@ export default function DesignSetupPanel({
       setBusy(false);
     }
   };
-  const pitch = (axis: 'pitch' | 'pitchY', value: number) => {
-    if (value <= 0) {
-      setError('Spacing must be positive.');
-      return;
+  const pitch = (axis: 'pitch' | 'pitchY', value: Dimension) => {
+    const expressions = [
+      ...(draft.pitchExpressions || [draft.pitch, draft.pitchY ?? 'u']),
+    ] as [Dimension, Dimension];
+    expressions[axis === 'pitch' ? 0 : 1] = value;
+    let candidate = ensurePitchUnits(draftSource);
+    candidate = setValue(candidate, ['units', 'u'], expressions[0]);
+    candidate = setValue(candidate, ['units', 'v'], expressions[1]);
+    const resolved = pitchUnits(candidate);
+    if (resolved.u <= 0 || resolved.v <= 0) {
+      throw new Error('Spacing must be positive.');
     }
-    setDraft((before) => ({
-      ...before,
-      [axis]: value,
-      ...(axis === 'pitch' && (before.pitchY ?? before.pitch) === before.pitch
-        ? { pitchY: value }
-        : {}),
-    }));
+    setDraft({
+      ...draft,
+      pitch: resolved.u,
+      pitchY: resolved.v,
+      pitchExpressions: expressions,
+    });
     setError('');
   };
-  const width = draft.family === 'mx' ? 18 : 17.5,
-    height = draft.family === 'mx' ? 18 : 16.5;
+  const cap = draft.keycap || (draft.family === 'mx' ? [18, 18] : [17.5, 16.5]);
+  const [width, height] = cap.map((value) => dimension(value, units));
   const occupied =
     Object.keys(readStudio(source).layout.objects || {}).length > 0;
   return (
@@ -220,7 +239,7 @@ export default function DesignSetupPanel({
               textAnchor="middle"
               fill={theme.colors.text}
             >
-              1u = {draft.pitch} mm
+              Pitch = {draft.pitch} mm
             </text>
           </svg>
           <small>Center-to-center spacing. Keycap size is separate.</small>
@@ -230,34 +249,65 @@ export default function DesignSetupPanel({
                 key={value}
                 aria-pressed={draft.pitch === value && draft.pitchY === value}
                 onClick={() =>
-                  setDraft({ ...draft, pitch: value, pitchY: value })
+                  setDraft({
+                    ...draft,
+                    pitch: value,
+                    pitchY: value,
+                    pitchExpressions: [value, 'u'],
+                  })
                 }
               >
                 {value} mm
               </button>
             ))}
             <button
-              onClick={() => setDraft({ ...draft, pitch: 18, pitchY: 17 })}
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  pitch: 18,
+                  pitchY: 17,
+                  pitchExpressions: [18, 17],
+                })
+              }
             >
               18 × 17 mm
             </button>
           </StudioActions>
           <DimensionField
-            label="Horizontal pitch · u"
-            value={draft.pitch}
+            label="Horizontal pitch"
+            value={draft.pitchExpressions?.[0] ?? draft.pitch}
             units={units}
-            onCommit={(value) => pitch('pitch', dimension(value, units))}
+            onCommit={(value) => pitch('pitch', value)}
           />
           <DimensionField
-            label="Vertical pitch · v"
-            value={draft.pitchY ?? draft.pitch}
+            label="Vertical pitch"
+            value={draft.pitchExpressions?.[1] ?? draft.pitchY ?? draft.pitch}
             units={units}
-            onCommit={(value) => pitch('pitchY', dimension(value, units))}
+            onCommit={(value) => pitch('pitchY', value)}
           />
-          <p>
-            Keycap reference: {width} × {height} mm. Change individual key sizes
-            in Layout.
-          </p>
+          <h3>Keycap dimensions</h3>
+          {['Width', 'Height'].map((label, index) => (
+            <DimensionField
+              key={label}
+              label={`Keycap ${label.toLowerCase()}`}
+              value={cap[index]}
+              units={units}
+              onCommit={(value) => {
+                if (dimension(value, units) <= 0) {
+                  throw new Error('Keycap dimensions must be positive.');
+                }
+                setDraft({
+                  ...draft,
+                  keycap: cap.map((before, axis) =>
+                    axis === index ? value : before
+                  ) as [Dimension, Dimension],
+                });
+              }}
+            />
+          ))}
+          <small>
+            New keys use these dimensions. Edit existing key sizes in Layout.
+          </small>
           <h3>Board topology</h3>
           <Tabs role="group" aria-label="Board topology">
             {(['single', 'mirrored', 'reversible'] as const).map((value) => (
@@ -297,6 +347,12 @@ export default function DesignSetupPanel({
           embedded
           mode="assembly"
           initial={draft}
+          scopeControls={
+            <p>
+              Board assembly defaults · inherited by matrices, columns and keys
+              unless overridden.
+            </p>
+          }
           onDraft={updateAssembly}
           onCreate={() => {}}
           onCancel={() => {}}

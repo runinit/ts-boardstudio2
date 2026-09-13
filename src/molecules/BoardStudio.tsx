@@ -1,8 +1,9 @@
+import { keepSnapRelation } from '../utils/layoutRelations';
+import AssemblyScopePanel from './AssemblyScopePanel';
 import { SnapProvider } from '../hooks/useSnapOptions';
 import { removeSelection, isDeleteShortcut } from '../utils/studioDelete';
 import { ResizeReview, type ResizeProposal } from '../utils/resizeReview';
 import { repairSetup } from '../utils/setupRepair';
-import { keySetup } from '../utils/keyOptions';
 import ResizeReviewDialog from './ResizeReviewDialog';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -56,7 +57,6 @@ import CaseWizard from './CaseWizard';
 import FilePreview from './FilePreview';
 import StudioCanvas, { StudioSelection } from './StudioCanvas';
 import StudioInspector from './StudioInspector';
-import NewDesignWorkspace from './NewDesignWorkspace';
 import DesignSetupPanel from './DesignSetupPanel';
 import RelationshipPanel from './RelationshipPanel';
 import {
@@ -64,12 +64,13 @@ import {
   COMPONENT_CHOICES,
 } from '../utils/componentPlacement';
 import { componentPackage } from '../utils/componentPackage';
-import { alignObject } from '../utils/layoutRelations';
-import { defaultSetup, type DesignSetup } from '../utils/designSetup';
-import { applyAssembly } from '../utils/applyAssembly';
+import {
+  alignObject,
+  distanceObject,
+  type RelationPick,
+} from '../utils/layoutRelations';
 import { theme } from '../theme/theme';
 import { selectedKeys } from '../utils/studioSelection';
-import { updateSetup } from '../utils/updateSetup';
 import ClusterTree from './ClusterTree';
 import LayoutDefaults from './LayoutDefaults';
 import { placeNewItem } from '../utils/studioPlacement';
@@ -165,6 +166,7 @@ export default function BoardStudio({
     () => !!getValue(source, ['meta', 'studio', 'openSetup'])
   );
   const [assemblyKeys, setAssemblyKeys] = useState<string[]>([]);
+  const [assemblyOpen, setAssemblyOpen] = useState(false);
   const [resizeReview, setResizeReview] = useState<{
     proposal: ResizeProposal;
     finish: (source: string) => void;
@@ -220,10 +222,7 @@ export default function BoardStudio({
     stage !== 'case'
   );
   const report = layout.result?.layout;
-  const [picking, setPicking] = useState<{
-    id: string;
-    axis: 'x' | 'y';
-  } | null>(null);
+  const [picking, setPicking] = useState<RelationPick | null>(null);
   const [relation, setRelation] = useState<{
     before: string;
     source: string;
@@ -463,9 +462,6 @@ export default function BoardStudio({
     ? undefined
     : analysis.result?.designs?.features[selectedProfile]?.model;
   const pcb = Object.entries(analysis.result?.pcbs || {})[0];
-  const savedSetup = (
-    parsed.error ? undefined : getValue(source, ['meta', 'studio', 'setup'])
-  ) as DesignSetup | undefined;
   const setupIssues = ((!parsed.error &&
     getValue(source, ['meta', 'studio', 'findings'])) ||
     []) as string[];
@@ -678,22 +674,29 @@ export default function BoardStudio({
                 Code
               </span>
             </button>
-            {!parsed.error && selectedKeys(source, selection).length > 0 && (
-              <button
-                onClick={() => {
-                  setAssemblyKeys(selectedKeys(source, selection));
-                  setSetupOpen(true);
-                  setSheet('inspector');
-                  setPaneTab('properties');
-                }}
-              >
-                Edit key assembly
-              </button>
-            )}
+            {!parsed.error &&
+              (selectedKeys(source, selection).length > 0 ||
+                (['clusters', 'columns'].includes(selection.section) &&
+                  !!data.layout.clusters?.[
+                    selection.cluster || selection.id
+                  ])) && (
+                <button
+                  onClick={() => {
+                    setAssemblyKeys(selectedKeys(source, selection));
+                    setAssemblyOpen(true);
+                    setSetupOpen(true);
+                    setSheet('inspector');
+                    setPaneTab('properties');
+                  }}
+                >
+                  Edit key assembly
+                </button>
+              )}
             {!parsed.error && (
               <button
                 onClick={() => {
                   setAssemblyKeys([]);
+                  setAssemblyOpen(false);
                   setSetupOpen(true);
                   setSheet('inspector');
                   setPaneTab('properties');
@@ -1218,7 +1221,7 @@ export default function BoardStudio({
                   </details>
                 </StudioBrowser>
                 <StudioProperties className="studio-properties">
-                  {setupOpen && !assemblyKeys.length && (
+                  {setupOpen && !assemblyOpen && (
                     <DesignSetupPanel
                       source={source}
                       currentSource={() =>
@@ -1240,46 +1243,21 @@ export default function BoardStudio({
                       }}
                     />
                   )}
-                  {setupOpen && assemblyKeys.length > 0 && (
-                    <NewDesignWorkspace
-                      embedded
-                      initial={
-                        (assemblyKeys.length
-                          ? keySetup(source, assemblyKeys[0])
-                          : savedSetup) || defaultSetup()
+                  {setupOpen && assemblyOpen && (
+                    <AssemblyScopePanel
+                      source={source}
+                      ids={assemblyKeys}
+                      selection={selection}
+                      onClose={() => setSetupOpen(false)}
+                      onApply={(change, newAssets, injections) =>
+                        edit(change, (after) => {
+                          context.commitProject(
+                            { source: after },
+                            { assets: newAssets, injections }
+                          );
+                          setSetupOpen(false);
+                        })
                       }
-                      mode={assemblyKeys.length ? 'assembly' : 'design'}
-                      onCancel={() => setSetupOpen(false)}
-                      onCreate={(next, newAssets, injections) => {
-                        const setup = getValue(next, [
-                          'meta',
-                          'studio',
-                          'setup',
-                        ]) as DesignSetup;
-                        edit(
-                          (before) =>
-                            assemblyKeys.length
-                              ? applyAssembly(
-                                  before,
-                                  assemblyKeys,
-                                  setup,
-                                  'preserve',
-                                  selection?.section === 'clusters'
-                                    ? 'cluster'
-                                    : selection?.section === 'columns'
-                                      ? 'column'
-                                      : 'keys'
-                                )
-                              : updateSetup(before, setup),
-                          (after) => {
-                            context.commitProject(
-                              { source: after },
-                              { assets: newAssets, injections }
-                            );
-                            setSetupOpen(false);
-                          }
-                        );
-                      }}
                     />
                   )}
                   {!setupOpen && (
@@ -1290,7 +1268,7 @@ export default function BoardStudio({
                           selection={selection}
                           report={report}
                           edit={edit}
-                          onPick={(id, axis) => setPicking({ id, axis })}
+                          onPick={setPicking}
                           onPropose={(next) =>
                             setRelation({ before: source, source: next })
                           }
@@ -1300,7 +1278,7 @@ export default function BoardStudio({
                         <p role="status">
                           Click a center guide on the canvas.{' '}
                           <button onClick={() => setPicking(null)}>
-                            Cancel alignment
+                            Cancel relationship
                           </button>
                         </p>
                       )}
@@ -1442,13 +1420,22 @@ export default function BoardStudio({
                                 try {
                                   setRelation({
                                     before: source,
-                                    source: alignObject(
-                                      source,
-                                      picking.id,
-                                      target,
-                                      picking.axis,
-                                      report
-                                    ),
+                                    source:
+                                      picking.kind === 'distance'
+                                        ? distanceObject(
+                                            source,
+                                            picking.id,
+                                            target,
+                                            picking.value,
+                                            report
+                                          )
+                                        : alignObject(
+                                            source,
+                                            picking.id,
+                                            target,
+                                            picking.axis,
+                                            report
+                                          ),
                                   });
                                   setPicking(null);
                                 } catch (reason) {
@@ -1458,18 +1445,12 @@ export default function BoardStudio({
                             }
                           : undefined
                       }
-                      onAlign={(id, target, axis) => {
+                      onKeepSnap={(snap) => {
                         if (report) {
                           try {
                             setRelation({
                               before: source,
-                              source: alignObject(
-                                source,
-                                id,
-                                target,
-                                axis,
-                                report
-                              ),
+                              source: keepSnapRelation(source, snap, report),
                             });
                           } catch (reason) {
                             setError(String(reason));

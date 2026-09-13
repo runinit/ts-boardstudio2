@@ -18,15 +18,8 @@ import {
   sizeSelection,
   adjustSelection,
 } from '../utils/studioSelection';
-import { getValue, readStudio } from '../utils/studioSource';
-import {
-  keyElectronics,
-  keyOptions,
-  hasElectronics,
-  electronicsAt,
-} from '../utils/keyOptions';
+import { readStudio } from '../utils/studioSource';
 import type { KeyAlignment } from '../utils/keyResize';
-import { setLayout } from '../utils/layoutSource';
 
 const RelativeFields = styled.div`
   display: grid;
@@ -87,41 +80,6 @@ export default function SelectionControls({
   return (
     <fieldset disabled={locked} style={{ border: 0, padding: 0, margin: 0 }}>
       <legend>Selection adjustments</legend>
-      {selection.section === 'clusters' &&
-        data.layout.clusters?.[selection.id]?.arrangement?.type === 'columns' &&
-        ['Column', 'Row'].map((label, index) => {
-          const pitch = data.layout.clusters![selection.id].arrangement!
-            .pitch || [19, 19];
-          return (
-            <DimensionField
-              key={`${selection.id}-${label}`}
-              label={`Selection ${label.toLowerCase()} spacing`}
-              value={pitch[index]}
-              units={units}
-              onCommit={(value) =>
-                edit((before) => {
-                  const at = [
-                    ...((getValue(before, [
-                      'layout',
-                      'clusters',
-                      selection.id,
-                      'arrangement',
-                      'pitch',
-                    ]) as (number | string)[]) || ['u', 'v']),
-                  ];
-                  at[index] = value;
-                  return setLayout(
-                    ensurePitchUnits(before),
-                    'clusters',
-                    selection.id,
-                    ['arrangement', 'pitch'],
-                    at
-                  );
-                })
-              }
-            />
-          );
-        })}
       {!!keys.length && (
         <>
           <StudioField>
@@ -252,113 +210,6 @@ export default function SelectionControls({
         <button type="submit">Apply relative adjustment</button>
         {adjustError && <p role="alert">{adjustError}</p>}
       </form>
-      {!!keys.length && (
-        <details>
-          <summary>Per-key electronics</summary>
-          {(['diode', 'led'] as const).map((kind) => (
-            <div key={kind}>
-              <StudioField key={kind}>
-                <span>
-                  {kind === 'diode' ? 'Switch diode' : 'SK6812 MINI-E LED'}
-                </span>
-                <input
-                  type="checkbox"
-                  aria-label={`Selection ${kind}`}
-                  checked={keys.every((id) => hasElectronics(source, id, kind))}
-                  onChange={(event) => {
-                    const enabled = event.target.checked;
-                    edit((before) =>
-                      keys.reduce((next, id) => {
-                        const options = keyOptions(
-                          next,
-                          readStudio(next).layout.objects?.[id]?.cluster
-                        );
-                        const diode = hasElectronics(next, id, 'diode');
-                        const led = hasElectronics(next, id, 'led');
-                        return keyElectronics(next, id, {
-                          ...options,
-                          diodeAt: electronicsAt(next, id, 'diode'),
-                          ledAt: electronicsAt(next, id, 'led'),
-                          diode,
-                          led,
-                          [kind]: enabled,
-                        });
-                      }, before)
-                    );
-                  }}
-                />
-              </StudioField>
-              {keys.some((id) =>
-                getValue(source, [
-                  'layout',
-                  'objects',
-                  id,
-                  'footprints',
-                  `studio_${kind}`,
-                ])
-              ) &&
-                ['X', 'Y'].map((axis, index) => {
-                  const value = ((getValue(source, [
-                    'layout',
-                    'objects',
-                    keys[0],
-                    'footprints',
-                    `studio_${kind}`,
-                    'placement',
-                    'at',
-                  ]) as number[]) || keyOptions(source, cluster)[`${kind}At`])[
-                    index
-                  ];
-                  return (
-                    <StudioField key={`${axis}-${value}`}>
-                      <span>
-                        {kind} offset {axis}
-                      </span>
-                      <input
-                        aria-label={`Selection ${kind} offset ${axis}`}
-                        type="number"
-                        step="any"
-                        defaultValue={value}
-                        onBlur={(event) => {
-                          const nextValue = Number(event.target.value);
-                          if (!Number.isFinite(nextValue)) {
-                            return;
-                          }
-                          edit((before) =>
-                            keys.reduce((next, id) => {
-                              const path = [
-                                'footprints',
-                                `studio_${kind}`,
-                                'placement',
-                                'at',
-                              ];
-                              const old = getValue(next, [
-                                'layout',
-                                'objects',
-                                id,
-                                ...path,
-                              ]) as number[];
-                              if (!old) {
-                                return next;
-                              }
-                              const at = [...old];
-                              at[index] = nextValue;
-                              return setLayout(next, 'objects', id, path, at);
-                            }, before)
-                          );
-                        }}
-                      />
-                    </StudioField>
-                  );
-                })}
-            </div>
-          ))}
-          <small>
-            Footprints follow each key. LEDs expose separate DIN/DOUT nets for
-            PCB connections.
-          </small>
-        </details>
-      )}
     </fieldset>
   );
 }

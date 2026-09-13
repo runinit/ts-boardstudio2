@@ -1,3 +1,5 @@
+import { mergeSetupDraft } from '../utils/setupDraft';
+import StackupPanel from './StackupPanel';
 import NativeCaseObjects from './NativeCaseObjects';
 import { editNativeBoard } from '../utils/nativeBoardSource';
 import CaseModelInset from './CaseModelInset';
@@ -1727,14 +1729,18 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
                     '',
                     ...refs,
                   ])}
-                  {field(['pcb_z'], 'PCB underside height (mm)', 6)}
-                  {spec.stackup && (
-                    <p>
-                      PCB and plate dimensions are shared with Design setup →
-                      Stackup.
-                    </p>
-                  )}
-                  {field(['pcb_thickness'], 'PCB thickness (mm)', 1.6)}
+                  <h3>Mechanical stack</h3>
+                  <StackupPanel
+                    source={draft}
+                    boardId={
+                      spec.board?.name || Object.keys(data.pcbs || {})[0]
+                    }
+                    assembly={name}
+                    analysis={analysis}
+                    onChange={(next) =>
+                      change((current) => mergeSetupDraft(draft, next, current))
+                    }
+                  />
                   {spec.mounting === 'gasket' ? (
                     <>
                       {field(['gasket', 'kind'], 'Gasket interface', 'pads', [
@@ -1889,8 +1895,9 @@ function CaseDraft({ onClose, initialView, presentation, session }: Props) {
                   {field(['bezel'], 'Bezel allowance (mm)', 8)}
                   {field(['fit'], 'Cavity fit allowance (mm)', 0.3)}
                   {field(['internal_radius'], 'Internal corner radius (mm)', 0)}
-                  {field(['plate'], 'Plate thickness (mm)', 1.5)}
-                  {field(['plate_z'], 'Plate underside height (mm)', 13)}
+                  <button onClick={() => setStep(2)}>
+                    Edit mechanical stack
+                  </button>
                   {field(
                     ['front_height'],
                     'Front exterior height (mm)',

@@ -1,3 +1,5 @@
+import { Magnet } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../theme/theme';
 import { UNIT_STEPS } from '../utils/designUnits';
@@ -26,14 +28,16 @@ const Bar = styled.div`
     border-radius: ${theme.studio.pillRadius};
   }
   details {
-    position: relative;
+    position: static;
   }
   details > div {
     position: absolute;
     right: 0;
     top: 100%;
     width: ${theme.studio.toolOptionsWidth};
-    max-width: 70vw;
+    max-width: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
     padding: ${theme.spacing.md};
     background: ${theme.colors.backgroundLight};
     box-shadow: ${theme.studio.toolShadow};
@@ -55,15 +59,62 @@ export default function SnapControls({
   options,
   onChange,
   enabled,
+  onEnabled,
   units,
 }: {
   options: SnapOptions;
   onChange: (value: SnapOptions) => void;
   enabled: boolean;
+  onEnabled: (value: boolean) => void;
   units: Record<string, number>;
 }) {
+  const bar = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const [menuHeight, setMenuHeight] = useState<number>();
+  useEffect(() => {
+    const element = bar.current;
+    const container = element?.offsetParent;
+    if (!element || !container) {
+      return;
+    }
+    // Reserve the camera controls when the toolbar wraps on narrow canvases.
+    const measure = () => {
+      if (!menu.current || !element.querySelector('details')?.open) {
+        return;
+      }
+      const inset = Number.parseFloat(getComputedStyle(element).top);
+      const reserved = Number.parseFloat(theme.studio.touchSize) + 2 * inset;
+      setMenuHeight(
+        Math.max(
+          0,
+          container.getBoundingClientRect().bottom -
+            menu.current.getBoundingClientRect().top -
+            reserved
+        )
+      );
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    observer.observe(container);
+    element.addEventListener('toggle', measure, true);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      element.removeEventListener('toggle', measure, true);
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
   return (
-    <Bar role="toolbar" aria-label="Snap increments">
+    <Bar ref={bar} role="toolbar" aria-label="Snapping">
+      <button
+        aria-label="Snapping"
+        aria-pressed={enabled}
+        onClick={() => onEnabled(!enabled)}
+        title="Toggle snapping · Alt temporarily bypasses"
+      >
+        <Magnet size={16} />
+        Snapping
+      </button>
       {UNIT_STEPS.map((step, index) => (
         <button
           key={step}
@@ -77,22 +128,24 @@ export default function SnapControls({
         </button>
       ))}
       <details>
-        <summary>Snap options</summary>
-        <div>
-          {(['grid', 'centers', 'edges'] as const).map((kind) => (
+        <summary>Options</summary>
+        <div ref={menu} style={{ maxHeight: menuHeight }}>
+          {(['grid', 'centers', 'origins', 'edges'] as const).map((kind) => (
             <label key={kind}>
               <input
                 type="checkbox"
-                checked={options[kind]}
+                checked={!!options[kind]}
                 onChange={(event) =>
                   onChange({ ...options, [kind]: event.target.checked })
                 }
               />
               {kind === 'centers'
                 ? 'Center guides'
-                : kind === 'grid'
-                  ? 'Increment grid'
-                  : 'Edge guides'}
+                : kind === 'origins'
+                  ? 'Footprint origins'
+                  : kind === 'grid'
+                    ? 'Increment grid'
+                    : 'Edge guides'}
             </label>
           ))}
           <label>
@@ -112,6 +165,26 @@ export default function SnapControls({
               }}
             />
           </label>
+          <label>
+            Component edge gap · mm
+            <input
+              aria-label="Snap edge gap"
+              type="number"
+              min="0"
+              step="0.5"
+              value={options.gap}
+              onChange={(event) => {
+                const gap = Number(event.target.value);
+                if (Number.isFinite(gap) && gap >= 0) {
+                  onChange({ ...options, gap });
+                }
+              }}
+            />
+          </label>
+          <small>
+            Drop first, then choose Keep relationship to retain a center
+            alignment or edge offset.{' '}
+          </small>
           <small>
             1u = {units.u} mm · 1v = {units.v} mm. Alt bypasses snapping.
           </small>

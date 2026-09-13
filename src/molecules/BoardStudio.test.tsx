@@ -43,9 +43,9 @@ vi.mock('./StudioCanvas', () => ({
     report,
     inspector,
     onSelect,
-    onAlign,
+    onKeepSnap,
   }: {
-    onAlign?: (id: string, target: string, axis: 'x' | 'y') => void;
+    onKeepSnap?: (snap: import('../utils/layoutSnapping').LayoutSnap) => void;
     stale: boolean;
     inspector: ReactNode;
     onSelect: (value: { section: 'objects'; id: string }) => void;
@@ -53,7 +53,19 @@ vi.mock('./StudioCanvas', () => ({
   }) => (
     <div aria-label="Layout canvas" data-stale={String(stale)}>
       {inspector}
-      <button onClick={() => onAlign?.('a', 'b.center', 'y')}>
+      <button
+        onClick={() =>
+          onKeepSnap?.({
+            kind: 'center',
+            moving: 'a',
+            target: 'b.center',
+            axis: 'y',
+            delta: [0, 0, 0],
+            guides: [],
+            label: 'Centered on b',
+          })
+        }
+      >
         Keep test alignment
       </button>
       <button onClick={() => onSelect({ section: 'objects', id: 'a' })}>

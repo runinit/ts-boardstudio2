@@ -1,0 +1,47 @@
+[
+  {
+    "width": 1440,
+    "bounds": {
+      "viewport": 1440,
+      "scroll": 1440,
+      "focus": "<button><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"luci"
+    },
+    "menu": {
+      "x": 413.734375,
+      "y": 252.484375,
+      "width": 13,
+      "height": 18
+    },
+    "errors": []
+  },
+  {
+    "width": 320,
+    "bounds": {
+      "viewport": 320,
+      "scroll": 320,
+      "focus": "<button><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"luci"
+    },
+    "menu": {
+      "x": 88,
+      "y": 431.140625,
+      "width": 13,
+      "height": 18
+    },
+    "errors": []
+  },
+  {
+    "width": 390,
+    "bounds": {
+      "viewport": 390,
+      "scroll": 390,
+      "focus": "<button><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"luci"
+    },
+    "menu": {
+      "x": 94,
+      "y": 431.140625,
+      "width": 13,
+      "height": 18
+    },
+    "errors": []
+  }
+]

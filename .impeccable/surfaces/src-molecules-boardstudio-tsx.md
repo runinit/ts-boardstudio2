@@ -19,6 +19,8 @@ STORY: Choose an object or reusable part, inspect it in the central field, edit 
 
 SETUP: DesignSetupPanel, DimensionField, StackupPanel, SnapControls, and RelationshipPanel extend the same console into setup and mechanical review. Quarter-unit editing and physical center snapping stay visible. On mobile the embedded assembly section remains reachable in document order; named material layers expose their own fit status, while cutting and export readiness remain separate.
 
+SETTINGS: Setup preserves effective pitch and legacy or matrix overrides; one Spacing section owns the visible axes. Assembly settings share Board, matrix, column, and key scopes with Reset to inherited. One Snapping master contains increments, guides, and edge gap. After a drop, Keep relationship records center alignment or edge offset. Setup and Case share the mechanical stack editor, including gap and derived plate height. Expression values are labelled explicitly as “Expression = value”.
+
 FIRST VIEWPORT: A compact project header and stage strip sit above a left object browser, dominant central drawing, and right properties pane. Part save/undo remain at the inspector top. Narrow layouts expose one labelled drawer at a time. Primary generation stays in the project header.
 
 FORM: CAD drafting console, grounded candidate 1, chosen model-pick from seed 44dfdd4f. Code-first. Signature interaction: selection changes the properties without replacing the canvas or losing an unsaved part draft. Motion: brief ease-out pane entry, stable controls during updates, reduced-motion fallback.

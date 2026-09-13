@@ -27,10 +27,10 @@ test('sets up an empty board, edits stagger, inserts and aligns an encoder', asy
   await expect(
     page.getByRole('group', { name: 'Interactive board layout' })
   ).toBeVisible();
-  await page.getByLabel('Horizontal pitch · u', { exact: true }).fill('19');
-  await page.getByLabel('Horizontal pitch · u', { exact: true }).press('Enter');
-  await page.getByLabel('Vertical pitch · v', { exact: true }).fill('17');
-  await page.getByLabel('Vertical pitch · v', { exact: true }).press('Enter');
+  await page.getByLabel('Horizontal pitch', { exact: true }).fill('19');
+  await page.getByLabel('Horizontal pitch', { exact: true }).press('Enter');
+  await page.getByLabel('Vertical pitch', { exact: true }).fill('17');
+  await page.getByLabel('Vertical pitch', { exact: true }).press('Enter');
   await expect(
     page.getByRole('status').filter({ hasText: 'Layout resolved' })
   ).toBeVisible();
@@ -239,7 +239,9 @@ test('snaps a component to a column center and optionally keeps the alignment', 
   await page.mouse.down();
   await page.mouse.move(points[1].x, points[1].y, { steps: 12 });
   await page.mouse.up();
-  const keep = page.getByRole('button', { name: /Keep aligned · Column 2/ });
+  const keep = page.getByRole('button', {
+    name: /Keep relationship · Center alignment · Column 2/,
+  });
   await expect(keep).toBeVisible();
   const temporary = parse(await readSource(page));
   expect(Object.keys(temporary.layout.constraints || {})).toHaveLength(0);

@@ -471,7 +471,7 @@
 		const a = requireAssert();
 		const kle = requireKle();
 
-		const package_json = {"name":"@runinit/ergogen","version":"6.0.0-develop","description":"Ergonomic keyboard layout generator","author":"Bán Dénes <mr@zealot.hu>","license":"MIT","homepage":"https://ergogen.xyz","repository":{"type":"git","url":"github:runinit/ergogen"},"bugs":"https://github.com/runinit/ergogen/issues","main":"./src/ergogen.js","bin":{"ergogen":"./src/cli.js"},"dependencies":{"@salusoft89/planegcs":"1.2.0","ajv":"^8.17.1","fs-extra":"^11.3.2","hull":"github:andriiheonia/hull#5847b0a4fa23f8e5aa3c37a8e6d7b8cf58f24082","js-yaml":"^3.14.1","jszip":"^3.10.1","kle-serial":"github:ergogen/kle-serial#61f29f317d87bbfed0b0b7e646e1b91d4384ac02","makerjs":"^0.18.1","mathjs":"^15.0.0","replicad":"1.1.0","replicad-opencascadejs":"1.1.0","yaml":"^2.8.2","yargs":"^17.7.2"},"devDependencies":{"@rollup/plugin-commonjs":"^28.0.7","@rollup/plugin-json":"^6.1.0","@rollup/plugin-node-resolve":"^16.0.1","chai":"^4.5.0","chai-as-promised":"^7.1.2","dir-compare":"^5.0.0","glob":"^11.0.3","mocha":"^11.7.4","nyc":"^17.1.0","rollup":"^4.52.4","sinon":"^21.0.0"},"nyc":{"all":true,"include":["src/**/*.js"]},"publishConfig":{"access":"public"},"types":"src/native/index.d.ts","files":["src","dist","docs","scripts/build-schema.js","rollup.config.mjs"],"scripts":{"build":"npm run build:schema && rollup -c","test":"mocha -r test/helpers/register test/index.js","coverage":"nyc --reporter=html --reporter=text npm test","build:schema":"node scripts/build-schema.js"}};
+		const package_json = {"name":"@runinit/ergogen","version":"6.0.0-develop","description":"Ergonomic keyboard layout generator","author":"Bán Dénes <mr@zealot.hu>","license":"MIT","homepage":"https://ergogen.xyz","repository":"github:runinit/ergogen","bugs":"https://github.com/runinit/ergogen/issues","main":"./src/ergogen.js","bin":{"ergogen":"./src/cli.js"},"scripts":{"build":"npm run build:schema && rollup -c","test":"mocha -r test/helpers/register test/index.js","coverage":"nyc --reporter=html --reporter=text npm test","build:schema":"node scripts/build-schema.js"},"dependencies":{"@salusoft89/planegcs":"1.2.0","ajv":"^8.17.1","fs-extra":"^11.3.2","hull":"github:andriiheonia/hull#5847b0a4fa23f8e5aa3c37a8e6d7b8cf58f24082","js-yaml":"^3.14.1","jszip":"^3.10.1","kle-serial":"github:ergogen/kle-serial#61f29f317d87bbfed0b0b7e646e1b91d4384ac02","makerjs":"^0.18.1","mathjs":"^15.0.0","replicad":"1.1.0","replicad-opencascadejs":"1.1.0","yaml":"^2.8.2","yargs":"^17.7.2"},"devDependencies":{"@rollup/plugin-commonjs":"^28.0.7","@rollup/plugin-json":"^6.1.0","@rollup/plugin-node-resolve":"^16.0.1","chai":"^4.5.0","chai-as-promised":"^7.1.2","dir-compare":"^5.0.0","glob":"^11.0.3","mocha":"^11.7.4","nyc":"^17.1.0","rollup":"^4.52.4","sinon":"^21.0.0"},"nyc":{"all":true,"include":["src/**/*.js"]},"publishConfig":{"access":"public"},"types":"src/native/index.d.ts","files":["src","dist","docs","scripts/build-schema.js","rollup.config.mjs"]};
 
 		const fake_require = io.fake_require = injection => name => {
 		    const dependencies = {
@@ -27444,11 +27444,21 @@
 		        const thickness=number(board.thickness ?? 1.6), plate=number(stack.plate?.thickness ?? 1.5), gap=number(stack.plate?.gap ?? 5.4);
 		        const surfaces={'pcb.bottom':0,'pcb.top':thickness,'plate.bottom':thickness+gap,'plate.top':thickness+gap+plate};
 		        const assembly=Object.entries(config.designs?.assemblies || {}).find(([,item])=>item.board?.name===stack.pcb);
-		        if (assembly) { surfaces['case.floor']=f.transform(inverse,scene.reference(`case.${assembly[0]}.floor`).position)[2]; }
-		        for (const item of Object.values(scene.objects).filter(item=>item.pcb===stack.pcb && item.envelopes.body?.height)) {
+		        if (assembly) {
+		            surfaces['case.floor']=f.transform(inverse,scene.reference(`case.${assembly[0]}.floor`).position)[2];
+		            surfaces['case.lid']=f.transform(inverse,scene.reference(`case.${assembly[0]}.lid`).position)[2];
+		        }
+		        const sections=[];
+		        for (const item of Object.values(scene.objects).filter(item=>item.pcb===stack.pcb)) {
 		            const local={...item,matrix:f.multiply(inverse,item.matrix)};
-		            const bounds=geometry.bounds(local,item.envelopes.body);
-		            surfaces[`${item.id}.body.bottom`]=bounds[0][2];surfaces[`${item.id}.body.top`]=bounds[1][2];
+		            for (const name of ['body','keycap']) {
+		                const envelope=item.envelopes[name];
+		                if (!envelope) { continue }
+		                const bounds=envelope.height?geometry.bounds(local,envelope):undefined;
+		                sections.push({id:item.id,label:item.label,kind:item.kind,envelope:name,...(bounds?{bottom:bounds[0][2],top:bounds[1][2]}:{})});
+		                if (!bounds) { continue }
+		                surfaces[`${item.id}.${name}.bottom`]=bounds[0][2];surfaces[`${item.id}.${name}.top`]=bounds[1][2];
+		            }
 		        }
 		        const layers={}, occupied={};
 		        for (const [name,layer] of Object.entries(stack.layers || {})) {
@@ -27462,7 +27472,7 @@
 		                layers[name]={...layer,stock,installed,z,available:high-z,remaining,status:remaining < -g.EPSILON ? 'interference':'ready',output:`${stack.pcb}_${name}`};
 		            } catch(error) { layers[name]={...layer,status:'unresolved',message:error.message}; }
 		        }
-		        result[id]={pcb:stack.pcb,plate,gap,surfaces,layers};
+		        result[id]={pcb:stack.pcb,plate,gap,surfaces,layers,sections};
 		    }
 		    return result
 		};
@@ -27602,6 +27612,8 @@
 		hasRequiredGuides = 1;
 		const f = requireFrames();
 		const g = requireGeometry$1();
+		const geometry = requireGeometry();
+		const m = require$$0$1;
 
 		// Physical centers and aggregate guides are references, never extra layout objects.
 		const center = item => {
@@ -27623,9 +27635,16 @@
 		    if (!arrangement?.[kind]?.includes(cell)) { g.fail(name,'Choose an existing row or column','reference'); }
 		    const members=Object.keys(config.layout.objects || {}).map(object).filter(item=>item.cluster===id && item.kind==='key' && item.cell?.[axis]===cell);
 		    if (!members.length) { g.fail(name,'This row or column has no keys','reference'); }
-		    const rotation=kind==='columns' ? number(arrangement.splay?.[cell] || 0,`${name}.splay`) : 0;
+		    const rotation=kind==='columns' ? number(arrangement.splay?.[cell] || 0,`${name}.splay`)*(spec.mirror?-1:1) : 0;
 		    const basis=f.multiply(parent.matrix,f.local([0,0,0],rotation)), inverse=f.inverse(basis);
-		    const points=members.map(item=>f.transform(inverse,center(item).position));
+		    // Rows bisect occupied keycap bounds, including asymmetric sizes and offsets.
+		    const points=members.flatMap(item=> {
+		        const position=f.transform(inverse,center(item).position);
+		        const envelope=item.envelopes.keycap || item.envelopes.pcb;
+		        if (kind==='columns' || !envelope) { return [position] }
+		        const bounds=m.measure.modelExtents(geometry.project(item,envelope,basis));
+		        return [bounds.low,bounds.high].map(point=>[...point,position[2]])
+		    });
 		    const midpoint=[0,1,2].map(i=>(Math.min(...points.map(p=>p[i]))+Math.max(...points.map(p=>p[i])))/2);
 		    const matrix=f.multiply(basis,f.local(midpoint));
 		    return {...parent,matrix,position:f.position(matrix),guideParent:`clusters.${id}`,members:members.map(item=>item.id)}
@@ -28040,7 +28059,15 @@
 		            const original=object(sourceId), axis=number(spec.mirror.axis,`layout.clusters.${id}.mirror.axis`);
 		            const target=cluster(id);
 		            const override=spec.overrides?.[sourceId] || {};
-		            definitions[nextId]={...item,...override,cluster:id,placement:{at:f.transform(f.inverse(target.mirrorBase),[2*axis-original.position[0],original.position[1],original.position[2]]),rotate:-original.rotation-f.yaw(target.mirrorBase),...override.placement}};
+		            const mountId=override.layer || item.layer || spec.layer;
+		            const mount=mountId?layer(mountId):undefined;
+		            let base=target.mirrorBase;
+		            if (mount && target.layer!==mount.layer) {
+		                // Use the same support plane as placed(), avoiding a second PCB height.
+		                const relative=f.multiply(f.inverse(mount.matrix),base);
+		                base=f.multiply(mount.matrix,f.local([relative[3],relative[7],0],f.yaw(relative)));
+		            }
+		            definitions[nextId]={...item,...override,cluster:id,placement:{at:f.transform(f.inverse(base),[2*axis-original.position[0],original.position[1],original.position[2]]),rotate:-original.rotation-f.yaw(base),...override.placement}};
 		            generated[nextId]=`layout.clusters.${id}.overrides.${sourceId}`;
 		        }
 		    }
@@ -43479,6 +43506,54 @@ ${content}
 
 	var constraints = {};
 
+	var alignmentSeed = {};
+
+	var hasRequiredAlignmentSeed;
+
+	function requireAlignmentSeed () {
+		if (hasRequiredAlignmentSeed) return alignmentSeed;
+		hasRequiredAlignmentSeed = 1;
+		const layout = requireLayout();
+		const g = requireGeometry$1();
+
+		const EPSILON = 1e-10;
+		const owner = ref => ref.replace(/^objects\./,'').replace(/\.(center|origin)$/,'');
+		const dot = (a,b) => a.reduce((sum,value,index)=>sum+value*b[index],0);
+
+		// Seed directed followers at their targets; an underconstrained target must not
+		// absorb the follower's initial error. The regular solver still checks all rules.
+		alignmentSeed.resolve = config => {
+		    let scene=layout.resolve(config);
+		    const offsets={}, pending=new Set(Object.entries(config.layout.constraints || {}).filter(([,rule])=>rule.type==='aligned').map(([id])=>id));
+		    while (pending.size) {
+		        let progressed=false;
+		        for (const id of pending) {
+		            const rule=config.layout.constraints[id], name=owner(rule.refs[0]);
+		            const target=scene.guides[rule.refs[1]], members=target?.members || [owner(rule.refs[1])];
+		            if ([...pending].some(other=>other!==id && members.includes(owner(config.layout.constraints[other].refs[0])))) { continue }
+		            const item=scene.objects[name], entry=scene.placements[`objects.${name}`];
+		            pending.delete(id); progressed=true;
+		            if (!entry || item.locked) { continue }
+		            const free=(entry.spec.solve || []).filter(axis=>axis==='x' || axis==='y');
+		            if (!free.length) { continue }
+		            const a=scene.reference(rule.refs[0]), b=scene.reference(rule.refs[1]);
+		            const index=rule.axis==='y'?0:1, normal=[b.matrix[index],b.matrix[4+index],b.matrix[8+index]];
+		            const error=dot(b.position.map((value,axis)=>value-a.position[axis]),normal);
+		            const weights=free.map(axis=>{const index=axis==='x'?0:1;return dot(normal,[entry.editMatrix[index],entry.editMatrix[4+index],entry.editMatrix[8+index]])});
+		            const norm=dot(weights,weights);
+		            if (norm<EPSILON) { continue }
+		            const offset=offsets[entry.path] || {at:[0,0,0],rotate:0};
+		            free.forEach((axis,index)=>{offset.at[axis==='x'?0:1]+=error*weights[index]/norm;});
+		            offsets[entry.path]=offset;
+		            scene=layout.resolve(config,offsets);
+		        }
+		        if (!progressed) { g.fail('layout.constraints',`Cyclic alignment: ${[...pending].join(', ')}`,'constraint'); }
+		    }
+		    return {scene,offsets}
+		};
+		return alignmentSeed;
+	}
+
 	var hasRequiredConstraints;
 
 	function requireConstraints () {
@@ -43502,7 +43577,7 @@ ${content}
 
 		// A frame is a point and a directed axis. Its children retain their local geometry.
 		constraints.resolve = async (config, options = {}) => {
-		    const scene = layout.resolve(config);
+		    const {scene, offsets: alignmentOffsets} = requireAlignmentSeed().resolve(config);
 		    const rules = config.layout.constraints || {};
 		    const movable = Object.entries(scene.placements).filter(
 		        ([, item]) => item.spec?.solve?.length
@@ -43877,7 +43952,7 @@ ${content}
 		            Math.atan2(q.y - p.y, q.x - p.x) / f.RAD
 		        )
 		    };
-		    const offsets = {};
+		    const offsets = {...alignmentOffsets};
 		    for (const node of Object.values(nodes)) {
 		        if (!node.free?.length) {
 		            continue
@@ -43888,13 +43963,13 @@ ${content}
 		            at: [0, 1]
 		                .map((axis) =>
 		                    node.free.includes(["x", "y"][axis])
-		                        ? local[axis * 4 + 3] - before[axis * 4 + 3]
-		                        : 0
+		                        ? (alignmentOffsets[node.entry.path]?.at[axis] || 0) + local[axis * 4 + 3] - before[axis * 4 + 3]
+		                        : (alignmentOffsets[node.entry.path]?.at[axis] || 0)
 		                )
 		                .concat(0),
 		            rotate: node.free.includes("rotate")
-		                ? wrap(f.yaw(local) - f.yaw(before))
-		                : 0
+		                ? (alignmentOffsets[node.entry.path]?.rotate || 0) + wrap(f.yaw(local) - f.yaw(before))
+		                : (alignmentOffsets[node.entry.path]?.rotate || 0)
 		        };
 		    }
 		    // Re-resolve dependents, mirrors and stacking; never mutate the authored document.

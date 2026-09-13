@@ -33,9 +33,9 @@ export function keyOptions(
     | DesignSetup
     | undefined;
   const templateOptions = (template: KeyAssembly): Partial<KeyOptions> => ({
-    size: template.options?.family?.startsWith('choc')
-      ? [17.5, 16.5]
-      : [18, 18],
+    size:
+      setup?.keycap ||
+      (template.options?.family?.startsWith('choc') ? [17.5, 16.5] : [18, 18]),
     diode: template.options?.diode ?? setup?.diode ?? DEFAULT_KEY_OPTIONS.diode,
     led: template.options?.led ?? setup?.led ?? DEFAULT_KEY_OPTIONS.led,
     diodeAt: [...template.diode.at, 0],
@@ -91,47 +91,6 @@ export function setKeyOptions(
   });
 }
 
-export function hasElectronics(
-  source: string,
-  id: string,
-  role: 'diode' | 'led'
-): boolean {
-  return (
-    Object.values(readStudio(source).layout.objects || {}).some(
-      (item) => item.properties?.owner === id && item.properties?.role === role
-    ) ||
-    !!getValue(source, [
-      'layout',
-      'objects',
-      id,
-      'footprints',
-      `studio_${role}`,
-    ])
-  );
-}
-export function electronicsAt(
-  source: string,
-  id: string,
-  role: 'diode' | 'led'
-): number[] {
-  const data = readStudio(source);
-  const owned = Object.values(data.layout.objects || {}).find(
-    (item) => item.properties?.owner === id && item.properties?.role === role
-  );
-  return (owned?.placement?.at ||
-    getValue(source, [
-      'layout',
-      'objects',
-      id,
-      'footprints',
-      `studio_${role}`,
-      'placement',
-      'at',
-    ]) ||
-    keyOptions(source, data.layout.objects?.[id]?.cluster)[
-      role === 'diode' ? 'diodeAt' : 'ledAt'
-    ]) as number[];
-}
 export function keySetup(source: string, id: string): DesignSetup | undefined {
   const saved = getValue(source, ['meta', 'studio', 'setup']) as
     | DesignSetup

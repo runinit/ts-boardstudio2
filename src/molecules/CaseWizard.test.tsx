@@ -30,6 +30,12 @@ vi.mock('../context/ConfigContext', () => ({
   }),
 }));
 vi.mock('../hooks/useCasePreview', () => ({
+  useLayoutAnalysis: () => ({
+    result: mocks.result,
+    error: '',
+    pending: false,
+    stale: false,
+  }),
   useCaseAnalysis: () => ({
     result: mocks.result,
     error: '',
