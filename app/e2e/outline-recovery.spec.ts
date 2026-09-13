@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { parse } from 'yaml';
 import { CONFIG_LOCAL_STORAGE_KEY } from '../src/context/constants';
-import { readSource, studio } from './utils/studio';
+import { openInspector, readSource, studio } from './utils/studio';
 
 test.setTimeout(120000);
 
@@ -13,16 +13,16 @@ const outline = (page: Page) =>
     );
 
 async function rebuild(page: Page) {
-  const automatic = page.getByRole('switch', { name: 'Automatic outline' });
+  const automatic = page.getByRole('checkbox', { name: 'Automatic outline' });
   if (await automatic.isChecked()) {
     await automatic.click();
   }
   await page
     .getByRole('button', { name: 'Rebuild outline', exact: true })
     .click();
-  await expect(
-    page.getByText('Updating outline…', { exact: true })
-  ).toHaveCount(0, { timeout: 60000 });
+  await expect(page.getByText(/^Updating (layout|outline)…$/)).toHaveCount(0, {
+    timeout: 60000,
+  });
 }
 
 async function visibleOutline(page: Page) {
@@ -46,6 +46,7 @@ test('creates, moves, and rebuilds a matrix outline as one undoable edit', async
   ).toHaveCount(20);
   await visibleOutline(page);
 
+  await openInspector(page);
   await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.getByLabel('New item kind').selectOption('columns');
   await page.getByLabel('New matrix columns').fill('2');
@@ -58,10 +59,6 @@ test('creates, moves, and rebuilds a matrix outline as one undoable edit', async
 
   const beforeMove = parse(await readSource(page));
   const inspector = page.getByLabel('Design inspector');
-  await inspector
-    .locator('summary')
-    .filter({ hasText: /^Size, alignment and relative adjustments$/ })
-    .click();
   await inspector.getByLabel('Relative x', { exact: true }).fill('10');
   await inspector
     .getByRole('button', { name: 'Apply relative adjustment' })

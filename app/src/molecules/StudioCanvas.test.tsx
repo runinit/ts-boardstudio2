@@ -1,4 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
+import { parse } from 'yaml';
+import { resolveLayout } from 'ergogen/src/native/draft';
 import type { LayoutReport } from 'ergogen/src/native';
 import StudioCanvas from './StudioCanvas';
 const report = {
@@ -155,6 +158,56 @@ it('commits keyboard nudges while analysis is stale', () => {
     key: 'ArrowRight',
   });
   expect(move).toHaveBeenCalledOnce();
+});
+
+it('draws each accepted draft pose while background analysis is pending', () => {
+  const quarterUnit = 4.75;
+  let source =
+    'schema: ergogen/v1\nlayout: {objects: {key: {kind: key, envelopes: {keycap: {size: [18, 18]}}}}}';
+  function Draft() {
+    const [draft, setDraft] = useState(source);
+    source = draft;
+    return (
+      <StudioCanvas
+        source={draft}
+        report={resolveLayout(parse(draft))}
+        stale
+        selection={{ section: 'objects', id: 'key' }}
+        onSelect={vi.fn()}
+        onMove={(_selection, _delta, _before, candidate) =>
+          setDraft(candidate!)
+        }
+        side="top"
+        onSide={vi.fn()}
+        rules={{}}
+      />
+    );
+  }
+  render(<Draft />);
+  const key = screen.getByRole('button', { name: 'Select key' });
+  const canvas = screen.getByRole('group', {
+    name: 'Interactive board layout',
+  });
+  const camera = canvas.getAttribute('viewBox');
+  const start = key.querySelector('polygon')!.getAttribute('points');
+
+  fireEvent.keyDown(key, { key: 'ArrowRight' });
+  expect(parse(source).layout.objects.key.placement.override.at).toEqual([
+    quarterUnit,
+    0,
+    0,
+  ]);
+  const first = key.querySelector('polygon')!.getAttribute('points');
+  expect(first).not.toBe(start);
+
+  fireEvent.keyDown(key, { key: 'ArrowUp' });
+  expect(parse(source).layout.objects.key.placement.override.at).toEqual([
+    quarterUnit,
+    quarterUnit,
+    0,
+  ]);
+  expect(key.querySelector('polygon')!.getAttribute('points')).not.toBe(first);
+  expect(canvas).toHaveAttribute('viewBox', camera!);
 });
 it('opens selection controls after a click without opening them during pointer movement', () => {
   Object.defineProperty(SVGSVGElement.prototype, 'setPointerCapture', {

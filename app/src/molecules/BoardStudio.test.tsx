@@ -1,6 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { useState } from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { useState, type ComponentProps } from 'react';
 import { parse } from 'yaml';
+import { resolveLayout } from 'ergogen/src/native/draft';
+import type StudioCanvas from './StudioCanvas';
 import { compileSetup, defaultSetup } from '../utils/designSetup';
 import { setValue } from '../utils/studioSource';
 import BoardStudio from './BoardStudio';
@@ -9,6 +11,9 @@ import { useStudio } from '../hooks/useStudio';
 
 let current = '';
 const hooks = vi.hoisted(() => ({ useConfigContext: vi.fn() }));
+const canvas = vi.hoisted(() => ({
+  props: null as ComponentProps<typeof StudioCanvas> | null,
+}));
 vi.mock('../context/ConfigContext', () => hooks);
 vi.mock('../hooks/useCasePreview', () => ({
   useCasePreview: vi.fn(() => ({
@@ -54,17 +59,14 @@ vi.mock('../hooks/useStudio', () => ({
   })),
 }));
 vi.mock('./StudioCanvas', () => ({
-  default: ({
-    stale,
-    report,
-  }: {
-    stale: boolean;
-    report?: { objects: Record<string, unknown> };
-  }) => (
-    <div aria-label="Layout canvas" data-stale={String(stale)}>
-      {Object.keys(report?.objects || {}).join(',')}
-    </div>
-  ),
+  default: (props: ComponentProps<typeof StudioCanvas>) => {
+    canvas.props = props;
+    return (
+      <div aria-label="Layout canvas" data-stale={String(props.stale)}>
+        {Object.keys(props.report?.objects || {}).join(',')}
+      </div>
+    );
+  },
 }));
 vi.mock('../utils/caseAssets', () => ({ loadAssets: async () => ({}) }));
 vi.mock('./ConfigEditor', () => ({ default: () => <div>Code editor</div> }));
@@ -356,3 +358,83 @@ it('opens case creation from Export when the project has no assembly', () => {
   );
   expect(screen.getByText('Case tools')).toBeVisible();
 });
+
+const MOVE_SOURCE = `schema: ergogen/v1
+layout:
+  objects:
+    key: {kind: key, envelopes: {keycap: {size: [18, 18]}}}
+`;
+it.each([
+  { stale: true, pending: false },
+  { stale: false, pending: true },
+  { stale: true, pending: true },
+])('accumulates moves with analysis %j', (status) => {
+  const original = vi.mocked(useStudio).getMockImplementation()!;
+  const state = original({} as Parameters<typeof useStudio>[0]);
+  vi.mocked(useStudio).mockImplementation(({ source }) => ({
+    ...state,
+    report: resolveLayout(parse(source)),
+    analysis: { ...state.analysis, ...status, error: '' },
+  }));
+  try {
+    render(<Harness initial={MOVE_SOURCE} />);
+    for (const delta of [
+      [1, 0, 0],
+      [1, 0, 0],
+      [0, 1, 0],
+    ]) {
+      act(() => {
+        expect(
+          canvas.props!.onMove(
+            { section: 'objects', id: 'key' },
+            delta,
+            current
+          )
+        ).toBe(true);
+      });
+    }
+    expect(parse(current).layout.objects.key.placement.override.at).toEqual([
+      2, 1, 0,
+    ]);
+  } finally {
+    vi.mocked(useStudio).mockImplementation(original);
+  }
+});
+
+it.each(['race', 'locked', 'missing report', 'analysis error'])(
+  'rejects a move with %s without changing source',
+  (reason) => {
+    const original = vi.mocked(useStudio).getMockImplementation()!;
+    const state = original({} as Parameters<typeof useStudio>[0]);
+    const source =
+      reason === 'locked'
+        ? setValue(MOVE_SOURCE, ['layout', 'objects', 'key', 'locked'], true)
+        : MOVE_SOURCE;
+    vi.mocked(useStudio).mockReturnValue({
+      ...state,
+      report:
+        reason === 'missing report' ? undefined : resolveLayout(parse(source)),
+      analysis: {
+        ...state.analysis,
+        stale: false,
+        pending: false,
+        error: reason === 'analysis error' ? 'Invalid geometry' : '',
+      },
+    });
+    try {
+      render(<Harness initial={source} />);
+      act(() => {
+        expect(
+          canvas.props!.onMove(
+            { section: 'objects', id: 'key' },
+            [1, 0, 0],
+            reason === 'race' ? source + '# older revision' : source
+          )
+        ).toBe(false);
+      });
+      expect(current).toBe(source);
+    } finally {
+      vi.mocked(useStudio).mockImplementation(original);
+    }
+  }
+);

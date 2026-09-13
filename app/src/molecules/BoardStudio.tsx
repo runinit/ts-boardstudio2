@@ -296,7 +296,8 @@ export default function BoardStudio({
       setError('The source changed during this move. Retry.');
       return false;
     }
-    if (!report || stale) {
+    // The synchronous draft can move while background analysis catches up.
+    if (!report || parsed.error || analysis.error) {
       return false;
     }
     return edit(

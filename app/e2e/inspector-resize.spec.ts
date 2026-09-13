@@ -13,7 +13,7 @@ for (const viewport of [
   { width: 1440, height: 1000 },
   { width: 390, height: 844 },
 ]) {
-  test(`docked or drawer inspector and batched resizing at ${viewport.width}px`, async ({
+  test(`manual inspector and batched resizing at ${viewport.width}px`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -67,10 +67,7 @@ for (const viewport of [
       .click();
     await key.focus();
     await key.press('Enter');
-    await expect(trigger).toHaveAttribute(
-      'aria-expanded',
-      viewport.width > 1050 ? 'true' : 'false'
-    );
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
     const camera = await canvas.getAttribute('viewBox');

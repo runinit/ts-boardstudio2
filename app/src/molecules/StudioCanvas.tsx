@@ -269,7 +269,8 @@ export default function StudioCanvas({
       setMoveError('The project changed during this move. Retry.');
       setDrag(null);
     } else {
-      setCommitted({ source: candidate, report: report! });
+      // Immediate edits already have a synchronous draft pose; do not pin the old one.
+      setCommitted(null);
       setLastSnap(
         drag.snap && drag.snap.kind !== 'grid'
           ? { ...drag.snap, source: candidate }

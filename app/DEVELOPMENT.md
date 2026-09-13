@@ -1093,13 +1093,17 @@ previous 1.2-million-triangle preview expansion.
 
 ### Shared inspector and resize clearance
 
-Board Studio owns the Inspector toggle and session section state. Desktop sessions
-start with the object browser and properties docked around the canvas. Narrow
-screens start with the inspector closed and use a drawer with separate
-Browse objects and Edit properties views. Selection updates properties without
-opening a closed drawer. At phone widths, drawers fill the workspace; a sticky
+Board Studio owns the Inspector toggle and session section state. The Inspector
+starts closed on desktop and mobile; selection updates its properties without
+opening it. Desktop uses an overlay; narrow screens use a drawer with separate
+Browse objects and Edit properties views. At phone widths, drawers fill the workspace; a sticky
 selection summary keeps the active object visible while scrolling properties.
 Escape restores focus to Inspector.
+
+Canvas moves commit against the current source while analysis is stale or pending.
+The synchronous draft supplies each accepted pose; background results never pin
+the previous pose. Missing reports, source revision conflicts, analysis errors,
+and authored locks still reject movement.
 
 The part library uses the same pane widths and control tokens. Save and undo
 remain in its sticky identity header; selecting a prepared import collapses the
