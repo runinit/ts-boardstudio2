@@ -96,6 +96,25 @@ function Harness({ initial }: { initial?: string }) {
 }
 const openInspector = () =>
   fireEvent.click(screen.getByRole('button', { name: 'Inspector' }));
+it('keeps the Inspector closed until explicitly opened on desktop', () => {
+  const width = window.innerWidth;
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    value: 1400,
+  });
+  try {
+    render(<Harness />);
+    expect(screen.getByRole('button', { name: 'Inspector' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
+  } finally {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: width,
+    });
+  }
+});
 it('creates and edits a parametric thumb cluster without opening Code', async () => {
   render(<Harness />);
   openInspector();

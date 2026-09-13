@@ -43,7 +43,8 @@ export function moveTargets(
       !frame ||
       frame.locked ||
       authoredItem?.locked ||
-      (authoredItem?.cluster && authored.clusters?.[authoredItem.cluster]?.locked)
+      (authoredItem?.cluster &&
+        authored.clusters?.[authoredItem.cluster]?.locked)
     ) {
       throw new Error('A selected object is locked or unavailable.');
     }

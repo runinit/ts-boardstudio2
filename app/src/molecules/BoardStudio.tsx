@@ -128,12 +128,7 @@ export default function BoardStudio({
     selection: true,
     design: true,
   });
-  const [sheet, setSheet] = useState<'inspector' | ''>(() =>
-    window.innerWidth > parseInt(theme.studio.breakpoint) ||
-    getValue(source, ['meta', 'studio', 'openSetup'])
-      ? 'inspector'
-      : ''
-  );
+  const [sheet, setSheet] = useState<'inspector' | ''>('');
   const [view, setView] = useState<'canvas' | 'code' | 'library' | 'sketch'>(
     'canvas'
   );
