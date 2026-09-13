@@ -17,10 +17,19 @@ const gPreview = scene => {
 
 const version = require('../package.json').version
 
+const solveLayout = async (raw, options = {}) => {
+    const native = require('./native/document').parse(raw)
+    const scene = await require('./native/constraints').resolve(native, options)
+    return {config: native, scene, results: {layout: require('./native/geometry').serializable(scene)}}
+}
+
+const {resolveLayout} = require('./native/draft')
+
 const compile = async (raw, options={}, logger=()=>{}) => {
 
     const native = require('./native/document').parse(raw)
-    const scene = await require('./native/constraints').resolve(native,options)
+    const prepared = options.preparedLayout
+    const scene = prepared?.scene || await require('./native/constraints').resolve(native,options)
     const geometry = require('./native/geometry')
     const config = native
     const {debug = false, svg = false} = options
@@ -75,6 +84,10 @@ const compile = async (raw, options={}, logger=()=>{}) => {
         }
         caseConfig = {...caseConfig, ...design.cases}
         results.designs = design.report
+        if (options.outlineOnly) {
+            results.outlines = Object.fromEntries(Object.entries(outlines).map(([name, outline]) => [name, io.twodee(outline, {debug, svg})]))
+            return results
+        }
         if (Object.keys(design.solids).length) {
             results.solids = design.solids
             empty = false
@@ -147,5 +160,7 @@ module.exports = {
     version,
     process,
     inject,
-    footprints: require('./footprint-tools')
+    footprints: require('./footprint-tools'),
+    resolveLayout,
+    solveLayout
 }

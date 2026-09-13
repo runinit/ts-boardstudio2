@@ -65,6 +65,11 @@ modifications:
     operation: add
 ```
 
+`holes: preserve | fill` controls enclosed voids in boundaries and profiles.
+Omitting it preserves holes. `fill` removes incidental voids before clearance and
+corner finishing; declared protected gaps are still checked and explicit cutouts
+are subtracted afterward. Use it for automatic solid board outlines.
+
 Bridge endpoints must be inside their regions. Local modifications use `size`
 or `radius`, an existing key `anchor`, and `operation: add|subtract|intersect`.
 They may instead use `from: sketches.named_shape`. This supports anchored straight
@@ -212,3 +217,21 @@ node ergogen/test/validation/designs.cjs \
 The validator checks positive volume and two incident triangles per welded mesh
 edge for each of eight representative parts. Fabricated fit remains a physical
 validation step.
+
+### Frozen contours
+
+Native regions, boundaries, and profiles accept `snapshot: {paths: [...]}`.
+A snapshot replaces evaluation of the retained recipe, including finishing,
+bridges, gaps, and cutouts. Paths use finite coordinates in feature space:
+
+```yaml
+snapshot:
+  paths:
+    - {type: line, origin: [0, 0], end: [10, 0]}
+    - {type: arc, center: [10, 5], radius: 5, startAngle: 270, endAngle: 90}
+    - {type: circle, center: [4, 5], radius: 1}
+```
+
+`placement.override.fixed` retains explicitly edited `x`, `y`, or `rotate`
+targets during constraint solving. Absent axes preserve existing solver behavior.
+Conflicting fixed targets report constraint diagnostics; they are not relocated.

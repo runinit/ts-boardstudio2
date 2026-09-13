@@ -10,6 +10,32 @@ const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components',
 const analysisCache = new WeakMap()
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
 
+// Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
+const snapshot = (spec, name) => {
+    const model = {paths: {}}
+    for (const [index, path] of spec.snapshot.paths.entries()) {
+        const id = `${path.type}_${index}`
+        const at = `${name}.snapshot.paths.${index}`
+        const finite = values => {
+            if (!values.every(Number.isFinite)) { g.fail(at, 'Snapshot values must be finite', 'dimension') }
+        }
+        if (path.type === 'line') {
+            finite([...path.origin, ...path.end])
+            model.paths[id] = new m.paths.Line(path.origin, path.end)
+            continue
+        }
+        finite([...path.center, path.radius])
+        if (path.radius <= 0) { g.fail(at, 'Snapshot radius must be positive', 'dimension') }
+        if (path.type === 'arc') {
+            finite([path.startAngle, path.endAngle])
+            model.paths[id] = new m.paths.Arc(path.center, path.radius, path.startAngle, path.endAngle)
+        } else {
+            model.paths[id] = new m.paths.Circle(path.center, path.radius)
+        }
+    }
+    return model
+}
+
 // Cache board checks with their geometry, but rebuild layout and mounting findings per request.
 const appendFindings = (analysis, boards, scene, boardFindings = []) => {
     if (scene) { scene.findings.push(...deepcopy(boardFindings)) }
@@ -142,9 +168,16 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         if (!spec || typeof spec !== 'object') { g.fail(name, 'Expected a feature mapping') }
         active.add(ref)
         try {
-            let model, occupied = {paths: {}}, groups = []
+            let model, occupied = {paths: {}}, groups = [], cutouts = [], gaps = []
+            if (spec.snapshot && ['regions', 'boundaries', 'profiles'].includes(section)) {
+                model = snapshot(spec, name)
+                resolved[ref] = {model, occupied: g.clone(model), groups: [model], cutouts, gaps}
+                features[ref] = g.describe(model, name)
+                if (section === 'profiles') { publish(id, model, name) }
+                return resolved[ref]
+            }
             if (section === 'regions') {
-                a.unexpected(spec, name, ['select', 'envelope', 'wrap', 'shape', 'where', 'asym', 'size', 'corner_radius', 'corner_relief', 'outline', 'close', 'clearance', 'round', 'connected', 'modifications'])
+                a.unexpected(spec, name, ['select', 'envelope', 'wrap', 'shape', 'where', 'asym', 'size', 'corner_radius', 'corner_relief', 'outline', 'snapshot', 'close', 'clearance', 'round', 'connected', 'modifications'])
                 if (options.region && spec.select) {
                     groups = options.region(spec, name)
                 } else if (spec.shape) {
@@ -169,9 +202,13 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                     g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected')
                 }
             } else if (section === 'boundaries' || section === 'profiles') {
-                a.unexpected(spec, name, ['from', 'close', 'clearance', 'round', 'simplify', 'corners', 'connected', 'modifications', 'bridges', 'cutouts', 'gaps'])
+                a.unexpected(spec, name, ['from', 'snapshot', 'close', 'clearance', 'round', 'simplify', 'corners', 'connected', 'modifications', 'bridges', 'cutouts', 'gaps', 'holes'])
+                const holes = spec.holes ?? 'preserve'
+                if (!['preserve', 'fill'].includes(holes)) { g.fail(`${name}.holes`, 'Choose preserve or fill') }
                 const refs = Array.isArray(spec.from) ? spec.from : [spec.from]
                 const sources = refs.map(resolve)
+                cutouts = [...new Set([...sources.flatMap(source => source.cutouts), ...(spec.cutouts || [])])]
+                gaps = [...new Set([...sources.flatMap(source => source.gaps), ...(spec.gaps || [])])]
                 occupied = g.union(sources.map(source => source.occupied))
                 groups = sources.flatMap(source => source.groups)
                 const radius = dim(spec.close || 0, `${name}.close`)
@@ -206,17 +243,22 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                     model = g.combine(model, bridgeModel)
                     features[`${ref}.bridges.${bridge}`] = g.describe(bridgeModel, path)
                 }
-                for (const gap of spec.gaps || []) { model = g.combine(model, resolve(gap).model, 'subtract') }
+                // Fill incidental voids before finishing; protected gaps and cutouts remain explicit.
+                if (holes === 'fill') {
+                    g.validate(model, name)
+                    model = {models: Object.fromEntries(g.chains(model).map((chain, index) => [index, m.chain.toNewModel(chain)]))}
+                }
+                for (const gap of gaps) { model = g.combine(model, resolve(gap).model, 'subtract') }
                 const before = g.chains(model).length
                 model = finish(model, spec, name, occupied)
-                for (const gap of spec.gaps || []) {
+                for (const gap of gaps) {
                     if (!g.empty(g.combine(model, resolve(gap).model, 'intersect'))) { g.fail(name, `Boundary enters protected gap ${gap}`, 'clearance') }
                 }
                 if (!Object.keys(spec.bridges || {}).length && g.chains(model).length < before) {
                     g.fail(name, 'Profiles cannot join separate regions without a named bridge', 'disconnected')
                 }
                 // Intentional cutouts remove material after occupied-area validation.
-                for (const cutout of spec.cutouts || []) {
+                for (const cutout of holes === 'fill' ? cutouts : spec.cutouts || []) {
                     model = g.combine(model, resolve(cutout).model, 'subtract')
                     g.validate(model, `${name}.cutouts`)
                 }
@@ -238,7 +280,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 features[ref] = {...g.describe(model, name), sketch: sketch.geometry, constraints: spec.constraints || {}}
             } else { g.fail(name, 'Cannot use an assembly as a 2D reference') }
             active.delete(ref)
-            resolved[ref] = {model, occupied, groups}
+            resolved[ref] = {model, occupied, groups, cutouts, gaps}
             features[ref] = {...g.describe(model, name), ...features[ref]}
             return resolved[ref]
         } catch (error) {
@@ -255,6 +297,9 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
     }
     for (const section of sections.filter(section => section !== 'assemblies')) {
         for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`) }
+    }
+    if (options.outlineOnly) {
+        return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
     }
     const boardSources = options.boardSources ? options.boardSources(generated) : {}
     const boardBundle = options.scene ? boardSources : undefined

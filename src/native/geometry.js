@@ -93,6 +93,6 @@ const serializable = scene => {
     const objects=Object.fromEntries(Object.entries(scene.objects).map(([id,item])=>[id,{...item,
         bounds:Object.fromEntries(Object.entries(item.envelopes).map(([name,envelope])=>[name,bounds(item,envelope)]))}]))
     return {objects,clusters:scene.clusters,layers:scene.layers,findings:scene.findings,units:scene.units,
-        ...(scene.constraints?{constraints:scene.constraints}:{})}
+        ...(scene.constraints?{constraints:scene.constraints}:{}), ...(scene.offsets?{offsets:scene.offsets}:{})}
 }
 module.exports = {select,shape,project,region,points,bounds,serializable}

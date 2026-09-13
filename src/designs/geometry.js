@@ -4,6 +4,7 @@ const a = require('../assert')
 
 const TOLERANCE = 0.01 // Millimetres; also the maximum Bézier chord error.
 const EPSILON = 0.000001
+const ARC_COLLAPSE_ADJUSTMENT = TOLERANCE / 10
 const MAX_OFFSET_STEPS = 1000
 const REPAIR_OFFSET_STEP = TOLERANCE * 10
 const Joint = {Round: 0, Pointed: 1}
@@ -146,10 +147,12 @@ const requireContains = (outer, inner, name) => {
 }
 const close = (model, radius) => {
     if (!radius) { return clone(model) }
-    // Regularize exact tangencies within the documented export tolerance.
-    for (const candidateRadius of [radius, radius + TOLERANCE / 10]) {
+    // Keep exact closing first; retry contraction short of collapsing its new arcs.
+    const adjusted = radius + ARC_COLLAPSE_ADJUSTMENT
+    const attempts = [[radius, radius], [adjusted, adjusted], [radius, Math.max(0, radius - ARC_COLLAPSE_ADJUSTMENT)]]
+    for (const [expansion, contraction] of attempts) {
         try {
-            const closed = offset(offset(model, candidateRadius), -candidateRadius)
+            const closed = offset(offset(model, expansion), -contraction)
             validate(closed, 'designs')
             if (contains(closed, model)) { return closed }
             const restored = combine(model, closed)
@@ -165,7 +168,7 @@ const close = (model, radius) => {
 const round = (model, radius) => {
     if (!radius) { return clone(model) }
     // Avoid exact arc collapse during erosion, within the export tolerance.
-    for (const candidate of [radius, radius - TOLERANCE / 10]) {
+    for (const candidate of [radius, radius - ARC_COLLAPSE_ADJUSTMENT]) {
         if (candidate <= 0) { continue }
         try {
             const inset = offset(model, -candidate)

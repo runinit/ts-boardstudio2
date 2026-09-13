@@ -230,7 +230,9 @@ exports.resolve = async (config, options = {}) => {
             const item =
                 scene.objects[id.replace(/^objects\./, "")] ||
                 scene.clusters[id.replace(/^clusters\./, "")]
-            const free = item?.locked ? [] : entry.spec.solve || []
+            const fixed = entry.spec.override?.fixed || []
+            const fixedAxes = Array.isArray(fixed) ? fixed : Object.keys(fixed).filter(axis => fixed[axis])
+            const free = item?.locked ? [] : (entry.spec.solve || []).filter(axis => !fixedAxes.includes(axis))
             nodes[id] = { ...freeFrame(edit, matrix, free), edit, entry, free }
         }
         active.delete(id)
@@ -472,6 +474,7 @@ exports.resolve = async (config, options = {}) => {
     }
     const redundant = ids(result.redundant)
     const dof = Math.max(0, result.dof)
+    final.offsets = offsets
     final.constraints = {
         status: dof ? "underconstrained" : "solved",
         dof,

@@ -10,7 +10,8 @@ export interface Placement {
   above?: string;
   below?: string;
   gap?: Dimension;
-  override?: {at?: [Dimension, Dimension, Dimension]; rotate?: Dimension};
+  override?: {at?: [Dimension, Dimension, Dimension]; rotate?: Dimension;
+    fixed?: ('x' | 'y' | 'rotate')[] | Partial<Record<'x' | 'y' | 'rotate', boolean>>};
 }
 export interface Envelope {
   size?: [number, number]; radius?: number; height?: [number, number];
@@ -33,7 +34,9 @@ export interface ResolvedObject extends ResolvedFrame {
 export interface ResolvedCluster extends ResolvedFrame {
   id: string; label: string; locked: boolean;
 }
+export type LayoutOffsets = Record<string, {at: Vec3; rotate: number}>;
 export interface LayoutReport {
+  offsets?: LayoutOffsets;
   objects: Record<string, ResolvedObject>; clusters: Record<string, ResolvedCluster>;
   layers: Record<string, ResolvedFrame>; findings: Finding[];
   units: Record<string, number>;
@@ -58,3 +61,6 @@ export function process(input: string | NativeDocument, options?: Record<string,
 export function inject(type: string, name: string, value: unknown): void;
 export const version: string;
 export const footprints: Record<string, (...args: any[]) => any>;
+
+export function resolveLayout(input: string | NativeDocument, offsets?: LayoutOffsets): LayoutReport;
+export function solveLayout(input: string | NativeDocument, options?: Record<string, unknown>): Promise<{config: NativeDocument; scene: unknown; results: {layout: LayoutReport}}>;
