@@ -884,6 +884,51 @@ KiCad bindings lack an asset identifier. The model editor can rebuild a missing
 preview from a local WRL/STEP asset without attempting to download a project path.
 `cachedModelPreview` owns this lookup; `modelPreview` retains case mesh placement.
 
+Switch assembly model bindings negate the template angle because KiCad model
+rotations are clockwise while native footprint placements are counterclockwise.
+The model downloader resolves `EG_INFUSED_KIM_3D_MODELS` against the same pinned
+Infused-Kim revision as the footprint build. The model worker recognizes URL
+query/fragment suffixes and gives STEP/STL parsers an owned byte buffer.
+
+`build-ergogen` consumes the pinned `vendor/boardstudio-footprints` submodule.
+`BOARDSTUDIO_FOOTPRINTS` can select a local library checkout for development.
+`patch/stage_boardstudio.cjs` verifies source and model hashes, applies the
+library's filename defaults, and stages assets under `public/footprint-models`.
+The GDEK namespace supplies the unchanged KS-33 `.stp` and its repository license.
+Its footprint selects different automatic transforms for hotswap and solder-only
+mounting; explicit XYZ overrides retain precedence. KS-33 coverage does not imply
+KS-27 body equivalence or include a hotswap socket model. The default trackpoint
+extension requires a center drill of at least 5 mm; generation rejects smaller
+drills unless a custom model or transform overrides that default. This guard
+prevents a known intersection and does not validate custom geometry.
+Browser coverage verifies that incompatible drill edits disable both PCB export
+actions and that correcting the drill clears the error and exports the corrected
+revision, including its new drill diameter.
+Browser regressions in
+`bundled-model-export.spec.ts` and `default-model-assembly.spec.ts` cover default
+ZIP delivery, native worker geometry, and visible assembly rendering.
+`model-worker.spec.ts` also enumerates every staged STEP/STP/WRL/STL asset in
+independent browser cases, checking finite bounds and nonempty binary STL with
+consistent triangle counts. This parser coverage does not prove physical fit.
+Selected component defaults are also prepared for the placement editor through
+`useBundledPreviews`. Its transient meshes feed the alignment inset and live
+assembly transforms without storing bundled source as project-owned overrides.
+Changing selection aborts the previous request; late results cannot replace the
+current preview. Explicit project asset bytes remain authoritative.
+
+Generation resolves emitted default references before native CAD import; ZIP
+export also loads referenced defaults and their licences. Project-owned asset
+bytes take precedence. Bundled URL paths preserve literal plus signs while
+encoding spaces and URL delimiters; encoding a plus as `%2B` can cause the
+preview server to return its HTML fallback for an existing model. A trackpoint
+ZIP regression covers the affected filename and exact asset bytes. This does
+not establish physical pin alignment.
+
+Native PCB inventory retains each emitted model's local offset, scale and
+rotation, plus a component-local matrix derived from the emitted footprint's
+position and side. Native CAD and GUI meshes apply that matrix once. Explicit
+object model lists retain precedence over emitted defaults.
+
 ### Studio release integration
 
 Browser tests enter native projects through Board Studio. Case settings update
@@ -898,3 +943,52 @@ responses cannot replace the current project.
 New and empty sessions open Board Studio with a saved native draft. The `/new`
 route creates a draft directly; `/import` contains file, repository and example
 loading, reached through Projects → Import. Existing projects retain their editor.
+
+Bundled footprint models also include the pinned Keebio and Foostan namespaces. Asset staging
+copies its STEP sources and license; portable PCB exports include the exact
+referenced bytes, including filenames containing spaces. The curated LED default
+handles normal/reverse mounting, and PJ-320A placement follows side and reversible
+layout. Upstream patch hashes and scoped alignment evidence live in the submodule.
+
+`node scripts/qa/model-contacts.cjs` runs the optional installed-CAD contact check:
+it generates native PCB fixtures, invokes `kicad-cli pcb export step`, then compares
+model solids with copper/drill geometry using FreeCAD Python. `FREECAD_LIBDIR`
+can override `/usr/lib/freecad/lib`. It checks selected models and variants;
+it does not certify the entire library or fabrication readiness.
+
+The footprint submodule runs its Node tests through `pnpm test:footprints`,
+which precommit executes before GUI unit tests. Vitest excludes that submodule
+from jsdom discovery. GUI Markdown lint also excludes upstream submodule files
+to preserve their recorded source bytes.
+
+VRML import normalizes DEF/USE and ROUTE node identifiers before Three's
+lexer runs. This accepts hyphenated KiCad StepUp material names without
+rewriting comments, strings or route fields. A real upstream capacitor WRL
+fixture complements synthetic import tests and checks millimetre bounds
+against the STEP version.
+
+### Native model alignment targets
+
+Native component inventories retain each emitted footprint's key and KiCad
+reference independently of object labels and model overrides. The case alignment
+inset uses these references for inspection and offers a target selector when an
+object emits multiple footprints. Imported PCB inventories retain ID lookup.
+
+The alignment inset converts object-local model transforms into the selected
+footprint's frame and converts edits back while retaining authored model frames.
+Unframed bottom-side models retain their existing side transform. The selected
+footprint's own side controls preview orientation.
+
+Transform controls attach directly to the model group and keep that attachment
+stable throughout a gesture. Releasing the pointer saves one source edit, so undo
+restores the full drag. Clicking a handle without movement does not save an edit.
+Preview lookup resolves bundled paths without adding transient asset identifiers
+to authored bindings. Native board edits accept a component-specific model path;
+model-list updates preserve unchanged members and their source comments.
+
+Bundled Choc V2 models come from koktoh with source attribution and a copied
+license. V2-only footprints use the V2 switch, retain the hotswap socket and
+omit the incompatible MBK keycap. STEP preview meshing uses 0.01 mm linear
+and 0.3 radian angular tolerances; portable exports retain original STEP
+bytes. The real Choc V2 browser regression checks bounds and prevents the
+previous 1.2-million-triangle preview expansion.

@@ -1,4 +1,10 @@
-import { studio, openCase, openExport, openLibrary } from './utils/studio';
+import {
+  studio,
+  openCase,
+  openExport,
+  openLibrary,
+  readSource,
+} from './utils/studio';
 import { CONFIG_LOCAL_STORAGE_KEY } from '../src/context/constants';
 import { test, expect, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
@@ -253,6 +259,9 @@ test('assigns a model to a native BHK controller and exports the object binding'
     .getByRole('treeitem', { name: 'controller (1)', exact: true })
     .click();
   await dialog
+    .getByLabel('Component footprint', { exact: true })
+    .selectOption('mcu');
+  await dialog
     .getByLabel('Upload 3D models')
     .setInputFiles(`${fixture}${footprintName}.step`);
   await expect(dialog.getByLabel('Active model')).toContainText(footprintName, {
@@ -284,6 +293,60 @@ test('assigns a model to a native BHK controller and exports the object binding'
     'true'
   );
   await expect(dialog.getByLabel('Model alignment inset')).toBeVisible();
+  await expect(dialog.getByLabel('Model alignment inset')).not.toContainText(
+    'Error:'
+  );
+  await expect(
+    dialog.getByText(/mcu · controller ·.*model associated/)
+  ).toBeVisible({ timeout: 30000 });
+  const beforeSource = await readSource(page);
+  const beforeDrag = parse(beforeSource).layout.objects.mcu.models;
+  await dialog.getByLabel('Active model').selectOption('0');
+  const inset = dialog.getByLabel('Model alignment inset');
+  await inset.screenshot({ path: 'test-results/inset-before-drag.png' });
+  const bounds = await inset.boundingBox();
+  expect(bounds).not.toBeNull();
+  // The fixed BHK view places the model's blue Z handle at its upper-right corner.
+  const handle = {
+    x: bounds!.x + bounds!.width * 0.6,
+    y: bounds!.y + bounds!.height * 0.62,
+  };
+  await page.mouse.move(handle.x, handle.y);
+  await inset.screenshot({ path: 'test-results/inset-hover.png' });
+  await page.mouse.click(handle.x, handle.y);
+  await inset.screenshot({ path: 'test-results/inset-click.png' });
+  expect(await readSource(page)).toBe(beforeSource);
+  await page.mouse.down();
+  await page.mouse.move(handle.x, handle.y - 14, { steps: 8 });
+  await page.mouse.up();
+  await inset.screenshot({ path: 'test-results/inset-after-drag.png' });
+  await expect
+    .poll(
+      async () =>
+        parse(await readSource(page)).layout.objects.mcu.models[0].offset
+    )
+    .not.toEqual(beforeDrag[0].offset);
+  const afterDrag = parse(await readSource(page)).layout.objects.mcu.models;
+  // All pointer steps must contribute to the drag, not just its first frame.
+  expect(
+    Math.abs(afterDrag[0].offset[2] - beforeDrag[0].offset[2])
+  ).toBeGreaterThan(3);
+  expect(afterDrag[0].frame).toEqual(beforeDrag[0].frame);
+  expect(afterDrag[0].path).toEqual(beforeDrag[0].path);
+  expect(afterDrag[0].asset).toEqual(beforeDrag[0].asset);
+  expect(afterDrag[1]).toEqual(beforeDrag[1]);
+  await page
+    .getByRole('button', { name: 'Undo project edit', exact: true })
+    .click();
+  await expect
+    .poll(async () => parse(await readSource(page)).layout.objects.mcu.models)
+    .toEqual(beforeDrag);
+  await page
+    .getByRole('button', { name: 'Generate project', exact: true })
+    .click();
+  await expect(
+    dialog.getByRole('status').filter({ hasText: /Current geometry/ })
+  ).toBeVisible({ timeout: 90000 });
   await page.setViewportSize({ width: 1487, height: 1058 });
   await page.mouse.move(0, 0);
   await page.screenshot({ path: 'test-results/cad-bhk-desktop.png' });
