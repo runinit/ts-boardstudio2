@@ -1,5 +1,7 @@
 const f = require('./frames')
 const g = require('../designs/geometry')
+const geometry = require('./geometry')
+const m = require('makerjs')
 
 // Physical centers and aggregate guides are references, never extra layout objects.
 const center = item => {
@@ -21,9 +23,16 @@ const resolve = (name, config, object, cluster, number) => {
     if (!arrangement?.[kind]?.includes(cell)) { g.fail(name,'Choose an existing row or column','reference') }
     const members=Object.keys(config.layout.objects || {}).map(object).filter(item=>item.cluster===id && item.kind==='key' && item.cell?.[axis]===cell)
     if (!members.length) { g.fail(name,'This row or column has no keys','reference') }
-    const rotation=kind==='columns' ? number(arrangement.splay?.[cell] || 0,`${name}.splay`) : 0
+    const rotation=kind==='columns' ? number(arrangement.splay?.[cell] || 0,`${name}.splay`)*(spec.mirror?-1:1) : 0
     const basis=f.multiply(parent.matrix,f.local([0,0,0],rotation)), inverse=f.inverse(basis)
-    const points=members.map(item=>f.transform(inverse,center(item).position))
+    // Rows bisect occupied keycap bounds, including asymmetric sizes and offsets.
+    const points=members.flatMap(item=> {
+        const position=f.transform(inverse,center(item).position)
+        const envelope=item.envelopes.keycap || item.envelopes.pcb
+        if (kind==='columns' || !envelope) { return [position] }
+        const bounds=m.measure.modelExtents(geometry.project(item,envelope,basis))
+        return [bounds.low,bounds.high].map(point=>[...point,position[2]])
+    })
     const midpoint=[0,1,2].map(i=>(Math.min(...points.map(p=>p[i]))+Math.max(...points.map(p=>p[i])))/2)
     const matrix=f.multiply(basis,f.local(midpoint))
     return {...parent,matrix,position:f.position(matrix),guideParent:`clusters.${id}`,members:members.map(item=>item.id)}

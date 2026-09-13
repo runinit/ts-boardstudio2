@@ -275,7 +275,15 @@ const resolve = (config, offsets = {}) => {
             const original=object(sourceId), axis=number(spec.mirror.axis,`layout.clusters.${id}.mirror.axis`)
             const target=cluster(id)
             const override=spec.overrides?.[sourceId] || {}
-            definitions[nextId]={...item,...override,cluster:id,placement:{at:f.transform(f.inverse(target.mirrorBase),[2*axis-original.position[0],original.position[1],original.position[2]]),rotate:-original.rotation-f.yaw(target.mirrorBase),...override.placement}}
+            const mountId=override.layer || item.layer || spec.layer
+            const mount=mountId?layer(mountId):undefined
+            let base=target.mirrorBase
+            if (mount && target.layer!==mount.layer) {
+                // Use the same support plane as placed(), avoiding a second PCB height.
+                const relative=f.multiply(f.inverse(mount.matrix),base)
+                base=f.multiply(mount.matrix,f.local([relative[3],relative[7],0],f.yaw(relative)))
+            }
+            definitions[nextId]={...item,...override,cluster:id,placement:{at:f.transform(f.inverse(base),[2*axis-original.position[0],original.position[1],original.position[2]]),rotate:-original.rotation-f.yaw(base),...override.placement}}
             generated[nextId]=`layout.clusters.${id}.overrides.${sourceId}`
         }
     }

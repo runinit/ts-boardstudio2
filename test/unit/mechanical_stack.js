@@ -27,6 +27,34 @@ describe('Mechanical sheet layers',function(){
         assert.equal(result.stackups.main.layers.foam.status,'unresolved')
         assert.ok(result.pcbs.main)
     })
+    it('cuts intersecting components and mounts while leaving remote bodies alone',async()=>{
+        const config=fixture()
+        config.layout.objects.key.envelopes.pcb.size=[60,60]
+        config.layout.objects.mount={kind:'mount',pcb:'main',placement:{at:[20,20,0]},envelopes:{pcb:{radius:1.5}}}
+        config.layout.objects.battery={kind:'component',pcb:'main',layer:'top',placement:{at:[-20,0,0]},envelopes:{body:{size:[8,12],height:[0,3]}}}
+        config.layout.objects.above={kind:'component',pcb:'main',layer:'top',placement:{at:[20,0,0]},envelopes:{body:{size:[8,12],height:[5,8]}}}
+        const result=await engine.process(config,{analysis:true})
+        assert.equal(result.stackups.main.layers.foam.holes,3)
+        assert.equal(result.stackups.main.layers.foam.compression,undefined)
+        assert.equal(result.stackups.main.layers.foam.stock,result.stackups.main.layers.foam.installed)
+        assert.ok(result.stackups.main.sections.some(item=>item.id==='battery' && item.envelope==='body'))
+    })
+    it('exports mirrored PCB sheets in their own nominal millimetre frame',async()=>{
+        const config=fixture()
+        config.layout.clusters={left:{},right:{mirror:{source:'left',axis:60}}}
+        config.layout.objects.key.cluster='left'
+        config.layout.clusters.right.overrides={key:{pcb:'right'}}
+        config.pcbs.right={profile:'profiles.right',thickness:1.6}
+        config.designs.regions.keys.select={kind:'key',pcb:'main'}
+        config.designs.regions.right={select:{kind:'key',pcb:'right'},envelope:'pcb'}
+        config.designs.profiles.right={from:'regions.right',clearance:2}
+        config.designs.stackups.right={...config.designs.stackups.main,pcb:'right'}
+        const result=await engine.process(config,{analysis:true})
+        assert.equal(result.stackups.right.layers.foam.status,'ready')
+        assert.equal(result.stackups.right.layers.foam.holes,1)
+        assert.equal(result.stackups.right.layers.foam.bounds.width,result.stackups.main.layers.foam.bounds.width)
+        assert.ok(result.outlines.right_foam.dxf)
+    })
     it('reports interference without moving the stack or blocking other outputs',async()=>{
         const config=fixture();config.designs.stackups.main.layers.foam.thickness=6
         const result=await engine.process(config,{svg:true})

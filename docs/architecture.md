@@ -434,3 +434,29 @@ Solid conversion retains analytic arcs. Flat offset remnants below 0.01 mm
 length and 0.000001 mm chord error are collapsed, including empty sliver loops.
 Contour joins must remain within the existing 0.01 mm export tolerance. Rounded
 profiles are validated before conversion; native solid validity is checked after it.
+
+
+## Layout guides and material sheets
+
+`object.center` prefers a declared attachment, then the keycap or body center.
+`columns.<matrix>.<column>` follows splay, including mirrored splay;
+`rows.<matrix>.<row>` bisects occupied keycap bounds in the matrix frame.
+`object.origin` remains a separate reference. `aligned` constrains its first
+reference to an axis of the target frame without changing height or rotation.
+Alignment seeds follow target dependencies before the general constraint solve;
+cycles and incompatible constraints remain errors without changing source.
+
+`designs.stackups` associates a PCB with plate thickness/gap and named foam,
+silicone or gasket sheets. Each sheet names lower/upper surfaces, stock thickness,
+optional compression, profile, inset, clearance and extra profile cutouts.
+Compression defaults to zero. PCB thickness stays in `pcbs`; assemblies opt into
+shared stack dimensions through `stackup`. Existing assemblies without that link
+retain their dimensions.
+
+Sheets fit existing gaps without moving structural layers. Material compilation
+subtracts intersecting bodies, mounting holes and authored cutouts from shared
+profiles. Missing surfaces or contours leave only that sheet unresolved. Ready
+layers export `<pcb>_<layer>.dxf` in nominal millimetres; previews reuse those
+contours. Section reports expose declared physical heights, and project ZIPs carry
+stock/installed thickness, fit status and contour metadata. Reference solids do
+not simulate deformation or certify physical fit.

@@ -24,11 +24,21 @@ const inspect = (config,scene) => {
         const thickness=number(board.thickness ?? 1.6), plate=number(stack.plate?.thickness ?? 1.5), gap=number(stack.plate?.gap ?? 5.4)
         const surfaces={'pcb.bottom':0,'pcb.top':thickness,'plate.bottom':thickness+gap,'plate.top':thickness+gap+plate}
         const assembly=Object.entries(config.designs?.assemblies || {}).find(([,item])=>item.board?.name===stack.pcb)
-        if (assembly) { surfaces['case.floor']=f.transform(inverse,scene.reference(`case.${assembly[0]}.floor`).position)[2] }
-        for (const item of Object.values(scene.objects).filter(item=>item.pcb===stack.pcb && item.envelopes.body?.height)) {
+        if (assembly) {
+            surfaces['case.floor']=f.transform(inverse,scene.reference(`case.${assembly[0]}.floor`).position)[2]
+            surfaces['case.lid']=f.transform(inverse,scene.reference(`case.${assembly[0]}.lid`).position)[2]
+        }
+        const sections=[]
+        for (const item of Object.values(scene.objects).filter(item=>item.pcb===stack.pcb)) {
             const local={...item,matrix:f.multiply(inverse,item.matrix)}
-            const bounds=geometry.bounds(local,item.envelopes.body)
-            surfaces[`${item.id}.body.bottom`]=bounds[0][2];surfaces[`${item.id}.body.top`]=bounds[1][2]
+            for (const name of ['body','keycap']) {
+                const envelope=item.envelopes[name]
+                if (!envelope) { continue }
+                const bounds=envelope.height?geometry.bounds(local,envelope):undefined
+                sections.push({id:item.id,label:item.label,kind:item.kind,envelope:name,...(bounds?{bottom:bounds[0][2],top:bounds[1][2]}:{})})
+                if (!bounds) { continue }
+                surfaces[`${item.id}.${name}.bottom`]=bounds[0][2];surfaces[`${item.id}.${name}.top`]=bounds[1][2]
+            }
         }
         const layers={}, occupied={}
         for (const [name,layer] of Object.entries(stack.layers || {})) {
@@ -42,7 +52,7 @@ const inspect = (config,scene) => {
                 layers[name]={...layer,stock,installed,z,available:high-z,remaining,status:remaining < -g.EPSILON ? 'interference':'ready',output:`${stack.pcb}_${name}`}
             } catch(error) { layers[name]={...layer,status:'unresolved',message:error.message} }
         }
-        result[id]={pcb:stack.pcb,plate,gap,surfaces,layers}
+        result[id]={pcb:stack.pcb,plate,gap,surfaces,layers,sections}
     }
     return result
 }

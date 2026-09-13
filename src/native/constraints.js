@@ -16,7 +16,7 @@ const key = (ref) => {
 
 // A frame is a point and a directed axis. Its children retain their local geometry.
 exports.resolve = async (config, options = {}) => {
-    const scene = layout.resolve(config)
+    const {scene, offsets: alignmentOffsets} = require('./alignment-seed').resolve(config)
     const rules = config.layout.constraints || {}
     const movable = Object.entries(scene.placements).filter(
         ([, item]) => item.spec?.solve?.length
@@ -391,7 +391,7 @@ exports.resolve = async (config, options = {}) => {
             Math.atan2(q.y - p.y, q.x - p.x) / f.RAD
         )
     }
-    const offsets = {}
+    const offsets = {...alignmentOffsets}
     for (const node of Object.values(nodes)) {
         if (!node.free?.length) {
             continue
@@ -402,13 +402,13 @@ exports.resolve = async (config, options = {}) => {
             at: [0, 1]
                 .map((axis) =>
                     node.free.includes(["x", "y"][axis])
-                        ? local[axis * 4 + 3] - before[axis * 4 + 3]
-                        : 0
+                        ? (alignmentOffsets[node.entry.path]?.at[axis] || 0) + local[axis * 4 + 3] - before[axis * 4 + 3]
+                        : (alignmentOffsets[node.entry.path]?.at[axis] || 0)
                 )
                 .concat(0),
             rotate: node.free.includes("rotate")
-                ? wrap(f.yaw(local) - f.yaw(before))
-                : 0
+                ? (alignmentOffsets[node.entry.path]?.rotate || 0) + wrap(f.yaw(local) - f.yaw(before))
+                : (alignmentOffsets[node.entry.path]?.rotate || 0)
         }
     }
     // Re-resolve dependents, mirrors and stacking; never mutate the authored document.
