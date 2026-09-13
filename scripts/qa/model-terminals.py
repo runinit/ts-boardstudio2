@@ -76,6 +76,13 @@ if KIND.startswith(("choc_hotswap", "mx_hotswap")):
     leads = [s for s in shape.Solids if abs(s.Volume-socket_terminal_volume) < VOLUME_TOLERANCE]
     pads = [s for s in shape.Solids if 0 < s.BoundBox.ZLength < 0.05]
     assert len(leads) == 2 and len(pads) >= 2, [(round(s.Volume,6), str(s.BoundBox)) for s in shape.Solids]
+    # Check the complete physical path from switch pin through socket to copper.
+    contacted = set()
+    for pin in pins:
+        contacts = [i for i, lead in enumerate(leads) if pin.distToShape(lead)[0] < GEOMETRY_TOLERANCE]
+        assert len(contacts) == 1, "Switch pin does not contact exactly one socket terminal"
+        contacted.add(contacts[0])
+    assert len(contacted) == 2, "Switch pins contact the same socket terminal"
     matched = set()
     for lead in leads:
         fits = []
@@ -89,7 +96,19 @@ if KIND.startswith(("choc_hotswap", "mx_hotswap")):
         assert len(fits) == 1, "Socket terminal does not meet one copper pad within solder gap"
         assert fits[0] not in matched
         matched.add(fits[0])
-    print(f"{os.path.basename(sys.argv[1])}: switch opposite socket; both socket terminals meet copper")
+    import pcbnew
+    pcb = pcbnew.LoadBoard(sys.argv[1].replace(".step", ".kicad_pcb"))
+    actual = [p for fp in pcb.GetFootprints() for p in fp.Pads()]
+    nets = set()
+    for index in matched:
+        center = pads[index].BoundBox.Center
+        layer = pcbnew.F_Cu if center.z > 0 else pcbnew.B_Cu
+        targets = [p for p in actual if p.IsOnLayer(layer)
+                   and math.hypot(p.GetPosition().x/1e6-center.x, -p.GetPosition().y/1e6-center.y) < GEOMETRY_TOLERANCE]
+        assert len(targets) == 1, "Cannot identify contacted socket copper pad"
+        nets.add(targets[0].GetNetname())
+    assert nets == {"input", "output"}, "Socket contacts do not bridge the switch nets"
+    print(f"{os.path.basename(sys.argv[1])}: switch pins contact distinct socket terminals and input/output copper")
     sys.exit(0)
 if KIND.startswith("nice_view"):
     bodies = [s for s in shape.Solids if abs(s.Volume - 499.853557) < VOLUME_TOLERANCE]
