@@ -1,3 +1,5 @@
+import { useBundledPreviews } from '../hooks/useBundledPreviews';
+import { modelPreview } from '../utils/cachedModelPreview';
 import { Undo2 } from 'lucide-react';
 import { footprintUses, linkFootprint } from '../utils/footprintLinks';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -278,6 +280,8 @@ export default function FootprintLibrary({
   }, [catalogOpen, inspectorOpen]);
   const [query, setQuery] = useState(initialQuery);
   const [draft, setDraft] = useState<LibraryEntry>();
+  // Resolve attached defaults for display without changing the saved draft.
+  const previews = useBundledPreviews(draft?.models || [], draft?.assets || {});
   const [info, setInfo] = useState<FootprintInfo>();
   const [parameters, setParameters] = useState<
     Record<string, { type: string; value: unknown }>
@@ -831,7 +835,7 @@ export default function FootprintLibrary({
           <FootprintCanvas
             info={info}
             models={draft.models}
-            assets={draft.assets}
+            assets={previews.assets}
             selected={active}
             onSelect={setActive}
             onChange={changeModel}
@@ -862,15 +866,13 @@ export default function FootprintLibrary({
             </p>
           </Panel>
         )}
-        {draft?.models.some(
-          (model) => draft.assets[`__model_${model.asset}.json`]
-        ) &&
+        {draft?.models.some((model) => modelPreview(model, previews.assets)) &&
           view === '3d' && (
             <Inset aria-label="Magnified model alignment">
               <FootprintCanvas
                 info={info}
                 models={draft.models.filter((_, index) => index === active)}
-                assets={draft.assets}
+                assets={previews.assets}
                 selected={0}
                 onSelect={() => {}}
                 side={side}
@@ -977,6 +979,7 @@ export default function FootprintLibrary({
                 onBusy={setModelBusy}
                 models={draft.models}
                 assets={draft.assets}
+                previewAssets={previews.assets}
                 selected={active}
                 onSelect={setActive}
                 onChange={(models, assets) =>
@@ -1191,7 +1194,9 @@ export default function FootprintLibrary({
             Cancel import
           </button>
         )}
-        {(error || storageError) && <p role="alert">{error || storageError}</p>}
+        {(error || storageError || previews.error) && (
+          <p role="alert">{error || storageError || previews.error}</p>
+        )}
       </Panel>
     </Layout>
   );

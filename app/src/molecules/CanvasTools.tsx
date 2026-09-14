@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   MousePointer2,
   Columns3,
@@ -9,12 +9,9 @@ import {
   Maximize,
   Minus,
   Plus,
-  ListFilter,
-  Magnet,
 } from 'lucide-react';
 import styled from 'styled-components';
 import { theme } from '../theme/theme';
-import { StudioField } from './StudioStyles';
 
 const Dock = styled.div`
   position: absolute;
@@ -45,7 +42,31 @@ const Dock = styled.div`
 const Rail = styled(Dock)`
   top: ${theme.spacing.md};
   left: ${theme.spacing.md};
+  width: ${theme.studio.touchSize};
   flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  > button {
+    background: ${theme.colors.backgroundLight};
+  }
+  @container canvas (height < ${theme.studio
+    .shortRailHeight}) and (width > ${theme.workbench.phoneBreakpoint}) {
+    flex-direction: row;
+    width: max-content;
+  }
+`;
+const Primary = styled(Dock)`
+  position: static;
+  display: grid;
+  padding: 0;
+  border: 0;
+  grid-template-columns: ${theme.studio.touchSize};
+  @container canvas (height < ${theme.studio.compactRailHeight}) {
+    grid-template-columns: repeat(5, ${theme.studio.touchSize});
+  }
 `;
 const Zoom = styled(Dock)`
   z-index: ${theme.studio.panelLayer - 1};
@@ -55,21 +76,6 @@ const Zoom = styled(Dock)`
   small {
     min-width: 3em;
     text-align: center;
-  }
-`;
-const Options = styled.div`
-  position: absolute;
-  left: calc(100% + ${theme.spacing.sm});
-  top: 0;
-  width: min(${theme.studio.toolOptionsWidth}, calc(100vw - 7rem));
-  padding: ${theme.spacing.md};
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.cad.fieldRadius};
-  background: ${theme.colors.background};
-  box-shadow: ${theme.studio.toolShadow};
-  box-sizing: border-box;
-  button {
-    border-radius: ${theme.cad.fieldRadius};
   }
 `;
 export default function CanvasTools({
@@ -82,13 +88,7 @@ export default function CanvasTools({
   reset,
   zoom,
   scale,
-  snapping,
-  setSnapping,
-  gap,
-  setGap,
-  relative,
-  setRelative,
-  relativeReason,
+  snapTools,
   quickEdit,
   onDelete,
 }: {
@@ -101,93 +101,46 @@ export default function CanvasTools({
   reset: () => void;
   zoom: (direction: 'in' | 'out') => void;
   scale: number;
-  snapping: boolean;
-  setSnapping: (value: boolean) => void;
-  gap: number;
-  setGap: (value: number) => void;
-  relative: boolean;
-  setRelative: (value: boolean) => void;
-  relativeReason: string;
+  snapTools: ReactNode;
   quickEdit?: ReactNode;
   onDelete?: () => void;
 }) {
-  const [options, setOptions] = useState(false);
-  const optionsPanel = useRef<HTMLDivElement>(null);
-  const optionsTrigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!options) {
-      return;
-    }
-    const close = (event: PointerEvent) => {
-      if (
-        event.target instanceof Node &&
-        !optionsPanel.current?.contains(event.target) &&
-        !optionsTrigger.current?.contains(event.target)
-      ) {
-        setOptions(false);
-      }
-    };
-    document.addEventListener('pointerdown', close);
-    return () => document.removeEventListener('pointerdown', close);
-  }, [options]);
   return (
     <>
-      <Rail
-        role="toolbar"
-        aria-label="Canvas tools"
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            setOptions(false);
-          }
-        }}
-      >
-        {[
-          [MousePointer2, 'keys', 'Objects'],
-          [Columns3, 'columns', 'Columns'],
-          [Rows3, 'rows', 'Rows'],
-          [Grid2X2, 'clusters', 'Matrices'],
-        ].map(([Icon, id, label]) => {
-          const Glyph = Icon as typeof Hand;
-          return (
-            <button
-              key={String(id)}
-              aria-label={`Select ${label}`}
-              title={`Select ${label}`}
-              aria-pressed={tool === 'select' && scope === id}
-              onClick={() => {
-                setScope(String(id));
-                setTool('select');
-              }}
-            >
-              <Glyph size={18} />
-            </button>
-          );
-        })}
-        <button
-          aria-label="Pan"
-          title="Pan"
-          aria-pressed={tool === 'pan'}
-          onClick={() => setTool('pan')}
-        >
-          <Hand size={18} />
-        </button>
-        <button
-          ref={optionsTrigger}
-          aria-label="Canvas options"
-          title="Snapping options"
-          aria-expanded={options}
-          onClick={() => setOptions(!options)}
-        >
-          <ListFilter size={18} />
-        </button>
-        <button
-          aria-label="Snap to edges"
-          title="Snap to edges · hold Alt to bypass"
-          aria-pressed={snapping}
-          onClick={() => setSnapping(!snapping)}
-        >
-          <Magnet size={18} />
-        </button>
+      <Rail role="toolbar" aria-label="Canvas tools">
+        <Primary>
+          {[
+            [MousePointer2, 'keys', 'Objects'],
+            [Columns3, 'columns', 'Columns'],
+            [Rows3, 'rows', 'Rows'],
+            [Grid2X2, 'clusters', 'Matrices'],
+          ].map(([Icon, id, label]) => {
+            const Glyph = Icon as typeof Hand;
+            return (
+              <button
+                key={String(id)}
+                aria-label={`Select ${label}`}
+                title={`Select ${label}`}
+                aria-pressed={tool === 'select' && scope === id}
+                onClick={() => {
+                  setScope(String(id));
+                  setTool('select');
+                }}
+              >
+                <Glyph size={18} />
+              </button>
+            );
+          })}
+          <button
+            aria-label="Pan"
+            title="Pan"
+            aria-pressed={tool === 'pan'}
+            onClick={() => setTool('pan')}
+          >
+            <Hand size={18} />
+          </button>
+        </Primary>
+        {snapTools}
         {quickEdit}
         {onDelete && (
           <button
@@ -197,50 +150,6 @@ export default function CanvasTools({
           >
             <Trash2 size={18} />
           </button>
-        )}
-        {options && (
-          <Options ref={optionsPanel} role="group" aria-label="Canvas options">
-            <StudioField>
-              <span>Component gap · mm</span>
-              <input
-                aria-label="Snap edge gap"
-                type="number"
-                step="0.5"
-                min="0"
-                value={gap}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (Number.isFinite(value) && value >= 0) {
-                    setGap(value);
-                  }
-                }}
-              />
-            </StudioField>
-            <StudioField>
-              <span>Keep relative</span>
-              <input
-                type="checkbox"
-                aria-label="Keep relative placement"
-                checked={relative && !relativeReason}
-                disabled={!!relativeReason}
-                onChange={(e) => setRelative(e.target.checked)}
-              />
-            </StudioField>
-            <small>
-              {relativeReason ||
-                'A snapped drop saves its target and offset. Moving the target carries this component with it.'}
-            </small>
-            <p>
-              <small>
-                Keys use their layout spacing.
-                <br />
-                Ctrl/Cmd toggles · Shift range
-                <br />
-                Alt bypasses snapping · arrows nudge
-              </small>
-            </p>
-            <button onClick={() => setOptions(false)}>Close options</button>
-          </Options>
         )}
       </Rail>
       <Zoom role="toolbar" aria-label="View controls">

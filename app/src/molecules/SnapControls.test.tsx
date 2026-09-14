@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import SnapControls from './SnapControls';
 import { defaultSnapping } from '../utils/layoutSnapping';
-it('keeps increments, guides and edge gap in one snapping menu', () => {
+it('keeps increments, guides and edge gap in an inline snapping accordion', () => {
   function Harness() {
     const [enabled, onEnabled] = useState(true);
     const [options, onChange] = useState(defaultSnapping);
@@ -17,7 +17,12 @@ it('keeps increments, guides and edge gap in one snapping menu', () => {
     );
   }
   render(<Harness />);
-  fireEvent.click(screen.getByText('Options'));
+  const disclosure = screen.getByRole('button', { name: 'Snapping settings' });
+  expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  expect(
+    screen.queryByRole('button', { name: 'Snap increment 0.25u' })
+  ).not.toBeInTheDocument();
+  fireEvent.click(disclosure);
   fireEvent.click(screen.getByRole('checkbox', { name: 'Center guides' }));
   fireEvent.change(screen.getByLabelText('Snap edge gap'), {
     target: { value: '3' },
@@ -31,5 +36,18 @@ it('keeps increments, guides and edge gap in one snapping menu', () => {
     screen.getByRole('checkbox', { name: 'Center guides' })
   ).not.toBeChecked();
   expect(screen.getByLabelText('Snap edge gap')).toHaveValue(3);
+  fireEvent.keyDown(screen.getByLabelText('Snap edge gap'), { key: 'Escape' });
+  expect(disclosure).toHaveFocus();
+  expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  fireEvent.click(disclosure);
+  expect(screen.getByLabelText('Snap edge gap')).toHaveValue(3);
+  fireEvent.pointerDown(document.body);
+  expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+  fireEvent.click(disclosure);
+  expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+  expect(
+    screen.getByRole('region', { name: 'Snapping settings', hidden: true })
+      .parentElement?.parentElement
+  ).toHaveAttribute('inert');
   expect(screen.queryByRole('button', { name: 'Canvas options' })).toBeNull();
 });

@@ -19,8 +19,8 @@ async function open(page: Page, source: string, width = 1440) {
   );
   await page.goto('./');
   await expect(
-    page.getByRole('status').filter({ hasText: 'Layout resolved' })
-  ).toBeVisible();
+    page.getByRole('status', { name: 'Project status' })
+  ).toContainText('Layout positions current');
 }
 function board() {
   return setValue(
@@ -148,7 +148,9 @@ test('retains an edge relationship only after the snapped drop', async ({
   });
   await open(page, source);
   const toolbar = page.getByRole('toolbar', { name: 'Snapping', exact: true });
-  await toolbar.getByText('Options', { exact: true }).click();
+  await toolbar
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
   await toolbar.getByRole('checkbox', { name: 'Center guides' }).uncheck();
   await toolbar.getByRole('checkbox', { name: 'Increment grid' }).uncheck();
   await expect(toolbar.getByLabel('Snap edge gap')).toHaveValue('2');
@@ -161,7 +163,9 @@ test('retains an edge relationship only after the snapped drop', async ({
   ).toBeDisabled();
   await toolbar.getByRole('button', { name: 'Snapping', exact: true }).click();
   await page.screenshot({ path: capture('desktop-snapping') });
-  await toolbar.getByText('Options', { exact: true }).click();
+  await toolbar
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
   const points = await page
     .getByRole('group', { name: 'Interactive board layout' })
     .evaluate((svg) => {
@@ -261,12 +265,18 @@ for (const width of [320, 390]) {
       name: 'Snapping',
       exact: true,
     });
-    await toolbar.getByText('Options', { exact: true }).click();
-    const menu = await toolbar.locator('details > div').boundingBox();
+    await toolbar
+      .getByRole('button', { name: 'Snapping settings', exact: true })
+      .click();
+    const menu = await toolbar
+      .getByRole('region', { name: 'Snapping settings', exact: true })
+      .boundingBox();
     expect(menu!.x).toBeGreaterThanOrEqual(0);
     expect(menu!.x + menu!.width).toBeLessThanOrEqual(width);
     await page.screenshot({ path: capture(`mobile-${width}-snapping`) });
-    await toolbar.getByText('Options', { exact: true }).click();
+    await toolbar
+      .getByRole('button', { name: 'Snapping settings', exact: true })
+      .click();
     await page
       .getByRole('button', { name: 'Design setup', exact: true })
       .click();

@@ -1,5 +1,3 @@
-import manifest from '../../public/components/manifest.json';
-import { loadComponentModel } from '../utils/componentModels';
 import { modelPreview } from '../utils/cachedModelPreview';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -127,7 +125,6 @@ export default function ModelEditor({
   onBusy,
 }: Props) {
   const [url, setUrl] = useState('');
-  const [bundled, setBundled] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
@@ -370,77 +367,10 @@ export default function ModelEditor({
               >
                 Resolve model reference
               </button>
-              {/\.wrl$/i.test(model.path) && model.path.startsWith('${') && (
-                <button
-                  onClick={() => {
-                    const source = model.path.replace(/\.wrl$/i, '.step');
-                    setUrl(source);
-                    void download(source, selected);
-                  }}
-                >
-                  Use official STEP version
-                </button>
-              )}
             </p>
           )}
         </>
       )}
-      <details>
-        <summary>Bundled models</summary>
-        <label>
-          Bundled model
-          <select
-            value={bundled}
-            onChange={(event) => setBundled(event.target.value)}
-          >
-            <option value="">Choose model</option>
-            {manifest.models.map((model) => (
-              <option key={model.file} value={model.file}>
-                {model.file}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          disabled={!bundled || !!busy}
-          onClick={async () => {
-            operation.current?.abort();
-            const controller = new AbortController();
-            operation.current = controller;
-            setBusy('Loading bundled model…');
-            setError('');
-            try {
-              const imported = await loadComponentModel(bundled);
-              controller.signal.throwIfAborted();
-              onChange([...models, imported.model], {
-                ...assets,
-                ...imported.assets,
-              });
-              onSelect(models.length);
-            } catch (reason) {
-              if (!controller.signal.aborted) {
-                setError(String(reason));
-              }
-            } finally {
-              if (operation.current === controller) {
-                setBusy('');
-              }
-            }
-          }}
-        >
-          Add bundled model
-        </button>
-        <p>
-          Source models retain their original origin. Confirm alignment and
-          mounting height.
-        </p>
-        {bundled.startsWith('Nice_') && (
-          <p>
-            CC BY-NC-SA 4.0 · noncommercial use. nice!nano: Joe Scotto /
-            infused-kim. nice!view: TweetyDaBird / infused-kim.
-          </p>
-        )}
-      </details>
       <details>
         <summary>KiCad reference or public URL</summary>
         <label>

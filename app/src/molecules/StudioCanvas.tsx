@@ -7,6 +7,7 @@ import { Drawing } from './CasePlanPreview';
 import { theme } from '../theme/theme';
 import CanvasTools from './CanvasTools';
 import SnapControls from './SnapControls';
+import { StudioViewport } from './StudioStyles';
 import { snapLayout, type LayoutSnap } from '../utils/layoutSnapping';
 import { snapFrame } from '../utils/snapFrame';
 import { pitchUnits } from '../utils/designUnits';
@@ -69,6 +70,7 @@ export default function StudioCanvas({
   onSide: (view: 'top' | 'side') => void;
   rules: Record<string, StudioRule>;
 }) {
+  const viewport = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
   const [tool, setTool] = useState('select');
   // Selection changes must not replace the tool chosen for the next click.
@@ -78,7 +80,6 @@ export default function StudioCanvas({
       : 'keys'
   );
   const [snapping, setSnapping] = useState(true);
-  const [relative, setRelative] = useState(false);
   const [snapOptions, setSnapOptions] = useSnapOptions();
   const [lastSnap, setLastSnap] = useState<
     (LayoutSnap & { source: string }) | null
@@ -389,14 +390,7 @@ export default function StudioCanvas({
     }
   };
   return (
-    <>
-      <SnapControls
-        options={snapOptions}
-        enabled={snapping}
-        onEnabled={setSnapping}
-        onChange={setSnapOptions}
-        units={pitchValues}
-      />
+    <StudioViewport ref={viewport}>
       {lastSnap &&
         lastSnap.source === source &&
         (lastSnap.kind !== 'edge' || !attachmentReason(source, selection)) &&
@@ -446,13 +440,16 @@ export default function StudioCanvas({
           zoom(direction === 'in' ? 1 / ZOOM_STEP : ZOOM_STEP)
         }
         scale={Math.round((fit.w / box.w) * 100)}
-        snapping={snapping}
-        setSnapping={setSnapping}
-        gap={gap}
-        setGap={(value) => setSnapOptions({ ...snapOptions, gap: value })}
-        relative={relative}
-        setRelative={setRelative}
-        relativeReason="Relative movement follows the selected layout relation."
+        snapTools={
+          <SnapControls
+            options={snapOptions}
+            enabled={snapping}
+            onEnabled={setSnapping}
+            onChange={setSnapOptions}
+            units={pitchValues}
+            viewport={viewport}
+          />
+        }
         onDelete={selection.id && !stale ? onDelete : undefined}
       />
       {(drag || moveError) && (
@@ -908,6 +905,6 @@ export default function StudioCanvas({
               );
             })}
       </svg>
-    </>
+    </StudioViewport>
   );
 }

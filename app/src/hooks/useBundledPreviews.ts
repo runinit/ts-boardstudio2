@@ -4,15 +4,23 @@ import {
   BUNDLED_PREFIX,
   PROJECT_MODELS,
 } from '../utils/bundledPreviews';
+import { officialStep } from '../utils/modelSources';
 import type { CaseAssets } from '../utils/caseAssets';
 import type { ModelBinding } from '../types/footprint';
 
 export function useBundledPreviews(models: ModelBinding[], assets: CaseAssets) {
   const paths = models
     .map((model) => model.path)
-    .filter((path) => path.startsWith(BUNDLED_PREFIX));
+    .filter((path) => path.startsWith(BUNDLED_PREFIX) || officialStep(path));
   const key = JSON.stringify(
-    paths.map((path) => [path, assets[path.slice(PROJECT_MODELS.length)]])
+    paths.map((path) => [
+      path,
+      assets[
+        path.startsWith(PROJECT_MODELS)
+          ? path.slice(PROJECT_MODELS.length)
+          : path
+      ],
+    ])
   );
   const [preview, setPreview] = useState<{
     key: string;
@@ -25,7 +33,12 @@ export function useBundledPreviews(models: ModelBinding[], assets: CaseAssets) {
     const owned = Object.fromEntries(
       entries
         .filter(([, source]) => source !== null)
-        .map(([path, source]) => [path.slice(PROJECT_MODELS.length), source!])
+        .map(([path, source]) => [
+          path.startsWith(PROJECT_MODELS)
+            ? path.slice(PROJECT_MODELS.length)
+            : path,
+          source!,
+        ])
     );
     void bundledPreviews(
       entries.map(([path]) => path),

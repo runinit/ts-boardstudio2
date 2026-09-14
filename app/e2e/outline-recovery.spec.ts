@@ -59,6 +59,10 @@ test('creates, moves, and rebuilds a matrix outline as one undoable edit', async
 
   const beforeMove = parse(await readSource(page));
   const inspector = page.getByLabel('Design inspector');
+  await inspector
+    .locator('summary')
+    .filter({ hasText: 'Relative adjustments' })
+    .click();
   await inspector.getByLabel('Relative x', { exact: true }).fill('10');
   await inspector
     .getByRole('button', { name: 'Apply relative adjustment' })

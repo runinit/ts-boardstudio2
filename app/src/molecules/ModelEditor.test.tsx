@@ -177,3 +177,26 @@ it('rebuilds a local WRL preview without downloading its project path', async ()
   );
   spy.mockRestore();
 });
+
+it('does not ask users to choose the official STEP counterpart', () => {
+  render(
+    <ModelEditor
+      models={[
+        {
+          path: '${KICAD10_3DMODEL_DIR}/part.wrl',
+          offset: [0, 0, 0],
+          rotate: [0, 0, 0],
+          scale: [1, 1, 1],
+        },
+      ]}
+      assets={{}}
+      selected={0}
+      onSelect={vi.fn()}
+      onChange={vi.fn()}
+    />
+  );
+  expect(
+    screen.queryByRole('button', { name: 'Use official STEP version' })
+  ).not.toBeInTheDocument();
+  expect(screen.queryByText('Bundled models')).not.toBeInTheDocument();
+});

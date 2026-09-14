@@ -1,4 +1,5 @@
 import { loadBundledModels } from './bundledModels';
+import { fetchModel, officialStep } from './modelSources';
 import type { CaseAssets } from './caseAssets';
 
 export const PROJECT_MODELS = '${KIPRJMOD}/models/';
@@ -48,7 +49,11 @@ export async function bundledPreviews(
   signal: AbortSignal
 ): Promise<CaseAssets> {
   const selected = Array.from(
-    new Set(paths.filter((path) => path.startsWith(BUNDLED_PREFIX)))
+    new Set(
+      paths.filter(
+        (path) => path.startsWith(BUNDLED_PREFIX) || officialStep(path)
+      )
+    )
   );
   if (!selected.length) {
     return {};
@@ -59,6 +64,31 @@ export async function bundledPreviews(
   const previews: CaseAssets = {};
   for (const path of selected) {
     signal.throwIfAborted();
+    const official = officialStep(path);
+    if (official) {
+      // Cache geometry by the authored reference without replacing its source bytes.
+      const key = `__model_${path}.json`;
+      const cached = assets[key];
+      if (cached) {
+        previews[key] = cached;
+        continue;
+      }
+      let source = { name: path, source: assets[path] };
+      if (source.source === undefined) {
+        try {
+          source = await fetchModel(official, signal);
+        } catch (error) {
+          signal.throwIfAborted();
+          if (official === path) {
+            throw error;
+          }
+          // Some official parts have only WRL; resolve that without a user choice.
+          source = await fetchModel(path, signal);
+        }
+      }
+      previews[key] = await inspectModel(source.name, source.source, signal);
+      continue;
+    }
     const name = path.slice(PROJECT_MODELS.length);
     const key = `__model_${name}.json`;
     const cached = assets[key];

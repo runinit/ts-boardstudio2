@@ -8,14 +8,21 @@ const INFUSED_MODEL_ROOT =
   'https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/3d_models/';
 const MODEL_EXTENSIONS = /\.(step|stp|stl|wrl|vrml)$/i;
 
+const KICAD_REFERENCE = /^\$\{(?:KICAD\d*_3DMODEL_DIR|KISYS3DMOD)\}\/(.+)$/;
+
+// Official KiCad STEP counterparts use millimeters and preserve WRL placement.
+export function officialStep(input: string) {
+  return KICAD_REFERENCE.test(input)
+    ? input.replace(/\.(wrl|vrml)$/i, '.step')
+    : undefined;
+}
+
 function gitlabFile(project: string, path: string, ref: string) {
   return `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}/repository/files/${encodeURIComponent(path)}/raw?ref=${encodeURIComponent(ref)}`;
 }
 export function modelUrl(input: string): string {
   const source = input.trim();
-  const standard = source.match(
-    /^\$\{(?:KICAD\d*_3DMODEL_DIR|KISYS3DMOD)\}\/(.+)$/
-  );
+  const standard = source.match(KICAD_REFERENCE);
   if (standard) {
     return gitlabFile(KICAD_PROJECT, standard[1], 'master');
   }

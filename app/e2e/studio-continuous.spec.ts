@@ -32,9 +32,13 @@ async function visibleOutline(page: Page) {
 
 async function snapMillimeter(page: Page) {
   const snapping = page.getByRole('toolbar', { name: 'Snapping' });
-  await snapping.getByText('Options', { exact: true }).click();
+  await snapping
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
   await snapping.getByLabel('Custom snap increment').fill('1');
-  await snapping.getByText('Options', { exact: true }).click();
+  await snapping
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
 }
 
 async function open(page: Page, source = initial) {
@@ -223,9 +227,7 @@ test('keeps drags, nudges and inspector edits through delayed outline updates', 
     )
     .toBe(8);
   await page.getByRole('button', { name: 'Inspector', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Snap to edges', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Snapping', exact: true }).click();
   let beforeLastMove: number[] = [];
   for (let index = 0; index < 2; index++) {
     beforeLastMove = parse(await readSource(page)).layout.objects.matrix_c2_r1

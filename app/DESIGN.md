@@ -1,5 +1,5 @@
 ---
-name: 'Ergogen CAD Drafting Console'
+name: 'Board Studio CAD Drafting Console'
 description: 'A compact graphite and blue workbench for keyboard design editing.'
 colors:
   primary: '#326b85'
@@ -38,14 +38,8 @@ typography:
     {
       fontFamily: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
     }
-rounded: { field: '5px', tool: '8px', case: '8px' }
+rounded: { field: '5px', tool: '24px', case: '8px', pill: '999px' }
 spacing: { xs: '0.25rem', sm: '0.5rem', md: '1rem', lg: '1.5rem' }
-studio:
-  {
-    setupPreviewHeight: '144px',
-    expandedPreviewHeight: '320px',
-    pillRadius: '999px',
-  }
 components:
   button-primary:
     {
@@ -90,7 +84,7 @@ components:
 
 <!-- markdownlint-disable MD025 -->
 
-# Design System: Ergogen CAD Drafting Console
+# Design System: Board Studio CAD Drafting Console
 
 ## Overview
 
@@ -154,9 +148,9 @@ Graphite provides the field and panel layers; cool blue carries action and selec
 
 ## Layout
 
-Desktop uses a three-column drafting surface: a 240px object or part browser, a flexible central canvas, and a 320px properties inspector. A compact project header and stage strip establish project context above it. Let panes own their scroll independently.
+The Inspector starts closed. Opening it on desktop reveals a 212px object browser, a flexible central canvas, and a 320px properties pane; closing it returns the canvas to full width. A compact project header and stage strip establish project context above it. Let panes own their scroll independently.
 
-At 1050px and below, replace docked panes with a labelled drawer; the canvas remains primary and the active drawer gets a sticky header. At 600px and below, drawers use full width and headers/actions wrap. Use the existing 0.25rem, 0.5rem, 1rem, and 1.5rem rhythm. Controls are 36px high; narrow layouts use 44px touch targets.
+At 1050px and below, the Inspector becomes a right drawer, limited to the smaller of 90% width or 320px. Its fixed header names the selection type and key count, with Preview board and Close inspector above Browse objects and Edit properties. The active pane scrolls beneath it. Preview board reveals the canvas; Return to Inspector restores the draft, last field, selection, and scroll position. At 600px and below, drawers use full width and stage tabs show text alone. Use the existing 0.25rem, 0.5rem, 1rem, and 1.5rem rhythm. Controls are 36px high; narrow layouts use 44px touch targets.
 
 The embedded Design Setup flow stays reachable on mobile: setup, assembly, stack, and canvas are sequential sections in the same document. Assembly previews use 144px at rest and 320px when expanded.
 
@@ -171,29 +165,37 @@ Depth is restrained and structural. Tonal graphite layers and quiet rules define
 
 ## Shapes
 
-Use compact rectangular fields and buttons with a 5px radius. Tool docks and case surfaces use 8px. Rules are 1px solid graphite borders. Stage tabs use no radius and a 2px blue bottom rule for the current step. Preserve visible focus outlines.
+Use compact rectangular fields and buttons with a 5px radius. Canvas docks use a 24px radius, snap choices use pill corners, and case surfaces use 8px. Rules are 1px solid graphite borders. Stage tabs use no radius and a 2px blue bottom rule for the current step. Preserve visible focus outlines.
 
 ## Components
 
 ### Project Header and Stage Navigation
 
-The compact header keeps project title and actions together, followed by Design, PCB, Case, and Export. The current stage uses blue text and a blue bottom rule. At narrow widths, actions wrap and stage labels can stack.
+The compact header keeps project title and generation together, followed by Design, PCB, Case, and Export. The current stage uses blue text and a blue bottom rule. At narrow widths, secondary project tools move into Project actions. Undo and redo sit beside Inspector and Part library in the workspace strip.
 
 ### Object Browser and Part Library
 
-The left dock catalogs objects, clusters, bundled parts, and editable custom parts. Rows are compact and left-aligned. Selection uses the selection wash and blue border; ownership remains distinguishable. Narrow layouts expose one labelled drawer at a time.
+The left dock catalogs objects, clusters, bundled parts, and editable custom parts. Rows are compact and left-aligned. Selected object rows use the selection wash; ownership remains distinguishable. Narrow layouts expose one labelled drawer at a time.
 
 ### Canvas and Tool Docks
 
-The central field owns geometry and selection. The vertical rail groups object, column, matrix, pan, options, snap, and delete actions; the zoom dock sits at lower right. Pressed tools use selection wash and blue foreground. Icon-only controls retain accessible names.
+The central field owns geometry and selection. Outline and analysis bars precede the canvas viewport; floating tools stay inside that viewport. The rail groups object, column, row, matrix, pan, snapping, and delete actions; the zoom dock sits at lower right. Short canvases arrange the rail in two columns, or one row on wide landscape screens. Pressed tools use selection wash and blue foreground. Icon-only controls retain accessible names.
+
+One magnet toggles snapping. Its lower chevron unfolds only the settings section; the tool strip keeps its width and has no shared background behind the expanded section. The settings use a 272px surface, paired guide toggles, short numeric rows, and optional help. Opening and closing animate height, pushing later tools down. Short canvases use a horizontal selection strip and scroll only the settings. Very short landscape windows give the canvas a scrollable minimum height. Escape and Close return focus to the chevron; canvas clicks leave settings open. Closed controls are inert, values persist, and reduced motion removes the slide.
 
 ### Inspector and Model Editor
 
-The right inspector keeps selection summary, save actions, and properties visible. Part editing uses a sticky header for save and selection context. Model transforms use numeric offset, rotation, and scale fields; unfinished text commits on blur or Enter. Errors and busy states remain beside their operation.
+The Inspector opens only by explicit invocation; selecting a key does not open it. Escape and Close inspector restore focus. Selection updates properties without resetting the camera.
+
+Common size, alignment, stagger, and splay controls remain visible. Key membership, matrix actions, relative adjustments, and advanced placement use named disclosure sections that remember their open state during the session.
+
+Row and column membership uses aligned lists: the row or column number leads, the muted key name wraps within the remaining width, and a named removal icon stays in a fixed trailing column. Quiet horizontal rules separate entries. Matrix growth actions share a two-column group; Matrix size and pitch spans both columns in draft blue, and deletion sits separately in error red. Selection adjustments have a dividing rule and two-column relative fields.
+
+Part editing uses a sticky header for save and selection context. Model transforms use numeric offset, rotation, and scale fields; unfinished text commits on blur or Enter. Errors and busy states remain beside their operation.
 
 ### Design Setup and Mechanical Stack
 
-DesignSetupPanel groups layout, key assembly, controller and power, accessories, and review while retaining canvas context. DimensionField uses quarter-unit and physical millimetre values with tabular numerals. SnapControls exposes unit steps, custom millimetres, grid, center, and edge guides; RelationshipPanel applies center alignment, center distance, and equal spacing as named constraints.
+DesignSetupPanel groups board defaults, key assembly, and stackup. Add component owns controller and accessory placement. DimensionField uses quarter-unit and physical millimetre values with tabular numerals. SnapControls exposes unit steps, custom millimetres, grid, center, and edge guides; RelationshipPanel applies center alignment, center distance, and equal spacing as named constraints.
 
 StackupPanel names each material layer and shows its independent fit status. “Fits gap” describes stack clearance only; cutting profiles and export readiness remain explicit Export concerns. Material, thickness, compression, inset, clearance, and cutouts remain editable per layer.
 
@@ -203,16 +205,20 @@ Primary buttons use workbench blue; neutral buttons use the panel surface; selec
 
 ### Status and Export Boundaries
 
+The footer distinguishes current layout positions from generated 3D previews. Review actions name the finding count and use singular or plural labels. The findings panel explains that blockers prevent PCB and outline downloads, while case downloads have separate checks in Export. Each recovery action names its destination. A missing controller opens the component picker, or selects an existing controller. Pending or failed analysis never appears as an empty successful result.
+
 Keep gap fit, cutting profile checks, and export readiness as separate labels and states. A named layer may fit the mechanical gap while its cutting outline is unresolved or its export is unavailable. Show the layer name and material in section and narrow-screen status rows.
 
 ## Do's and Don'ts
 
-- Do keep the canvas dominant between the 240px browser and 320px inspector.
+- Do keep the canvas dominant and open the Inspector only when requested.
 - Do keep save, selection, and unsaved part context visible in sticky editor headers.
 - Do use 36px controls on desktop and 44px targets at the 1050px breakpoint.
 - Do use tabular numerals and commit numeric edits on blur or Enter.
 - Do preserve separate key, outline, component, selection, and grid colors.
 - Do respect `prefers-reduced-motion`.
+- Do wrap long key names while keeping removal controls reachable.
+- Do separate matrix actions from selection adjustments.
 - Don't replace the canvas when selection changes.
 - Don't turn every surface into a floating card or add shadows to ordinary panels.
 - Don't merge bundled and custom ownership into one catalog.

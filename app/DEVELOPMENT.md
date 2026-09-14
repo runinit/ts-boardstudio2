@@ -135,7 +135,13 @@ Inspector section. `assemblyScope` resolves Board → matrix → column → key 
 preserves descendant overrides when applying a parent, and resets only the chosen
 scope. `AssemblyScopePanel` reuses the footprint editor for every scope.
 
-`SnapControls` owns the single snapping menu. `StudioCanvas` offers a relationship
+`SnapControls` unfolds an animated grid row beneath its chevron without changing
+rail width. Selection tools have their own narrow surface; the settings surface
+uses paired guides and compact numeric rows. Closed content remains mounted and
+inert. Only settings scroll: viewport measurements cap their height above the
+camera and later tools. Short landscape canvases have a minimum height inside the
+scrollable main pane. Escape/Close restore focus; values survive collapse.
+`StudioCanvas` offers a relationship
 only for its latest accepted center/edge drop. `keepSnapRelation` routes center
 alignment to constraints and edge offset to an attachment at the accepted pose.
 `StackupPanel` and `StackDimensions` are shared by Setup and Case; parameter aliases
@@ -190,7 +196,7 @@ keeps its normal editing behavior.
 `snapSpacing` resolves pitch expressions through the native unit evaluator and
 caches scoped defaults. Keys retain their pitch-derived edge gaps, including
 oversized caps and unequal row/column pitch. Independent components use the gap
-chosen in Canvas options. Snapping compares actual rotated envelope edges and
+chosen in Snapping settings. Snapping compares actual rotated envelope edges and
 rejects candidates that crowd another object on the same PCB and mounting layer.
 Owned key electronics retain their intentionally overlapping assembly placements.
 Alt or the Snap toggle explicitly bypasses these placement rules. A same-layer
@@ -1065,6 +1071,18 @@ rewriting comments, strings or route fields. A real upstream capacitor WRL
 fixture complements synthetic import tests and checks millimetre bounds
 against the STEP version.
 
+### Part library model previews
+
+Opening a library part resolves its attached BoardStudio model paths through
+`useBundledPreviews`. The main canvas, alignment inset, and model editor share
+transient preview assets; loading does not create an override or alter model
+transforms. The Model selector lists attached models only. Additional files use
+Add models or URL import; the separate legacy bundled-model selector is removed.
+Official KiCad WRL references load their STEP counterpart automatically, falling
+back to WRL when unavailable. Owned model bytes take precedence. Preview geometry
+is cached against the original reference without rewriting source bindings.
+Preview failures appear in the footprint inspector.
+
 ### Native model alignment targets
 
 Native component inventories retain each emitted footprint's key and KiCad
@@ -1122,3 +1140,30 @@ ownership so unchanged generated adjustments can be removed on shrink. Authored
 expressions remain expressions. Locks and constraints prevent automatic movement;
 unresolved resize clearance is surfaced as an export blocker. The source is
 committed once through project history and the existing background outline pipeline.
+
+### Inspector presentation
+
+The shared theme retains the graphite and blue workbench palette from the
+unified workbench. Row and column Inspectors use aligned key lists with named
+removal controls, separate matrix actions, and a divided selection adjustment
+section. Long key labels wrap within their row; removal stays reachable.
+Common size, alignment, stagger, and splay controls stay visible. Key membership,
+matrix actions, relative adjustments, and advanced placement use named disclosure
+sections that retain their state during the session. Relative adjustment fields
+use two columns within the narrow properties pane.
+
+`StudioViewport` anchors canvas tools below the outline and analysis bars.
+`ProjectMenu` keeps secondary project actions inline on desktop and groups them
+under Project actions on narrow screens. Generation stays in the project header;
+undo and redo sit beside the Inspector. Narrow Inspector headers combine the
+selection type, affected key count, preview and close controls above the
+object/property tabs. The active pane scrolls beneath this fixed header. Preview
+board keeps the drawer mounted and hides it while exposing the canvas. Return to
+Inspector restores the last field without scrolling; setup drafts, disclosure
+state and selection survive. Widening to desktop restores the Inspector. Escape
+closes it and returns focus to its trigger. The Inspector remains manually opened.
+
+Finding recovery uses `findingTarget`: controller warnings open the component
+picker or the existing controller; layout and unit findings open their Inspector;
+setup findings open Design setup. Wiring and unknown paths open Code. Recovery
+buttons name their destination and close the findings panel.

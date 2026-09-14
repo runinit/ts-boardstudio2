@@ -75,9 +75,9 @@ export default function StudioExport({
       <h2>Export project</h2>
       <p>
         {stale
-          ? 'Geometry needs updating. Your source is always available.'
+          ? 'PCB and outline downloads are waiting for current layout analysis. You can still download the editable project.'
           : blockers
-            ? `${blockers} blockers need review before geometry export.`
+            ? `${blockers} ${blockers === 1 ? 'blocker prevents' : 'blockers prevent'} PCB and outline downloads. Review them in the status bar below.`
             : hasOutputs
               ? 'PCB and outline files match the current project.'
               : 'This project has no PCB or outline outputs yet.'}

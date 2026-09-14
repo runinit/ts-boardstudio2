@@ -66,3 +66,23 @@ it('aborts old selections and does not publish their late meshes', async () => {
   await act(async () => requests[1].resolve({ current: 'mesh' }));
   expect(result.current.assets).toEqual({ current: 'mesh' });
 });
+
+it('automatically loads an official KiCad reference without changing its binding', async () => {
+  const path =
+    '${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603_1608Metric.wrl';
+  const binding = model(path);
+  const metadata = JSON.stringify({ stl: 'mesh' });
+  vi.mocked(bundledPreviews).mockResolvedValue({
+    [`__model_${path}.json`]: metadata,
+  });
+  const { result } = renderHook(() => useBundledPreviews([binding], {}));
+  await waitFor(() =>
+    expect(result.current.assets[`__model_${path}.json`]).toBe(metadata)
+  );
+  expect(bundledPreviews).toHaveBeenCalledWith(
+    [path],
+    {},
+    expect.any(AbortSignal)
+  );
+  expect(binding).toEqual(model(path));
+});

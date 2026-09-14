@@ -214,10 +214,11 @@ export const StageNav = styled.nav`
       width: 100%;
       border-top: 1px solid ${theme.colors.border};
       justify-content: flex-end;
+      flex-wrap: wrap;
       button {
         flex-direction: row;
         flex: initial;
-        font-size: ${theme.workbench.textSize};
+        font-size: ${theme.fontSizes.bodySmall};
       }
     }
     button {
@@ -228,32 +229,29 @@ export const StageNav = styled.nav`
       gap: ${theme.spacing.xs};
     }
   }
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
+    > button {
+      flex-direction: row;
+    }
+    > button > svg {
+      display: none;
+    }
+  }
 `;
 export const StudioHeader = styled(StudioBar)`
   h1 {
     flex: 1;
     min-width: 0;
   }
-  .project-actions {
-    display: flex;
-    gap: ${theme.spacing.sm};
-  }
   @media (max-width: ${theme.studio.breakpoint}) {
-    flex-wrap: wrap;
     h1 {
       font-size: ${theme.fontSizes.lg};
     }
-    .project-actions {
-      order: 1;
-      width: 100%;
-      min-width: 0;
-      flex-wrap: wrap;
-      button {
-        padding: ${theme.spacing.sm};
-      }
+    > button {
+      padding: ${theme.spacing.sm};
     }
-    .project-actions button[data-primary] {
-      margin-left: auto;
+    .generate-label {
+      font-size: ${theme.fontSizes.bodySmall};
     }
   }
 `;
@@ -280,38 +278,54 @@ export const StudioBody = styled.div`
     }
   }
 `;
-export const StudioPane = styled.aside<{ $open: boolean }>`
+export const StudioPane = styled.aside<{ $open: boolean; $preview?: boolean }>`
   display: ${(p) => (p.$open ? 'contents' : 'none')};
   .pane-header {
     display: none;
   }
   @media (max-width: ${theme.studio.breakpoint}) {
-    display: ${(p) => (p.$open ? 'block' : 'none')};
+    display: ${(p) => (p.$open ? 'grid' : 'none')};
+    grid-template-rows: auto minmax(0, 1fr);
+    /* Keep the drawer laid out while peeking so drafts and scroll survive. */
+    visibility: ${(p) => (p.$preview ? 'hidden' : 'visible')};
     position: absolute;
     inset: 0 0 0 auto;
     width: min(90%, ${theme.studio.inspectorWidth});
-    overflow: auto;
+    overflow: hidden;
     background: ${theme.colors.backgroundLight};
     border-left: 1px solid ${theme.colors.border};
     z-index: ${theme.studio.popoverLayer};
     animation: ${paneEntry} ${theme.workbench.paneMotion};
     .pane-header {
       display: block;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+      grid-row: 1;
       background: ${theme.colors.backgroundLight};
     }
+    .studio-browser,
+    .studio-properties {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .pane-top {
+      display: flex;
+      align-items: center;
+      gap: ${theme.spacing.sm};
+      padding: ${theme.spacing.xs} ${theme.spacing.sm};
+    }
     .selection-summary {
+      flex: 1;
       margin: 0;
-      padding: 0 ${theme.spacing.sm} ${theme.spacing.sm};
       color: ${theme.colors.textDarker};
       overflow-wrap: anywhere;
       font-size: ${theme.fontSizes.bodySmall};
     }
-    &[data-setup] .pane-tabs,
-    &[data-setup] .selection-summary {
+    &[data-setup] .pane-tabs {
       display: none;
+    }
+    .preview-pane {
+      flex-shrink: 0;
+      padding: ${theme.spacing.sm};
+      font-size: ${theme.fontSizes.bodySmall};
     }
     .pane-tabs {
       display: flex;
@@ -330,7 +344,9 @@ export const StudioPane = styled.aside<{ $open: boolean }>`
     }
     .close-pane {
       display: flex;
-      margin: ${theme.spacing.sm};
+      flex-shrink: 0;
+      width: ${theme.studio.touchSize};
+      padding: ${theme.spacing.sm};
     }
   }
   @media (max-width: ${theme.workbench.phoneBreakpoint}) {
@@ -367,6 +383,14 @@ export const StudioProperties = styled.div`
   }
   fieldset {
     min-width: 0;
+  }
+  legend {
+    padding: 0;
+    font-weight: ${theme.fontWeights.semiBold};
+  }
+  p,
+  small {
+    overflow-wrap: anywhere;
   }
   input,
   select,
@@ -443,4 +467,96 @@ export const StudioStatus = styled.div`
   button {
     margin-left: auto;
   }
+`;
+
+// Keep membership rows aligned even with long, user-authored key names.
+export const MatrixKeys = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    border-bottom: 1px solid ${theme.colors.border};
+    gap: ${theme.spacing.xs};
+    padding: ${theme.spacing.xs} 0;
+  }
+  button {
+    border-color: transparent;
+    background: transparent;
+    padding: ${theme.spacing.sm};
+  }
+  .key-select {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: ${theme.spacing.sm};
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .key-select span {
+    white-space: nowrap;
+  }
+  .key-select small {
+    font-size: ${theme.fontSizes.bodySmall};
+  }
+  .key-remove {
+    width: ${theme.workbench.controlHeight};
+    color: ${theme.colors.textDarker};
+  }
+  .key-remove:hover:not(:disabled) {
+    color: ${theme.colors.error};
+  }
+  .key-add {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    color: ${theme.colors.accent};
+  }
+  @media (max-width: ${theme.studio.breakpoint}) {
+    .key-remove {
+      width: ${theme.studio.touchSize};
+    }
+  }
+`;
+
+// Matrix growth, navigation, and deletion have distinct positions and emphasis.
+export const MatrixActions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.lg};
+  button {
+    padding-inline: ${theme.spacing.sm};
+  }
+  .matrix-settings,
+  .matrix-delete {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .matrix-settings {
+    color: ${theme.colors.accent};
+  }
+  .matrix-delete {
+    border-color: transparent;
+    color: ${theme.colors.error};
+    background: transparent;
+  }
+`;
+
+// Anchor floating tools to the drawing, below normal-flow outline and status bars.
+export const StudioViewport = styled.div`
+  container: canvas / size;
+  @media (max-height: ${theme.studio.compactRailHeight}) and (min-width: ${theme
+      .workbench.phoneBreakpoint}) {
+    min-height: ${theme.studio.minCanvasHeight};
+  }
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
 `;

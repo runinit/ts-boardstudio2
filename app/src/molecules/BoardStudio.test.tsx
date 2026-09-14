@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { useState, type ComponentProps } from 'react';
 import { parse } from 'yaml';
 import { resolveLayout } from 'ergogen/src/native/draft';
@@ -438,3 +438,134 @@ it.each(['race', 'locked', 'missing report', 'analysis error'])(
     }
   }
 );
+
+describe('project status copy', () => {
+  let original: typeof useStudio;
+  let state: ReturnType<typeof useStudio>;
+  beforeEach(() => {
+    original = vi.mocked(useStudio).getMockImplementation()!;
+    const previous = original({ source: MOVE_SOURCE } as Parameters<
+      typeof useStudio
+    >[0]);
+    const report = resolveLayout(parse(MOVE_SOURCE));
+    state = {
+      ...previous,
+      report,
+      analysis: {
+        ...previous.analysis,
+        result: { layout: report },
+        error: '',
+        pending: false,
+        stale: false,
+        diagnostics: [],
+      },
+    };
+    vi.mocked(useStudio).mockReturnValue(state);
+  });
+  afterEach(() => vi.mocked(useStudio).mockImplementation(original));
+
+  it.each([1, 2])(
+    'distinguishes current positions from %i export blockers',
+    (count) => {
+      vi.mocked(useStudio).mockReturnValue({
+        ...state,
+        analysis: {
+          ...state.analysis,
+          diagnostics: Array.from({ length: count }, (_, index) => ({
+            severity: 'error' as const,
+            code: `missing-${index}`,
+            feature: 'layout.objects.key',
+            message: `Missing part ${index + 1}`,
+          })),
+        },
+      });
+      render(<Harness initial={MOVE_SOURCE} />);
+      expect(
+        screen.getByRole('status', { name: 'Project status' })
+      ).toHaveTextContent('Layout positions current');
+      const review = screen.getByRole('button', {
+        name: `Review ${count} ${count === 1 ? 'blocker' : 'blockers'}`,
+      });
+      fireEvent.click(review);
+      expect(review).toHaveAttribute('aria-expanded', 'true');
+      const findings = screen.getByRole('region', { name: 'Project findings' });
+      expect(findings).toHaveTextContent(
+        'Resolve blockers before downloading PCB and outline files.'
+      );
+      expect(findings).toHaveTextContent(
+        'Case downloads have separate checks in Export.'
+      );
+      expect(
+        within(findings).getByRole('button', { name: /Missing part 1/ })
+      ).toBeEnabled();
+    }
+  );
+
+  it('does not describe an analysis error as a clean findings result', () => {
+    vi.mocked(useStudio).mockReturnValue({
+      ...state,
+      analysis: { ...state.analysis, error: 'Invalid board contour' },
+    });
+    render(<Harness initial={MOVE_SOURCE} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Review analysis error' })
+    );
+    const findings = screen.getByRole('region', { name: 'Project findings' });
+    expect(within(findings).getByRole('alert')).toHaveTextContent(
+      'Invalid board contour'
+    );
+    expect(findings).not.toHaveTextContent(/No (current|findings)/);
+    expect(
+      screen.getByRole('status', { name: 'Project status' })
+    ).toHaveTextContent('Layout analysis failed');
+  });
+
+  it('names an empty findings result without claiming export readiness', () => {
+    render(<Harness initial={MOVE_SOURCE} />);
+    fireEvent.click(screen.getByRole('button', { name: 'View findings' }));
+    expect(
+      screen.getByRole('region', { name: 'Project findings' })
+    ).toHaveTextContent(
+      'No findings from the current analysis. Check Export for download readiness.'
+    );
+  });
+
+  it('opens the controller picker from a missing-controller blocker', () => {
+    const source = compileSetup({ ...defaultSetup(), columns: 2, rows: 2 });
+    render(<Harness initial={source} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+    fireEvent.click(screen.getByRole('button', { name: /Review .* blockers/ }));
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Choose a controller before PCB review/,
+      })
+    );
+
+    expect(screen.getByLabelText('Component catalogue')).toBeVisible();
+    expect(screen.getByLabelText('New item kind')).toHaveValue('component');
+    expect(screen.getByRole('button', { name: 'Inspector' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(screen.queryByText('Case tools')).not.toBeInTheDocument();
+    expect(screen.queryByText('Code editor')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Project findings' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('identifies findings as pending while analysis is updating', () => {
+    vi.mocked(useStudio).mockReturnValue({
+      ...state,
+      analysis: { ...state.analysis, pending: true },
+    });
+    render(<Harness initial={MOVE_SOURCE} />);
+    fireEvent.click(screen.getByRole('button', { name: 'View findings' }));
+    expect(
+      screen.getByRole('region', { name: 'Project findings' })
+    ).toHaveTextContent('Findings update when layout analysis finishes.');
+    expect(
+      screen.getByRole('status', { name: 'Project status' })
+    ).toHaveTextContent('Updating layout…');
+  });
+});

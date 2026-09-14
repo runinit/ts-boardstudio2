@@ -20,10 +20,11 @@ import {
 } from '../utils/studioSelection';
 import { readStudio } from '../utils/studioSource';
 import type { KeyAlignment } from '../utils/keyResize';
+import InspectorSection from './InspectorSection';
 
 const RelativeFields = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${theme.spacing.sm};
   margin: ${theme.spacing.sm} 0;
   label {
@@ -32,6 +33,15 @@ const RelativeFields = styled.div`
   }
   input {
     width: 100%;
+  }
+`;
+const AdjustmentGroup = styled.fieldset`
+  border: 0;
+  border-top: 1px solid ${theme.colors.border};
+  padding: ${theme.spacing.md} 0 0;
+  margin: ${theme.spacing.lg} 0 0;
+  legend {
+    padding-right: ${theme.spacing.sm};
   }
 `;
 type Props = {
@@ -78,7 +88,7 @@ export default function SelectionControls({
     return other.some((value, index) => value !== size[index]);
   });
   return (
-    <fieldset disabled={locked} style={{ border: 0, padding: 0, margin: 0 }}>
+    <AdjustmentGroup disabled={locked}>
       <legend>Selection adjustments</legend>
       {!!keys.length && (
         <>
@@ -164,52 +174,57 @@ export default function SelectionControls({
           </StudioField>
         </>
       )}
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const form = event.currentTarget,
-            values = new FormData(form);
-          try {
-            const value = (name: string) =>
-              dimension(dimensionValue(String(values.get(name) || '0')), units);
-            edit((before) =>
-              adjustSelection(
-                ensurePitchUnits(before),
-                selection,
-                [value('x'), value('y'), 0],
-                value('rotation'),
-                value('stagger')
-              )
-            );
-            setAdjustment((count) => count + 1);
-            setAdjustError('');
-          } catch (reason) {
-            setAdjustError(String(reason));
-          }
-        }}
-      >
-        <small>Relative to current placement, in the parent’s axes.</small>
-        <RelativeFields>
-          {[
-            'x',
-            'y',
-            'rotation',
-            ...(selection.section === 'columns' ? ['stagger'] : []),
-          ].map((name) => (
-            <DimensionField
-              key={`${name}-${adjustment}`}
-              name={name}
-              label={`Relative ${name}`}
-              value={0}
-              units={units}
-              suffix={name === 'rotation' ? '°' : 'mm'}
-              onCommit={() => {}}
-            />
-          ))}
-        </RelativeFields>
-        <button type="submit">Apply relative adjustment</button>
-        {adjustError && <p role="alert">{adjustError}</p>}
-      </form>
-    </fieldset>
+      <InspectorSection name="Relative adjustments">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const form = event.currentTarget,
+              values = new FormData(form);
+            try {
+              const value = (name: string) =>
+                dimension(
+                  dimensionValue(String(values.get(name) || '0')),
+                  units
+                );
+              edit((before) =>
+                adjustSelection(
+                  ensurePitchUnits(before),
+                  selection,
+                  [value('x'), value('y'), 0],
+                  value('rotation'),
+                  value('stagger')
+                )
+              );
+              setAdjustment((count) => count + 1);
+              setAdjustError('');
+            } catch (reason) {
+              setAdjustError(String(reason));
+            }
+          }}
+        >
+          <small>Relative to current placement, in the parent’s axes.</small>
+          <RelativeFields>
+            {[
+              'x',
+              'y',
+              'rotation',
+              ...(selection.section === 'columns' ? ['stagger'] : []),
+            ].map((name) => (
+              <DimensionField
+                key={`${name}-${adjustment}`}
+                name={name}
+                label={`Relative ${name}`}
+                value={0}
+                units={units}
+                suffix={name === 'rotation' ? '°' : 'mm'}
+                onCommit={() => {}}
+              />
+            ))}
+          </RelativeFields>
+          <button type="submit">Apply relative adjustment</button>
+          {adjustError && <p role="alert">{adjustError}</p>}
+        </form>
+      </InspectorSection>
+    </AdjustmentGroup>
   );
 }

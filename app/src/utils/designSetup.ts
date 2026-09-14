@@ -178,13 +178,16 @@ export function setupNets(setup: DesignSetup, prefix = '') {
       : []),
   ];
 }
+export const MISSING_CONTROLLER_FINDING =
+  'Choose a controller before PCB review.';
+
 export function setupFindings(setup: DesignSetup): string[] {
   const findings: string[] = [
     'Component model alignment and physical envelopes require verification before PCB export.',
   ];
   const controller = CONTROLLERS.find((item) => item.id === setup.controller);
   if (!controller) {
-    findings.push('Choose a controller before PCB review.');
+    findings.push(MISSING_CONTROLLER_FINDING);
   }
   if (controller && setup.connection === 'wireless' && !controller.wireless) {
     findings.push('This controller has no wireless radio.');

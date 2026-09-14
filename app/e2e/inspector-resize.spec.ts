@@ -102,12 +102,12 @@ for (const viewport of [
       panel.getByRole('button', { name: 'Parameters', exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole('status').filter({ hasText: /Layout (resolved|solved)/ })
-    ).toBeVisible({ timeout: TIMEOUT });
+      page.getByRole('status', { name: 'Project status' })
+    ).toContainText('Layout positions current', { timeout: TIMEOUT });
     if (viewport.width <= 1050) {
       await panel.getByRole('button', { name: 'Edit properties' }).click();
     }
-    await panel.evaluate((node) => {
+    await panel.locator('.studio-properties').evaluate((node) => {
       node.scrollTop = 0;
     });
     await page.screenshot({

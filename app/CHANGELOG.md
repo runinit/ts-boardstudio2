@@ -1,5 +1,15 @@
 # Changelog
 
+## Snapping settings beneath the tool
+
+September 13, 2026
+
+Use the chevron beneath the magnet to slide snapping settings open inside the
+rail. Only the compact settings section expands, pushing later tools down.
+The tool strip keeps its width; short screens scroll the settings.
+Settings retain their values when closed.
+The magnet still toggles snapping; Escape closes settings and restores focus.
+
 ## BHK rows and columns
 
 September 12, 2026

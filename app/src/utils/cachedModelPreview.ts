@@ -6,7 +6,9 @@ export function modelPreview(
   model: Pick<ModelBinding, 'path' | 'asset'>,
   assets: CaseAssets
 ) {
-  const cached = model.asset && assets[`__model_${model.asset}.json`];
+  const cached =
+    (model.asset && assets[`__model_${model.asset}.json`]) ||
+    assets[`__model_${model.path}.json`];
   if (cached) {
     return cached;
   }

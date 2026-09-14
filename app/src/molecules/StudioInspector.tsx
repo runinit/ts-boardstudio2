@@ -30,6 +30,7 @@ import { matrixNames } from '../utils/studioSource';
 import { targets } from '../utils/studioTargets';
 import { setLayout } from '../utils/layoutSource';
 import type { SourcePath } from '../utils/designSource';
+import InspectorSection from './InspectorSection';
 
 type Props = {
   source: string;
@@ -746,56 +747,61 @@ export default function StudioInspector({
           : ['placement', 'rotate'],
         0
       )}
-      {reference('Relative to', ['placement', 'ref'])}
-      {reference(
-        'Mounting layer',
-        ['layer'],
-        ['world', ...Object.keys(data.layout.layers || {})]
-      )}
-      <StudioField>
-        <span>Locked</span>
-        <input
-          type="checkbox"
-          aria-label="Locked"
-          checked={locked}
-          disabled={inherited}
-          onChange={(event) => patch(['locked'], event.target.checked)}
-        />
-      </StudioField>
-      {!item.mirror && (
-        <>
-          <h3>Constraint movement</h3>
-          <small>Unchecked coordinates remain driven by their placement.</small>
-          {['x', 'y', 'rotate'].map((axis) => (
-            <StudioField key={axis}>
-              <span>
-                Solve {axis === 'rotate' ? 'rotation' : axis.toUpperCase()}
-              </span>
-              <input
-                aria-label={`Solve ${axis}`}
-                type="checkbox"
-                disabled={locked}
-                checked={item.placement?.solve?.includes(axis) || false}
-                onChange={(event) =>
-                  patch(
-                    ['placement', 'solve'],
-                    event.target.checked
-                      ? [...(item.placement?.solve || []), axis]
-                      : (item.placement?.solve || []).filter(
-                          (value) => value !== axis
-                        )
-                  )
-                }
-              />
-            </StudioField>
-          ))}
-        </>
-      )}
+      <InspectorSection name="Advanced placement">
+        {reference('Relative to', ['placement', 'ref'])}
+        {reference(
+          'Mounting layer',
+          ['layer'],
+          ['world', ...Object.keys(data.layout.layers || {})]
+        )}
+        <StudioField>
+          <span>Locked</span>
+          <input
+            type="checkbox"
+            aria-label="Locked"
+            checked={locked}
+            disabled={inherited}
+            onChange={(event) => patch(['locked'], event.target.checked)}
+          />
+        </StudioField>
+        {!item.mirror && (
+          <>
+            <h3>Constraint movement</h3>
+            <small>
+              Unchecked coordinates remain driven by their placement.
+            </small>
+            {['x', 'y', 'rotate'].map((axis) => (
+              <StudioField key={axis}>
+                <span>
+                  Solve {axis === 'rotate' ? 'rotation' : axis.toUpperCase()}
+                </span>
+                <input
+                  aria-label={`Solve ${axis}`}
+                  type="checkbox"
+                  disabled={locked}
+                  checked={item.placement?.solve?.includes(axis) || false}
+                  onChange={(event) =>
+                    patch(
+                      ['placement', 'solve'],
+                      event.target.checked
+                        ? [...(item.placement?.solve || []), axis]
+                        : (item.placement?.solve || []).filter(
+                            (value) => value !== axis
+                          )
+                    )
+                  }
+                />
+              </StudioField>
+            ))}
+          </>
+        )}
+      </InspectorSection>
       {section === 'objects' && (
         <>
-          <h3>Part and board</h3>
-          {reference('Part', ['part'], Object.keys(data.parts || {}))}
-          {reference('PCB', ['pcb'], Object.keys(data.pcbs || {}))}
+          <InspectorSection name="Part and board">
+            {reference('Part', ['part'], Object.keys(data.parts || {}))}
+            {reference('PCB', ['pcb'], Object.keys(data.pcbs || {}))}
+          </InspectorSection>
           {item.kind === 'key' && (
             <>
               <StudioField>

@@ -116,7 +116,9 @@ test('selects a distance target on the canvas and preserves its position', async
     value: 'u',
   });
   expect(after.layout.objects.target.placement).toBeUndefined();
-  await page.getByText('Options', { exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
   await page.getByRole('checkbox', { name: 'Footprint origins' }).check();
   await expect(
     page.getByRole('checkbox', { name: 'Center guides' })
@@ -137,12 +139,14 @@ test('keeps the narrow snapping menu above camera controls', async ({
   );
   await page.setViewportSize({ width: 320, height: 844 });
   await page.goto('./');
-  await page.getByText('Options', { exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Snapping settings', exact: true })
+    .click();
   await expect
     .poll(async () => {
       const menu = await page
         .getByRole('toolbar', { name: 'Snapping', exact: true })
-        .locator('details > div')
+        .getByRole('region', { name: 'Snapping settings', exact: true })
         .boundingBox();
       const view = await page
         .getByRole('button', { name: 'Zoom in', exact: true })

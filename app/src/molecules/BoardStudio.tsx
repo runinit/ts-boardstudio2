@@ -1,3 +1,6 @@
+import ProjectMenu from './ProjectMenu';
+import { findingTarget } from '../utils/findingTarget';
+import { MISSING_CONTROLLER_FINDING } from '../utils/designSetup';
 import { keepSnapRelation } from '../utils/layoutRelations';
 import AssemblyScopePanel from './AssemblyScopePanel';
 import { SnapProvider } from '../hooks/useSnapOptions';
@@ -5,13 +8,22 @@ import { removeSelection, isDeleteShortcut } from '../utils/studioDelete';
 import { ResizeReview, type ResizeProposal } from '../utils/resizeReview';
 import { repairSetup } from '../utils/setupRepair';
 import ResizeReviewDialog from './ResizeReviewDialog';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Box,
   Code2,
   Component,
   Cpu,
   Download,
+  Eye,
   FolderOpen,
   GitBranch,
   LayoutGrid,
@@ -113,6 +125,7 @@ export default function BoardStudio({
     }
   }, [source]);
   const data = parsed.data;
+  const findingsId = useId();
   const [stage, setStage] = useState<Stage>('design');
   const [selection, setSelection] = useState<StudioSelection>({
     section: Object.keys(data.layout.clusters || {}).length
@@ -128,7 +141,7 @@ export default function BoardStudio({
     selection: true,
     design: true,
   });
-  const [sheet, setSheet] = useState<'inspector' | ''>('');
+  const [sheet, setSheet] = useState<'inspector' | 'preview' | ''>('');
   const [view, setView] = useState<'canvas' | 'code' | 'library' | 'sketch'>(
     'canvas'
   );
@@ -181,12 +194,36 @@ export default function BoardStudio({
   }, [source, parsed.error, editSource]);
   const inspectorTrigger = useRef<HTMLButtonElement>(null);
   const inspectorPane = useRef<HTMLElement>(null);
+  const inspectorField = useRef<HTMLElement | null>(null);
+  const resumeInspector = useRef(false);
+  const previewReturn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (sheet) {
-      inspectorPane.current
-        ?.querySelector<HTMLButtonElement>('.close-pane')
-        ?.focus();
+    if (sheet === 'preview') {
+      previewReturn.current?.focus();
+      return;
     }
+    if (sheet === 'inspector') {
+      const field =
+        resumeInspector.current && inspectorField.current?.isConnected
+          ? inspectorField.current
+          : inspectorPane.current?.querySelector<HTMLButtonElement>(
+              '.close-pane'
+            );
+      field?.focus({ preventScroll: resumeInspector.current });
+    }
+    resumeInspector.current = false;
+  }, [sheet]);
+  useEffect(() => {
+    if (sheet !== 'preview') {
+      return;
+    }
+    const restoreDesktop = () => {
+      if (window.innerWidth > parseInt(theme.studio.breakpoint)) {
+        setSheet('inspector');
+      }
+    };
+    window.addEventListener('resize', restoreDesktop);
+    return () => window.removeEventListener('resize', restoreDesktop);
   }, [sheet]);
   const cad = context?.setCadActive;
   useEffect(() => {
@@ -468,10 +505,20 @@ export default function BoardStudio({
       severity: 'error',
       message,
     })),
-    ...[...setupIssues, ...electricalIssues].map((message) => ({
+    ...setupIssues.map((message) => ({
       feature: 'meta.studio.setup',
-      sourcePath: 'meta.studio.setup',
+      sourcePath:
+        message === MISSING_CONTROLLER_FINDING
+          ? 'meta.studio.setup.controller'
+          : 'meta.studio.setup',
       code: 'setup-incomplete',
+      severity: 'error',
+      message,
+    })),
+    ...electricalIssues.map((message) => ({
+      feature: 'meta.studio.electricalFindings',
+      sourcePath: 'meta.studio.electricalFindings',
+      code: 'wiring-review',
       severity: 'error',
       message,
     })),
@@ -494,29 +541,83 @@ export default function BoardStudio({
     report && 'constraints' in report
       ? (report.constraints as { status: string; dof: number })
       : undefined;
+  const keyCount = Object.values(report?.objects || {}).filter(
+    (item) => item.kind === 'key'
+  ).length;
+  const reviewError = parsed.error || analysis.error;
+  const reviewLabel = parsed.error
+    ? 'Review source error'
+    : analysis.error
+      ? 'Review analysis error'
+      : blockers
+        ? `Review ${blockers} ${blockers === 1 ? 'blocker' : 'blockers'}`
+        : uniqueFindings.length
+          ? `Review ${uniqueFindings.length} ${uniqueFindings.length === 1 ? 'finding' : 'findings'}`
+          : 'View findings';
+  // Position analysis and generated previews have separate readiness states.
+  const layoutMessage = parsed.error
+    ? 'Project YAML needs repair'
+    : analysis.error
+      ? 'Layout analysis failed'
+      : analysis.pending
+        ? 'Updating layout…'
+        : stale
+          ? 'Layout analysis pending'
+          : 'Layout positions current';
+  const previewMessage = preview.pending
+    ? 'Generating 3D preview…'
+    : preview.error
+      ? '3D generation failed'
+      : !preview.result
+        ? '3D preview not generated'
+        : preview.stale
+          ? '3D preview out of date'
+          : '3D preview current';
   const navigateFinding = (path: string) => {
+    const { editor } = findingTarget(path);
     const chunks = path.split('.');
-    if (
-      chunks[0] === 'layout' &&
-      ['objects', 'clusters', 'constraints', 'layers'].includes(chunks[1])
+    setReview(false);
+    setStage(editor === 'case' ? 'case' : 'design');
+    setView(editor === 'code' ? 'code' : 'canvas');
+    if (editor === 'case' || editor === 'code') {
+      return;
+    }
+    setSheet('inspector');
+    setPaneTab('properties');
+    setSetupOpen(editor === 'setup');
+    setAssemblyOpen(false);
+    if (editor === 'controller') {
+      const existing = Object.entries(data.layout.objects || {}).find(
+        ([, item]) => item.properties?.role === 'controller'
+      );
+      if (existing) {
+        setSelection({ section: 'objects', id: existing[0] });
+        return;
+      }
+      setPaneTab('objects');
+      setSections((before) => ({ ...before, objects: true }));
+      setNewKind('component');
+      setNewName(nextId(Object.keys(data.layout.objects || {}), 'controller'));
+      setAdding(true);
+    } else if (editor === 'parameters') {
+      setSelection({ section: 'parameters', id: '' });
+    } else if (
+      editor === 'layout' &&
+      ['objects', 'clusters', 'constraints', 'layers'].includes(chunks[1]) &&
+      chunks[2]
     ) {
       setSelection({
         section: chunks[1] as StudioSelection['section'],
         id: chunks[2],
       });
-      setStage('design');
-    } else if (chunks[0] === 'units') {
-      setSelection({ section: 'parameters', id: '' });
-    } else {
-      setStage('case');
     }
-    setReview(false);
   };
   const closeSheet = () => {
     if (!sheet) {
       return;
     }
     const trigger = inspectorTrigger;
+    resumeInspector.current = false;
     setSheet('');
     trigger.current?.focus();
   };
@@ -525,11 +626,40 @@ export default function BoardStudio({
       ref={inspectorTrigger}
       aria-expanded={sheet === 'inspector'}
       aria-controls="studio-inspector"
-      onClick={() => setSheet(sheet ? '' : 'inspector')}
+      onClick={() => setSheet(sheet === 'inspector' ? '' : 'inspector')}
     >
       <SlidersHorizontal size={18} /> Inspector
     </button>
   );
+  const selectionCount = targets(selection).length;
+  const selectedKeyCount = Object.entries(data.layout.objects || {}).filter(
+    ([id, item]) =>
+      item.kind === 'key' &&
+      includesObject(selection, { id, cluster: item.cluster, cell: item.cell })
+  ).length;
+  const clusterType = data.layout.clusters?.[selection.id]?.arrangement?.type;
+  const selectionType = {
+    clusters:
+      clusterType === 'columns'
+        ? 'Matrix'
+        : clusterType === 'arc'
+          ? 'Thumb arc'
+          : 'Cluster',
+    columns: 'Column',
+    rows: 'Row',
+    objects:
+      data.layout.objects?.[selection.id]?.kind === 'key' ? 'Key' : 'Component',
+    parameters: 'Parameters',
+    constraints: 'Constraint',
+    outline: 'Outline',
+    layers: 'Layer',
+  }[selection.section];
+  const selectionSummary =
+    selectionCount > 1
+      ? `${selectionCount} selected · ${selectedKeyCount} keys`
+      : selection.id
+        ? `${selectionType} ${selection.id}${selection.cluster ? ` · ${selection.cluster}` : ''}${['clusters', 'columns', 'rows'].includes(selection.section) ? ` · ${selectedKeyCount} ${selectedKeyCount === 1 ? 'key' : 'keys'}` : ''}`
+        : 'Select an object on the canvas';
   if (!context) {
     return null;
   }
@@ -617,23 +747,33 @@ export default function BoardStudio({
           <small className="desktop">
             {context.error ? 'Needs attention' : 'Autosaved'}
           </small>
-          {onUpdate && <UpdateChip onClick={onUpdate} />}
-          {onInstall && <InstallChip onClick={onInstall} />}
-          <div className="project-actions">
-            <button
-              aria-label="Undo project edit"
-              disabled={!context.canUndo}
-              onClick={context.undo}
-            >
-              <Undo2 size={18} />
-            </button>
-            <button
-              aria-label="Redo project edit"
-              disabled={!context.canRedo}
-              onClick={context.redo}
-            >
-              <Redo2 size={18} />
-            </button>
+
+          <button
+            data-primary="true"
+            aria-label="Generate project"
+            aria-busy={preview.pending}
+            disabled={
+              !!parsed.error ||
+              preview.pending ||
+              analysis.pending ||
+              analysis.stale ||
+              !!analysis.error
+            }
+            onClick={preview.generate}
+          >
+            <Box size={18} />
+            <span className="generate-label">
+              {preview.pending
+                ? 'Generating…'
+                : preview.error
+                  ? 'Retry generation'
+                  : 'Generate 3D'}
+            </span>
+          </button>
+          {preview.pending && (
+            <button onClick={preview.cancel}>Cancel generation</button>
+          )}
+          <ProjectMenu>
             <button
               aria-label="Code"
               aria-pressed={view === 'code'}
@@ -647,18 +787,7 @@ export default function BoardStudio({
               }}
             >
               <Code2 size={18} />
-              <span className="desktop">Code</span>
-              <span
-                className="sr-only"
-                style={{
-                  position: 'absolute',
-                  width: 1,
-                  height: 1,
-                  overflow: 'hidden',
-                }}
-              >
-                Code
-              </span>
+              Code
             </button>
             {!parsed.error &&
               (selectedKeys(source, selection).length > 0 ||
@@ -691,38 +820,15 @@ export default function BoardStudio({
                 Design setup
               </button>
             )}
+            {onUpdate && <UpdateChip onClick={onUpdate} />}
+            {onInstall && <InstallChip onClick={onInstall} />}
             <button
-              data-primary="true"
-              aria-label="Generate project"
-              aria-busy={preview.pending}
-              disabled={
-                !!parsed.error ||
-                preview.pending ||
-                analysis.pending ||
-                analysis.stale ||
-                !!analysis.error
-              }
-              onClick={preview.generate}
+              aria-label="Settings"
+              onClick={() => context.setShowSettings(true)}
             >
-              <Box size={18} />
-              <span className="desktop">
-                {preview.pending
-                  ? 'Generating…'
-                  : preview.error
-                    ? 'Retry generation'
-                    : 'Generate 3D'}
-              </span>
+              <Settings size={18} />
             </button>
-            {preview.pending && (
-              <button onClick={preview.cancel}>Cancel generation</button>
-            )}
-          </div>
-          <button
-            aria-label="Settings"
-            onClick={() => context.setShowSettings(true)}
-          >
-            <Settings size={18} />
-          </button>
+          </ProjectMenu>
         </StudioHeader>
         <StageNav aria-label="Design workflow">
           {stages.map(([id, label, Glyph]) => (
@@ -735,15 +841,31 @@ export default function BoardStudio({
               {label}
             </button>
           ))}
-          {view !== 'library' && (
-            <div className="workspace-actions">
-              {['design', 'pcb'].includes(stage) && inspectorButton}
-              <button onClick={openLibrary}>
-                <Component size={16} />
-                Part library
-              </button>
-            </div>
-          )}
+          <div className="workspace-actions">
+            <button
+              aria-label="Undo project edit"
+              disabled={!context.canUndo}
+              onClick={context.undo}
+            >
+              <Undo2 size={18} />
+            </button>
+            <button
+              aria-label="Redo project edit"
+              disabled={!context.canRedo}
+              onClick={context.redo}
+            >
+              <Redo2 size={18} />
+            </button>
+            {view !== 'library' && (
+              <>
+                {['design', 'pcb'].includes(stage) && inspectorButton}
+                <button onClick={openLibrary}>
+                  <Component size={16} />
+                  Part library
+                </button>
+              </>
+            )}
+          </div>
         </StageNav>
         {preview.error && (
           <StudioStatus role="alert">{preview.error}</StudioStatus>
@@ -856,19 +978,63 @@ export default function BoardStudio({
                 )}
               </StudioBar>
             )}
-            <StudioBody data-sheet={sheet || undefined}>
+            {sheet === 'preview' && (
+              <StudioBar aria-label="Inspector preview">
+                <button
+                  ref={previewReturn}
+                  onClick={() => setSheet('inspector')}
+                >
+                  <SlidersHorizontal size={18} /> Return to Inspector
+                </button>
+              </StudioBar>
+            )}
+            <StudioBody data-sheet={sheet ? 'inspector' : undefined}>
               <StudioPane
                 ref={inspectorPane}
                 id="studio-inspector"
                 data-pane={paneTab}
                 data-setup={setupOpen || undefined}
-                $open={sheet === 'inspector'}
+                $open={!!sheet}
+                $preview={sheet === 'preview'}
                 aria-label="Design inspector"
+                onFocusCapture={(event) => {
+                  if (
+                    event.target.matches('input, select, textarea, summary')
+                  ) {
+                    inspectorField.current = event.target;
+                  }
+                }}
               >
                 <div className="pane-header">
-                  <button className="close-pane" onClick={closeSheet}>
-                    <X size={18} /> Close inspector
-                  </button>
+                  <div className="pane-top">
+                    <p
+                      className="selection-summary"
+                      aria-label="Current selection"
+                    >
+                      {setupOpen
+                        ? assemblyOpen
+                          ? 'Key assembly'
+                          : 'Design setup'
+                        : selectionSummary}
+                    </p>
+                    <button
+                      className="preview-pane"
+                      onClick={() => {
+                        resumeInspector.current = true;
+                        setSheet('preview');
+                      }}
+                    >
+                      <Eye size={18} /> Preview board
+                    </button>
+                    <button
+                      className="close-pane"
+                      aria-label="Close inspector"
+                      title="Close inspector"
+                      onClick={closeSheet}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                   <div
                     className="pane-tabs"
                     role="group"
@@ -887,16 +1053,6 @@ export default function BoardStudio({
                       Edit properties
                     </button>
                   </div>
-                  <p
-                    className="selection-summary"
-                    aria-label="Current selection"
-                  >
-                    {targets(selection).length > 1
-                      ? `${targets(selection).length} selected`
-                      : selection.id
-                        ? `Selected: ${selection.id}`
-                        : 'Select an object on the canvas'}
-                  </p>
                 </div>
                 <StudioBrowser className="studio-browser">
                   <details open={!!sections.objects}>
@@ -1476,14 +1632,29 @@ export default function BoardStudio({
         )}
         {review && (
           <StudioStatus
+            id={findingsId}
             role="region"
             aria-label="Project findings"
             style={{ maxHeight: '35vh', overflow: 'auto', alignItems: 'start' }}
           >
-            {(layout.error || analysis.error) && (
-              <p role="alert">{layout.error || analysis.error}</p>
-            )}
-            {!uniqueFindings.length && <p>No current layout findings.</p>}
+            <div style={{ flexBasis: '100%' }}>
+              {reviewError && <p role="alert">{reviewError}</p>}
+              {!!blockers && (
+                <p>
+                  Resolve blockers before downloading PCB and outline files.
+                  Case downloads have separate checks in Export.
+                </p>
+              )}
+              {stale && !reviewError && (
+                <p>Findings update when layout analysis finishes.</p>
+              )}
+              {!uniqueFindings.length && !reviewError && !stale && (
+                <p>
+                  No findings from the current analysis. Check Export for
+                  download readiness.
+                </p>
+              )}
+            </div>
             {uniqueFindings.map((issue, index) => (
               <button
                 key={index}
@@ -1493,40 +1664,39 @@ export default function BoardStudio({
                   )
                 }
               >
-                {issue.severity}: {issue.message}
+                {issue.severity === 'error'
+                  ? 'Blocker'
+                  : issue.severity === 'warning'
+                    ? 'Warning'
+                    : 'Note'}
+                : {issue.message} ·{' '}
+                {
+                  findingTarget(
+                    ('sourcePath' in issue && issue.sourcePath) || issue.feature
+                  ).label
+                }
               </button>
             ))}
             <button onClick={() => setReview(false)}>Close findings</button>
           </StudioStatus>
         )}
         {!(stage === 'case' && view === 'canvas' && !parsed.error) && (
-          <StudioStatus role="status">
+          <StudioStatus role="status" aria-label="Project status">
             <small>
-              {stage !== 'design'
-                ? preview.pending
-                  ? 'Generating geometry…'
-                  : preview.stale
-                    ? '3D needs generation'
-                    : 'Current 3D geometry'
-                : stale
-                  ? 'Layout needs analysis'
-                  : solver
-                    ? `Layout ${solver.status === 'solved' ? 'solved' : `solved · ${solver.dof} free movements`}`
-                    : 'Layout resolved'}{' '}
-              ·{' '}
-              {
-                Object.values(report?.objects || {}).filter(
-                  (item) => item.kind === 'key'
-                ).length
-              }{' '}
-              keys
+              {stage === 'design' ? layoutMessage : previewMessage}
+              {stage === 'design' &&
+                !stale &&
+                !!solver?.dof &&
+                ` · ${solver.dof} free ${solver.dof === 1 ? 'movement' : 'movements'}`}
+              {' · '}
+              {keyCount} {keyCount === 1 ? 'key' : 'keys'}
             </small>
-            <button onClick={() => setReview(!review)}>
-              {blockers
-                ? `${blockers} blockers`
-                : analysis.error
-                  ? 'Analysis needs attention'
-                  : `${uniqueFindings.length} checks`}
+            <button
+              aria-controls={findingsId}
+              aria-expanded={review}
+              onClick={() => setReview(!review)}
+            >
+              {reviewLabel}
             </button>
           </StudioStatus>
         )}

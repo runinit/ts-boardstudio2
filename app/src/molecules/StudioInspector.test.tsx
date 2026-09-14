@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { parse } from 'yaml';
 import StudioInspector from './StudioInspector';
+import InspectorSection from './InspectorSection';
 import { readStudio } from '../utils/studioSource';
 it('edits multiple outline sources as a list', () => {
   let source =
@@ -117,4 +118,66 @@ it('shows and edits existing key offsets without resetting other axes', () => {
   expect(parse(source).layout.objects.a.placement.override.at).toEqual([
     12, 4, 0,
   ]);
+});
+
+it('keeps advanced placement disclosure open across selection changes', () => {
+  const source =
+    'schema: ergogen/v1\nlayout: {objects: {a: {kind: key}, b: {kind: key}}}\n';
+  const view = render(
+    <StudioInspector
+      source={source}
+      data={readStudio(source)}
+      selection={{ section: 'objects', id: 'a' }}
+      edit={() => {}}
+      select={() => {}}
+    />
+  );
+  const advanced = screen.getByText('Advanced placement', {
+    selector: 'summary',
+  });
+  fireEvent.click(advanced);
+  expect(advanced.parentElement).toHaveAttribute('open');
+
+  view.rerender(
+    <StudioInspector
+      source={source}
+      data={readStudio(source)}
+      selection={{ section: 'objects', id: 'b' }}
+      edit={() => {}}
+      select={() => {}}
+    />
+  );
+
+  expect(
+    screen.getByText('Advanced placement', { selector: 'summary' })
+      .parentElement
+  ).toHaveAttribute('open');
+});
+
+it('shows common key edits while advanced sections start closed', () => {
+  const source =
+    'schema: ergogen/v1\nparts: {mx: {envelopes: {keycap: {size: [18, 18]}}}}\nlayout: {objects: {a: {kind: key, part: mx}}}\n';
+  render(
+    <StudioInspector
+      source={source}
+      data={readStudio(source)}
+      selection={{ section: 'objects', id: 'a' }}
+      edit={() => {}}
+      select={() => {}}
+    />
+  );
+  expect(screen.getByLabelText('Key width')).toBeVisible();
+  expect(screen.getByLabelText('Key depth')).toBeVisible();
+});
+
+it('starts new advanced sections closed', () => {
+  render(
+    <InspectorSection name="New advanced section">
+      <span>Hidden content</span>
+    </InspectorSection>
+  );
+  expect(
+    screen.getByText('New advanced section', { selector: 'summary' })
+      .parentElement
+  ).not.toHaveAttribute('open');
 });
