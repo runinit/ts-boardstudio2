@@ -1,16 +1,17 @@
 import { CONTROLLERS } from './designSetup';
 import {
-  getValue,
-  readStudio,
-  setValue,
-  type StudioItem,
-} from './studioSource';
+  effectiveElectrical,
+  inheritedBinding,
+  matrixElectrical,
+} from './assemblyElectrical';
+import { getValue, readStudio, setValue } from './studioSource';
 
 export function keyNets(source: string, id: string) {
   const data = readStudio(source),
     item = data.layout.objects![id];
   const prefix = item.pcb && item.pcb !== 'main' ? `${item.pcb}_` : '';
-  const standard = item.cluster === `${prefix}fingers`;
+  const managed = !!getValue(source, ['meta', 'studio', 'setup']);
+  const standard = item.cluster === `${prefix}fingers` && managed;
   const peers = Object.values(data.layout.objects || {}).filter(
     (peer) => peer.kind === 'key' && peer.cluster === item.cluster
   );
@@ -31,7 +32,11 @@ export function keyNets(source: string, id: string) {
     if (standard && cell && /^[cr]\d+$/.test(cell)) {
       return `${prefix}${cell.toUpperCase()}`;
     }
-    return `${item.cluster || id}_${cell || (axis === 'row' ? 'row' : `c${(item.index || 0) + 1}`)}`;
+    if (cell) return `${item.cluster}_${cell}`;
+    if (managed) {
+      return `${item.cluster || id}_${axis === 'row' ? 'row' : `c${(item.index || 0) + 1}`}`;
+    }
+    return axis === 'column' ? `${id}_column` : `${item.cluster || id}_row`;
   };
   return { columnNet: net('column', 0), rowNet: net('row', 1) };
 }
@@ -40,53 +45,50 @@ export function keyNets(source: string, id: string) {
 export function syncControllerNets(source: string): string {
   const data = readStudio(source);
   let result = source;
-  const messages: string[] = [];
+  const previous = (getValue(source, [
+    'meta',
+    'studio',
+    'electricalFindings',
+  ]) || []) as string[];
+  const updateFindings = (input: string, messages: string[]) => {
+    const findings = [
+      ...previous.filter(
+        (message) =>
+          !message.includes(': no free GPIO for ') &&
+          !message.includes(': matrix wiring ')
+      ),
+      ...messages,
+    ];
+    return JSON.stringify(previous) === JSON.stringify(findings)
+      ? input
+      : setValue(input, ['meta', 'studio', 'electricalFindings'], findings);
+  };
+  let effective: ReturnType<typeof effectiveElectrical>;
+  try {
+    effective = effectiveElectrical(source);
+  } catch (error) {
+    if (!(error instanceof Error) || error.name !== 'DesignError') throw error;
+    return updateFindings(source, [
+      `Project: matrix wiring cannot be resolved: ${error.message}`,
+    ]);
+  }
+  const messages = matrixElectrical(effective).findings;
   for (const [id, item] of Object.entries(data.layout.objects || {})) {
-    const binding = item.footprints?.main as
-      | { what?: string; params?: Record<string, unknown> }
-      | undefined;
+    const binding = inheritedBinding(data, item, 'main');
     const controller = CONTROLLERS.find(
       (item) => item.provider === binding?.what
     );
     if (!binding || !controller) {
       continue;
     }
-    const objects = Object.values(data.layout.objects || {}).filter(
-      (object) => object.pcb === item.pcb
-    );
-    for (const [clusterId, cluster] of Object.entries(
-      data.layout.clusters || {}
-    )) {
-      if (!cluster.mirror) {
-        continue;
-      }
-      const overrides =
-        (getValue(source, [
-          'layout',
-          'clusters',
-          clusterId,
-          'overrides',
-        ]) as Record<string, StudioItem>) || {};
-      objects.push(
-        ...Object.values(overrides).filter((object) => object.pcb === item.pcb)
-      );
-    }
+    const objects = effective.filter((object) => object.pcb === item.pcb);
     const params = { ...binding.params };
-    const nets = new Set(
-      objects.flatMap((object) => {
-        const role = object.properties?.role;
-        if (object.kind === 'key' || object.properties?.column_net) {
-          return [
-            object.properties?.column_net,
-            object.properties?.row_net,
-          ].filter((net): net is string => typeof net === 'string');
-        }
-        if (role === 'led') {
-          return [`${item.pcb === 'main' ? '' : `${item.pcb}_`}LED_DATA`];
-        }
-        return [];
-      })
-    );
+    const { nets } = matrixElectrical(objects);
+    for (const object of objects) {
+      if (object.properties?.role === 'led') {
+        nets.add(`${item.pcb === 'main' ? '' : `${item.pcb}_`}LED_DATA`);
+      }
+    }
     for (const object of objects) {
       const required = object.properties?.required_nets;
       if (Array.isArray(required)) {
@@ -115,7 +117,7 @@ export function syncControllerNets(source: string): string {
       }
     }
     const missing = Array.from(nets).filter(
-      (net) => !Object.values(params).includes(net)
+      (net) => !controller.pins.some((pin) => params[pin] === net)
     );
     const free = controller.pins.filter((pin) => !params[pin]);
     for (const net of missing) {
@@ -136,23 +138,7 @@ export function syncControllerNets(source: string): string {
       );
     }
   }
-  const previous = (getValue(result, [
-    'meta',
-    'studio',
-    'electricalFindings',
-  ]) || []) as string[];
-  const findings = [
-    ...previous.filter((message) => !message.includes(': no free GPIO for ')),
-    ...messages,
-  ];
-  if (JSON.stringify(previous) !== JSON.stringify(findings)) {
-    result = setValue(
-      result,
-      ['meta', 'studio', 'electricalFindings'],
-      findings
-    );
-  }
-  return result;
+  return updateFindings(result, messages);
 }
 
 // Setup recompilation must not shift existing pin assignments when matrix size changes.

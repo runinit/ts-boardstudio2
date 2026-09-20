@@ -16,6 +16,8 @@ import {
   createJscadWorker,
 } from '../workers/workerFactory';
 
+import { guardBoardExports } from './boardExportReadiness';
+
 const EXPORT_TIMEOUT = 180000;
 async function exportAssets(
   injections: string[][] | undefined,
@@ -71,6 +73,7 @@ export const createZip = async (
   assets?: CaseAssets
 ) => {
   const zip = new JSZip();
+  results = guardBoardExports(zip, config, results);
   injections = resolveLibrary(injections, librarySnapshot());
   const projectAssets = await loadBoardModels(
     results.pcbs || {},
@@ -316,13 +319,17 @@ export const exportAllConfigs = async (
         injections,
         assets
       );
-      let finalResults = results;
+      let finalResults = guardBoardExports(
+        configFolder,
+        configRecord.config,
+        results
+      );
       if (
         stlPreview &&
         results.cases &&
         Object.keys(results.cases).length > 0
       ) {
-        finalResults = await compileJscadToStl(results);
+        finalResults = await compileJscadToStl(finalResults);
       }
 
       configFolder.file('config.yaml', configRecord.config);
@@ -684,9 +691,13 @@ export const exportConfigsProgressively = async (
           configRecord.config,
           injections
         );
-        let finalResults = results;
+        let finalResults = guardBoardExports(
+          configFolder,
+          configRecord.config,
+          results
+        );
         if (results.cases && Object.keys(results.cases).length > 0) {
-          finalResults = await compileJscadToStlAbortable(results);
+          finalResults = await compileJscadToStlAbortable(finalResults);
         }
 
         if (isAborted()) return;

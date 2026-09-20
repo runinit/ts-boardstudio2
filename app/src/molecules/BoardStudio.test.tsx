@@ -569,3 +569,138 @@ describe('project status copy', () => {
     ).toHaveTextContent('Updating layout…');
   });
 });
+
+describe('raw matrix wiring readiness', () => {
+  it.each([
+    ['clean', false, false],
+    ['conflict', true, false],
+    ['repaired', false, true],
+  ] as const)(
+    'sets PCB readiness from the current resolved junction %s',
+    (_label, conflict, stored) => {
+      const setup = {
+        ...defaultSetup(),
+        columns: 1,
+        rows: 1,
+        controller: 'promicro',
+      };
+      const clean = setValue(
+        compileSetup(setup),
+        ['meta', 'studio', 'findings'],
+        []
+      );
+      const edited = conflict
+        ? setValue(
+            clean,
+            [
+              'layout',
+              'objects',
+              'fingers_c1_r1_diode',
+              'footprints',
+              'main',
+              'params',
+              'from',
+            ],
+            'RAW_BREAK'
+          )
+        : clean;
+      const source = stored
+        ? setValue(
+            edited,
+            ['meta', 'studio', 'electricalFindings'],
+            [
+              'main: matrix wiring fingers_c1_r1 diode.from uses OLD_BREAK, expected fingers_c1_r1_switch.',
+            ]
+          )
+        : edited;
+      const original = vi.mocked(useStudio).getMockImplementation();
+      if (!original) throw new Error('Missing studio test harness');
+      const state = original({ source } as Parameters<typeof useStudio>[0]);
+      const report = resolveLayout(source);
+      vi.mocked(useStudio).mockReturnValue({
+        ...state,
+        report,
+        analysis: {
+          ...state.analysis,
+          result: { layout: report, pcbs: { main: '(kicad_pcb)' } },
+          error: '',
+          diagnostics: [],
+          pending: false,
+          stale: false,
+        },
+      });
+      try {
+        render(<Harness initial={source} />);
+        fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+        const download = screen.getByRole('button', {
+          name: 'Download PCB and outlines ZIP',
+        });
+        if (conflict) {
+          expect(download).toBeDisabled();
+          fireEvent.click(
+            screen.getByRole('button', { name: /Review .*blocker/ })
+          );
+          expect(
+            screen.getByRole('region', { name: 'Project findings' })
+          ).toHaveTextContent('RAW_BREAK');
+        } else {
+          expect(download).toBeEnabled();
+        }
+        expect(current).toBe(source);
+      } finally {
+        vi.mocked(useStudio).mockImplementation(original);
+      }
+    }
+  );
+
+  it('keeps PCB download blocked while a raw edit has only stale clean analysis', () => {
+    const clean = setValue(
+      compileSetup({
+        ...defaultSetup(),
+        columns: 1,
+        rows: 1,
+        controller: 'promicro',
+      }),
+      ['meta', 'studio', 'findings'],
+      []
+    );
+    const source = setValue(
+      clean,
+      [
+        'layout',
+        'objects',
+        'fingers_c1_r1_diode',
+        'footprints',
+        'main',
+        'params',
+        'from',
+      ],
+      'RAW_BREAK'
+    );
+    const original = vi.mocked(useStudio).getMockImplementation();
+    if (!original) throw new Error('Missing studio test harness');
+    const state = original({ source } as Parameters<typeof useStudio>[0]);
+    const report = resolveLayout(clean);
+    vi.mocked(useStudio).mockReturnValue({
+      ...state,
+      report,
+      analysis: {
+        ...state.analysis,
+        result: { layout: report, pcbs: { main: '(kicad_pcb)' } },
+        error: '',
+        diagnostics: [],
+        pending: false,
+        stale: true,
+      },
+    });
+    try {
+      render(<Harness initial={source} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+      expect(
+        screen.getByRole('button', { name: 'Download PCB and outlines ZIP' })
+      ).toBeDisabled();
+    } finally {
+      vi.mocked(useStudio).mockImplementation(original);
+    }
+  });
+});

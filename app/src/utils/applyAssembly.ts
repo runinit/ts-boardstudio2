@@ -1,3 +1,4 @@
+import { inheritedBinding, resolveElectricalValue } from './assemblyElectrical';
 import { syncAssemblySupport } from './assemblySupport';
 import type { DesignSetup, KeyAssembly } from './designSetup';
 import { assemblyParts, compileKey } from './keyAssembly';
@@ -108,9 +109,7 @@ export function applyAssembly(
       string,
       { placement?: unknown; params?: Record<string, unknown> }
     >;
-    const oldSwitch = item.footprints?.switch as
-      | { placement?: unknown; params?: Record<string, unknown> }
-      | undefined;
+    const oldSwitch = inheritedBinding(data, item, 'switch');
     footprints.switch = { ...oldSwitch, ...footprints.switch };
     // Placement updates must not reconnect manually wired switches.
     const netParams = footprints.switch.params!;
@@ -209,15 +208,30 @@ export function applyAssembly(
       }
       const compiledChild = recipe[`${id}_${role}`];
       const { cluster: _cluster, cell: _cell, ...child } = compiledChild;
+      if (role === 'diode' && !existing) {
+        const main = (
+          child.footprints as Record<
+            string,
+            { params: Record<string, unknown> }
+          >
+        ).main;
+        main.params.from = resolveElectricalValue(
+          netParams.to,
+          { ...(compiled.properties as object), ...item.properties },
+          id
+        );
+        child.properties = {
+          ...(child.properties as object),
+          generated_nets: { from: main.params.from, to: main.params.to },
+        };
+      }
       if (existing) {
         if (existing[1].locked) {
           throw new Error(
             'Unlock owned components before applying an assembly.'
           );
         }
-        const oldFootprint = existing[1].footprints?.main as
-          | { params?: Record<string, unknown> }
-          | undefined;
+        const oldFootprint = inheritedBinding(data, existing[1], 'main');
         const main = (
           child.footprints as Record<
             string,

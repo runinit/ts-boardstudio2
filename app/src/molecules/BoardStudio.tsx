@@ -1,3 +1,4 @@
+import { resolvedMatrixFindings } from '../utils/assemblyElectrical';
 import ProjectMenu from './ProjectMenu';
 import { findingTarget } from '../utils/findingTarget';
 import { MISSING_CONTROLLER_FINDING } from '../utils/designSetup';
@@ -488,6 +489,13 @@ export default function BoardStudio({
   const setupIssues = ((!parsed.error &&
     getValue(source, ['meta', 'studio', 'findings'])) ||
     []) as string[];
+  const currentElectricalIssues = useMemo(
+    () =>
+      !boardStale && analysis.result?.layout
+        ? resolvedMatrixFindings(analysis.result.layout)
+        : undefined,
+    [boardStale, analysis.result?.layout]
+  );
   const electricalIssues = ((!parsed.error &&
     getValue(source, ['meta', 'studio', 'electricalFindings'])) ||
     []) as string[];
@@ -515,7 +523,15 @@ export default function BoardStudio({
       severity: 'error',
       message,
     })),
-    ...electricalIssues.map((message) => ({
+    ...Array.from(
+      new Set([
+        ...electricalIssues.filter(
+          (message) =>
+            !currentElectricalIssues || !message.includes(': matrix wiring ')
+        ),
+        ...(currentElectricalIssues || []),
+      ])
+    ).map((message) => ({
       feature: 'meta.studio.electricalFindings',
       sourcePath: 'meta.studio.electricalFindings',
       code: 'wiring-review',
