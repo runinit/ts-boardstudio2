@@ -62,6 +62,7 @@ const footprint = exports._footprint = (points, net_indexer, component_indexer, 
         // expand param definition shorthand
         let parsed_def = param_def
         let def_type = a.type(param_def)(units)
+        if (def_type === 'number' && typeof param_def === 'string' && !Number.isFinite(a.mathnum(param_def)(units))) { def_type = 'string' }
         if (def_type == 'string') {
             parsed_def = {type: 'string', value: param_def}
         } else if (def_type == 'number') {
@@ -91,7 +92,9 @@ const footprint = exports._footprint = (points, net_indexer, component_indexer, 
         // templating support, with conversion back to raw datatypes
         const converters = {
             string: v => v,
-            number: v => a.sane(v, `${name}.params.${param_name}`, 'number')(units),
+            number: v => {
+                try { return a.mathnum(v)(units) } catch { return NaN }
+            },
             boolean: v => v === 'true' || a.mathnum(v)(units) === 1,
             array: v => yaml.load(v),
             object: v => yaml.load(v),
@@ -99,9 +102,19 @@ const footprint = exports._footprint = (points, net_indexer, component_indexer, 
             anchor: v => yaml.load(v)
         }
         a.in(type, `${name}.params.${param_name}.type`, Object.keys(converters))
-        if (a.type(value)() == 'string') {
+        if (typeof value === 'string') {
+            if (type === 'net') {
+                for (const match of value.matchAll(/\{\{([^}]*)\}\}/g)) {
+                    const resolved = match[1].split('.').reduce((item, key) => item != null && Object.prototype.hasOwnProperty.call(item, key) ? item[key] : undefined, point.meta)
+                    a.assert(resolved !== undefined && resolved !== null && resolved !== '', `Field ${name}.params.${param_name} has unresolved net template ${match[0]}; define that point property or provide an explicit net name (use an empty string for no net).`)
+                }
+            }
             value = u.template(value, point.meta)
             value = converters[type](value)
+        }
+
+        if (type === 'number') {
+            a.assert(Number.isFinite(value), `Field ${name}.params.${param_name} should be a finite number!`)
         }
 
         // type-specific postprocessing

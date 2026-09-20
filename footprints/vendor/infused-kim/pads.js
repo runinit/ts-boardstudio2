@@ -22,7 +22,7 @@ module.exports = {
         net_3: {type: 'net', value: 'PAD_3'},
         net_4: {type: 'net', value: 'PAD_4'},
         net_5: {type: 'net', value: 'PAD_5'},
-        net_6: {type: 'net', value: 'PAD_5'},
+        net_6: {type: 'net', value: 'PAD_6'},
         label_1: '',
         label_2: '',
         label_3: '',

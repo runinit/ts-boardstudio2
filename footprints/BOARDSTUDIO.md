@@ -276,3 +276,54 @@ The user will provide the remaining reset and encoder model files:
 Further sourcing and drawing-based model creation are paused. Existing candidates
 remain unassigned. After the files arrive, verify model placement, mounting holes,
 pad/net alignment and native KiCad export before assigning defaults.
+
+### September 2026 electrical corrections and supported options
+
+The ceoloide and Infused-Kim upstream HEADs were rechecked on September 20, 2026
+and still match the source pins above. These are targeted local corrections,
+not an upstream version update. Original upstream hashes and attribution remain
+in `manifest/patches.json`; `manifest/sources.json` records corrected file hashes.
+
+Choc's back, nonreversible, unplated same-side hotswap contacts now retain distinct
+FROM/TO nets, following the correction proposed in upstream PR82. MX reversible
+inner tracks and their via carry TO; outer tracks and their via carry FROM.
+Plated stabilizer nets now follow `include_stabilizer_nets` independently of the
+center-hole flag. MX outer pad widths now use their declared front/back controls
+literally, keeping the inward edge at 5.81 mm. The default changes from the old
+hardcoded 2.55 mm to the declared 2.6 mm, moving the outward edge from 8.36 to
+8.41 mm; review existing edge clearances when regenerating a board.
+
+All three MCU generators now assign each supplied track its intended signal or
+local socket net explicitly. Infused-Kim tracks retain six-decimal placement
+precision, and its pin-name loop variables stay local, following upstream PR4.
+Existing custom-pad rotations and model overrides remain supported. Both
+ceoloide MCUs reject `invert_jumpers_position: true`: inverted jumper placement
+has no implemented topology. Leave it false and follow the documented assembly
+instructions. Reduced jumpers and optional pins retain their package-specific
+rules; these corrections do not route the keyboard matrix or solder jumpers.
+
+The diode rejects `include_thru_hole_smd_pads: true` without `reversible: true`,
+including configurations with outer THT pads enabled. Use reversible drilled-SMD
+pads or disable the drilled-SMD option. Infused-Kim generic pad 6 now defaults to
+PAD_6; explicit shared nets remain supported. SSD1306 `gnd_trace_width` now applies
+to paths leading to GND jumpers on each face; other paths use
+`signal_trace_width`.
+
+Gateron `hotswap: true` together with `reversible: true` is rejected because the
+mirrored 3 mm circular drills overlap. Choose single-sided hotswap or reversible
+solder mounting. Custom solder polygons now follow arbitrary footprint rotation.
+The historical Gateron export checks above do not qualify reversible hotswap as
+a supported or manufacturable layout. No replacement merged slot is supplied.
+KS27 equivalence, socket assets, board-house acceptance and tolerances remain
+unverified. The SK6812mini-e physical-view/pin-number question also remains open;
+logical pad-net checks do not establish the manufacturer's physical orientation.
+
+`scripts/refreshSwitches.test.mjs`, `refreshControllers.test.mjs` and
+`refreshPeripherals.test.mjs` check distinct pad nets, trace ownership, parameter
+variants, rejection paths and rotated geometry through raw/native engine output.
+These tests supplement model checks; they do not renew historical KiCad exports
+or establish desktop KiCad roundtrip, schematic-update, whole-board DRC or
+physical assembly qualification. Mixed-number/net conventions in combined Choc
+mounting and Infused-Kim MCU pads remain unchanged. Infused-Kim nice!view still
+requires manual local routing. Vendor license notices remain unchanged; the
+Infused-Kim README/license inconsistency is not resolved by these corrections.

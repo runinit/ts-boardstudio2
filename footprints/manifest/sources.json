@@ -51,21 +51,21 @@
     "ceoloide": {
       "battery_connector_jst_ph_2.js": "678cb0fa3a4a8c59abd89cff546d21e51259c3658ff7480ea0443e6d00afa8fb",
       "battery_connector_molex_pico_ezmate_1x02.js": "3442bee097028b456399f205de28f82889c9644f859117b70a5186338b9c6f2a",
-      "diode_tht_sod123.js": "ac670dc50c211507d5b09775b41cd7ee0624125b5b3f6530dd79274324a5009c",
+      "diode_tht_sod123.js": "10055f3c9dfceb5eec87cc99a0872b0b70166558cd5e44701404a6abc80fcc51",
       "display_nice_view.js": "bedd6742474a432a92a1ac29d24fdac65f13abd537829956980c06ba96ce515b",
-      "display_ssd1306.js": "352518cd915c6308e86901debce4bef024226073dd9fe32e1b2607cc1ee3c99d",
+      "display_ssd1306.js": "3059be0d9387bf031436048de7eef18e1f72f3a19e561d2e01c20c50aa043019",
       "led_sk6812mini-e.js": "406aacad994864b65dbe4b05cff02b1639f189bb8462f40cc579b5d216ea6ba6",
-      "mcu_nice_nano.js": "8cd64b77410570b6f5e6d5987f2f263429eee6cc400c49d0804b365f099a76d1",
-      "mcu_supermini_nrf52840.js": "85bde0eaa9a3ab66b858e619b95a6145dbb5ecd881a8c84d74fb53ef49cbc72b",
+      "mcu_nice_nano.js": "c43bb7231d1aaf03db7fef0179b60a000e4b00bfe9f951826eec8853a608ccc2",
+      "mcu_supermini_nrf52840.js": "fcfa8931036ef32ae1ff424b9579b4380a7ea5fb5a8401dc9a9ce89bf3755794",
       "mounting_hole_npth.js": "73d1dbff6ac90d29c819749c10942e634d89d66e5c8c8f3801b65a818159085d",
       "mounting_hole_plated.js": "775c2eada3c8003f50737ad37b4c227c07c8bc618438c58c5bd386cd1983818e",
       "power_switch_smd_side.js": "87ad88f418e9e96f075a00ab53c618fa6138ce368aff617d1257263288efe6d9",
       "reset_switch_smd_side.js": "11bf23172d3deb4f9d7bd93b01b8a45f04dd2c72b4d74b4edf086d58fc948711",
       "reset_switch_tht_top.js": "ef42fd8dc6a45b805d05383f73ecc15b0910548e11f4e1661bdf715358f72f68",
       "rotary_encoder_ec11_ec12.js": "0eb207a6a0ca45e54267a34d6c36d84dbd36e0229ea159eb6522756f4d743524",
-      "switch_choc_v1_v2.js": "b44e029616b181f61be4bdf25f69ec12029d9c28c500dcf8f404fc4e4d4534a6",
-      "switch_gateron_ks27_ks33.js": "cb50c15464d698e4a2aa66331b40cc1d50a6cd3fcb64768f20dae334c5e85fbb",
-      "switch_mx.js": "e1c2dffb87a6383f15b3adc44ba614661f593f357a2bb02d0a23c87c9302fdca",
+      "switch_choc_v1_v2.js": "0ed609ae0585ae2144d7a24594e89263261e4f821adacf5453ce56c12c8f009a",
+      "switch_gateron_ks27_ks33.js": "e8910c1ebd07f02a3b91efb93153e4db85e17c9a25b18fc83dfe482aa82d2df1",
+      "switch_mx.js": "2e4d400432883e52928a77157d5635e4a3893a70ac0f853d039c65d02832de79",
       "trrs_pj320a.js": "b0ae0330b8413e0cb38f38f8795c5822b9adb444857176ab2746992f46caaa08",
       "utility_ergogen_logo.js": "eaa818115cc5816c628360cb17a42c68047c0df10062c6c37786e7b988f732cf",
       "utility_filled_zone.js": "64e2669599303be72a40141454e8104a7ff30c5d0d5593ceb189f5002b3aaace",
@@ -81,9 +81,9 @@
       "vendor/infused-kim/diode.js": "5edb4504ff39e619c6d5ee214e6269ff1901cfeeb32c1a30d602af5583c1c22f",
       "vendor/infused-kim/icon_bat.js": "834dc8e17f1fa71c36040002d72c79a3002a5d2e0594653499ce3e8853dec000",
       "vendor/infused-kim/mounting_hole.js": "b183f9af41e22d200273a094c3ac419d75b44ec7d2d09e80e00b218e786c6116",
-      "vendor/infused-kim/nice_nano_pretty.js": "6ad0a854d62d85a7c8b66c52002cf583580cd3ca607f27695f2aa7b2bfdeb609",
+      "vendor/infused-kim/nice_nano_pretty.js": "d664169ce758e2a2a9624ccd52798ba1af258dcab61509337d99988f17a81576",
       "vendor/infused-kim/nice_view.js": "735569f2954bdd6759cf7c13bb9a205be0ef5554648b87812d6fbf741518bc34",
-      "vendor/infused-kim/pads.js": "3953d2102230825d765ae1567c8085264b83f2b8de085ea21cfb0bcb064b1234",
+      "vendor/infused-kim/pads.js": "dd3ffaeb7dd1d92b0c3dc27816ef8ef7af67abb3328f300eed58b7de8d00c584",
       "vendor/infused-kim/point_debugger.js": "2d26f255d73a57260757e15273512c05541b8dc50a9685ac05842fa696e2d1bd",
       "vendor/infused-kim/smd_0805.js": "45ed74e0239aa918e949b37aac8bba4a174a3d4cc75810c93485d4a7cebeaa77",
       "vendor/infused-kim/switch_power.js": "9e9d65115dae3a98098551021eff8b7fda3b4eb47e2b16ef80a5ee19765132e8",
@@ -163,9 +163,7 @@
       "infused-kim/nice_nano_pretty": [
         "vendor/infused-kim/3d_models/Nice_Nano_V2.step"
       ],
-      "infused-kim/nice_view": [
-        "vendor/infused-kim/3d_models/Nice_View.step"
-      ],
+      "infused-kim/nice_view": ["vendor/infused-kim/3d_models/Nice_View.step"],
       "infused-kim/smd_0805": [
         "vendor/infused-kim/3d_models/SMD_0805_Capacitor.step",
         "vendor/infused-kim/3d_models/SMD_0805_Resistor.step"

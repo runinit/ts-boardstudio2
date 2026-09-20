@@ -33,7 +33,7 @@
     "path": "display_ssd1306.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/display_ssd1306.js",
     "upstreamSha256": "484fa0c1e8cc421e9f7100d1ff765f7646a59b9fe181415edcbf7be7c6db5065",
-    "reason": "Add OLED assembly model parameters; translate header origin to footprint center and mirror pin order on the back side without changing copper or nets."
+    "reason": "Add OLED assembly model parameters; translate header origin to footprint center and mirror pin order on the back side while retaining explicit transforms. Apply gnd_trace_width to the local paths whose adjacent global jumper is GND on each face, preserving signal_trace_width for VCC and data paths."
   },
   {
     "path": "reset_switch_smd_side.js",
@@ -51,19 +51,19 @@
     "path": "mcu_nice_nano.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/mcu_nice_nano.js",
     "upstreamSha256": "435250311fedf4da930053bfbdc761b1181de0062afb2c85ba80458ea156622a",
-    "reason": "Align bundled model hole datum and socket height for both sides and mounting orientations; retain explicit transforms. Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Align bundled model hole datum and socket height for both sides and mounting orientations; retain explicit transforms. Quote model filenames so paths containing spaces remain valid KiCad tokens. Add explicit signal/local net IDs to every reversible trace, following existing pin inversion. Reject unsupported invert_jumpers_position:true instead of silently ignoring it."
   },
   {
     "path": "switch_choc_v1_v2.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_choc_v1_v2.js",
     "upstreamSha256": "26b32559b9724dc6106190aedcd710e19a304e6bb16036708f41d2d4369c36c9",
-    "reason": "Place switch and cap opposite socket side using PCB thickness and cap seating height; preserve explicit model transforms. Include both Choc V2 stabilizer holes for combined solder and hotswap mounting. Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Place switch and cap opposite socket side using PCB thickness and cap seating height; preserve explicit model transforms. Include both Choc V2 stabilizer holes for combined solder and hotswap mounting. Quote model filenames so paths containing spaces remain valid KiCad tokens. Correct the back nonreversible unplated same-side hotswap inner contact to TO, matching the open upstream PR82 correction at fffe4c8f7d8c5a2dfabc27dcbad6172733a10852."
   },
   {
     "path": "switch_mx.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_mx.js",
     "upstreamSha256": "6921ae4671c77292f5c970e726f15c93bd600f120b72a67167647cad64466156",
-    "reason": "Place bundled MX switch opposite socket side and correct housing datum; retain explicit model transforms. Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Place bundled MX switch opposite socket side and correct housing datum; retain explicit model transforms. Quote model filenames so paths containing spaces remain valid KiCad tokens. Assign reversible inner tracks/via to TO and outer tracks/via to FROM; gate stabilizer nets independently with include_stabilizer_nets. Honor literal outer pad width controls at a fixed inward edge of 5.81 mm: default width changes from hardcoded 2.55 to declared 2.6 mm, moving the outward edge 0.05 mm."
   },
   {
     "path": "reset_switch_tht_top.js",
@@ -76,7 +76,7 @@
     "path": "mcu_supermini_nrf52840.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/mcu_supermini_nrf52840.js",
     "upstreamSha256": "2ec5d1021a640179f5a6e098b8813f56937c2e4d26465d84ad20ec8ff2f50315",
-    "reason": "Align the Tsuki Supermini model with single-side and reversible pin order, preserving explicit transforms and copper. Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Align the Tsuki Supermini model with single-side and reversible pin order, preserving explicit transforms and pad geometry. Quote model filenames so paths containing spaces remain valid KiCad tokens. Add explicit signal/local net IDs to every reversible trace, following existing pin inversion. Reject unsupported invert_jumpers_position:true instead of silently ignoring it."
   },
   {
     "path": "display_nice_view.js",
@@ -94,7 +94,7 @@
     "path": "vendor/infused-kim/nice_nano_pretty.js",
     "upstreamSha256": "622b91349400c29fe076bcca565131489aa878839b52927b8a5fafb3f855d71c",
     "upstreamUrl": "https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/nice_nano_pretty.js",
-    "reason": "Align MCU/header datums and paired8.5mm KiCad sockets; rotate custom jumper pads with the footprint to retain trace connectivity. Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Align MCU/header datums and paired8.5mm KiCad sockets; rotate custom jumper pads with the footprint to retain trace connectivity. Quote model filenames so paths containing spaces remain valid KiCad tokens. Replace hardcoded trace IDs with intended per-row signal/local nets and retain six-decimal rotated coordinates. Declare pin-name loop variables locally, following open upstream PR4 commit c7a40cbd5419e37bcc962e7efaaf518f6e1285c1."
   },
   {
     "path": "rotary_encoder_ec11_ec12.js",
@@ -106,7 +106,7 @@
     "path": "diode_tht_sod123.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/diode_tht_sod123.js",
     "upstreamSha256": "f57b20d50876d2235682f820d818d5c599bec4f4b7adf559f20631e1018dfa46",
-    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens. Reject include_thru_hole_smd_pads without reversible to prevent padless output or silently ignored drilled-SMD selection."
   },
   {
     "path": "power_switch_smd_side.js",
@@ -118,13 +118,13 @@
     "path": "switch_gateron_ks27_ks33.js",
     "upstreamUrl": "https://raw.githubusercontent.com/ceoloide/ergogen-footprints/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_gateron_ks27_ks33.js",
     "upstreamSha256": "7292062fd420cd727d52b13fe0c1a8a5279fc046fb4bedbc926d54d0637e9d3e",
-    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens. Align switch model defaults for side, mounting method and pcb_thickness while retaining explicit XYZ transforms. Rotate all custom solder polygons with the footprint. Reject reversible hotswap because mirrored 3 mm drills overlap; no replacement slot geometry is claimed."
   },
   {
     "path": "vendor/infused-kim/choc.js",
     "upstreamUrl": "https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/choc.js",
     "upstreamSha256": "94d2e40d27867a6ab779c00dad79e7225d7a4ac3b52ce49d4d535f4168a8d33a",
-    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens."
+    "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens. Omit the hotswap socket model when hotswap:false while retaining switch and keycap models."
   },
   {
     "path": "vendor/infused-kim/conn_molex_pico_ezmate_1x02.js",
@@ -161,5 +161,11 @@
     "upstreamUrl": "https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/trackpoint_mount.js",
     "upstreamSha256": "e785d3079687f29cc3a52391cfad7aa2aa66b71e91ccccfb7fff3c7580019e20",
     "reason": "Quote model filenames so paths containing spaces remain valid KiCad tokens."
+  },
+  {
+    "path": "vendor/infused-kim/pads.js",
+    "upstreamUrl": "https://raw.githubusercontent.com/infused-kim/kb_ergogen_fp/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/pads.js",
+    "upstreamSha256": "3953d2102230825d765ae1567c8085264b83f2b8de085ea21cfb0bcb064b1234",
+    "reason": "Give net_6 the independent PAD_6 default instead of aliasing PAD_5; retain explicit shared-net overrides."
   }
 ]

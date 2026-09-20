@@ -30849,6 +30849,7 @@
 		    const reference = node => value(children(node,'property').find(p => value(p[1]) === 'Reference')?.[2] || children(node,'fp_text').find(p => p[1] === 'reference')?.[2]);
 		    const known = new Set(['version','generator','generator_version','layer','at','locked','placed','descr','tags','property','path','sheetname','sheetfile','attr','tedit','tstamp','uuid','autoplace_cost90','autoplace_cost180','solder_mask_margin','solder_paste_margin','solder_paste_ratio','clearance','zone_connect','thermal_width','thermal_gap','embedded_fonts','embedded_files','private_layers','net_tie_pad_groups','fp_text','fp_text_box','fp_line','fp_rect','fp_circle','fp_arc','fp_poly','fp_curve','pad','model']);
 		    const unsupported = node => node.filter(Array.isArray).filter(n => n[0] === 'zone' || n[0] === 'group' || /^fp_/.test(n[0]) && !known.has(n[0]));
+		    const electrical = pad => pad[2] !== 'np_thru_hole' && (child(pad,'layers') || []).slice(1).some(layer => /^(?:[FB]|F&B|In\d+|\*)\.Cu$/.test(value(layer)));
 
 		    const targetOf = (roots, target = {}) => {
 		        const all = footprints(roots);
@@ -30882,9 +30883,38 @@
 		        return result
 		    });
 
+		    const padGeometry = pad => {
+		        const drill = child(pad,'drill'), oval = drill?.[1] === 'oval';
+		        const primitives = (child(pad,'primitives') || []).filter(Array.isArray);
+		        const supported = primitive => primitive[0] === 'gr_poly' && child(primitive,'fill')?.[1] !== 'no';
+		        return {anchor:value(child(child(pad,'options') || [],'anchor')?.[1]),
+		            polygons:primitives.filter(supported).map(primitive => children(child(primitive,'pts') || [],'xy').map(point => vector(point,[]))),
+		            polygonWidths:primitives.filter(supported).map(primitive => Number(child(primitive,'width')?.[1] || 0)),
+		            unsupportedGeometry:primitives.filter(primitive => !supported(primitive)).map(primitive => primitive[0]),
+		            drillSize:drill ? oval ? [Number(drill[2]),Number(drill[3])] : [Number(drill[1]),Number(drill[1])] : undefined,
+		            drillOffset:drill ? vector(child(drill,'offset'),[0,0]) : undefined,
+		            chamferRatio:Number(child(pad,'chamfer_ratio')?.[1] || 0),chamfer:(child(pad,'chamfer') || []).slice(1)}
+		    };
+		    const previewCopper = (roots, at) => {
+		        const nodes = roots.flatMap(node => node[0] === 'kicad_pcb' ? node.filter(Array.isArray) : [node]);
+		        const angle = (at[2] || 0)*Math.PI/180;
+		        const local = point => { if (!point.length) return []; const x=point[0]-at[0], y=point[1]-at[1]; return [x*Math.cos(angle)-y*Math.sin(angle),x*Math.sin(angle)+y*Math.cos(angle)] };
+		        const zones = nodes.filter(node => node[0] === 'zone').map(node => ({kind:child(node,'keepout') ? 'keepout' : 'zone',layers:child(node,'layers') ? child(node,'layers').slice(1).map(value) : [value(child(node,'layer')?.[1])],polygons:children(node,'polygon').map(polygon => children(child(polygon,'pts') || [],'xy').map(point => local(vector(point,[]))))}));
+		        return {zones,tracks:nodes.filter(node => ['segment','arc'].includes(node[0])).map(node => ({type:node[0],
+		            start:local(vector(child(node,'start'),[])),end:local(vector(child(node,'end'),[])),mid:local(vector(child(node,'mid'),[])),
+		            width:Number(child(node,'width')?.[1] || 0),layer:value(child(node,'layer')?.[1])})),
+		            vias:nodes.filter(node => node[0] === 'via').map(node => ({at:local(vector(child(node,'at'),[])),size:Number(child(node,'size')?.[1] || 0),drill:Number(child(node,'drill')?.[1] || 0),layers:(child(node,'layers') || []).slice(1).map(value)})),
+		            diagnostics:[...(zones.length ? [{code:'zone-preview',severity:'info',message:'Zone and keepout outlines only; copper fills and clearances are not simulated.'}] : []),...nodes.filter(node => /^gr_/.test(node[0])).map(node => ({code:'unsupported-preview',severity:'warning',message:'Preview does not render '+node[0]+'; inspect this geometry in KiCad.'}))]}
+		    };
+
 		    const inspect = (source, target) => {
 		        const roots = parse(source,'Footprint inspection');
 		        const targets = footprints(roots);
+		        if (!targets.length) {
+		            const copper = previewCopper(roots,[0,0,0]);
+		            return {targets:[],pads:[],nets:[],models:[],graphics:[],at:[0,0,0],side:'F',...copper,
+		                diagnostics:[...copper.diagnostics,{code:'board-only-preview',severity:'info',message:'This generator emits board geometry without a footprint; model and pad editing are unavailable.'}]}
+		        }
 		        const identities = targets.map((fp,index) => ({name:nameOf(fp),reference:reference(fp),index,count:targets.length}));
 		        if (targets.length !== 1 && !target) { return {targets:identities, pads:[], nets:[], models:[], graphics:[], diagnostics:[{code:'target',severity:'error',message:'Choose one emitted footprint before editing models.'}]} }
 		        const fp = target ? targetOf(roots,target) : targets[0];
@@ -30892,22 +30922,44 @@
 		            at:vector(child(pad,'at'),[0,0,0]), size:vector(child(pad,'size'),[0,0]), layers:(child(pad,'layers') || []).slice(1).map(value),
 		            drill:child(pad,'drill') ? print(child(pad,'drill')) : undefined,
 		            roundrect:Number(child(pad,'roundrect_rratio')?.[1] || 0),
-		            mechanical:pad[2] === 'np_thru_hole' || !value(pad[1])}));
-		        const numbers = [...new Set(pads.filter(p => !p.mechanical).map(p => p.number))];
+		            mechanical:!electrical(pad),...padGeometry(pad)}));
+		        const groups = [];
+		        const rawPads = children(fp,'pad');
+		        for (const pad of pads.filter(p => !p.mechanical)) {
+		            const original = value(child(rawPads[pad.index],'net')?.[1]);
+		            const matches = groups.filter(group => group.some(index =>
+		                pad.number && pads[index].number === pad.number ||
+		                original && original !== '0' && value(child(rawPads[index],'net')?.[1]) === original));
+		            const group = [pad.index, ...matches.flat()].sort((a,b) => a-b);
+		            for (const match of matches) { groups.splice(groups.indexOf(match),1); }
+		            groups.push(group);
+		        }
+		        groups.sort((a,b) => a[0]-b[0]);
 		        const used = new Set();
-		        const nets = numbers.map(number => {
+		        const mappingKeys = new Set(pads.map(pad => pad.number));
+		        const nets = groups.map(indices => {
+		            const number = indices.map(index => pads[index].number).find(Boolean) || '';
 		            const base = `pad_${number.replace(/[^A-Za-z0-9_]/g,'_') || 'net'}`;
 		            let parameter = base, suffix = 2;
 		            while (used.has(parameter)) { parameter = `${base}_${suffix++}`; }
 		            used.add(parameter);
-		            return {number,parameter,pads:pads.filter(p => !p.mechanical && p.number === number).map(p => p.index)}
+		            if (number) { return {number,parameter,pads:indices} }
+		            let mappingKey = `@pad:${indices[0]}`;
+		            while (mappingKeys.has(mappingKey)) { mappingKey += '_'; }
+		            mappingKeys.add(mappingKey);
+		            return {number,parameter,pads:indices,mappingKey}
 		        });
 		        const diagnostics = fp.filter(Array.isArray).filter(n => !known.has(n[0])).map(n => ({code:unsupported(fp).includes(n) ? 'unsupported-geometry' : 'metadata',
 		            severity:unsupported(fp).includes(n) ? 'warning' : 'info', message:`Preserved ${n[0]}.${unsupported(fp).includes(n) ? ' Placement transforms are unsupported; convert this construct in KiCad first.' : ''}`}));
 		        const graphics = fp.filter(n => Array.isArray(n) && /^fp_(line|rect|circle|arc|poly|curve)$/.test(n[0])).map(n => ({type:n[0].slice(3),layer:value(child(n,'layer')?.[1]),
 		            start:vector(child(n,'start'),[]),end:vector(child(n,'end'),[]),mid:vector(child(n,'mid'),[]),center:vector(child(n,'center'),[]),
 		            points:children(child(n,'pts') || [],'xy').map(p => vector(p,[]))}));
-		        return {name:nameOf(fp), at:vector(child(fp,'at'),[0,0,0]), side:value(child(fp,'layer')?.[1]) === 'B.Cu' ? 'B' : 'F', targets:identities, pads,nets,graphics,models:children(fp,'model').map(modelOf),diagnostics}
+		        for (const pad of pads) {
+		            if (pad.unsupportedGeometry.length || !['rect','circle','oval','roundrect','custom'].includes(pad.shape) || pad.shape === 'custom' && !pad.polygons.length) diagnostics.push({code:'unsupported-pad-geometry',severity:'warning',message:'Preview omits unsupported geometry for pad '+(pad.number || pad.index)+': '+(pad.unsupportedGeometry.join(', ') || pad.shape)+'.'});
+		        }
+		        const copper = targets.length === 1 ? previewCopper(roots,vector(child(fp,'at'),[0,0,0])) : {tracks:[],vias:[],zones:[],diagnostics:[{code:'unsupported-preview',severity:'warning',message:'Board tracks and vias are omitted when inspecting one of several footprints; their ownership is ambiguous.'}]};
+		        diagnostics.push(...copper.diagnostics);
+		        return {zones:copper.zones,tracks:copper.tracks,vias:copper.vias,name:nameOf(fp), at:vector(child(fp,'at'),[0,0,0]), side:value(child(fp,'layer')?.[1]) === 'B.Cu' ? 'B' : 'F', targets:identities, pads,nets,graphics,models:children(fp,'model').map(modelOf),diagnostics}
 		    };
 
 		    // Replace only model nodes; pads, nets, tracks, comments and unrelated footprints keep their bytes.
@@ -30931,7 +30983,7 @@
 		        }).join('');
 		        return `${hex.slice(0,8)}-${hex.slice(8,12)}-8${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20)}`;
 		    };
-		    const place = (source, params, mapping) => {
+		    const place = (source, params, mapping, padMapping) => {
 		        const fp = targetOf(parse(source,'KiCad conversion'));
 		        const side = params.side || 'F';
 		        if (!['F','B'].includes(side)) { throw new Error('Board side must be F or B.') }
@@ -30967,16 +31019,18 @@
 		            }
 		            for (const part of node) { if (Array.isArray(part)) { walk(part,key); } }
 		        };
+		        let padIndex = 0;
 		        for (const node of fp.filter(Array.isArray)) {
 		            if (node[0] === 'at') { continue }
 		            walk(node,fp[0]);
-		            if (node[0] === 'pad' && node[2] !== 'np_thru_hole' && value(node[1])) {
-		                const parameter = mapping[value(node[1])];
+		            if (node[0] === 'pad' && electrical(node)) {
+		                const parameter = padMapping ? padMapping[padIndex] : mapping[value(node[1])];
 		                const net = params[parameter];
 		                if (!parameter || !net || !Number.isInteger(net.index) || net.index < 0 || typeof net.name !== 'string') { throw new Error(`Map pad ${value(node[1])} to a net before generating.`) }
 		                for (const old of children(node,'net')) { node.splice(node.indexOf(old),1); }
 		                node.push(['net',String(net.index),quote(net.name)]);
 		            }
+		            if (node[0] === 'pad') { padIndex++; }
 		            if (node[0] === 'property' && value(node[1]) === 'Reference' || node[0] === 'fp_text' && node[1] === 'reference') { node[2] = quote(params.ref || 'REF**'); }
 		        }
 		        const at = child(fp,'at');
@@ -30993,15 +31047,18 @@
 		const convert = (source, options = {}) => {
 		    const inspected = api.inspect(source);
 		    if (inspected.targets.length !== 1) { throw new Error('Select one .kicad_mod footprint per import.') }
-		    const mapping = Object.fromEntries(inspected.nets.map(net => [net.number, options.mapping?.[net.number] || net.parameter]));
+		    const parameters = inspected.nets.map(net => options.mapping?.[net.mappingKey ?? net.number] || net.parameter);
+		    const mapping = Object.fromEntries(inspected.nets.flatMap((net,index) =>
+		        net.mappingKey ? [[net.mappingKey, parameters[index]]] : net.pads.filter(pad => inspected.pads[pad].number).map(pad => [inspected.pads[pad].number, parameters[index]])));
+		    const padMapping = Object.fromEntries(inspected.nets.flatMap((net,index) => net.pads.map(pad => [pad, parameters[index]])));
 		    const reserved = new Set(['designator','side','x','y','r','rot','at','ref','ref_hide','local_net','xy','isxy','iaxy','esxy','eaxy','point']);
-		    for (const parameter of Object.values(mapping)) {
+		    for (const parameter of parameters) {
 		        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(parameter) || reserved.has(parameter)) { throw new Error(`Invalid net parameter: ${parameter}`) }
 		        reserved.add(parameter);
 		    }
-		    const params = {designator:{type:'string',value:'U'},side:{type:'string',value:'F'},...Object.fromEntries(Object.values(mapping).map(name => [name,{type:'net',value:''}]))};
-		    const module = `// Imported KiCad geometry. Edit net parameters at each placement.\nconst footprint = ${portable()};\nmodule.exports = {\n  params: ${JSON.stringify(params,null,2)},\n  body: p => footprint.place(${JSON.stringify(source)}, p, ${JSON.stringify(mapping)})\n};\n`;
-		    const yaml = `what: ${JSON.stringify(options.name || inspected.name)}\nparams:\n  side: F\n${Object.values(mapping).map(name => `  ${name}: GND`).join('\n')}\n`;
+		    const params = {designator:{type:'string',value:'U'},side:{type:'string',value:'F'},...Object.fromEntries(parameters.map(name => [name,{type:'net',value:''}]))};
+		    const module = `// Imported KiCad geometry. Edit net parameters at each placement.\nconst footprint = ${portable()};\nmodule.exports = {\n  params: ${JSON.stringify(params,null,2)},\n  body: p => footprint.place(${JSON.stringify(source)}, p, ${JSON.stringify(mapping)}, ${JSON.stringify(padMapping)})\n};\n`;
+		    const yaml = `what: ${JSON.stringify(options.name || inspected.name)}\nparams:\n  side: F\n${parameters.map(name => `  ${name}: GND`).join('\n')}\n`;
 		    return {...inspected,mapping,source:module,yaml}
 		};
 		const bind = (source, bindings, target) => {
@@ -34320,6 +34377,10 @@
 			    to: { type: 'net', value: undefined }
 			  },
 			  body: p => {
+			    if (p.include_thru_hole_smd_pads && !p.reversible) {
+			      throw new Error("diode_tht_sod123: include_thru_hole_smd_pads requires reversible: true");
+			    }
+
 			    const standard_opening = `
     (footprint "ceoloide:diode_tht_sod123"
         (layer "${p.reversible ? 'F' : p.side}.Cu")
@@ -35218,25 +35279,25 @@
     `;
 
 			    const traces_bottom = `
-  (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 18.45)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[0].index}))
-  (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 18.45)}) (width ${p.gnd_trace_width}) (layer "F.Cu") (net ${socket_nets[1].index}))
+  (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 18.45)}) (width ${p.gnd_trace_width}) (layer "F.Cu") (net ${socket_nets[0].index}))
+  (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 18.45)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[1].index}))
   (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 18.45)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[2].index}))
   (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 18.45)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[3].index}))
   (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 18.45)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[0].index}))
   (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 18.45)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[1].index}))
-  (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 18.45)}) (width ${p.gnd_trace_width}) (layer "B.Cu") (net ${socket_nets[2].index}))
-  (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 18.45)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[3].index}))
+  (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 18.45)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[2].index}))
+  (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 18.45)}) (width ${p.gnd_trace_width}) (layer "B.Cu") (net ${socket_nets[3].index}))
     `;
 
 			    const traces_top = `
-  (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 14.95)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[0].index}))
-  (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 14.95)}) (width ${p.gnd_trace_width}) (layer "F.Cu") (net ${socket_nets[1].index}))
+  (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 14.95)}) (width ${p.gnd_trace_width}) (layer "F.Cu") (net ${socket_nets[0].index}))
+  (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 14.95)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[1].index}))
   (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 14.95)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[2].index}))
   (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 14.95)}) (width ${p.signal_trace_width}) (layer "F.Cu") (net ${socket_nets[3].index}))
   (segment (start ${p.eaxy(-3.81, 16.7)}) (end ${p.eaxy(-3.81, 14.95)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[0].index}))
   (segment (start ${p.eaxy(-1.27, 16.7)}) (end ${p.eaxy(-1.27, 14.95)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[1].index}))
-  (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 14.95)}) (width ${p.gnd_trace_width}) (layer "B.Cu") (net ${socket_nets[2].index}))
-  (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 14.95)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[3].index}))
+  (segment (start ${p.eaxy(1.27, 16.7)}) (end ${p.eaxy(1.27, 14.95)}) (width ${p.signal_trace_width}) (layer "B.Cu") (net ${socket_nets[2].index}))
+  (segment (start ${p.eaxy(3.81, 16.7)}) (end ${p.eaxy(3.81, 14.95)}) (width ${p.gnd_trace_width}) (layer "B.Cu") (net ${socket_nets[3].index}))
     `;
 
 			    let final = top;
@@ -35814,6 +35875,7 @@
 			    reverse_mount: false,
 			    include_traces: true,
 			    include_extra_pins: false,
+			    // Inverted jumper placement is unsupported; true is rejected during generation.
 			    invert_jumpers_position: false,
 			    only_required_jumpers: false,
 			    use_rectangular_jumpers: false,
@@ -35887,6 +35949,9 @@
 			    P107: { type: 'net', value: 'P107' },
 			  },
 			  body: p => {
+			    if (p.invert_jumpers_position) {
+			      throw new Error('invert_jumpers_position is unsupported; set it to false and use the documented jumper assembly.');
+			    }
 			    const get_pin_net_name = (p, pin_name) => {
 			      return p[pin_name].name;
 			    };
@@ -35913,27 +35978,48 @@
 			      return label;
 			    };
 
+			    const pin_names = [
+			      // The pin matrix below assumes PCB is mounted with the MCU
+			      // facing away from the PCB (reverse_mount = false) on the
+			      // Front side. It should be inverted for reverse_mount = true
+			      // or when mounted on teh Back
+			      ['P1', 'RAW'],
+			      ['P0', 'GND'],
+			      ['GND', 'RST'],
+			      ['GND', 'VCC'],
+			      ['P2', 'P21'],
+			      ['P3', 'P20'],
+			      ['P4', 'P19'],
+			      ['P5', 'P18'],
+			      ['P6', 'P15'],
+			      ['P7', 'P14'],
+			      ['P8', 'P16'],
+			      ['P9', 'P10'],
+			    ];
+
 			    const gen_traces_row = (row_num) => {
+			      const net_left = p[pin_names[row_num][invert_pins ? 1 : 0]].index;
+			      const net_right = p[pin_names[row_num][invert_pins ? 0 : 1]].index;
 			      const traces = `
-  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? 4.58 : 4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? -4.58 : -4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
+  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? 4.58 : 4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? -4.58 : -4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${net_left}))
 
-  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${p.local_net(24 - row_num).index}))
+  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu") (net ${p.local_net(24 - row_num).index}))
+  (segment (start ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${p.local_net(1 + row_num).index}))
+  (segment (start ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu") (net ${p.local_net(1 + row_num).index}))
 
-  (segment (start ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.17, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.17, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
 
-  (segment (start ${p.eaxy(4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.18, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.18, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
         `;
 
 			      return traces
@@ -36162,24 +36248,6 @@
 			      return socket_row
 			    };
 			    const gen_socket_rows = (show_via_labels, show_silk_labels) => {
-			      const pin_names = [
-			        // The pin matrix below assumes PCB is mounted with the MCU
-			        // facing away from the PCB (reverse_mount = false) on the
-			        // Front side. It should be inverted for reverse_mount = true
-			        // or when mounted on teh Back
-			        ['P1', 'RAW'],
-			        ['P0', 'GND'],
-			        ['GND', 'RST'],
-			        ['GND', 'VCC'],
-			        ['P2', 'P21'],
-			        ['P3', 'P20'],
-			        ['P4', 'P19'],
-			        ['P5', 'P18'],
-			        ['P6', 'P15'],
-			        ['P7', 'P14'],
-			        ['P8', 'P16'],
-			        ['P9', 'P10'],
-			      ];
 
 			      let socket_rows = '';
 			      for (let i = 0; i < pin_names.length; i++) {
@@ -36437,6 +36505,7 @@
 			    reverse_mount: false,
 			    include_traces: true,
 			    include_extra_pins: false,
+			    // Inverted jumper placement is unsupported; true is rejected during generation.
 			    invert_jumpers_position: false,
 			    only_required_jumpers: false,
 			    use_rectangular_jumpers: false,
@@ -36511,6 +36580,9 @@
 			    P107: { type: 'net', value: 'P107' },
 			  },
 			  body: p => {
+			    if (p.invert_jumpers_position) {
+			      throw new Error('invert_jumpers_position is unsupported; set it to false and use the documented jumper assembly.');
+			    }
 			    const get_pin_net_name = (p, pin_name) => {
 			      return p[pin_name].name;
 			    };
@@ -36537,27 +36609,48 @@
 			      return label;
 			    };
 
+			    const pin_names = [
+			      // The pin matrix below assumes PCB is mounted with the MCU
+			      // facing away from the PCB (reverse_mount = false) on the
+			      // Front side. It should be inverted for reverse_mount = true
+			      // or when mounted on teh Back
+			      ['P1', 'RAW'],
+			      ['P0', 'GND'],
+			      ['GND', 'RST'],
+			      ['GND', 'VCC'],
+			      ['P2', 'P21'],
+			      ['P3', 'P20'],
+			      ['P4', 'P19'],
+			      ['P5', 'P18'],
+			      ['P6', 'P15'],
+			      ['P7', 'P14'],
+			      ['P8', 'P16'],
+			      ['P9', 'P10'],
+			    ];
+
 			    const gen_traces_row = (row_num) => {
+			      const net_left = p[pin_names[row_num][invert_pins ? 1 : 0]].index;
+			      const net_right = p[pin_names[row_num][invert_pins ? 0 : 1]].index;
 			      const traces = `
-  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? 4.58 : 4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? -4.58 : -4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
+  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? 4.58 : 4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy((p.use_rectangular_jumpers ? -4.58 : -4.775), -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-3.4, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${net_left}))
 
-  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu"))
-  (segment (start ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${p.local_net(24 - row_num).index}))
+  (segment (start ${p.eaxy(-7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(-5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu") (net ${p.local_net(24 - row_num).index}))
+  (segment (start ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "F.Cu") (net ${p.local_net(1 + row_num).index}))
+  (segment (start ${p.eaxy(7.62, -12.7 + (row_num * 2.54))}) (end ${p.eaxy(5.5, -12.7 + (row_num * 2.54))}) (width 0.25) (layer "B.Cu") (net ${p.local_net(1 + row_num).index}))
 
-  (segment (start ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.17, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.17, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.700305, 0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
+  (segment (start ${p.eaxy(-3.099695, 0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-2.604695, 0.23 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_right}))
 
-  (segment (start ${p.eaxy(4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.18, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
-  (segment (start ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu"))
+  (segment (start ${p.eaxy(4.775, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(-3.18, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(4.425305, 0 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(3.700305, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
+  (segment (start ${p.eaxy(3.099695, -0.725 + (row_num * 2.54) - 12.7)}) (end ${p.eaxy(2.594695, -0.22 + (row_num * 2.54) - 12.7)}) (width 0.25) (layer "B.Cu") (net ${net_left}))
         `;
 
 			      return traces
@@ -36786,24 +36879,6 @@
 			      return socket_row
 			    };
 			    const gen_socket_rows = (show_via_labels, show_silk_labels) => {
-			      const pin_names = [
-			        // The pin matrix below assumes PCB is mounted with the MCU
-			        // facing away from the PCB (reverse_mount = false) on the
-			        // Front side. It should be inverted for reverse_mount = true
-			        // or when mounted on teh Back
-			        ['P1', 'RAW'],
-			        ['P0', 'GND'],
-			        ['GND', 'RST'],
-			        ['GND', 'VCC'],
-			        ['P2', 'P21'],
-			        ['P3', 'P20'],
-			        ['P4', 'P19'],
-			        ['P5', 'P18'],
-			        ['P6', 'P15'],
-			        ['P7', 'P14'],
-			        ['P8', 'P16'],
-			        ['P9', 'P10'],
-			      ];
 
 			      let socket_rows = '';
 			      for (let i = 0; i < pin_names.length; i++) {
@@ -38251,7 +38326,7 @@
     `;
 
 			    const hotswap_back_pad_full = `
-    (pad "1" smd rect (at -3.275 -5.95 ${p.r}) (size 2.6 2.6) (layers "B.Cu" "B.Paste" "B.Mask") ${p.from.str})
+    (pad "1" smd rect (at -3.275 -5.95 ${p.r}) (size 2.6 2.6) (layers "B.Cu" "B.Paste" "B.Mask") ${p.hotswap_pads_same_side ? p.to.str : p.from.str})
     `;
 
 			    const hotswap_back = `
@@ -38857,6 +38932,10 @@
 			    CENTERHOLE: { type: 'net', value: 'GND' },
 			  },
 			  body: p => {
+			    if (p.hotswap && p.reversible) {
+			      throw new Error("switch_gateron_ks27_ks33: reversible hotswap has overlapping 3 mm drills; use reversible: false or hotswap: false with solder: true");
+			    }
+
 			    const common_top = `
   (footprint "ceoloide:switch_gateron_ks27_ks33"
     (layer "${p.side}.Cu")
@@ -39104,19 +39183,19 @@
 			    const solder_custom_reversible_top = `
     (pad "" thru_hole circle (at -4.4 -4.7) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.from.str})
     (pad "" thru_hole circle (at -2.6 -5.75) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.from.str})
-    (pad "1" smd custom (at -2.6 -5.75) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
+    (pad "1" smd custom (at -2.6 -5.75 ${p.r}) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
       (primitives (gr_poly (pts (xy -0.19509 -0.980785) (xy -0.382683 -0.92388) (xy -0.55557 -0.83147) (xy -2.35557 0.21853) (xy -2.507107 0.342893) (xy -2.63147 0.49443) (xy -2.72388 0.667317) (xy -2.780785 0.85491) (xy -2.8 1.05) (xy -2.780785 1.24509) (xy -2.72388 1.432683) (xy -2.63147 1.60557) (xy -2.507107 1.757107) (xy -2.35557 1.88147) (xy -2.182683 1.97388) (xy -1.99509 2.030785) (xy -1.8 2.05) (xy -1.60491 2.030785) (xy -1.417317 1.97388) (xy -1.24443 1.88147) (xy 0.55557 0.83147) (xy 0.707107 0.707107) (xy 0.83147 0.55557) (xy 0.92388 0.382683) (xy 0.980785 0.19509) (xy 1 0) (xy 0.980785 -0.19509) (xy 0.92388 -0.382683) (xy 0.83147 -0.55557) (xy 0.707107 -0.707107) (xy 0.55557 -0.83147) (xy 0.382683 -0.92388) (xy 0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.from.str})
-    (pad "1" smd custom (at -2.6 -5.75) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
+    (pad "1" smd custom (at -2.6 -5.75 ${p.r}) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
       (primitives (gr_poly (pts (xy -0.19509 -0.980785) (xy -0.382683 -0.92388) (xy -0.55557 -0.83147) (xy -2.35557 0.21853) (xy -2.507107 0.342893) (xy -2.63147 0.49443) (xy -2.72388 0.667317) (xy -2.780785 0.85491) (xy -2.8 1.05) (xy -2.780785 1.24509) (xy -2.72388 1.432683) (xy -2.63147 1.60557) (xy -2.507107 1.757107) (xy -2.35557 1.88147) (xy -2.182683 1.97388) (xy -1.99509 2.030785) (xy -1.8 2.05) (xy -1.60491 2.030785) (xy -1.417317 1.97388) (xy -1.24443 1.88147) (xy 0.55557 0.83147) (xy 0.707107 0.707107) (xy 0.83147 0.55557) (xy 0.92388 0.382683) (xy 0.980785 0.19509) (xy 1 0) (xy 0.980785 -0.19509) (xy 0.92388 -0.382683) (xy 0.83147 -0.55557) (xy 0.707107 -0.707107) (xy 0.55557 -0.83147) (xy 0.382683 -0.92388) (xy 0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.from.str})
 
     (pad "" thru_hole circle (at 2.6 -5.75) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.to.str})
     (pad "" thru_hole circle (at 4.4 -4.7) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.to.str})
-    (pad "2" smd custom (at 2.6 -5.75) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
+    (pad "2" smd custom (at 2.6 -5.75 ${p.r}) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
       (primitives (gr_poly (pts (xy 0.19509 -0.980785) (xy 0.382683 -0.92388) (xy 0.55557 -0.83147) (xy 2.35557 0.21853) (xy 2.507107 0.342893) (xy 2.63147 0.49443) (xy 2.72388 0.667317) (xy 2.780785 0.85491) (xy 2.8 1.05) (xy 2.780785 1.24509) (xy 2.72388 1.432683) (xy 2.63147 1.60557) (xy 2.507107 1.757107) (xy 2.35557 1.88147) (xy 2.182683 1.97388) (xy 1.99509 2.030785) (xy 1.8 2.05) (xy 1.60491 2.030785) (xy 1.417317 1.97388) (xy 1.24443 1.88147) (xy -0.55557 0.83147) (xy -0.707107 0.707107) (xy -0.83147 0.55557) (xy -0.92388 0.382683) (xy -0.980785 0.19509) (xy -1 0) (xy -0.980785 -0.19509) (xy -0.92388 -0.382683) (xy -0.83147 -0.55557) (xy -0.707107 -0.707107) (xy -0.55557 -0.83147) (xy -0.382683 -0.92388) (xy -0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.to.str})
-    (pad "2" smd custom (at 2.6 -5.75) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
+    (pad "2" smd custom (at 2.6 -5.75 ${p.r}) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
       (primitives (gr_poly (pts (xy 0.19509 -0.980785) (xy 0.382683 -0.92388) (xy 0.55557 -0.83147) (xy 2.35557 0.21853) (xy 2.507107 0.342893) (xy 2.63147 0.49443) (xy 2.72388 0.667317) (xy 2.780785 0.85491) (xy 2.8 1.05) (xy 2.780785 1.24509) (xy 2.72388 1.432683) (xy 2.63147 1.60557) (xy 2.507107 1.757107) (xy 2.35557 1.88147) (xy 2.182683 1.97388) (xy 1.99509 2.030785) (xy 1.8 2.05) (xy 1.60491 2.030785) (xy 1.417317 1.97388) (xy 1.24443 1.88147) (xy -0.55557 0.83147) (xy -0.707107 0.707107) (xy -0.83147 0.55557) (xy -0.92388 0.382683) (xy -0.980785 0.19509) (xy -1 0) (xy -0.980785 -0.19509) (xy -0.92388 -0.382683) (xy -0.83147 -0.55557) (xy -0.707107 -0.707107) (xy -0.55557 -0.83147) (xy -0.382683 -0.92388) (xy -0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.to.str})
 
@@ -39125,19 +39204,19 @@
 			    const solder_custom_reversible_bottom = `
     (pad "" thru_hole circle (at -4.4 4.7) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.from.str})
     (pad "" thru_hole circle (at -2.6 5.75) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.from.str})
-    (pad "1" smd custom (at -4.4 4.7) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
+    (pad "1" smd custom (at -4.4 4.7 ${p.r}) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
       (primitives (gr_poly (pts (xy 0.19509 -0.980785) (xy 0.382683 -0.92388) (xy 0.55557 -0.83147) (xy 2.35557 0.21853) (xy 2.507107 0.342893) (xy 2.63147 0.49443) (xy 2.72388 0.667317) (xy 2.780785 0.85491) (xy 2.8 1.05) (xy 2.780785 1.24509) (xy 2.72388 1.432683) (xy 2.63147 1.60557) (xy 2.507107 1.757107) (xy 2.35557 1.88147) (xy 2.182683 1.97388) (xy 1.99509 2.030785) (xy 1.8 2.05) (xy 1.60491 2.030785) (xy 1.417317 1.97388) (xy 1.24443 1.88147) (xy -0.55557 0.83147) (xy -0.707107 0.707107) (xy -0.83147 0.55557) (xy -0.92388 0.382683) (xy -0.980785 0.19509) (xy -1 0) (xy -0.980785 -0.19509) (xy -0.92388 -0.382683) (xy -0.83147 -0.55557) (xy -0.707107 -0.707107) (xy -0.55557 -0.83147) (xy -0.382683 -0.92388) (xy -0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
        ${p.from.str})
-    (pad "1" smd custom (at -4.4 4.7) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
+    (pad "1" smd custom (at -4.4 4.7 ${p.r}) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
       (primitives (gr_poly (pts (xy 0.19509 -0.980785) (xy 0.382683 -0.92388) (xy 0.55557 -0.83147) (xy 2.35557 0.21853) (xy 2.507107 0.342893) (xy 2.63147 0.49443) (xy 2.72388 0.667317) (xy 2.780785 0.85491) (xy 2.8 1.05) (xy 2.780785 1.24509) (xy 2.72388 1.432683) (xy 2.63147 1.60557) (xy 2.507107 1.757107) (xy 2.35557 1.88147) (xy 2.182683 1.97388) (xy 1.99509 2.030785) (xy 1.8 2.05) (xy 1.60491 2.030785) (xy 1.417317 1.97388) (xy 1.24443 1.88147) (xy -0.55557 0.83147) (xy -0.707107 0.707107) (xy -0.83147 0.55557) (xy -0.92388 0.382683) (xy -0.980785 0.19509) (xy -1 0) (xy -0.980785 -0.19509) (xy -0.92388 -0.382683) (xy -0.83147 -0.55557) (xy -0.707107 -0.707107) (xy -0.55557 -0.83147) (xy -0.382683 -0.92388) (xy -0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
        ${p.from.str})
 
     (pad "" thru_hole circle (at 2.6 5.75) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.to.str})
     (pad "" thru_hole circle (at 4.4 4.7) (size 1.8 1.8) (drill 1.25) (layers "*.Cu" "*.Mask") ${p.to.str})
-    (pad "2" smd custom (at 4.4 4.7) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
+    (pad "2" smd custom (at 4.4 4.7 ${p.r}) (size 1 1) (layers "F.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle))
       (primitives (gr_poly (pts (xy -0.19509 -0.980785) (xy -0.382683 -0.92388) (xy -0.55557 -0.83147) (xy -2.35557 0.21853) (xy -2.507107 0.342893) (xy -2.63147 0.49443) (xy -2.72388 0.667317) (xy -2.780785 0.85491) (xy -2.8 1.05) (xy -2.780785 1.24509) (xy -2.72388 1.432683) (xy -2.63147 1.60557) (xy -2.507107 1.757107) (xy -2.35557 1.88147) (xy -2.182683 1.97388) (xy -1.99509 2.030785) (xy -1.8 2.05) (xy -1.60491 2.030785) (xy -1.417317 1.97388) (xy -1.24443 1.88147) (xy 0.55557 0.83147) (xy 0.707107 0.707107) (xy 0.83147 0.55557) (xy 0.92388 0.382683) (xy 0.980785 0.19509) (xy 1 0) (xy 0.980785 -0.19509) (xy 0.92388 -0.382683) (xy 0.83147 -0.55557) (xy 0.707107 -0.707107) (xy 0.55557 -0.83147) (xy 0.382683 -0.92388) (xy 0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.to.str})
-    (pad "2" smd custom (at 4.4 4.7) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
+    (pad "2" smd custom (at 4.4 4.7 ${p.r}) (size 1 1) (layers "B.Cu") (thermal_bridge_angle 90) (options (clearance outline) (anchor circle)) 
       (primitives (gr_poly (pts (xy -0.19509 -0.980785) (xy -0.382683 -0.92388) (xy -0.55557 -0.83147) (xy -2.35557 0.21853) (xy -2.507107 0.342893) (xy -2.63147 0.49443) (xy -2.72388 0.667317) (xy -2.780785 0.85491) (xy -2.8 1.05) (xy -2.780785 1.24509) (xy -2.72388 1.432683) (xy -2.63147 1.60557) (xy -2.507107 1.757107) (xy -2.35557 1.88147) (xy -2.182683 1.97388) (xy -1.99509 2.030785) (xy -1.8 2.05) (xy -1.60491 2.030785) (xy -1.417317 1.97388) (xy -1.24443 1.88147) (xy 0.55557 0.83147) (xy 0.707107 0.707107) (xy 0.83147 0.55557) (xy 0.92388 0.382683) (xy 0.980785 0.19509) (xy 1 0) (xy 0.980785 -0.19509) (xy 0.92388 -0.382683) (xy 0.83147 -0.55557) (xy 0.707107 -0.707107) (xy 0.55557 -0.83147) (xy 0.382683 -0.92388) (xy 0.19509 -0.980785) (xy 0 -1)) (width 0.1) (fill yes)))
       ${p.to.str})
     `;
@@ -39482,14 +39561,14 @@
       (size ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)} ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)})
       (drill ${p.stabilizers_diameter})
       (layers "*.Cu" "*.Mask")
-      ${p.include_plated_holes && p.include_centerhole_net ? p.RIGHTSTAB : ''}
+      ${p.include_plated_holes && p.include_stabilizer_nets ? p.RIGHTSTAB : ''}
     )
     (pad "" ${!p.include_plated_holes ? `np_thru_hole` : `thru_hole`} circle 
       (at -5.08 0 ${p.r})
       (size ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)} ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)})
       (drill ${p.stabilizers_diameter})
       (layers "*.Cu" "*.Mask")
-      ${p.include_plated_holes && p.include_centerhole_net ? p.LEFTSTAB : ''}
+      ${p.include_plated_holes && p.include_stabilizer_nets ? p.LEFTSTAB : ''}
     )
     `;
 			    const corner_marks = `
@@ -39511,7 +39590,7 @@
 			    const hotswap_front = `
 		(pad "" np_thru_hole circle (at -2.54 -5.08 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "" np_thru_hole circle (at 3.81 -2.54 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
-		(pad "1" smd rect (at 7.085 -2.54 ${p.r}) (size 2.55 ${p.outer_pad_height}) (layers "F.Cu" "F.Paste" "F.Mask") ${p.from})
+		(pad "1" smd rect (at ${5.81 + p.outer_pad_width_front / 2} -2.54 ${p.r}) (size ${p.outer_pad_width_front} ${p.outer_pad_height}) (layers "F.Cu" "F.Paste" "F.Mask") ${p.from})
 		(pad "2" smd ${p.reversible ? 'roundrect' : 'rect'}
       (at -5.842 -5.08 ${p.r})
       (size 2.55 2.5)
@@ -39527,8 +39606,8 @@
 		(pad "" np_thru_hole circle (at 2.54 -5.08 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "" np_thru_hole circle (at -3.81 -2.54 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "1" smd rect
-      (at -7.085 -2.54 ${p.r})
-      (size 2.55 ${p.outer_pad_height})
+      (at ${ -5.81 - p.outer_pad_width_back / 2} -2.54 ${p.r})
+      (size ${p.outer_pad_width_back} ${p.outer_pad_height})
       (layers "B.Cu" "B.Paste" "B.Mask")
       ${p.hotswap_pads_same_side ? p.to : p.from}
     )
@@ -39640,7 +39719,7 @@
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "F.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(via
 		(at ${p.eaxy(0, -6.959)})
@@ -39648,7 +39727,7 @@
     (drill ${p.via_drill})
 		(layers "F.Cu" "B.Cu")
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(segment
 		(start ${p.eaxy(0, -6.959)})
@@ -39656,7 +39735,7 @@
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "B.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(segment
 		(start ${p.eaxy(3.963, -6.959)})
@@ -39664,7 +39743,7 @@
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "B.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
   )
 	(segment
     (start ${p.eaxy(0, -5.93)})
@@ -39672,7 +39751,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(4.166, -6.959)})
@@ -39680,7 +39759,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(7.085, -4.04)})
@@ -39688,7 +39767,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(1.029, -6.959)})
@@ -39696,7 +39775,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (via
     (at ${p.eaxy(0, -5.93)})
@@ -39704,7 +39783,7 @@
     (drill ${p.via_drill})
     (layers "F.Cu" "B.Cu")
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-4.166, -6.959)})
@@ -39712,7 +39791,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-7.085, -2.54)})
@@ -39720,7 +39799,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-7.085, -4.04)})
@@ -39728,7 +39807,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-1.029, -6.959)})
@@ -39736,7 +39815,7 @@
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
     `;
 			    const hotswap_routes_same_side = `
@@ -42357,32 +42436,49 @@
 			          nx = (cos * (adj_x - at_x)) + (sin * (adj_y - at_y)) + at_x,
 			          ny = (cos * (adj_y - at_y)) - (sin * (adj_x - at_x)) + at_y;
 
-			        const point_str = `${nx.toFixed(2)} ${ny.toFixed(2)}`;
+			        const point_str = `${nx.toFixed(6)} ${ny.toFixed(6)}`;
 			        return point_str;
 			      };
 
+			      const pin_names = [
+			        ['P1', 'RAW'],
+			        ['P0', 'GND'],
+			        ['GND', 'RST'],
+			        ['GND', 'VCC'],
+			        ['P2', 'P21'],
+			        ['P3', 'P20'],
+			        ['P4', 'P19'],
+			        ['P5', 'P18'],
+			        ['P6', 'P15'],
+			        ['P7', 'P14'],
+			        ['P8', 'P16'],
+			        ['P9', 'P10'],
+			      ];
+
 			      const gen_traces_row = (row_num) => {
+			        const net_left = p[pin_names[row_num][0]].index;
+			        const net_right = p[pin_names[row_num][1]].index;
 			        const traces = `
-          (segment (start ${ adjust_point(4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net 1))
-          (segment (start ${ adjust_point(-4.335002, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-3.610001, -11.974999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-4.335002, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-3.610001, -11.974999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.913999, -11.974999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-2.536999, -12.351999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.536999, -12.363001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-2.913999, -11.974999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.536999, -12.351999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-2.536999, -12.363001 + (row_num * 2.54)) }) (end ${ adjust_point(-2.45, -12.45 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(3.012, -12.45 + (row_num * 2.54)) }) (end ${ adjust_point(3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-2.45, -12.45 + (row_num * 2.54)) }) (end ${ adjust_point(3.012, -12.45 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 1))
-          (segment (start ${ adjust_point(-4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net 13))
-          (segment (start ${ adjust_point(3.610001, -13.425001 + (row_num * 2.54)) }) (end ${ adjust_point(2.913999, -13.425001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(4.335002, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(3.610001, -13.425001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(4.335002, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(2.913999, -13.425001 + (row_num * 2.54)) }) (end ${ adjust_point(2.438998, -12.95 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(-3.012, -12.95 + (row_num * 2.54)) }) (end ${ adjust_point(-3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(2.438998, -12.95 + (row_num * 2.54)) }) (end ${ adjust_point(-3.012, -12.95 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 13))
-          (segment (start ${ adjust_point(-7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net 23))
-          (segment (start ${ adjust_point(-7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 23))
-          (segment (start ${ adjust_point(5.5, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(7.62, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net 24))
-          (segment (start ${ adjust_point(7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net 24))
+          (segment (start ${ adjust_point(4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-4.335002, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-3.610001, -11.974999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-4.335002, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-3.610001, -11.974999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.913999, -11.974999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-2.536999, -12.351999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.536999, -12.363001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-2.913999, -11.974999 + (row_num * 2.54)) }) (end ${ adjust_point(-2.536999, -12.351999 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-2.536999, -12.363001 + (row_num * 2.54)) }) (end ${ adjust_point(-2.45, -12.45 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(3.012, -12.45 + (row_num * 2.54)) }) (end ${ adjust_point(3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-2.45, -12.45 + (row_num * 2.54)) }) (end ${ adjust_point(3.012, -12.45 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_right}))
+          (segment (start ${ adjust_point(-4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(3.610001, -13.425001 + (row_num * 2.54)) }) (end ${ adjust_point(2.913999, -13.425001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(4.335002, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(3.610001, -13.425001 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(4.775, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(4.335002, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(2.913999, -13.425001 + (row_num * 2.54)) }) (end ${ adjust_point(2.438998, -12.95 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(-3.012, -12.95 + (row_num * 2.54)) }) (end ${ adjust_point(-3.262, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(2.438998, -12.95 + (row_num * 2.54)) }) (end ${ adjust_point(-3.012, -12.95 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${net_left}))
+          (segment (start ${ adjust_point(-7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net ${p.local_net(24 - row_num).index}))
+          (segment (start ${ adjust_point(-7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(-5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${p.local_net(24 - row_num).index}))
+          (segment (start ${ adjust_point(5.5, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(7.62, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer F.Cu) (net ${p.local_net(1 + row_num).index}))
+          (segment (start ${ adjust_point(7.62, -12.7 + (row_num * 2.54)) }) (end ${ adjust_point(5.5, -12.7 + (row_num * 2.54)) }) (width 0.25) (layer B.Cu) (net ${p.local_net(1 + row_num).index}))
         `;
 
 			        return traces
@@ -42548,24 +42644,10 @@
 			      };
 
 			      const gen_socket_rows = (show_via_labels, show_silk_labels) => {
-			        const pin_names = [
-			          ['P1', 'RAW'],
-			          ['P0', 'GND'],
-			          ['GND', 'RST'],
-			          ['GND', 'VCC'],
-			          ['P2', 'P21'],
-			          ['P3', 'P20'],
-			          ['P4', 'P19'],
-			          ['P5', 'P18'],
-			          ['P6', 'P15'],
-			          ['P7', 'P14'],
-			          ['P8', 'P16'],
-			          ['P9', 'P10'],
-			        ];
 			        let socket_rows = '';
 			        for (let i = 0; i < pin_names.length; i++) {
-			          pin_name_left = pin_names[i][0];
-			          pin_name_right = pin_names[i][1];
+			          const pin_name_left = pin_names[i][0];
+			          const pin_name_right = pin_names[i][1];
 
 			          const socket_row = gen_socket_row(
 			            i, pin_name_left, pin_name_right,
@@ -43136,7 +43218,7 @@
 		        net_3: {type: 'net', value: 'PAD_3'},
 		        net_4: {type: 'net', value: 'PAD_4'},
 		        net_5: {type: 'net', value: 'PAD_5'},
-		        net_6: {type: 'net', value: 'PAD_5'},
+		        net_6: {type: 'net', value: 'PAD_6'},
 		        label_1: '',
 		        label_2: '',
 		        label_3: '',
@@ -45169,6 +45251,7 @@ ${content}
 		        // expand param definition shorthand
 		        let parsed_def = param_def;
 		        let def_type = a.type(param_def)(units);
+		        if (def_type === 'number' && typeof param_def === 'string' && !Number.isFinite(a.mathnum(param_def)(units))) { def_type = 'string'; }
 		        if (def_type == 'string') {
 		            parsed_def = {type: 'string', value: param_def};
 		        } else if (def_type == 'number') {
@@ -45198,7 +45281,9 @@ ${content}
 		        // templating support, with conversion back to raw datatypes
 		        const converters = {
 		            string: v => v,
-		            number: v => a.sane(v, `${name}.params.${param_name}`, 'number')(units),
+		            number: v => {
+		                try { return a.mathnum(v)(units) } catch { return NaN }
+		            },
 		            boolean: v => v === 'true' || a.mathnum(v)(units) === 1,
 		            array: v => yaml.load(v),
 		            object: v => yaml.load(v),
@@ -45206,9 +45291,19 @@ ${content}
 		            anchor: v => yaml.load(v)
 		        };
 		        a.in(type, `${name}.params.${param_name}.type`, Object.keys(converters));
-		        if (a.type(value)() == 'string') {
+		        if (typeof value === 'string') {
+		            if (type === 'net') {
+		                for (const match of value.matchAll(/\{\{([^}]*)\}\}/g)) {
+		                    const resolved = match[1].split('.').reduce((item, key) => item != null && Object.prototype.hasOwnProperty.call(item, key) ? item[key] : undefined, point.meta);
+		                    a.assert(resolved !== undefined && resolved !== null && resolved !== '', `Field ${name}.params.${param_name} has unresolved net template ${match[0]}; define that point property or provide an explicit net name (use an empty string for no net).`);
+		                }
+		            }
 		            value = u.template(value, point.meta);
 		            value = converters[type](value);
+		        }
+
+		        if (type === 'number') {
+		            a.assert(Number.isFinite(value), `Field ${name}.params.${param_name} should be a finite number!`);
 		        }
 
 		        // type-specific postprocessing

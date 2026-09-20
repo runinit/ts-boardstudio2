@@ -92,6 +92,10 @@ module.exports = {
     to: { type: 'net', value: undefined }
   },
   body: p => {
+    if (p.include_thru_hole_smd_pads && !p.reversible) {
+      throw new Error("diode_tht_sod123: include_thru_hole_smd_pads requires reversible: true");
+    }
+
     const standard_opening = `
     (footprint "ceoloide:diode_tht_sod123"
         (layer "${p.reversible ? 'F' : p.side}.Cu")

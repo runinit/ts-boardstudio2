@@ -8,11 +8,13 @@ const stageFootprints = (build, output) => {
     'utf8'
   );
   const entries = [
-    ...index.matchAll(/['"]([^'"]+)['"]:\s*require\(['"]\.\/([^'"]+)['"]\)/g),
+    ...index.matchAll(
+      /^\s*(?:['"]([^'"]+)['"]|([A-Za-z_$][\w$]*))\s*:\s*require\(['"]\.\/([^'"]+)['"]\)/gm
+    ),
   ];
   const footprints = Object.fromEntries(
-    entries.map(([, name, file]) => [
-      name,
+    entries.map(([, quotedName, identifier, file]) => [
+      quotedName ?? identifier,
       fs.readFileSync(
         require.resolve(path.join(build, 'src/footprints', file)),
         'utf8'

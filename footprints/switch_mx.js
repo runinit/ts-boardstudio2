@@ -196,14 +196,14 @@ module.exports = {
       (size ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)} ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)})
       (drill ${p.stabilizers_diameter})
       (layers "*.Cu" "*.Mask")
-      ${p.include_plated_holes && p.include_centerhole_net ? p.RIGHTSTAB : ''}
+      ${p.include_plated_holes && p.include_stabilizer_nets ? p.RIGHTSTAB : ''}
     )
     (pad "" ${!p.include_plated_holes ? `np_thru_hole` : `thru_hole`} circle 
       (at -5.08 0 ${p.r})
       (size ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)} ${p.stabilizers_diameter + (p.include_plated_holes ? 0.3 : 0)})
       (drill ${p.stabilizers_diameter})
       (layers "*.Cu" "*.Mask")
-      ${p.include_plated_holes && p.include_centerhole_net ? p.LEFTSTAB : ''}
+      ${p.include_plated_holes && p.include_stabilizer_nets ? p.LEFTSTAB : ''}
     )
     `
     const corner_marks = `
@@ -225,7 +225,7 @@ module.exports = {
     const hotswap_front = `
 		(pad "" np_thru_hole circle (at -2.54 -5.08 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "" np_thru_hole circle (at 3.81 -2.54 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
-		(pad "1" smd rect (at 7.085 -2.54 ${p.r}) (size 2.55 ${p.outer_pad_height}) (layers "F.Cu" "F.Paste" "F.Mask") ${p.from})
+		(pad "1" smd rect (at ${5.81 + p.outer_pad_width_front / 2} -2.54 ${p.r}) (size ${p.outer_pad_width_front} ${p.outer_pad_height}) (layers "F.Cu" "F.Paste" "F.Mask") ${p.from})
 		(pad "2" smd ${p.reversible ? 'roundrect' : 'rect'}
       (at -5.842 -5.08 ${p.r})
       (size 2.55 2.5)
@@ -241,8 +241,8 @@ module.exports = {
 		(pad "" np_thru_hole circle (at 2.54 -5.08 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "" np_thru_hole circle (at -3.81 -2.54 180) (size 3 3) (drill 3) (layers "F&B.Cu" "*.Mask"))
 		(pad "1" smd rect
-      (at -7.085 -2.54 ${p.r})
-      (size 2.55 ${p.outer_pad_height})
+      (at ${-5.81 - p.outer_pad_width_back / 2} -2.54 ${p.r})
+      (size ${p.outer_pad_width_back} ${p.outer_pad_height})
       (layers "B.Cu" "B.Paste" "B.Mask")
       ${p.hotswap_pads_same_side ? p.to : p.from}
     )
@@ -354,7 +354,7 @@ module.exports = {
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "F.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(via
 		(at ${p.eaxy(0, -6.959)})
@@ -362,7 +362,7 @@ module.exports = {
     (drill ${p.via_drill})
 		(layers "F.Cu" "B.Cu")
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(segment
 		(start ${p.eaxy(0, -6.959)})
@@ -370,7 +370,7 @@ module.exports = {
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "B.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
 	)
 	(segment
 		(start ${p.eaxy(3.963, -6.959)})
@@ -378,7 +378,7 @@ module.exports = {
 		(width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
 		(layer "B.Cu")
-		(net ${p.from.index})
+		(net ${p.to.index})
   )
 	(segment
     (start ${p.eaxy(0, -5.93)})
@@ -386,7 +386,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(4.166, -6.959)})
@@ -394,7 +394,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(7.085, -4.04)})
@@ -402,7 +402,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(1.029, -6.959)})
@@ -410,7 +410,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "F.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (via
     (at ${p.eaxy(0, -5.93)})
@@ -418,7 +418,7 @@ module.exports = {
     (drill ${p.via_drill})
     (layers "F.Cu" "B.Cu")
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-4.166, -6.959)})
@@ -426,7 +426,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-7.085, -2.54)})
@@ -434,7 +434,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-7.085, -4.04)})
@@ -442,7 +442,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
   (segment
     (start ${p.eaxy(-1.029, -6.959)})
@@ -450,7 +450,7 @@ module.exports = {
     (width ${p.trace_width})
     (locked ${p.locked_traces_vias ? 'yes' : 'no'})
     (layer "B.Cu")
-    (net ${p.to.index})
+    (net ${p.from.index})
   )
     `
     const hotswap_routes_same_side = `
