@@ -1,0 +1,43 @@
+--- /tmp/ceoloide-ergogen-footprints/mcu_supermini_nrf52840.js	2026-09-20 12:24:59.755949713 -0400
++++ footprints/mcu_supermini_nrf52840.js	2026-09-20 02:49:23.893772568 -0400
+@@ -112,6 +112,7 @@
+     invert_jumpers_position: false,
+     only_required_jumpers: false,
+     use_rectangular_jumpers: false,
++    pcb_thickness: 1.6,
+     via_size: 0.8, // JLCPC min is 0.56 for 1-2 layer boards, KiCad defaults to 0.8
+     via_drill: 0.4, // JLCPC min is 0.3 for 1-2 layer boards, KiCad defaults to 0.4
+ 
+@@ -572,11 +573,29 @@
+     (pad "29" thru_hole circle (at ${invert_pins ? '-' : ''}2.00 ${-13.2548 + 25.4} ${p.r}) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask") ${p.P102})
+     `
+ 
++    // Reversible pin rows require back mounting, regardless of footprint layer.
++    const socket_height = 5;
++    const module_thickness = 1.6;
++    const module_center_x = 16.5;
++    const module_center_y = 8.89;
++    const flip_layer = p.reversible && p.side === 'F';
++    const mounting_back = p.reversible || p.side === 'B';
++    const model_height = socket_height + (p.reverse_mount ? 0 : module_thickness);
++    const model_offset = p.mcu_3dmodel_xyz_offset || [
++      (mounting_back ? 1 : -1) * (p.reverse_mount ? -module_center_y : module_center_y),
++      (p.side === 'B' ? -1 : 1) * module_center_x,
++      flip_layer ? -p.pcb_thickness - model_height : model_height,
++    ];
++    const model_rotation = p.mcu_3dmodel_xyz_rotation || [
++      (p.reverse_mount !== flip_layer) ? 180 : 0,
++      0,
++      p.side === 'B' ? -90 : 90,
++    ];
+     const mcu_3dmodel = `
+-    (model ${p.mcu_3dmodel_filename}
+-      (offset (xyz ${p.mcu_3dmodel_xyz_offset[0]} ${p.mcu_3dmodel_xyz_offset[1]} ${p.mcu_3dmodel_xyz_offset[2]}))
++    (model ${JSON.stringify(p.mcu_3dmodel_filename)}
++      (offset (xyz ${model_offset[0]} ${model_offset[1]} ${model_offset[2]}))
+       (scale (xyz ${p.mcu_3dmodel_xyz_scale[0]} ${p.mcu_3dmodel_xyz_scale[1]} ${p.mcu_3dmodel_xyz_scale[2]}))
+-      (rotate (xyz ${p.mcu_3dmodel_xyz_rotation[0]} ${p.mcu_3dmodel_xyz_rotation[1]} ${p.mcu_3dmodel_xyz_rotation[2]}))
++      (rotate (xyz ${model_rotation[0]} ${model_rotation[1]} ${model_rotation[2]}))
+     )
+     `
+ 

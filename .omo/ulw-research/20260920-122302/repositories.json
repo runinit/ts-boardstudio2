@@ -1,0 +1,391 @@
+[
+  {
+    "repo": "Pipshag/goosekb",
+    "sha": "ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9",
+    "url": "https://github.com/Pipshag/goosekb/tree/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9",
+    "localDir": "/tmp/eco-more-20260920/Pipshag_goosekb",
+    "commitDate": "2025-05-08T10:55:39+02:00",
+    "moduleCount": 8,
+    "licenseFiles": [],
+    "rawKicadCount": 4
+  },
+  {
+    "repo": "ceoloide/ergogen-footprints",
+    "sha": "48935f54b456ff1503d78d6b17d9d146b54e8ade",
+    "url": "https://github.com/ceoloide/ergogen-footprints/tree/48935f54b456ff1503d78d6b17d9d146b54e8ade",
+    "localDir": "/tmp/ceoloide-ergogen-footprints",
+    "commitDate": "2026-05-26T16:55:30-04:00",
+    "moduleCount": 24,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "ergogen/ergogen",
+    "sha": "8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37",
+    "url": "https://github.com/ergogen/ergogen/tree/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37",
+    "localDir": "/tmp/ergogen-upstream-20260920",
+    "commitDate": "2025-11-02T17:18:26+01:00",
+    "moduleCount": 18,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "AlexSutila/ergogen-footprints",
+    "sha": "eaf27a762721f650575860a2370b6637b1e994d3",
+    "url": "https://github.com/AlexSutila/ergogen-footprints/tree/eaf27a762721f650575860a2370b6637b1e994d3",
+    "localDir": "/tmp/eco-AlexSutila_ergogen-footprints",
+    "commitDate": "2025-01-04T15:18:15-07:00",
+    "moduleCount": 2,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "CardboardMechanic/ergogen_footprints",
+    "sha": "36ad629b3bc4595cfb34bc5cc74787305ec58e2d",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/tree/36ad629b3bc4595cfb34bc5cc74787305ec58e2d",
+    "localDir": "/tmp/eco-CardboardMechanic_ergogen_footprints",
+    "commitDate": "2024-02-23T17:23:07-08:00",
+    "moduleCount": 14,
+    "licenseFiles": [
+      "LICENSE.txt"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "ImStuBTW/ergogen-v4-footprints",
+    "sha": "be2f02dd05ba3648b0366d443c7342c3a892d70c",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/tree/be2f02dd05ba3648b0366d443c7342c3a892d70c",
+    "localDir": "/tmp/eco-ImStuBTW_ergogen-v4-footprints",
+    "commitDate": "2026-02-23T15:13:37-06:00",
+    "moduleCount": 9,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "Virginia2244/ergogen_footprints",
+    "sha": "e1e630d3723d3eb00d2bab9b866d9612f1bba5eb",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/tree/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb",
+    "localDir": "/tmp/eco-Virginia2244_ergogen_footprints",
+    "commitDate": "2024-08-24T23:23:30-05:00",
+    "moduleCount": 11,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 6
+  },
+  {
+    "repo": "Woovie/ergogen-footprints",
+    "sha": "866855aaa77f9f65cdbeceeb8a87d32d6f763264",
+    "url": "https://github.com/Woovie/ergogen-footprints/tree/866855aaa77f9f65cdbeceeb8a87d32d6f763264",
+    "localDir": "/tmp/eco-Woovie_ergogen-footprints",
+    "commitDate": "2024-06-21T21:20:10-07:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "jusdisgi/ergogen-footprints",
+    "sha": "ce4311a3b015955fee098d121700e3c9712ef7e0",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/tree/ce4311a3b015955fee098d121700e3c9712ef7e0",
+    "localDir": "/tmp/eco-jusdisgi_ergogen-footprints",
+    "commitDate": "2025-06-11T17:30:41-05:00",
+    "moduleCount": 26,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "lapidot/ergogenFootprintCollection",
+    "sha": "c2ba34bdb510effebaea448ed5e387543b1796dd",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/tree/c2ba34bdb510effebaea448ed5e387543b1796dd",
+    "localDir": "/tmp/eco-lapidot_ergogenFootprintCollection",
+    "commitDate": "2024-01-24T15:42:56+02:00",
+    "moduleCount": 30,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "larssont/ergogen-footprints",
+    "sha": "708940922192a481cd40c6cef9ae80de49a9e104",
+    "url": "https://github.com/larssont/ergogen-footprints/tree/708940922192a481cd40c6cef9ae80de49a9e104",
+    "localDir": "/tmp/eco-larssont_ergogen-footprints",
+    "commitDate": "2025-04-30T01:43:55+02:00",
+    "moduleCount": 11,
+    "licenseFiles": [
+      "LICENSE.md"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "infused-kim/kb_ergogen_fp",
+    "sha": "bb80a207d8a6fa7b9245caad2c2d97e2adc2f612",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/tree/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612",
+    "localDir": "/tmp/kb_ergogen_fp_infused.bNihUM",
+    "commitDate": "2024-06-23T20:24:42-06:00",
+    "moduleCount": 15,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 17
+  },
+  {
+    "repo": "AminKAli/ergogen_footprints",
+    "sha": "4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7",
+    "url": "https://github.com/AminKAli/ergogen_footprints/tree/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7",
+    "localDir": "/tmp/w2-AminKAli_ergogen_footprints",
+    "commitDate": "2025-06-27T16:53:23-07:00",
+    "moduleCount": 19,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "arrowtip/ergogen_footprints",
+    "sha": "43d5965ddf7309cd5b72e2fb5b493e066631f958",
+    "url": "https://github.com/arrowtip/ergogen_footprints/tree/43d5965ddf7309cd5b72e2fb5b493e066631f958",
+    "localDir": "/tmp/w2-arrowtip_ergogen_footprints",
+    "commitDate": "2025-04-18T14:51:13+02:00",
+    "moduleCount": 23,
+    "licenseFiles": [
+      "LICENSE.txt"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "dieseltravis/ergogen-footprints-travis",
+    "sha": "df3c65141193792656b296784576ef918283c09b",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/tree/df3c65141193792656b296784576ef918283c09b",
+    "localDir": "/tmp/w2-dieseltravis_ergogen-footprints-travis",
+    "commitDate": "2026-08-05T23:48:24-04:00",
+    "moduleCount": 34,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 16
+  },
+  {
+    "repo": "ezxzeng/ergogen_footprints",
+    "sha": "9811c4d85a8e208ac0709f2da583645530be8fe2",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/tree/9811c4d85a8e208ac0709f2da583645530be8fe2",
+    "localDir": "/tmp/w2-ezxzeng_ergogen_footprints",
+    "commitDate": "2026-03-14T22:55:12-04:00",
+    "moduleCount": 8,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "harshitgoel96/ergogen_footprints",
+    "sha": "d569c92090e56dda30fa4d4ed54f65d76980d47e",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/tree/d569c92090e56dda30fa4d4ed54f65d76980d47e",
+    "localDir": "/tmp/w2-harshitgoel96_ergogen_footprints",
+    "commitDate": "2023-05-20T00:07:52+05:30",
+    "moduleCount": 4,
+    "licenseFiles": [],
+    "rawKicadCount": 4
+  },
+  {
+    "repo": "helgederenthal/ergogen-footprints",
+    "sha": "84567480106c3a7a7ed2350b34f0c46ea0e587ce",
+    "url": "https://github.com/helgederenthal/ergogen-footprints/tree/84567480106c3a7a7ed2350b34f0c46ea0e587ce",
+    "localDir": "/tmp/w2-helgederenthal_ergogen-footprints",
+    "commitDate": "2024-06-03T18:13:27+02:00",
+    "moduleCount": 2,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "theb0b12/ergogen-footprints",
+    "sha": "ca9a6555edee93f383c81f7c76e2adfb5f449c2d",
+    "url": "https://github.com/theb0b12/ergogen-footprints/tree/ca9a6555edee93f383c81f7c76e2adfb5f449c2d",
+    "localDir": "/tmp/w2-theb0b12_ergogen-footprints",
+    "commitDate": "2026-09-16T15:35:54-06:00",
+    "moduleCount": 17,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "ykz89/ergogen-footprints",
+    "sha": "01c8cd03ff9bd66b283f82c7059b11b7be8ed26f",
+    "url": "https://github.com/ykz89/ergogen-footprints/tree/01c8cd03ff9bd66b283f82c7059b11b7be8ed26f",
+    "localDir": "/tmp/w2-ykz89_ergogen-footprints",
+    "commitDate": "2024-10-31T01:29:34+01:00",
+    "moduleCount": 2,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "Dwctor/Kaly",
+    "sha": "125add8da1050b8a660a39b3761b20304b42fd19",
+    "url": "https://github.com/Dwctor/Kaly/tree/125add8da1050b8a660a39b3761b20304b42fd19",
+    "localDir": "/tmp/maker-repos/Kaly",
+    "commitDate": "2023-10-27T14:13:04-03:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "johnlamb/LambBT",
+    "sha": "c127665660b2f8adc8632cb89790d27262cc3549",
+    "url": "https://github.com/johnlamb/LambBT/tree/c127665660b2f8adc8632cb89790d27262cc3549",
+    "localDir": "/tmp/maker-repos/LambBT",
+    "commitDate": "2024-03-16T18:43:52+01:00",
+    "moduleCount": 6,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "bubbleology/UT22",
+    "sha": "40ae664423ce529572001c6476f72c6ce1a4965e",
+    "url": "https://github.com/bubbleology/UT22/tree/40ae664423ce529572001c6476f72c6ce1a4965e",
+    "localDir": "/tmp/maker-repos/UT22",
+    "commitDate": "2023-06-04T18:39:42+02:00",
+    "moduleCount": 0,
+    "licenseFiles": [],
+    "rawKicadCount": 9
+  },
+  {
+    "repo": "mrzealot/absolem",
+    "sha": "5f25251cb5a6779091e2a10b2a081946ad0228a9",
+    "url": "https://github.com/mrzealot/absolem/tree/5f25251cb5a6779091e2a10b2a081946ad0228a9",
+    "localDir": "/tmp/maker-repos/absolem",
+    "commitDate": "2022-01-23T17:41:52+01:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 2
+  },
+  {
+    "repo": "tapioki/cephalopoda",
+    "sha": "99edfc77033b527f430f8fdb3a7f4530b2e5931f",
+    "url": "https://github.com/tapioki/cephalopoda/tree/99edfc77033b527f430f8fdb3a7f4530b2e5931f",
+    "localDir": "/tmp/maker-repos/cephalopoda",
+    "commitDate": "2021-08-06T22:17:13+02:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "dnlbauer/corax-keyboard",
+    "sha": "7e01724621f12f1c1099f78c978bcb6aca19b795",
+    "url": "https://github.com/dnlbauer/corax-keyboard/tree/7e01724621f12f1c1099f78c978bcb6aca19b795",
+    "localDir": "/tmp/maker-repos/corax-keyboard",
+    "commitDate": "2025-05-25T16:57:52+02:00",
+    "moduleCount": 24,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "rwalkr/eskarp",
+    "sha": "d0d32b01d4a3259e5836377b3615694e524b9dd6",
+    "url": "https://github.com/rwalkr/eskarp/tree/d0d32b01d4a3259e5836377b3615694e524b9dd6",
+    "localDir": "/tmp/maker-repos/eskarp",
+    "commitDate": "2025-04-16T20:13:56+01:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "unspecworks/gamma-omega",
+    "sha": "840f3c9c7454f699907d58289f54927d6d18ca69",
+    "url": "https://github.com/unspecworks/gamma-omega/tree/840f3c9c7454f699907d58289f54927d6d18ca69",
+    "localDir": "/tmp/maker-repos/gamma-omega",
+    "commitDate": "2026-03-09T11:34:53+09:00",
+    "moduleCount": 6,
+    "licenseFiles": [
+      "LICENSE.md",
+      "original/ergogen/footprints/VladAndral/license.md"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "Narkoleptika/josukey",
+    "sha": "15bfa535a9876d95c239333d4debe53209aa4b46",
+    "url": "https://github.com/Narkoleptika/josukey/tree/15bfa535a9876d95c239333d4debe53209aa4b46",
+    "localDir": "/tmp/maker-repos/josukey",
+    "commitDate": "2023-04-16T17:26:48-07:00",
+    "moduleCount": 12,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "soundmonster/samoklava",
+    "sha": "a23bf7180eb31e970980c9d20f7c0d886c5032da",
+    "url": "https://github.com/soundmonster/samoklava/tree/a23bf7180eb31e970980c9d20f7c0d886c5032da",
+    "localDir": "/tmp/maker-repos/samoklava",
+    "commitDate": "2024-10-23T17:33:37+02:00",
+    "moduleCount": 5,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "thrly/tempest",
+    "sha": "8d1ced109a41dfb5647e67cf5924c7ce4c70b38a",
+    "url": "https://github.com/thrly/tempest/tree/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a",
+    "localDir": "/tmp/maker-repos/tempest",
+    "commitDate": "2026-03-10T10:39:14+00:00",
+    "moduleCount": 10,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "rschenk/tern",
+    "sha": "02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a",
+    "url": "https://github.com/rschenk/tern/tree/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a",
+    "localDir": "/tmp/maker-repos/tern",
+    "commitDate": "2025-04-24T13:10:56-04:00",
+    "moduleCount": 4,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 1
+  },
+  {
+    "repo": "Albert-IV/ergogen-contrib",
+    "sha": "956da989b56c0950b704d91bed69bb7ec233098a",
+    "url": "https://github.com/Albert-IV/ergogen-contrib/tree/956da989b56c0950b704d91bed69bb7ec233098a",
+    "localDir": "/tmp/lineage2/ergogen-contrib",
+    "commitDate": "2022-06-23T23:40:34-05:00",
+    "moduleCount": 2,
+    "licenseFiles": [],
+    "rawKicadCount": 0
+  },
+  {
+    "repo": "50an6xy06r6n/keyboard_reversible.pretty",
+    "sha": "3d81455844004524e8221a14f25080c6d08a2e92",
+    "url": "https://github.com/50an6xy06r6n/keyboard_reversible.pretty/tree/3d81455844004524e8221a14f25080c6d08a2e92",
+    "localDir": "/tmp/lineage2/keyboard_reversible.pretty",
+    "commitDate": "2023-12-17T22:01:34-08:00",
+    "moduleCount": 0,
+    "licenseFiles": [
+      "LICENSE"
+    ],
+    "rawKicadCount": 38
+  }
+]

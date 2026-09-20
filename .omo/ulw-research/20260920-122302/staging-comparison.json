@@ -1,0 +1,942 @@
+{
+  "cases": 132,
+  "matched": 132,
+  "scope": "Measured pad/segment/via summaries; does not compare models or full geometry",
+  "inputHashes": {
+    "raw": "19ebd04c2978ff0c0366d601b2ba1581df4c0002c7c22fcd5f3adacf0e0ab5ea",
+    "staged": "19ebd04c2978ff0c0366d601b2ba1581df4c0002c7c22fcd5f3adacf0e0ab5ea",
+    "stagedRegistry": "019b9e0deedeeb431541a9847ce2d97a66896066821310a211a38c866f56a73f"
+  },
+  "reproduce": [
+    "node verify-local.cjs",
+    "STAGED=1 PROBE_OUTPUT_DIR=<session>/staged node verify-local.cjs",
+    "node compare-staging.cjs"
+  ],
+  "details": [
+    {
+      "label": "ceoloide_battery_connector_jst_ph_2_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_jst_ph_2_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_jst_ph_2_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_jst_ph_2_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_molex_pico_ezmate_1x02_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_molex_pico_ezmate_1x02_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_molex_pico_ezmate_1x02_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_battery_connector_molex_pico_ezmate_1x02_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_diode_tht_sod123_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_diode_tht_sod123_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_diode_tht_sod123_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_diode_tht_sod123_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_nice_view_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_nice_view_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_nice_view_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_nice_view_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_ssd1306_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_ssd1306_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_ssd1306_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_display_ssd1306_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_led_sk6812mini-e_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_led_sk6812mini-e_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_led_sk6812mini-e_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_led_sk6812mini-e_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_nice_nano_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_nice_nano_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_nice_nano_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_nice_nano_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_supermini_nrf52840_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_supermini_nrf52840_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_supermini_nrf52840_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_supermini_nrf52840_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mounting_hole_npth_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mounting_hole_npth_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mounting_hole_plated_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mounting_hole_plated_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_power_switch_smd_side_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_power_switch_smd_side_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_power_switch_smd_side_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_power_switch_smd_side_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_smd_side_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_smd_side_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_smd_side_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_smd_side_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_tht_top_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_tht_top_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_tht_top_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_reset_switch_tht_top_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_rotary_encoder_ec11_ec12_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_rotary_encoder_ec11_ec12_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_rotary_encoder_ec11_ec12_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_rotary_encoder_ec11_ec12_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_choc_v1_v2_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_choc_v1_v2_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_choc_v1_v2_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_choc_v1_v2_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_gateron_ks27_ks33_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_gateron_ks27_ks33_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_gateron_ks27_ks33_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_gateron_ks27_ks33_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_mx_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_mx_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_mx_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_switch_mx_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_trrs_pj320a_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_trrs_pj320a_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_trrs_pj320a_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_trrs_pj320a_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_ergogen_logo_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_ergogen_logo_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_ergogen_logo_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_ergogen_logo_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_filled_zone_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_filled_zone_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_keepout_zone_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_keepout_zone_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_point_debugger_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_router_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_text_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_text_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_text_reversible",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_utility_text_reversible_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_choc_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_choc_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x02_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x02_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x02_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x02_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x05_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x05_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x05_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_conn_molex_pico_ezmate_1x05_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_diode_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_icon_bat_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_icon_bat_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_icon_bat_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_icon_bat_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_mounting_hole_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_nano_pretty_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_view_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_view_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_view_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_view_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_pads_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_pads_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_pads_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_pads_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_point_debugger_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_smd_0805_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_smd_0805_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_smd_0805_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_smd_0805_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_power_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_power_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_power_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_power_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_reset_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_reset_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_reset_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_switch_reset_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_text_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_text_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_text_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_text_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_trackpoint_mount_default",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_trackpoint_mount_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_trackpoint_mount_reverse",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_trackpoint_mount_reverse_back",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "padless_diode",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "six_pads_defaults",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "ceoloide_mcu_nice_nano_named",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    },
+    {
+      "label": "infused-kim_nice_nano_pretty_named",
+      "paramsMatch": true,
+      "successMatch": true,
+      "inventoryMatch": true,
+      "errorMatch": true
+    }
+  ],
+  "differences": []
+}

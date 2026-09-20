@@ -1,0 +1,9 @@
+{
+  "command": "NODE_OPTIONS=--no-experimental-webstorage PATH=/home/chris/.nvm/versions/node/v24.14.0/bin:$PATH pnpm test:footprints",
+  "node": "v24.14.0",
+  "execSession": 16313,
+  "exitCode": 0,
+  "transcript": "footprint-tests.txt",
+  "capturedAt": "2026-09-20",
+  "scope": "root-executed existing suite, unchanged product code"
+}

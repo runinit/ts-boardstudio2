@@ -1,0 +1,151 @@
+{
+  "node": "v24.14.0",
+  "rows": [
+    {
+      "case": "keepout",
+      "side": "default",
+      "ok": true,
+      "layers": [
+        [
+          "NaN.Cu"
+        ]
+      ]
+    },
+    {
+      "case": "keepout",
+      "side": "F",
+      "ok": false,
+      "error": "Field \"layout.objects.c.footprints.main.params.side\" should be of type number!"
+    },
+    {
+      "case": "keepout",
+      "side": "B",
+      "ok": false,
+      "error": "Field \"layout.objects.c.footprints.main.params.side\" should be of type number!"
+    },
+    {
+      "case": "keepout",
+      "side": "F&B",
+      "ok": true,
+      "layers": [
+        [
+          "F&B.Cu"
+        ]
+      ]
+    },
+    {
+      "case": "ssd-width",
+      "invert": false,
+      "wide": [
+        {
+          "layer": "F.Cu",
+          "net": "X1d27fe26_2",
+          "end": [
+            -1.27,
+            14.95
+          ],
+          "adjacentSignalPads": [
+            {
+              "number": "15",
+              "at": [
+                -1.27,
+                14.05
+              ],
+              "layers": [
+                "F.Cu",
+                "F.Paste",
+                "F.Mask"
+              ],
+              "net": "VCC"
+            }
+          ]
+        },
+        {
+          "layer": "B.Cu",
+          "net": "X1d27fe26_3",
+          "end": [
+            1.27,
+            14.95
+          ],
+          "adjacentSignalPads": [
+            {
+              "number": "25",
+              "at": [
+                1.27,
+                14.05
+              ],
+              "layers": [
+                "B.Cu",
+                "B.Paste",
+                "B.Mask"
+              ],
+              "net": "VCC"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "ssd-width",
+      "invert": true,
+      "wide": [
+        {
+          "layer": "F.Cu",
+          "net": "X1d27fe26_2",
+          "end": [
+            -1.27,
+            18.45
+          ],
+          "adjacentSignalPads": [
+            {
+              "number": "11",
+              "at": [
+                -1.27,
+                19.35
+              ],
+              "layers": [
+                "F.Cu",
+                "F.Paste",
+                "F.Mask"
+              ],
+              "net": "VCC"
+            }
+          ]
+        },
+        {
+          "layer": "B.Cu",
+          "net": "X1d27fe26_3",
+          "end": [
+            1.27,
+            18.45
+          ],
+          "adjacentSignalPads": [
+            {
+              "number": "21",
+              "at": [
+                1.27,
+                19.35
+              ],
+              "layers": [
+                "B.Cu",
+                "B.Paste",
+                "B.Mask"
+              ],
+              "net": "VCC"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "unused-option",
+      "module": "mcu_nice_nano",
+      "byteIdentical": true
+    },
+    {
+      "case": "unused-option",
+      "module": "mcu_supermini_nrf52840",
+      "byteIdentical": true
+    }
+  ]
+}

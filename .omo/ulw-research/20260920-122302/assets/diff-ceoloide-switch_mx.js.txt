@@ -1,0 +1,60 @@
+--- /tmp/ceoloide-ergogen-footprints/switch_mx.js	2026-09-20 12:24:59.755949713 -0400
++++ footprints/switch_mx.js	2026-09-20 02:49:23.895772635 -0400
+@@ -19,6 +19,8 @@
+    to: corresponds to pin 2
+ 
+ Params:
++  pcb_thickness: default is 1.6 mm
++    Must match the board thickness for bundled model placement.
+   side: default is B for Back
+     the side on which to place the single-side footprint and designator, either F or B
+   reversible: default is false
+@@ -130,6 +132,7 @@
+   params: {
+     designator: 'S',
+     side: 'B',
++    pcb_thickness: 1.6,
+     reversible: false,
+     hotswap: true,
+     hotswap_pads_same_side: false,
+@@ -300,24 +303,33 @@
+     (pad "2" thru_hole circle (at ${p.solder && p.hotswap ? '' : '-'}3.81 ${p.solder && p.hotswap ? '' : '-'}2.54) (size 2.286 2.286) (drill 1.4986) (layers "F&B.Cu" "*.Mask") ${p.to})
+     `
+ 
++    // Socket side is opposite the switch; correct the downloaded housing datum.
++    const switch_xy_datum = 0.00709;
++    const switch_z_datum = 0.24252;
++    const socket_z_datum = 0.27094;
++    const model_rotation = p.side === 'B' ? [180, 0, 0] : [0, 180, 0];
++    const switch_rotation = p.switch_3dmodel_xyz_rotation || model_rotation;
++    const switch_offset = p.switch_3dmodel_xyz_offset || [p.side === 'B' ? switch_xy_datum : -switch_xy_datum, p.side === 'B' ? -switch_xy_datum : switch_xy_datum, -p.pcb_thickness + switch_z_datum];
++    const hotswap_rotation = p.hotswap_3dmodel_xyz_rotation || model_rotation;
++    const hotswap_offset = p.hotswap_3dmodel_xyz_offset || [0, 0, -p.pcb_thickness - socket_z_datum];
+     const switch_3dmodel = `
+-    (model ${p.switch_3dmodel_filename}
+-      (offset (xyz ${p.switch_3dmodel_xyz_offset[0]} ${p.switch_3dmodel_xyz_offset[1]} ${p.switch_3dmodel_xyz_offset[2]}))
++    (model ${JSON.stringify(p.switch_3dmodel_filename)}
++      (offset (xyz ${switch_offset[0]} ${switch_offset[1]} ${switch_offset[2]}))
+       (scale (xyz ${p.switch_3dmodel_xyz_scale[0]} ${p.switch_3dmodel_xyz_scale[1]} ${p.switch_3dmodel_xyz_scale[2]}))
+-      (rotate (xyz ${p.switch_3dmodel_xyz_rotation[0]} ${p.switch_3dmodel_xyz_rotation[1]} ${p.switch_3dmodel_xyz_rotation[2]}))
++      (rotate (xyz ${switch_rotation[0]} ${switch_rotation[1]} ${switch_rotation[2]}))
+     )
+     `
+ 
+     const hotswap_3dmodel = `
+-    (model ${p.hotswap_3dmodel_filename}
+-      (offset (xyz ${p.hotswap_3dmodel_xyz_offset[0]} ${p.hotswap_3dmodel_xyz_offset[1]} ${p.hotswap_3dmodel_xyz_offset[2]}))
++    (model ${JSON.stringify(p.hotswap_3dmodel_filename)}
++      (offset (xyz ${hotswap_offset[0]} ${hotswap_offset[1]} ${hotswap_offset[2]}))
+       (scale (xyz ${p.hotswap_3dmodel_xyz_scale[0]} ${p.hotswap_3dmodel_xyz_scale[1]} ${p.hotswap_3dmodel_xyz_scale[2]}))
+-      (rotate (xyz ${p.hotswap_3dmodel_xyz_rotation[0]} ${p.hotswap_3dmodel_xyz_rotation[1]} ${p.hotswap_3dmodel_xyz_rotation[2]}))
++      (rotate (xyz ${hotswap_rotation[0]} ${hotswap_rotation[1]} ${hotswap_rotation[2]}))
+     )
+ 	  `
+ 
+     const keycap_3dmodel = `
+-    (model ${p.keycap_3dmodel_filename}
++    (model ${JSON.stringify(p.keycap_3dmodel_filename)}
+       (offset (xyz ${p.keycap_3dmodel_xyz_offset[0]} ${p.keycap_3dmodel_xyz_offset[1]} ${p.keycap_3dmodel_xyz_offset[2]}))
+       (scale (xyz ${p.keycap_3dmodel_xyz_scale[0]} ${p.keycap_3dmodel_xyz_scale[1]} ${p.keycap_3dmodel_xyz_scale[2]}))
+       (rotate (xyz ${p.keycap_3dmodel_xyz_rotation[0]} ${p.keycap_3dmodel_xyz_rotation[1]} ${p.keycap_3dmodel_xyz_rotation[2]}))

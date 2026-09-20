@@ -1,0 +1,4088 @@
+[
+  {
+    "id": "S1",
+    "title": "Pipshag/goosekb pinned tree",
+    "url": "https://github.com/Pipshag/goosekb/tree/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.196Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S2",
+    "title": "ceoloide/ergogen-footprints pinned tree",
+    "url": "https://github.com/ceoloide/ergogen-footprints/tree/48935f54b456ff1503d78d6b17d9d146b54e8ade",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S3",
+    "title": "ergogen/ergogen pinned tree",
+    "url": "https://github.com/ergogen/ergogen/tree/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S4",
+    "title": "AlexSutila/ergogen-footprints pinned tree",
+    "url": "https://github.com/AlexSutila/ergogen-footprints/tree/eaf27a762721f650575860a2370b6637b1e994d3",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S5",
+    "title": "CardboardMechanic/ergogen_footprints pinned tree",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/tree/36ad629b3bc4595cfb34bc5cc74787305ec58e2d",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S6",
+    "title": "ImStuBTW/ergogen-v4-footprints pinned tree",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/tree/be2f02dd05ba3648b0366d443c7342c3a892d70c",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S7",
+    "title": "Virginia2244/ergogen_footprints pinned tree",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/tree/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S8",
+    "title": "Woovie/ergogen-footprints pinned tree",
+    "url": "https://github.com/Woovie/ergogen-footprints/tree/866855aaa77f9f65cdbeceeb8a87d32d6f763264",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S9",
+    "title": "jusdisgi/ergogen-footprints pinned tree",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/tree/ce4311a3b015955fee098d121700e3c9712ef7e0",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S10",
+    "title": "lapidot/ergogenFootprintCollection pinned tree",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/tree/c2ba34bdb510effebaea448ed5e387543b1796dd",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S11",
+    "title": "larssont/ergogen-footprints pinned tree",
+    "url": "https://github.com/larssont/ergogen-footprints/tree/708940922192a481cd40c6cef9ae80de49a9e104",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S12",
+    "title": "infused-kim/kb_ergogen_fp pinned tree",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/tree/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S13",
+    "title": "AminKAli/ergogen_footprints pinned tree",
+    "url": "https://github.com/AminKAli/ergogen_footprints/tree/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S14",
+    "title": "arrowtip/ergogen_footprints pinned tree",
+    "url": "https://github.com/arrowtip/ergogen_footprints/tree/43d5965ddf7309cd5b72e2fb5b493e066631f958",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S15",
+    "title": "dieseltravis/ergogen-footprints-travis pinned tree",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/tree/df3c65141193792656b296784576ef918283c09b",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S16",
+    "title": "ezxzeng/ergogen_footprints pinned tree",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/tree/9811c4d85a8e208ac0709f2da583645530be8fe2",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S17",
+    "title": "harshitgoel96/ergogen_footprints pinned tree",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/tree/d569c92090e56dda30fa4d4ed54f65d76980d47e",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S18",
+    "title": "helgederenthal/ergogen-footprints pinned tree",
+    "url": "https://github.com/helgederenthal/ergogen-footprints/tree/84567480106c3a7a7ed2350b34f0c46ea0e587ce",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S19",
+    "title": "theb0b12/ergogen-footprints pinned tree",
+    "url": "https://github.com/theb0b12/ergogen-footprints/tree/ca9a6555edee93f383c81f7c76e2adfb5f449c2d",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S20",
+    "title": "ykz89/ergogen-footprints pinned tree",
+    "url": "https://github.com/ykz89/ergogen-footprints/tree/01c8cd03ff9bd66b283f82c7059b11b7be8ed26f",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S21",
+    "title": "Dwctor/Kaly pinned tree",
+    "url": "https://github.com/Dwctor/Kaly/tree/125add8da1050b8a660a39b3761b20304b42fd19",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S22",
+    "title": "johnlamb/LambBT pinned tree",
+    "url": "https://github.com/johnlamb/LambBT/tree/c127665660b2f8adc8632cb89790d27262cc3549",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S23",
+    "title": "bubbleology/UT22 pinned tree",
+    "url": "https://github.com/bubbleology/UT22/tree/40ae664423ce529572001c6476f72c6ce1a4965e",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S24",
+    "title": "mrzealot/absolem pinned tree",
+    "url": "https://github.com/mrzealot/absolem/tree/5f25251cb5a6779091e2a10b2a081946ad0228a9",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S25",
+    "title": "tapioki/cephalopoda pinned tree",
+    "url": "https://github.com/tapioki/cephalopoda/tree/99edfc77033b527f430f8fdb3a7f4530b2e5931f",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S26",
+    "title": "dnlbauer/corax-keyboard pinned tree",
+    "url": "https://github.com/dnlbauer/corax-keyboard/tree/7e01724621f12f1c1099f78c978bcb6aca19b795",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S27",
+    "title": "rwalkr/eskarp pinned tree",
+    "url": "https://github.com/rwalkr/eskarp/tree/d0d32b01d4a3259e5836377b3615694e524b9dd6",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S28",
+    "title": "unspecworks/gamma-omega pinned tree",
+    "url": "https://github.com/unspecworks/gamma-omega/tree/840f3c9c7454f699907d58289f54927d6d18ca69",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S29",
+    "title": "Narkoleptika/josukey pinned tree",
+    "url": "https://github.com/Narkoleptika/josukey/tree/15bfa535a9876d95c239333d4debe53209aa4b46",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S30",
+    "title": "soundmonster/samoklava pinned tree",
+    "url": "https://github.com/soundmonster/samoklava/tree/a23bf7180eb31e970980c9d20f7c0d886c5032da",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S31",
+    "title": "thrly/tempest pinned tree",
+    "url": "https://github.com/thrly/tempest/tree/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S32",
+    "title": "rschenk/tern pinned tree",
+    "url": "https://github.com/rschenk/tern/tree/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S33",
+    "title": "Albert-IV/ergogen-contrib pinned tree",
+    "url": "https://github.com/Albert-IV/ergogen-contrib/tree/956da989b56c0950b704d91bed69bb7ec233098a",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S34",
+    "title": "50an6xy06r6n/keyboard_reversible.pretty pinned tree",
+    "url": "https://github.com/50an6xy06r6n/keyboard_reversible.pretty/tree/3d81455844004524e8221a14f25080c6d08a2e92",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S35",
+    "title": "Pipshag/goosekb/footprints/custom/combo_diode.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/combo_diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S36",
+    "title": "Pipshag/goosekb/footprints/custom/mounting_hole.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/mounting_hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S37",
+    "title": "Pipshag/goosekb/footprints/custom/mx.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S38",
+    "title": "Pipshag/goosekb/footprints/custom/pads.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/pads.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S39",
+    "title": "Pipshag/goosekb/footprints/custom/text.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S40",
+    "title": "Pipshag/goosekb/footprints/custom/xiao_ble.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/xiao_ble.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S41",
+    "title": "Pipshag/goosekb/footprints/custom/xiao_ble_smd_reversible.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/xiao_ble_smd_reversible.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S42",
+    "title": "Pipshag/goosekb/footprints/custom/xiao_reverse.js",
+    "url": "https://github.com/Pipshag/goosekb/blob/ed0fef52e41dc3ddbab6c6e5f7f4706600499ad9/footprints/custom/xiao_reverse.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S43",
+    "title": "ceoloide/ergogen-footprints/battery_connector_jst_ph_2.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/battery_connector_jst_ph_2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S44",
+    "title": "ceoloide/ergogen-footprints/battery_connector_molex_pico_ezmate_1x02.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/battery_connector_molex_pico_ezmate_1x02.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S45",
+    "title": "ceoloide/ergogen-footprints/diode_tht_sod123.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/diode_tht_sod123.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S46",
+    "title": "ceoloide/ergogen-footprints/display_nice_view.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/display_nice_view.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S47",
+    "title": "ceoloide/ergogen-footprints/display_ssd1306.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/display_ssd1306.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S48",
+    "title": "ceoloide/ergogen-footprints/led_sk6812mini-e.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/led_sk6812mini-e.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S49",
+    "title": "ceoloide/ergogen-footprints/mcu_nice_nano.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/mcu_nice_nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S50",
+    "title": "ceoloide/ergogen-footprints/mcu_supermini_nrf52840.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/mcu_supermini_nrf52840.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S51",
+    "title": "ceoloide/ergogen-footprints/mounting_hole_npth.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/mounting_hole_npth.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S52",
+    "title": "ceoloide/ergogen-footprints/mounting_hole_plated.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/mounting_hole_plated.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S53",
+    "title": "ceoloide/ergogen-footprints/power_switch_smd_side.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/power_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S54",
+    "title": "ceoloide/ergogen-footprints/reset_switch_smd_side.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/reset_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S55",
+    "title": "ceoloide/ergogen-footprints/reset_switch_tht_top.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/reset_switch_tht_top.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S56",
+    "title": "ceoloide/ergogen-footprints/rotary_encoder_ec11_ec12.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/rotary_encoder_ec11_ec12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S57",
+    "title": "ceoloide/ergogen-footprints/switch_choc_v1_v2.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_choc_v1_v2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S58",
+    "title": "ceoloide/ergogen-footprints/switch_gateron_ks27_ks33.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_gateron_ks27_ks33.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S59",
+    "title": "ceoloide/ergogen-footprints/switch_mx.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/switch_mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S60",
+    "title": "ceoloide/ergogen-footprints/trrs_pj320a.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/trrs_pj320a.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S61",
+    "title": "ceoloide/ergogen-footprints/utility_ergogen_logo.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_ergogen_logo.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S62",
+    "title": "ceoloide/ergogen-footprints/utility_filled_zone.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_filled_zone.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S63",
+    "title": "ceoloide/ergogen-footprints/utility_keepout_zone.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_keepout_zone.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S64",
+    "title": "ceoloide/ergogen-footprints/utility_point_debugger.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_point_debugger.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S65",
+    "title": "ceoloide/ergogen-footprints/utility_router.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_router.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S66",
+    "title": "ceoloide/ergogen-footprints/utility_text.js",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/utility_text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S67",
+    "title": "ergogen/ergogen/src/footprints/alps.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/alps.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S68",
+    "title": "ergogen/ergogen/src/footprints/button.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S69",
+    "title": "ergogen/ergogen/src/footprints/choc.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S70",
+    "title": "ergogen/ergogen/src/footprints/chocmini.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/chocmini.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S71",
+    "title": "ergogen/ergogen/src/footprints/diode.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S72",
+    "title": "ergogen/ergogen/src/footprints/jstph.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/jstph.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S73",
+    "title": "ergogen/ergogen/src/footprints/jumper.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/jumper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S74",
+    "title": "ergogen/ergogen/src/footprints/mx.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S75",
+    "title": "ergogen/ergogen/src/footprints/oled.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/oled.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S76",
+    "title": "ergogen/ergogen/src/footprints/omron.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/omron.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S77",
+    "title": "ergogen/ergogen/src/footprints/pad.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/pad.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S78",
+    "title": "ergogen/ergogen/src/footprints/promicro.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/promicro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S79",
+    "title": "ergogen/ergogen/src/footprints/rgb.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/rgb.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S80",
+    "title": "ergogen/ergogen/src/footprints/rotary.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S81",
+    "title": "ergogen/ergogen/src/footprints/scrollwheel.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/scrollwheel.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S82",
+    "title": "ergogen/ergogen/src/footprints/slider.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/slider.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S83",
+    "title": "ergogen/ergogen/src/footprints/trrs.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/trrs.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S84",
+    "title": "ergogen/ergogen/src/footprints/via.js",
+    "url": "https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/src/footprints/via.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S85",
+    "title": "AlexSutila/ergogen-footprints/pipicow.js",
+    "url": "https://github.com/AlexSutila/ergogen-footprints/blob/eaf27a762721f650575860a2370b6637b1e994d3/pipicow.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S86",
+    "title": "AlexSutila/ergogen-footprints/uxcell-jack.js",
+    "url": "https://github.com/AlexSutila/ergogen-footprints/blob/eaf27a762721f650575860a2370b6637b1e994d3/uxcell-jack.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S87",
+    "title": "CardboardMechanic/ergogen_footprints/azoteq_trackpad.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/azoteq_trackpad.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S88",
+    "title": "CardboardMechanic/ergogen_footprints/battery_connector_jst_ph_2.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/battery_connector_jst_ph_2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S89",
+    "title": "CardboardMechanic/ergogen_footprints/button.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S90",
+    "title": "CardboardMechanic/ergogen_footprints/choc.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S91",
+    "title": "CardboardMechanic/ergogen_footprints/chocbackplate.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/chocbackplate.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S92",
+    "title": "CardboardMechanic/ergogen_footprints/diode.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S93",
+    "title": "CardboardMechanic/ergogen_footprints/diodebackplate.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/diodebackplate.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S94",
+    "title": "CardboardMechanic/ergogen_footprints/elite-c.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/elite-c.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S95",
+    "title": "CardboardMechanic/ergogen_footprints/magnetic_vik_keyboard_connector.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/magnetic_vik_keyboard_connector.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S96",
+    "title": "CardboardMechanic/ergogen_footprints/mounting_hole.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/mounting_hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S97",
+    "title": "CardboardMechanic/ergogen_footprints/nice_nano.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/nice_nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S98",
+    "title": "CardboardMechanic/ergogen_footprints/rotary.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S99",
+    "title": "CardboardMechanic/ergogen_footprints/text.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S100",
+    "title": "CardboardMechanic/ergogen_footprints/text_metal.js",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/text_metal.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S101",
+    "title": "ImStuBTW/ergogen-v4-footprints/buttonrightangle.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/buttonrightangle.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S102",
+    "title": "ImStuBTW/ergogen-v4-footprints/gbareversible.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/gbareversible.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S103",
+    "title": "ImStuBTW/ergogen-v4-footprints/lowproro.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/lowproro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S104",
+    "title": "ImStuBTW/ergogen-v4-footprints/lowprothumb.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/lowprothumb.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S105",
+    "title": "ImStuBTW/ergogen-v4-footprints/mountingholem2.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/mountingholem2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S106",
+    "title": "ImStuBTW/ergogen-v4-footprints/mountingholem3.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/mountingholem3.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S107",
+    "title": "ImStuBTW/ergogen-v4-footprints/spdt.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/spdt.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S108",
+    "title": "ImStuBTW/ergogen-v4-footprints/xiao-ble-kicad5.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/xiao-ble-kicad5.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S109",
+    "title": "ImStuBTW/ergogen-v4-footprints/xiao-ble.js",
+    "url": "https://github.com/ImStuBTW/ergogen-v4-footprints/blob/be2f02dd05ba3648b0366d443c7342c3a892d70c/xiao-ble.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S110",
+    "title": "Virginia2244/ergogen_footprints/footprints/choc.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S111",
+    "title": "Virginia2244/ergogen_footprints/footprints/diode.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S112",
+    "title": "Virginia2244/ergogen_footprints/footprints/elite-c.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/elite-c.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S113",
+    "title": "Virginia2244/ergogen_footprints/footprints/kb2040.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/kb2040.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S114",
+    "title": "Virginia2244/ergogen_footprints/footprints/mx.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S115",
+    "title": "Virginia2244/ergogen_footprints/footprints/nice_nano.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/nice_nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S116",
+    "title": "Virginia2244/ergogen_footprints/footprints/promicro.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/promicro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S117",
+    "title": "Virginia2244/ergogen_footprints/footprints/rgb.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/rgb.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S118",
+    "title": "Virginia2244/ergogen_footprints/footprints/seeed_xaio.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/seeed_xaio.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S119",
+    "title": "Virginia2244/ergogen_footprints/footprints/trrs.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/trrs.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S120",
+    "title": "Virginia2244/ergogen_footprints/footprints/waveshare_rp2040_zero.js",
+    "url": "https://github.com/Virginia2244/ergogen_footprints/blob/e1e630d3723d3eb00d2bab9b866d9612f1bba5eb/footprints/waveshare_rp2040_zero.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S121",
+    "title": "jusdisgi/ergogen-footprints/Magsafe_Silkscreen.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/Magsafe_Silkscreen.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S122",
+    "title": "jusdisgi/ergogen-footprints/conn_molex_pico_ezmate_plus_1x02.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/conn_molex_pico_ezmate_plus_1x02.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S123",
+    "title": "jusdisgi/ergogen-footprints/conn_molex_picoblade_smd_1x08_1mm25_horiz.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/conn_molex_picoblade_smd_1x08_1mm25_horiz.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S124",
+    "title": "jusdisgi/ergogen-footprints/conn_molex_picoblade_smd_1x08_1mm25_vert.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/conn_molex_picoblade_smd_1x08_1mm25_vert.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S125",
+    "title": "jusdisgi/ergogen-footprints/conn_molex_picoblade_tht_1x08_1mm25_horiz.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/conn_molex_picoblade_tht_1x08_1mm25_horiz.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S126",
+    "title": "jusdisgi/ergogen-footprints/conn_molex_picoblade_tht_1x08_1mm25_vert.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/conn_molex_picoblade_tht_1x08_1mm25_vert.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S127",
+    "title": "jusdisgi/ergogen-footprints/diode_bav70_hand.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/diode_bav70_hand.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S128",
+    "title": "jusdisgi/ergogen-footprints/diode_bav70_larssont.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/diode_bav70_larssont.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S129",
+    "title": "jusdisgi/ergogen-footprints/diode_smd_sod323f.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/diode_smd_sod323f.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S130",
+    "title": "jusdisgi/ergogen-footprints/lcd_waveshare_1in69.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/lcd_waveshare_1in69.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S131",
+    "title": "jusdisgi/ergogen-footprints/led_load_switch.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/led_load_switch.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S132",
+    "title": "jusdisgi/ergogen-footprints/led_ws2812b_2020.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/led_ws2812b_2020.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S133",
+    "title": "jusdisgi/ergogen-footprints/mounting_hole_npth.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/mounting_hole_npth.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S134",
+    "title": "jusdisgi/ergogen-footprints/mounting_hole_plated.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/mounting_hole_plated.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S135",
+    "title": "jusdisgi/ergogen-footprints/mousebites_25mm.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/mousebites_25mm.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S136",
+    "title": "jusdisgi/ergogen-footprints/roller_encoder_ckw12.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/roller_encoder_ckw12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S137",
+    "title": "jusdisgi/ergogen-footprints/scrollwheel.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/scrollwheel.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S138",
+    "title": "jusdisgi/ergogen-footprints/switch_5way_skrh.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/switch_5way_skrh.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S139",
+    "title": "jusdisgi/ergogen-footprints/switch_pg1316s.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/switch_pg1316s.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S140",
+    "title": "jusdisgi/ergogen-footprints/util_xiao_ble_cutout.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/util_xiao_ble_cutout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S141",
+    "title": "jusdisgi/ergogen-footprints/util_xiao_ble_cutout_simple.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/util_xiao_ble_cutout_simple.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S142",
+    "title": "jusdisgi/ergogen-footprints/util_xiao_ble_plus_cutout.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/util_xiao_ble_plus_cutout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S143",
+    "title": "jusdisgi/ergogen-footprints/util_xiao_ble_plus_cutout_simple.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/util_xiao_ble_plus_cutout_simple.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S144",
+    "title": "jusdisgi/ergogen-footprints/xiao_ble_breakout_holes.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/xiao_ble_breakout_holes.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S145",
+    "title": "jusdisgi/ergogen-footprints/xiao_ble_plus_breakout_holes.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/xiao_ble_plus_breakout_holes.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S146",
+    "title": "jusdisgi/ergogen-footprints/xiao_smd_xl_cutout.js",
+    "url": "https://github.com/jusdisgi/ergogen-footprints/blob/ce4311a3b015955fee098d121700e3c9712ef7e0/xiao_smd_xl_cutout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S147",
+    "title": "lapidot/ergogenFootprintCollection/alps.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/alps.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S148",
+    "title": "lapidot/ergogenFootprintCollection/azoteq_tps43.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/azoteq_tps43.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S149",
+    "title": "lapidot/ergogenFootprintCollection/button.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S150",
+    "title": "lapidot/ergogenFootprintCollection/choc.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S151",
+    "title": "lapidot/ergogenFootprintCollection/chocmini.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/chocmini.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S152",
+    "title": "lapidot/ergogenFootprintCollection/cirque.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/cirque.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S153",
+    "title": "lapidot/ergogenFootprintCollection/diode.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S154",
+    "title": "lapidot/ergogenFootprintCollection/elite.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/elite.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S155",
+    "title": "lapidot/ergogenFootprintCollection/helios.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/helios.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S156",
+    "title": "lapidot/ergogenFootprintCollection/jstph.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/jstph.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S157",
+    "title": "lapidot/ergogenFootprintCollection/jumper.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/jumper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S158",
+    "title": "lapidot/ergogenFootprintCollection/mounthole.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/mounthole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S159",
+    "title": "lapidot/ergogenFootprintCollection/mountinghole ORIGINAL.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/mountinghole%20ORIGINAL.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.197Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S160",
+    "title": "lapidot/ergogenFootprintCollection/mountinghole.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S161",
+    "title": "lapidot/ergogenFootprintCollection/mx.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S162",
+    "title": "lapidot/ergogenFootprintCollection/niceview.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/niceview.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S163",
+    "title": "lapidot/ergogenFootprintCollection/oled.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/oled.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S164",
+    "title": "lapidot/ergogenFootprintCollection/omron.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/omron.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S165",
+    "title": "lapidot/ergogenFootprintCollection/pad.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/pad.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S166",
+    "title": "lapidot/ergogenFootprintCollection/pimoroni_trackball.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/pimoroni_trackball.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S167",
+    "title": "lapidot/ergogenFootprintCollection/promicro.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/promicro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S168",
+    "title": "lapidot/ergogenFootprintCollection/rgb.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/rgb.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S169",
+    "title": "lapidot/ergogenFootprintCollection/rotary.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S170",
+    "title": "lapidot/ergogenFootprintCollection/scrollwheel.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/scrollwheel.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S171",
+    "title": "lapidot/ergogenFootprintCollection/slider.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/slider.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S172",
+    "title": "lapidot/ergogenFootprintCollection/smd_resistor.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/smd_resistor.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S173",
+    "title": "lapidot/ergogenFootprintCollection/tentingpuck.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/tentingpuck.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S174",
+    "title": "lapidot/ergogenFootprintCollection/trackpad_hole.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/trackpad_hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S175",
+    "title": "lapidot/ergogenFootprintCollection/trrs.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/trrs.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S176",
+    "title": "lapidot/ergogenFootprintCollection/via.js",
+    "url": "https://github.com/lapidot/ergogenFootprintCollection/blob/c2ba34bdb510effebaea448ed5e387543b1796dd/via.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S177",
+    "title": "larssont/ergogen-footprints/amplifier.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/amplifier.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S178",
+    "title": "larssont/ergogen-footprints/bav70.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/bav70.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S179",
+    "title": "larssont/ergogen-footprints/magsafe.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/magsafe.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S180",
+    "title": "larssont/ergogen-footprints/mh_npth.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/mh_npth.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S181",
+    "title": "larssont/ergogen-footprints/piezo.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/piezo.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S182",
+    "title": "larssont/ergogen-footprints/rj11.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/rj11.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S183",
+    "title": "larssont/ergogen-footprints/rp2040_smd.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/rp2040_smd.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S184",
+    "title": "larssont/ergogen-footprints/sprintek_sk8707_01_driver.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/sprintek_sk8707_01_driver.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S185",
+    "title": "larssont/ergogen-footprints/sprintek_sk8707_01_sensor.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/sprintek_sk8707_01_sensor.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S186",
+    "title": "larssont/ergogen-footprints/text.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S187",
+    "title": "larssont/ergogen-footprints/usb_mini_b.js",
+    "url": "https://github.com/larssont/ergogen-footprints/blob/708940922192a481cd40c6cef9ae80de49a9e104/usb_mini_b.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S188",
+    "title": "infused-kim/kb_ergogen_fp/choc.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S189",
+    "title": "infused-kim/kb_ergogen_fp/conn_molex_pico_ezmate_1x02.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/conn_molex_pico_ezmate_1x02.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S190",
+    "title": "infused-kim/kb_ergogen_fp/conn_molex_pico_ezmate_1x05.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/conn_molex_pico_ezmate_1x05.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S191",
+    "title": "infused-kim/kb_ergogen_fp/diode.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S192",
+    "title": "infused-kim/kb_ergogen_fp/icon_bat.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/icon_bat.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S193",
+    "title": "infused-kim/kb_ergogen_fp/mounting_hole.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/mounting_hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S194",
+    "title": "infused-kim/kb_ergogen_fp/nice_nano_pretty.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/nice_nano_pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S195",
+    "title": "infused-kim/kb_ergogen_fp/nice_view.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/nice_view.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S196",
+    "title": "infused-kim/kb_ergogen_fp/pads.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/pads.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S197",
+    "title": "infused-kim/kb_ergogen_fp/point_debugger.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/point_debugger.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S198",
+    "title": "infused-kim/kb_ergogen_fp/smd_0805.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/smd_0805.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S199",
+    "title": "infused-kim/kb_ergogen_fp/switch_power.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/switch_power.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S200",
+    "title": "infused-kim/kb_ergogen_fp/switch_reset.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/switch_reset.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S201",
+    "title": "infused-kim/kb_ergogen_fp/text.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S202",
+    "title": "infused-kim/kb_ergogen_fp/trackpoint_mount.js",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/trackpoint_mount.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S203",
+    "title": "AminKAli/ergogen_footprints/3mm_kerf_bend_path.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/3mm_kerf_bend_path.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S204",
+    "title": "AminKAli/ergogen_footprints/3mm_kerf_bend_path_mirrored.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/3mm_kerf_bend_path_mirrored.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S205",
+    "title": "AminKAli/ergogen_footprints/choc_stabilizer.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/choc_stabilizer.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S206",
+    "title": "AminKAli/ergogen_footprints/e73_mcu.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/e73_mcu.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S207",
+    "title": "AminKAli/ergogen_footprints/he/1_5u_marker.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/1_5u_marker.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S208",
+    "title": "AminKAli/ergogen_footprints/he/1u_marker.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/1u_marker.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S209",
+    "title": "AminKAli/ergogen_footprints/he/cap.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/cap.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S210",
+    "title": "AminKAli/ergogen_footprints/he/multiplexer.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/multiplexer.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S211",
+    "title": "AminKAli/ergogen_footprints/he/multiplexer_vias.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/multiplexer_vias.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S212",
+    "title": "AminKAli/ergogen_footprints/he/sensor.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/sensor.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S213",
+    "title": "AminKAli/ergogen_footprints/he/via_0603x5.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/he/via_0603x5.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S214",
+    "title": "AminKAli/ergogen_footprints/kailh_mouse_rotary.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/kailh_mouse_rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S215",
+    "title": "AminKAli/ergogen_footprints/kerf_bend_path.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/kerf_bend_path.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S216",
+    "title": "AminKAli/ergogen_footprints/kerf_bend_path_mirrored.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/kerf_bend_path_mirrored.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S217",
+    "title": "AminKAli/ergogen_footprints/n_mosfet_sot23.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/n_mosfet_sot23.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S218",
+    "title": "AminKAli/ergogen_footprints/siq_rotary.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/siq_rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S219",
+    "title": "AminKAli/ergogen_footprints/tl3342_reset_switch_smd.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/tl3342_reset_switch_smd.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S220",
+    "title": "AminKAli/ergogen_footprints/via_0603.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/via_0603.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S221",
+    "title": "AminKAli/ergogen_footprints/via_1005x11.js",
+    "url": "https://github.com/AminKAli/ergogen_footprints/blob/4fc8c27e4e2ffb8594f6b7daa2306d8c59b8a2c7/via_1005x11.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S222",
+    "title": "arrowtip/ergogen_footprints/elite_c_rev4.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/elite_c_rev4.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S223",
+    "title": "arrowtip/ergogen_footprints/grub.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/grub.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S224",
+    "title": "arrowtip/ergogen_footprints/kings_idol.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/kings_idol.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S225",
+    "title": "arrowtip/ergogen_footprints/knight.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/knight.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S226",
+    "title": "arrowtip/ergogen_footprints/madeline.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/madeline.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S227",
+    "title": "arrowtip/ergogen_footprints/my_button.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S228",
+    "title": "arrowtip/ergogen_footprints/my_choc-mx-hotswap.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_choc-mx-hotswap.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S229",
+    "title": "arrowtip/ergogen_footprints/my_diode.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S230",
+    "title": "arrowtip/ergogen_footprints/my_mountinghole.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S231",
+    "title": "arrowtip/ergogen_footprints/my_mx-prerouted.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_mx-prerouted.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S232",
+    "title": "arrowtip/ergogen_footprints/my_nice-elite.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_nice-elite.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S233",
+    "title": "arrowtip/ergogen_footprints/my_nice-nano.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_nice-nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S234",
+    "title": "arrowtip/ergogen_footprints/my_promicro.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_promicro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S235",
+    "title": "arrowtip/ergogen_footprints/my_resistor.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_resistor.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S236",
+    "title": "arrowtip/ergogen_footprints/my_scrollwheel.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_scrollwheel.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S237",
+    "title": "arrowtip/ergogen_footprints/my_switch.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_switch.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S238",
+    "title": "arrowtip/ergogen_footprints/my_threeway_jumper.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_threeway_jumper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S239",
+    "title": "arrowtip/ergogen_footprints/my_tps65.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_tps65.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S240",
+    "title": "arrowtip/ergogen_footprints/my_trrs.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_trrs.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S241",
+    "title": "arrowtip/ergogen_footprints/my_version.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_version.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S242",
+    "title": "arrowtip/ergogen_footprints/my_ws2812.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/my_ws2812.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S243",
+    "title": "arrowtip/ergogen_footprints/shadow.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/shadow.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S244",
+    "title": "arrowtip/ergogen_footprints/winged-berry.js",
+    "url": "https://github.com/arrowtip/ergogen_footprints/blob/43d5965ddf7309cd5b72e2fb5b493e066631f958/winged-berry.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S245",
+    "title": "dieseltravis/ergogen-footprints-travis/Alps-EC10E1220501.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/Alps-EC10E1220501.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S246",
+    "title": "dieseltravis/ergogen-footprints-travis/CDiscD38W26P25.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CDiscD38W26P25.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S247",
+    "title": "dieseltravis/ergogen-footprints-travis/CDiscD47W25P5.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CDiscD47W25P5.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S248",
+    "title": "dieseltravis/ergogen-footprints-travis/CRadialD63H11P25.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CRadialD63H11P25.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S249",
+    "title": "dieseltravis/ergogen-footprints-travis/CSMD_0805_2012Metric.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CSMD_0805_2012Metric.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S250",
+    "title": "dieseltravis/ergogen-footprints-travis/CSMD_1206_3216Metric.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CSMD_1206_3216Metric.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S251",
+    "title": "dieseltravis/ergogen-footprints-travis/CSMD_D63xL77.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/CSMD_D63xL77.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S252",
+    "title": "dieseltravis/ergogen-footprints-travis/DIP16W762.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/DIP16W762.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S253",
+    "title": "dieseltravis/ergogen-footprints-travis/DSMD_1206_3216Metric.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/DSMD_1206_3216Metric.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S254",
+    "title": "dieseltravis/ergogen-footprints-travis/Keebio-I2C_Breakout.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/Keebio-I2C_Breakout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S255",
+    "title": "dieseltravis/ergogen-footprints-travis/KiCad-Logo5Copper.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/KiCad-Logo5Copper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S256",
+    "title": "dieseltravis/ergogen-footprints-travis/MX_Stabilizer_Cutout-2u.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/MX_Stabilizer_Cutout-2u.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S257",
+    "title": "dieseltravis/ergogen-footprints-travis/OSHW-Symbol67x6Copper.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/OSHW-Symbol67x6Copper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S258",
+    "title": "dieseltravis/ergogen-footprints-travis/RAxialL6D25P10H.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/RAxialL6D25P10H.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S259",
+    "title": "dieseltravis/ergogen-footprints-travis/SWPUSH6H43.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/SWPUSH6H43.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S260",
+    "title": "dieseltravis/ergogen-footprints-travis/ScottoKeebs-Arduino_Pro_Micro.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ScottoKeebs-Arduino_Pro_Micro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S261",
+    "title": "dieseltravis/ergogen-footprints-travis/ScottoKeebs-Diode_DO-35.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ScottoKeebs-Diode_DO-35.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S262",
+    "title": "dieseltravis/ergogen-footprints-travis/ScottoKeebs-RP2040_Pro_Micro.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ScottoKeebs-RP2040_Pro_Micro.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S263",
+    "title": "dieseltravis/ergogen-footprints-travis/ScottoKeebs-Stabilizer_MX_2u.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ScottoKeebs-Stabilizer_MX_2u.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S264",
+    "title": "dieseltravis/ergogen-footprints-travis/Symbol_Danger_Copper_Small.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/Symbol_Danger_Copper_Small.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S265",
+    "title": "dieseltravis/ergogen-footprints-travis/USB_C_Receptacle_GCT_USB4085.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/USB_C_Receptacle_GCT_USB4085.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S266",
+    "title": "dieseltravis/ergogen-footprints-travis/ec11.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ec11.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S267",
+    "title": "dieseltravis/ergogen-footprints-travis/ergogen.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/ergogen.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S268",
+    "title": "dieseltravis/ergogen-footprints-travis/evqwgd001.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/evqwgd001.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S269",
+    "title": "dieseltravis/ergogen-footprints-travis/key-module.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/key-module.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S270",
+    "title": "dieseltravis/ergogen-footprints-travis/led_sk6803mini-e.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/led_sk6803mini-e.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S271",
+    "title": "dieseltravis/ergogen-footprints-travis/led_sk6812mini-e.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/led_sk6812mini-e.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S272",
+    "title": "dieseltravis/ergogen-footprints-travis/mountinghole.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S273",
+    "title": "dieseltravis/ergogen-footprints-travis/mx.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S274",
+    "title": "dieseltravis/ergogen-footprints-travis/roc.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/roc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S275",
+    "title": "dieseltravis/ergogen-footprints-travis/switch_mx.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/switch_mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S276",
+    "title": "dieseltravis/ergogen-footprints-travis/text.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S277",
+    "title": "dieseltravis/ergogen-footprints-travis/travis.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/travis.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S278",
+    "title": "dieseltravis/ergogen-footprints-travis/xiao-ble.js",
+    "url": "https://github.com/dieseltravis/ergogen-footprints-travis/blob/df3c65141193792656b296784576ef918283c09b/xiao-ble.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S279",
+    "title": "ezxzeng/ergogen_footprints/b3u1000p.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/b3u1000p.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S280",
+    "title": "ezxzeng/ergogen_footprints/jstph_reversible.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/jstph_reversible.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S281",
+    "title": "ezxzeng/ergogen_footprints/key-switches.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/key-switches.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S282",
+    "title": "ezxzeng/ergogen_footprints/mountinghole.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S283",
+    "title": "ezxzeng/ergogen_footprints/promicro-pretty.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/promicro-pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S284",
+    "title": "ezxzeng/ergogen_footprints/reset_button.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/reset_button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S285",
+    "title": "ezxzeng/ergogen_footprints/slider_threeway.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/slider_threeway.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S286",
+    "title": "ezxzeng/ergogen_footprints/text.js",
+    "url": "https://github.com/ezxzeng/ergogen_footprints/blob/9811c4d85a8e208ac0709f2da583645530be8fe2/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S287",
+    "title": "harshitgoel96/ergogen_footprints/fh12_12.js",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/blob/d569c92090e56dda30fa4d4ed54f65d76980d47e/fh12_12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S288",
+    "title": "harshitgoel96/ergogen_footprints/m3_mounting.js",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/blob/d569c92090e56dda30fa4d4ed54f65d76980d47e/m3_mounting.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S289",
+    "title": "harshitgoel96/ergogen_footprints/mx_socket_mxlp_choc.js",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/blob/d569c92090e56dda30fa4d4ed54f65d76980d47e/mx_socket_mxlp_choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S290",
+    "title": "harshitgoel96/ergogen_footprints/r_0805.js",
+    "url": "https://github.com/harshitgoel96/ergogen_footprints/blob/d569c92090e56dda30fa4d4ed54f65d76980d47e/r_0805.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S291",
+    "title": "helgederenthal/ergogen-footprints/elite-c.js",
+    "url": "https://github.com/helgederenthal/ergogen-footprints/blob/84567480106c3a7a7ed2350b34f0c46ea0e587ce/elite-c.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S292",
+    "title": "helgederenthal/ergogen-footprints/switch_choc_v1_v2.js",
+    "url": "https://github.com/helgederenthal/ergogen-footprints/blob/84567480106c3a7a7ed2350b34f0c46ea0e587ce/switch_choc_v1_v2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S293",
+    "title": "theb0b12/ergogen-footprints/7mouse_bites.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/7mouse_bites.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S294",
+    "title": "theb0b12/ergogen-footprints/chocv1v2b0b.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/chocv1v2b0b.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S295",
+    "title": "theb0b12/ergogen-footprints/cirque.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/cirque.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S296",
+    "title": "theb0b12/ergogen-footprints/doru-tht.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/doru-tht.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S297",
+    "title": "theb0b12/ergogen-footprints/haptic.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/haptic.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S298",
+    "title": "theb0b12/ergogen-footprints/jumper1.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/jumper1.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S299",
+    "title": "theb0b12/ergogen-footprints/oled2.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/oled2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S300",
+    "title": "theb0b12/ergogen-footprints/placeholder.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/placeholder.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S301",
+    "title": "theb0b12/ergogen-footprints/rotary.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S302",
+    "title": "theb0b12/ergogen-footprints/router.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/router.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S303",
+    "title": "theb0b12/ergogen-footprints/seeed-xiao-plus.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/seeed-xiao-plus.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S304",
+    "title": "theb0b12/ergogen-footprints/shift_reg.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/shift_reg.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S305",
+    "title": "theb0b12/ergogen-footprints/smd.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/smd.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S306",
+    "title": "theb0b12/ergogen-footprints/trrs.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/trrs.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S307",
+    "title": "theb0b12/ergogen-footprints/usbc.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/usbc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S308",
+    "title": "theb0b12/ergogen-footprints/vik_horizontal.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/vik_horizontal.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S309",
+    "title": "theb0b12/ergogen-footprints/vikout.js",
+    "url": "https://github.com/theb0b12/ergogen-footprints/blob/ca9a6555edee93f383c81f7c76e2adfb5f449c2d/vikout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S310",
+    "title": "ykz89/ergogen-footprints/ks27-choc-v1-mx-soldered-and-hotswap.js",
+    "url": "https://github.com/ykz89/ergogen-footprints/blob/01c8cd03ff9bd66b283f82c7059b11b7be8ed26f/ks27-choc-v1-mx-soldered-and-hotswap.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.198Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S311",
+    "title": "ykz89/ergogen-footprints/vik-keyboard-connector-horizontal.js",
+    "url": "https://github.com/ykz89/ergogen-footprints/blob/01c8cd03ff9bd66b283f82c7059b11b7be8ed26f/vik-keyboard-connector-horizontal.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S312",
+    "title": "johnlamb/LambBT/ergogen/footprints/b3u1000p.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/b3u1000p.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S313",
+    "title": "johnlamb/LambBT/ergogen/footprints/bat.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/bat.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S314",
+    "title": "johnlamb/LambBT/ergogen/footprints/batterypad.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/batterypad.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S315",
+    "title": "johnlamb/LambBT/ergogen/footprints/mountinghole.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S316",
+    "title": "johnlamb/LambBT/ergogen/footprints/pcm12.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/pcm12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S317",
+    "title": "johnlamb/LambBT/ergogen/footprints/promicro_pretty.js",
+    "url": "https://github.com/johnlamb/LambBT/blob/c127665660b2f8adc8632cb89790d27262cc3549/ergogen/footprints/promicro_pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S318",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/battery.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/battery.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S319",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/choc.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S320",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/diode.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S321",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/hole.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S322",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/jumper.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/jumper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S323",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/nicenano.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/nicenano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S324",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/niceview.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/niceview.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S325",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/reset.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/reset.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S326",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/rotary.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S327",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/scrollwheel_mirrored.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/scrollwheel_mirrored.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S328",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/slider_reversible.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/slider_reversible.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S329",
+    "title": "dnlbauer/corax-keyboard/corax54/ergogen/footprints/text.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax54/ergogen/footprints/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S330",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/battery.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/battery.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S331",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/choc.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S332",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/diode.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S333",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/hole.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S334",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/jumper.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/jumper.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S335",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/nicenano.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/nicenano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S336",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/niceview.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/niceview.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S337",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/reset.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/reset.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S338",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/rotary.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/rotary.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S339",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/scrollwheel_mirrored.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/scrollwheel_mirrored.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S340",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/slider_reversible.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/slider_reversible.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S341",
+    "title": "dnlbauer/corax-keyboard/corax56/ergogen/footprints/text.js",
+    "url": "https://github.com/dnlbauer/corax-keyboard/blob/7e01724621f12f1c1099f78c978bcb6aca19b795/corax56/ergogen/footprints/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S342",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/VladAndral/pipico.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/VladAndral/pipico.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S343",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/hesse_logo.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/hesse_logo.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S344",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/reset_switch_1825027-8.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/reset_switch_1825027-8.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S345",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/tc36k_logo.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/tc36k_logo.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S346",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/unspecworks/diode_tht.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/unspecworks/diode_tht.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S347",
+    "title": "unspecworks/gamma-omega/original/ergogen/footprints/unspecworks/pico_oneside.js",
+    "url": "https://github.com/unspecworks/gamma-omega/blob/840f3c9c7454f699907d58289f54927d6d18ca69/original/ergogen/footprints/unspecworks/pico_oneside.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S348",
+    "title": "Narkoleptika/josukey/ergogen/footprints/jst-s2b-ph-kl.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/jst-s2b-ph-kl.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S349",
+    "title": "Narkoleptika/josukey/ergogen/footprints/keepout.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/keepout.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S350",
+    "title": "Narkoleptika/josukey/ergogen/footprints/love.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/love.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S351",
+    "title": "Narkoleptika/josukey/ergogen/footprints/pcm12.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/pcm12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S352",
+    "title": "Narkoleptika/josukey/ergogen/footprints/peace.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/peace.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S353",
+    "title": "Narkoleptika/josukey/ergogen/footprints/promicro_pretty.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/promicro_pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S354",
+    "title": "Narkoleptika/josukey/ergogen/footprints/route.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/route.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S355",
+    "title": "Narkoleptika/josukey/ergogen/footprints/sk6812mini.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/sk6812mini.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S356",
+    "title": "Narkoleptika/josukey/ergogen/footprints/sod-123w.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/sod-123w.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S357",
+    "title": "Narkoleptika/josukey/ergogen/footprints/text.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S358",
+    "title": "Narkoleptika/josukey/ergogen/footprints/via.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/via.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S359",
+    "title": "Narkoleptika/josukey/ergogen/footprints/wuerth-434121025816.js",
+    "url": "https://github.com/Narkoleptika/josukey/blob/15bfa535a9876d95c239333d4debe53209aa4b46/ergogen/footprints/wuerth-434121025816.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S360",
+    "title": "soundmonster/samoklava/footprints/promicro_flippable.js",
+    "url": "https://github.com/soundmonster/samoklava/blob/a23bf7180eb31e970980c9d20f7c0d886c5032da/footprints/promicro_flippable.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S361",
+    "title": "soundmonster/samoklava/footprints/reset_button.js",
+    "url": "https://github.com/soundmonster/samoklava/blob/a23bf7180eb31e970980c9d20f7c0d886c5032da/footprints/reset_button.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S362",
+    "title": "soundmonster/samoklava/footprints/slider_threeway.js",
+    "url": "https://github.com/soundmonster/samoklava/blob/a23bf7180eb31e970980c9d20f7c0d886c5032da/footprints/slider_threeway.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S363",
+    "title": "soundmonster/samoklava/footprints/text.js",
+    "url": "https://github.com/soundmonster/samoklava/blob/a23bf7180eb31e970980c9d20f7c0d886c5032da/footprints/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S364",
+    "title": "soundmonster/samoklava/footprints/trrs_tight.js",
+    "url": "https://github.com/soundmonster/samoklava/blob/a23bf7180eb31e970980c9d20f7c0d886c5032da/footprints/trrs_tight.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S365",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/battery_connector_jst_ph_2.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/battery_connector_jst_ph_2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S366",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/diode_tht_sod123.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/diode_tht_sod123.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S367",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/display_nice_view.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/display_nice_view.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S368",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/mcu_nice_nano.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/mcu_nice_nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S369",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/mounting_hole_npth.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/mounting_hole_npth.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S370",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/mounting_hole_plated.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/mounting_hole_plated.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S371",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/power_switch_smd_side.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/power_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S372",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/reset_switch_smd_side.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/reset_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S373",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/switch_choc_v1_v2.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/switch_choc_v1_v2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S374",
+    "title": "thrly/tempest/ergogen/footprints/ceoloide/utility_text.js",
+    "url": "https://github.com/thrly/tempest/blob/8d1ced109a41dfb5647e67cf5924c7ce4c70b38a/ergogen/footprints/ceoloide/utility_text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S375",
+    "title": "rschenk/tern/ergogen/footprints/better_diode.js",
+    "url": "https://github.com/rschenk/tern/blob/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a/ergogen/footprints/better_diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S376",
+    "title": "rschenk/tern/ergogen/footprints/choc_bonus_goodies.js",
+    "url": "https://github.com/rschenk/tern/blob/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a/ergogen/footprints/choc_bonus_goodies.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S377",
+    "title": "rschenk/tern/ergogen/footprints/mountinghole.js",
+    "url": "https://github.com/rschenk/tern/blob/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a/ergogen/footprints/mountinghole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S378",
+    "title": "rschenk/tern/ergogen/footprints/xiao.js",
+    "url": "https://github.com/rschenk/tern/blob/02445d5ecc4fb8d357fbc5e9103daed2c0a2df6a/ergogen/footprints/xiao.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S379",
+    "title": "Albert-IV/ergogen-contrib/src/footprints/promicro_pretty.js",
+    "url": "https://github.com/Albert-IV/ergogen-contrib/blob/956da989b56c0950b704d91bed69bb7ec233098a/src/footprints/promicro_pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S380",
+    "title": "Albert-IV/ergogen-contrib/src/footprints/tentingpuck.js",
+    "url": "https://github.com/Albert-IV/ergogen-contrib/blob/956da989b56c0950b704d91bed69bb7ec233098a/src/footprints/tentingpuck.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S381",
+    "title": "ceoloide/battery_connector_jst_ph_2",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/battery_connector_jst_ph_2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S382",
+    "title": "ceoloide/battery_connector_molex_pico_ezmate_1x02",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/battery_connector_molex_pico_ezmate_1x02.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S383",
+    "title": "ceoloide/diode_tht_sod123",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/diode_tht_sod123.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S384",
+    "title": "ceoloide/display_nice_view",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/display_nice_view.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S385",
+    "title": "ceoloide/display_ssd1306",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/display_ssd1306.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S386",
+    "title": "ceoloide/led_sk6812mini-e",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/led_sk6812mini-e.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S387",
+    "title": "ceoloide/mcu_nice_nano",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/mcu_nice_nano.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S388",
+    "title": "ceoloide/mcu_supermini_nrf52840",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/mcu_supermini_nrf52840.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S389",
+    "title": "ceoloide/mounting_hole_npth",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/mounting_hole_npth.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S390",
+    "title": "ceoloide/mounting_hole_plated",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/mounting_hole_plated.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S391",
+    "title": "ceoloide/power_switch_smd_side",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/power_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S392",
+    "title": "ceoloide/reset_switch_smd_side",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/reset_switch_smd_side.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S393",
+    "title": "ceoloide/reset_switch_tht_top",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/reset_switch_tht_top.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S394",
+    "title": "ceoloide/rotary_encoder_ec11_ec12",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/rotary_encoder_ec11_ec12.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S395",
+    "title": "ceoloide/switch_choc_v1_v2",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/switch_choc_v1_v2.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S396",
+    "title": "ceoloide/switch_gateron_ks27_ks33",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/switch_gateron_ks27_ks33.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S397",
+    "title": "ceoloide/switch_mx",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/switch_mx.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S398",
+    "title": "ceoloide/trrs_pj320a",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/trrs_pj320a.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S399",
+    "title": "ceoloide/utility_ergogen_logo",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_ergogen_logo.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S400",
+    "title": "ceoloide/utility_filled_zone",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_filled_zone.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S401",
+    "title": "ceoloide/utility_keepout_zone",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_keepout_zone.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S402",
+    "title": "ceoloide/utility_point_debugger",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_point_debugger.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S403",
+    "title": "ceoloide/utility_router",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_router.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S404",
+    "title": "ceoloide/utility_text",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/utility_text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S405",
+    "title": "infused-kim/choc",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/choc.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S406",
+    "title": "infused-kim/conn_molex_pico_ezmate_1x02",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/conn_molex_pico_ezmate_1x02.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S407",
+    "title": "infused-kim/conn_molex_pico_ezmate_1x05",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/conn_molex_pico_ezmate_1x05.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S408",
+    "title": "infused-kim/diode",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/diode.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S409",
+    "title": "infused-kim/icon_bat",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/icon_bat.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S410",
+    "title": "infused-kim/mounting_hole",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/mounting_hole.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S411",
+    "title": "infused-kim/nice_nano_pretty",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_nano_pretty.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S412",
+    "title": "infused-kim/nice_view",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_view.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S413",
+    "title": "infused-kim/pads",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/pads.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S414",
+    "title": "infused-kim/point_debugger",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/point_debugger.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S415",
+    "title": "infused-kim/smd_0805",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/smd_0805.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S416",
+    "title": "infused-kim/switch_power",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/switch_power.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S417",
+    "title": "infused-kim/switch_reset",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/switch_reset.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S418",
+    "title": "infused-kim/text",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/text.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S419",
+    "title": "infused-kim/trackpoint_mount",
+    "url": "/home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/trackpoint_mount.js",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S420",
+    "title": "local-provenance.json",
+    "url": "local-provenance.json",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S421",
+    "title": "verify-switches.jsonl",
+    "url": "verify-switches.jsonl",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S422",
+    "title": "verify-switches-upstream.jsonl",
+    "url": "verify-switches-upstream.jsonl",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S423",
+    "title": "verify-local.json",
+    "url": "verify-local.json",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S424",
+    "title": "footprint-tests.txt",
+    "url": "footprint-tests.txt",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S425",
+    "title": "repository-metadata.json",
+    "url": "repository-metadata.json",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S426",
+    "title": "license-audit.md",
+    "url": "license-audit.md",
+    "kind": "execution-or-audit",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "local"
+  },
+  {
+    "id": "S427",
+    "title": "https://docs.kicad.org/10.0/en/pcbnew/pcbnew.html#pad_connections_net_ties_and_jumper_pads",
+    "url": "https://docs.kicad.org/10.0/en/pcbnew/pcbnew.html#pad_connections_net_ties_and_jumper_pads",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "docs.kicad.org"
+  },
+  {
+    "id": "S428",
+    "title": "https://github.com/ceoloide/ergogen-footprints/pull/82",
+    "url": "https://github.com/ceoloide/ergogen-footprints/pull/82",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S429",
+    "title": "https://github.com/ceoloide/ergogen-footprints/issues/80",
+    "url": "https://github.com/ceoloide/ergogen-footprints/issues/80",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S430",
+    "title": "https://www.content.molex.com/dxdam/literature/987650-1961.pdf",
+    "url": "https://www.content.molex.com/dxdam/literature/987650-1961.pdf",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "www.content.molex.com"
+  },
+  {
+    "id": "S431",
+    "title": "https://gateron.com/u_file/2311/10/file/GATERONKS-33LowProfileRed20SwitchWhiteBottomHousingKS-33H10B050NN-Y31.pdf",
+    "url": "https://gateron.com/u_file/2311/10/file/GATERONKS-33LowProfileRed20SwitchWhiteBottomHousingKS-33H10B050NN-Y31.pdf",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "gateron.com"
+  },
+  {
+    "id": "S432",
+    "title": "https://cdn-shop.adafruit.com/product-files/4960/4960_SK6812MINI-E_REV02_EN.pdf",
+    "url": "https://cdn-shop.adafruit.com/product-files/4960/4960_SK6812MINI-E_REV02_EN.pdf",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:45:34.199Z",
+    "valid_at": "pinned revision or captured worktree; metadata at observation",
+    "domain": "cdn-shop.adafruit.com"
+  },
+  {
+    "id": "S433",
+    "title": "https://www.molex.com/en-us/products/series-chart/78171",
+    "url": "https://www.molex.com/en-us/products/series-chart/78171",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.324Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "www.molex.com"
+  },
+  {
+    "id": "S434",
+    "title": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/README.md",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/README.md",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.324Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S435",
+    "title": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/LICENSE",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/LICENSE",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.324Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S436",
+    "title": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/README.md",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/README.md",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.324Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S437",
+    "title": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/LICENSE",
+    "url": "https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/LICENSE",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S438",
+    "title": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/README.md#L158-L171",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/README.md#L158-L171",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S439",
+    "title": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/3d_models/README.md",
+    "url": "https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/3d_models/README.md",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S440",
+    "title": "https://github.com/kiswitch/kiswitch/tree/aefcf65038d48d2666ff14530d482be3c350fa6e",
+    "url": "https://github.com/kiswitch/kiswitch/tree/aefcf65038d48d2666ff14530d482be3c350fa6e",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S441",
+    "title": "https://github.com/kiswitch/kiswitch/blob/aefcf65038d48d2666ff14530d482be3c350fa6e/LICENSE-CC-BY-SA",
+    "url": "https://github.com/kiswitch/kiswitch/blob/aefcf65038d48d2666ff14530d482be3c350fa6e/LICENSE-CC-BY-SA",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S442",
+    "title": "https://gitlab.com/kicad/libraries/kicad-packages3D/-/blob/e62ed1fc7862da83f789bd562671b5e4b82afcdf/LICENSE.md",
+    "url": "https://gitlab.com/kicad/libraries/kicad-packages3D/-/blob/e62ed1fc7862da83f789bd562671b5e4b82afcdf/LICENSE.md",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "gitlab.com"
+  },
+  {
+    "id": "S443",
+    "title": "https://github.com/keebio/Keebio-Parts.pretty/tree/1486bef23f020c31bf69123c93da199850cc7243",
+    "url": "https://github.com/keebio/Keebio-Parts.pretty/tree/1486bef23f020c31bf69123c93da199850cc7243",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S444",
+    "title": "https://github.com/keebio/Keebio-Parts.pretty/blob/1486bef23f020c31bf69123c93da199850cc7243/LICENSE",
+    "url": "https://github.com/keebio/Keebio-Parts.pretty/blob/1486bef23f020c31bf69123c93da199850cc7243/LICENSE",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S445",
+    "title": "https://github.com/koktoh/keyswitch_model/tree/2b6bcfac0032f1547e27b18b9a897e065e544b37",
+    "url": "https://github.com/koktoh/keyswitch_model/tree/2b6bcfac0032f1547e27b18b9a897e065e544b37",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S446",
+    "title": "https://github.com/koktoh/keyswitch_model/blob/2b6bcfac0032f1547e27b18b9a897e065e544b37/README.md#L61-L67",
+    "url": "https://github.com/koktoh/keyswitch_model/blob/2b6bcfac0032f1547e27b18b9a897e065e544b37/README.md#L61-L67",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S447",
+    "title": "https://github.com/foostan/kbd/tree/1f12004a1c9714d0eabec4028c9ae4b259b41562",
+    "url": "https://github.com/foostan/kbd/tree/1f12004a1c9714d0eabec4028c9ae4b259b41562",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S448",
+    "title": "https://github.com/foostan/kbd/blob/1f12004a1c9714d0eabec4028c9ae4b259b41562/LICENSE",
+    "url": "https://github.com/foostan/kbd/blob/1f12004a1c9714d0eabec4028c9ae4b259b41562/LICENSE",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S449",
+    "title": "https://github.com/GilDev/GDEK/tree/629946873bc59c02567fb481bec7ae97d9bc59f8",
+    "url": "https://github.com/GilDev/GDEK/tree/629946873bc59c02567fb481bec7ae97d9bc59f8",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S450",
+    "title": "https://github.com/GilDev/GDEK/blob/629946873bc59c02567fb481bec7ae97d9bc59f8/LICENCE.txt",
+    "url": "https://github.com/GilDev/GDEK/blob/629946873bc59c02567fb481bec7ae97d9bc59f8/LICENCE.txt",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S451",
+    "title": "https://github.com/42willow/tsuki/tree/6ec3f66f3d0cb087d3a061690aaaaf412537c12d",
+    "url": "https://github.com/42willow/tsuki/tree/6ec3f66f3d0cb087d3a061690aaaaf412537c12d",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S452",
+    "title": "https://github.com/42willow/tsuki/blob/6ec3f66f3d0cb087d3a061690aaaaf412537c12d/LICENSE",
+    "url": "https://github.com/42willow/tsuki/blob/6ec3f66f3d0cb087d3a061690aaaaf412537c12d/LICENSE",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S453",
+    "title": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/README.md#L119-L132",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/README.md#L119-L132",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  },
+  {
+    "id": "S454",
+    "title": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/LICENSE.txt",
+    "url": "https://github.com/CardboardMechanic/ergogen_footprints/blob/36ad629b3bc4595cfb34bc5cc74787305ec58e2d/LICENSE.txt",
+    "kind": "primary",
+    "observed_at": "2026-09-20T16:57:29.325Z",
+    "valid_at": "Source memo observation; final ledger consolidation",
+    "domain": "github.com"
+  }
+]

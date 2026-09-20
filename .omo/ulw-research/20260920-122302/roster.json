@@ -1,0 +1,62 @@
+[
+  [
+    "inventory",
+    "Local manifest, provenance and patch integrity"
+  ],
+  [
+    "switches",
+    "Local MX Choc Gateron front back reversible copper"
+  ],
+  [
+    "controllers",
+    "Local MCU and display pad mapping and jumpers"
+  ],
+  [
+    "peripherals",
+    "Local diodes LEDs connectors encoders and polarity"
+  ],
+  [
+    "integration",
+    "App catalogue staging and native Ergogen conversion"
+  ],
+  [
+    "ceoloide",
+    "Ceoloide upstream current and pinned source catalogue"
+  ],
+  [
+    "infused",
+    "Infused-kim upstream current and pinned source catalogue"
+  ],
+  [
+    "ergogen",
+    "Official Ergogen footprint contract and builtins"
+  ],
+  [
+    "ecosystem_a",
+    "Popular GitHub Ergogen footprint repository discovery"
+  ],
+  [
+    "ecosystem_b",
+    "Community repositories and niche footprint coverage"
+  ],
+  [
+    "maker_repos",
+    "Keyboard project embedded reusable footprints"
+  ],
+  [
+    "licenses",
+    "Licensing provenance and redistribution boundaries"
+  ],
+  [
+    "physical",
+    "Manufacturer references for pad numbering and mounting"
+  ],
+  [
+    "skeptic",
+    "Attack compatibility and reversible safety assumptions"
+  ],
+  [
+    "verification",
+    "Executable variant pad/net geometry verification design"
+  ]
+]

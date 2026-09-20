@@ -1,0 +1,11 @@
+--- /tmp/kb_ergogen_fp_infused.bNihUM/trackpoint_mount.js	2026-09-20 12:25:15.960497057 -0400
++++ footprints/vendor/infused-kim/trackpoint_mount.js	2026-09-20 02:49:24.088779146 -0400
+@@ -94,7 +94,7 @@
+       final_offset = final_offset.map(value => value / offset_divisor);
+ 
+       return  `
+-        (model ${filename}
++        (model ${JSON.stringify(filename)}
+           (at (xyz ${final_offset[0]} ${final_offset[1]} ${final_offset[2]}))
+           (scale (xyz ${final_scale[0]} ${final_scale[1]} ${final_scale[2]}))
+           (rotate (xyz ${final_rotation[0]} ${final_rotation[1]} ${final_rotation[2]}))

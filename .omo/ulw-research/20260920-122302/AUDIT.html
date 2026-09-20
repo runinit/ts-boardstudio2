@@ -1,0 +1,409 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>AUDIT</title><style>*{box-sizing:border-box}body{margin:0;color:#17212b;background:#fff;font:17px/1.6 system-ui,sans-serif}main{max-width:1160px;margin:36px auto;padding:0 30px 50px}h1{font-size:34px;line-height:1.2}h2{font-size:26px;margin-top:40px;border-top:1px solid #c7d1db;padding-top:18px;line-height:1.3}h3{font-size:22px;margin-top:32px}p,li,td,th{overflow-wrap:anywhere}a{color:#165aaa}table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:15px;line-height:1.45;margin:18px 0}th,td{text-align:left;vertical-align:top;border:1px solid #c7d1db;padding:10px}th{background:#eaf0f5}tr:nth-child(even){background:#fafbfd}code{font-size:.91em;background:#f0f3f6;padding:1px 3px;overflow-wrap:anywhere}pre{white-space:pre-wrap}img{max-width:100%;max-height:690px;display:block;margin:24px auto}li{margin:8px 0}</style><main><h1 id="existing-ergogen-footprint-audit">Existing Ergogen footprint audit</h1>
+<p>Research snapshot: 20 September 2026. Source pins and verification limits are explicit.</p>
+<h2 id="result">Result</h2>
+<p><strong>The borrowed generators are traceable, but several variants generate incorrect electrical output.</strong> All 39 ceoloide/infused source modules match their integrity inventory. Twelve are byte-identical to files at the two recorded upstream pins; the other 27 differ, and each has a patch declaration whose recorded upstream SHA-256 matches the pinned file. The most serious switch findings reproduce with the pinned upstream generators too. The retained <a href="ceoloide-head.txt">ceoloide HEAD</a> and <a href="infused-head.txt">infused HEAD</a> match those pins. Updating to the already-observed upstream HEAD would not remove those defects. <a href="local-provenance.json">Source 1</a> <a href="verify-switches-upstream.jsonl">Source 2</a></p>
+<p>This audit covers all 24 <code>ceoloide/</code> and 15 <code>infused-kim/</code> modules, the app’s registration/conversion boundary, official Ergogen builtins, and a wider GitHub catalogue. It builds on the previous matrix-net investigation but isolates footprint generation from matrix allocation. This research did not change product code. The catalogue inventories source capabilities; it does not certify every external footprint. <a href="catalogue.json">Source 3</a> <a href="../20260920-114822/SYNTHESIS.md">Previous research</a></p>
+<h2 id="fix-priority">Fix priority</h2>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Footprint and trigger</th>
+<th>Observed output</th>
+<th>Required correction / acceptance test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>Choc: B, single-side, unplated, <code>hotswap_pads_same_side:true</code></td>
+<td>Both socket pads use <code>FROM</code>; <code>TO</code> is absent from the socket contacts</td>
+<td>Correct B pad selection; assert two distinct contacts across the option matrix</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>Infused nice!nano: default generated traces</td>
+<td>240 tracks reference four hardcoded numeric IDs, later translated into four board-local net names</td>
+<td>Derive every track net from its intended signal/local net; test with unrelated nets allocated first</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>MX: default reversible hotswap, unplated, traces enabled</td>
+<td>Three track endpoints have net tags different from the pads they touch; one mixed-net track junction</td>
+<td>Correct track/via net ownership; assert tags and independent geometric connectivity</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Ceoloide diode: drilled-SMD enabled, nonreversible, outer THT disabled</td>
+<td>Zero pads in generated PCB</td>
+<td>Emit intended replacements or reject this combination explicitly</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Infused generic pads: <code>pads:6</code>, net defaults</td>
+<td>Pads5 and6 both use <code>PAD_5</code></td>
+<td>Correct default net6; assert independent defaults unless explicitly shared</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>MX: plated stabilizers</td>
+<td>Stabilizer-net toggle alone does nothing; center-hole toggle activates stabilizer nets</td>
+<td>Use the declared stabilizer gate; test flags independently</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>SSD1306: reversible, traces enabled, custom <code>gnd_trace_width</code></td>
+<td>Wider paths correspond to VCC jumpers</td>
+<td>Apply width to the actual GND paths; test unequal widths</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Source contracts/documentation</td>
+<td>MCU jumper inversion and MX width controls unused; patch reasons incomplete</td>
+<td>Implement/remove/document controls and describe actual source corrections</td>
+</tr>
+</tbody>
+</table>
+<p>Priorities are this audit’s recommendations, not upstream severity labels. Evidence: <a href="verify-switches.jsonl">switch cases</a>, <a href="verify-local.json">native inventory and retained PCB outputs</a>, <a href="local-provenance.json">local sources</a>. SSD1306 and unused-option observations additionally rely on the controller/source audits; see detailed scope below.</p>
+<h2 id="what-changes-in-kicad">What changes in KiCad</h2>
+<p>Footprint selection and options change <strong>actual pads, copper layers, holes, nets, and sometimes local tracks/vias</strong>. A 3D model change alone does not repair those objects. Distinguish four independent choices:</p>
+<table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Meaning</th>
+<th>Why a generic Boolean is inadequate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>side</code></td>
+<td>Provider-specific face selection</td>
+<td>For ceoloide hotswap it selects socket copper; a switch model may sit opposite it. Keepout documents F/B/F&amp;B but its shorthand default is misclassified by the engine; see defect below.</td>
+</tr>
+<tr>
+<td><code>reverse</code> / <code>reversible</code></td>
+<td>Emit a dual-assembly layout</td>
+<td>Libraries use different names; some footprints are always reversible, others only duplicate graphics.</td>
+</tr>
+<tr>
+<td><code>reverse_mount</code></td>
+<td>Component-facing orientation</td>
+<td>Does not mean the same thing as emitting both copper layouts.</td>
+</tr>
+<tr>
+<td>Layout mirroring / object transforms</td>
+<td>Placement in the board frame</td>
+<td>Does not by itself guarantee the component’s physical pinout is mirrored correctly.</td>
+</tr>
+</tbody>
+</table>
+<p>These are source-specific contracts, not universal Ergogen semantics. Ergogen validates declared parameters: an unknown <code>reversible</code> key is rejected rather than silently ignored. Source review of current wizard choices found compatible declared keys; exhaustive wizard permutations were not executed. <a href="file:///home/chris/projects/ts-boardstudio2/engine/src/pcbs.js" title="Source line 42">Engine contract</a> <a href="file:///home/chris/projects/ts-boardstudio2/app/src/utils/designSetup.ts" title="Source line 331">Setup providers</a> <a href="file:///home/chris/projects/ts-boardstudio2/engine/src/native/pcbs.js" title="Source line 27">Native placement</a></p>
+<p><img src="assets/qualification.svg" alt="Footprint qualification stages"></p>
+<h2 id="interim-use-guidance">Interim use guidance</h2>
+<p>Avoid the failing Choc combination and accepted padless diode combination. Do not rely on supplied MX/Infused MCU trace net assignments until corrected and rechecked. Explicitly override <code>net_6</code> when six separate generic pads are intended. Manually route footprints that intentionally omit local connections, then test the selected solder-bridge assembly. None of these interim measures is a tested whole-board release recommendation. <strong>Source-reviewed</strong> rows below are descriptive, not approved; <strong>Unresolved</strong> rows need the named proof.</p>
+<h2 id="confirmed-electrical-findings">Confirmed electrical findings</h2>
+<h3 id="choc-contacts-collapse-onto-one-net">Choc contacts collapse onto one net</h3>
+<p>With <code>hotswap:true</code>, <code>solder:false</code>, <code>side:B</code>, <code>reversible:false</code>, <code>include_plated_holes:false</code>, <code>hotswap_pads_same_side:true</code>, the unplated back inner pad remains <code>from</code> while the outer pad also changes to <code>from</code>. Native generated output preserves the error. The probe uses distinct FROM/TO signals and verifies 0°,37°,90° placement. B-default, F-same-side, reversible-same-side and plated controls retain both signals. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_choc_v1_v2.js">Source</a> <a href="verify-switches.jsonl">Executed evidence</a></p>
+<p>Upstream <a href="https://github.com/ceoloide/ergogen-footprints/pull/82">PR82</a> independently reports this option interaction and proposes a correction. The retained <a href="pr82-snapshot.json">PR state snapshot</a> records it open and unmerged at inspection; a proposal is not an adopted fix. The local/pinned-upstream probe outputs match. <a href="verify-switches-upstream.jsonl">Upstream verification</a></p>
+<h3 id="mcu-tracks-can-be-present-with-incorrect-or-absent-net-assignments">MCU tracks can be present with incorrect or absent net assignments</h3>
+<p>Infused <code>nice_nano_pretty</code> emits literal track net IDs 1/13/23/24 in each row. In the retained distinct-net native board, its 240 tracks resolve to <code>SIG_RAW</code> 108 times, <code>R1</code> 84 times, and two local socket nets 24 times each. The other intended signals do not obtain corresponding track metadata. The KiCad 10 backend normalizer translates supplied IDs; it does not infer the intended net from the pads touched by each track. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_nano_pretty.js" title="Source line 239">Vendor source</a> <a href="assets/infused-kim_nice_nano_pretty_named.kicad_pcb">Native fixture</a> <a href="verify-local.json">Parsed evidence</a></p>
+<p>Ceoloide nice!nano and SuperMini differ: each retained reversible case contains 192 segments with <strong>no net fields</strong>. This avoids the particular fixed-ID mistake but does not establish correct net assignment after KiCad connectivity rebuild. Desktop roundtrip/DRC is still required. Neither generator’s drawn tracks prove that the complete keyboard is routed. <a href="assets/ceoloide_mcu_nice_nano_named.kicad_pcb">Ceoloide fixture</a></p>
+<p>Infused also repeats pad numbers1–12 on both local socket nets and different global signal nets. Repeated numbers are legal for same-net pads; differing-net reuse requires schematic-update testing. Do not infer a physical short from numbering alone. <a href="https://docs.kicad.org/10.0/en/pcbnew/pcbnew.html#pad_connections_net_ties_and_jumper_pads">KiCad pad semantics</a></p>
+<h3 id="mx-tracks-disagree-with-their-contacted-pads">MX tracks disagree with their contacted pads</h3>
+<p>MX with <code>reversible:true</code> and other electrical options at defaults generated three exact pad-center/track endpoint net mismatches and one unlike-tagged track junction at all three tested rotations. Source inspection traces separate chains between corresponding FROM pads and corresponding TO pads; the retained endpoint harness does not perform complete geometric connectivity analysis. Therefore the proven defect is <strong>wrong copper net tags</strong>, not a demonstrated physical short between the two switch terminals. Full intersections, clearances and KiCad normalization remain untested. <a href="verify-switches.jsonl">Executed cases</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_mx.js" title="Source line 342">Source</a></p>
+<p>The same-side control avoids these measured endpoint conflicts. Disabling supplied traces removes these tracks, leaving routing work; it does not make the board routed. <code>include_plated_holes:true</code> also suppresses tracks while all four socket holes remain NPTH: only the mounting holes become plated. Do not expect that flag to join front/back electrical contacts automatically. <a href="verify-switches.jsonl">Executed controls</a></p>
+<h3 id="missing-diode-pads-and-duplicated-generic-pad-defaults">Missing diode pads and duplicated generic-pad defaults</h3>
+<p>The diode’s SMD suppression condition is broader than its drilled replacement condition. The named option combination is accepted and emits zero pads through the native generator. The option is documented for reversible pads, so this is missing cross-parameter validation rather than proof of promised single-side support. <a href="assets/padless_diode.kicad_pcb">PCB</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/diode_tht_sod123.js" title="Source line 245">Source</a></p>
+<p>Infused <code>pads</code> declares <code>net_6</code> as <code>PAD_5</code>. With <code>pads:6</code> and <strong>no net overrides</strong>, front pads 5/6 share that net; on B the mirrored, renumbered pads 1/2 retain the alias. This source is byte-identical to upstream. <a href="assets/six_pads_defaults.kicad_pcb">PCB</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/pads.js" title="Source line 20">Source</a></p>
+<h2 id="registered-source-scope">Registered-source scope</h2>
+<p>The complete family audit covers the 39 ceoloide/infused modules, not every runtime registration. Six additional registrations were separately smoke-generated and parsed: <code>bhkfp/cap_0603</code>(2pads), <code>bhkfp/thqwgd001c</code>(20), legacy alias <code>infused-kimo/isde</code>(6), <code>catalogue/pico</code>(90), <code>promicro</code>(24), and <code>catalogue/xiao_rp2040</code>(36). Those counts include duplicate, mechanical or alternate pads where present; they are not pin counts. Their full variant/physical qualification and BHK upstream sourcing remain outside this family audit. BHK remains independent. Official builtins are separately source-inventoried in the master list. <a href="verify-supplement.json">Supplementary native probe</a></p>
+<h2 id="full-local-register">Full local register</h2>
+<p>Every row links the actual local generator. Read the raw/staged verification scope below before interpreting an absence of listed defects as approval.</p>
+<table>
+<thead>
+<tr>
+<th>Local module</th>
+<th>Pad/net contract</th>
+<th>Side / reversibility</th>
+<th>Status and audit note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/battery_connector_jst_ph_2.js">ceoloide/battery_connector_jst_ph_2</a></td>
+<td>Single: 1=BAT_N,2=BAT_P; reversible holes11/12 use local nets plus selectable jumpers</td>
+<td>side F/B; reversible</td>
+<td><strong>Manual work</strong>: Route/bridge selected assembly</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/battery_connector_molex_pico_ezmate_1x02.js">ceoloide/battery_connector_molex_pico_ezmate_1x02</a></td>
+<td>1=BAT_N/GND,2=BAT_P; unnumbered mechanical pads</td>
+<td>side F/B; reversible</td>
+<td><strong>Source-reviewed</strong>: Opposite default polarity to infused entry</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/diode_tht_sod123.js">ceoloide/diode_tht_sod123</a></td>
+<td>1=to/cathode,2=from/anode</td>
+<td>side F/B; reversible; optional THT/drilled SMD</td>
+<td><strong>Defect</strong>: Drilled-SMD single-side can emit zero pads</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/display_nice_view.js">ceoloide/display_nice_view</a></td>
+<td>F1..5=MOSI,SCK,VCC,GND,CS; B order reversed; reversible uses local nets</td>
+<td>side/reversible; solder selected bridge bank</td>
+<td><strong>Source-reviewed</strong>: 8 local tracks in reversible mode with traces enabled</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/display_ssd1306.js">ceoloide/display_ssd1306</a></td>
+<td>F1..4=SDA,SCL,VCC,GND; B reversed; reversible local nets</td>
+<td>side/reversible; solder selected bridge bank</td>
+<td><strong>Defect</strong>: GND width option targets VCC paths</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/led_sk6812mini-e.js">ceoloide/led_sk6812mini-e</a></td>
+<td>1=VCC,2=DOUT,3=GND,4=DIN</td>
+<td>side/reversible/reverse_mount; board cutout</td>
+<td><strong>Unresolved</strong>: Logical mapping verified; issue80 physical orientation unresolved</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/mcu_nice_nano.js">ceoloide/mcu_nice_nano</a></td>
+<td>24 main socket positions; named GPIO/power nets; reversible local-net jumpers</td>
+<td>side/reversible/reverse_mount/reduced jumpers</td>
+<td><strong>Unresolved</strong>: 192 supplied segments omit net tags; KiCad rebuild unresolved</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/mcu_supermini_nrf52840.js">ceoloide/mcu_supermini_nrf52840</a></td>
+<td>Main map like nano; optional pads have different coordinates; reduced mode omits P107</td>
+<td>side/reversible/reverse_mount/reduced jumpers</td>
+<td><strong>Unresolved</strong>: 192 reversible tracks omit net tags; extra pads differ from nice!nano</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/mounting_hole_npth.js">ceoloide/mounting_hole_npth</a></td>
+<td>Unnumbered NPTH; no signal net</td>
+<td>mechanical through hole</td>
+<td><strong>Source-reviewed</strong>: No electrical mapping</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/mounting_hole_plated.js">ceoloide/mounting_hole_plated</a></td>
+<td>Unnumbered netless plated mounting copper</td>
+<td>THT; side changes presentation</td>
+<td><strong>Source-reviewed</strong>: Mechanical entry; no declared net parameter</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/power_switch_smd_side.js">ceoloide/power_switch_smd_side</a></td>
+<td>F1=BAT_P,2=RAW,3=NC; B1=NC,2=RAW,3=BAT_P</td>
+<td>side/reversible/invert_behavior</td>
+<td><strong>Source-reviewed</strong>: Middle-pad net convention differs from infused</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/reset_switch_smd_side.js">ceoloide/reset_switch_smd_side</a></td>
+<td>1/3=GND,2/4=RST</td>
+<td>side/reversible; optional bosses</td>
+<td><strong>Source-reviewed</strong>: EVQPU package variants; model evidence historically scoped</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/reset_switch_tht_top.js">ceoloide/reset_switch_tht_top</a></td>
+<td>2=GND,1=RST; local6.4mm pitch/1.2mm drills</td>
+<td>THT; reversible changes silkscreen</td>
+<td><strong>Unresolved</strong>: Intentional land-pattern patch; model pending</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/rotary_encoder_ec11_ec12.js">ceoloide/rotary_encoder_ec11_ec12</a></td>
+<td>A=RE_A,B=GND,C=RE_C; S1/S2 emitted with empty net defaults</td>
+<td>THT; opposite mounting reverses A/C sense</td>
+<td><strong>Unresolved</strong>: Exact selected Alps target/model not fully verified</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_choc_v1_v2.js">ceoloide/switch_choc_v1_v2</a></td>
+<td>Default hotswap1=from,2=to; solder1=to,2=from</td>
+<td>side/reversible; hotswap/solder; V1/V2</td>
+<td><strong>Defect</strong>: DEFECT B single unplated same-side; mixed-number nets in combined</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_gateron_ks27_ks33.js">ceoloide/switch_gateron_ks27_ks33</a></td>
+<td>1=from,2=to; reversible repeated contacts</td>
+<td>side/reversible; hotswap/solder; custom pads</td>
+<td><strong>Unresolved</strong>: Overlapping drills/custom-pad rotation need DRC; Y31 model is KS33</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_mx.js">ceoloide/switch_mx</a></td>
+<td>Default1=from,2=to; same-side option swaps B assignment</td>
+<td>side/reversible; hotswap/solder; plated options</td>
+<td><strong>Defect</strong>: DEFECT default reversible track nets; stabilizer flag; unused width</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/trrs_pj320a.js">ceoloide/trrs_pj320a</a></td>
+<td>Emitted pads2=SL,3=R2,4=TP,5=R1; source calls R1 physical pin1</td>
+<td>side/reversible/symmetric</td>
+<td><strong>Source-reviewed</strong>: 3-net symmetric topology intentionally loses independent R1</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_ergogen_logo.js">ceoloide/utility_ergogen_logo</a></td>
+<td>Drawing; no electrical pads</td>
+<td>graphic layers</td>
+<td><strong>Source-reviewed</strong>: Nonphysical utility</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_filled_zone.js">ceoloide/utility_filled_zone</a></td>
+<td>Copper zone tied to declared net; not component pads</td>
+<td>zone layers</td>
+<td><strong>Source-reviewed</strong>: PCB utility; refill/DRC required</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_keepout_zone.js">ceoloide/utility_keepout_zone</a></td>
+<td>Keepout rules; no component pads</td>
+<td>Source declares F/B/F&amp;B</td>
+<td><strong>Defect</strong>: DEFECT: engine infers number; default emits <a href="http://NaN.Cu">NaN.Cu</a></td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_point_debugger.js">ceoloide/utility_point_debugger</a></td>
+<td>Diagnostic graphics; no component pads</td>
+<td>drawing options</td>
+<td><strong>Source-reviewed</strong>: Nonphysical utility</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_router.js">ceoloide/utility_router</a></td>
+<td>Explicit route instructions; not a whole-board autorouter</td>
+<td>route-dependent layers</td>
+<td><strong>Source-reviewed</strong>: Empty default is not an electrical failure</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_text.js">ceoloide/utility_text</a></td>
+<td>Text graphics</td>
+<td>side/layer options</td>
+<td><strong>Source-reviewed</strong>: Nonphysical utility</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/choc.js">infused-kim/choc</a></td>
+<td>1=from,2=to in hotswap and solder</td>
+<td>reverse; no electrical side param; single F switch/B socket</td>
+<td><strong>Source-reviewed</strong>: No automatic inter-side tracks; model side does not flip copper</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/conn_molex_pico_ezmate_1x02.js">infused-kim/conn_molex_pico_ezmate_1x02</a></td>
+<td>1=RAW,2=GND; MP mechanical</td>
+<td>side/reverse</td>
+<td><strong>Source-reviewed</strong>: Opposite defaults to ceoloide same package</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/conn_molex_pico_ezmate_1x05.js">infused-kim/conn_molex_pico_ezmate_1x05</a></td>
+<td>1..5=CONN_1..CONN_5</td>
+<td>side/reverse</td>
+<td><strong>Source-reviewed</strong>: Generic signals; explicit cable mapping needed</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/diode.js">infused-kim/diode</a></td>
+<td>1=to/cathode,2=from/anode</td>
+<td>Always F+B SMD; optional THT default true</td>
+<td><strong>Source-reviewed</strong>: No electrical side/reverse controls</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/icon_bat.js">infused-kim/icon_bat</a></td>
+<td>Battery silk; no electrical pads</td>
+<td>side/reverse</td>
+<td><strong>Source-reviewed</strong>: Nonphysical utility</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/mounting_hole.js">infused-kim/mounting_hole</a></td>
+<td>Mechanical mounting hole</td>
+<td>THT geometry</td>
+<td><strong>Source-reviewed</strong>: No component electrical mapping</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_nano_pretty.js">infused-kim/nice_nano_pretty</a></td>
+<td>Named MCU nets plus local jumpers; duplicate IDs 1..12 across differing nets</td>
+<td>Permanently reversible; model side only</td>
+<td><strong>Defect</strong>: 240 tracks use literal net IDs 1/13/23/24</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_view.js">infused-kim/nice_view</a></td>
+<td>F1..5=MOSI,SCK,VCC,GND,CS; B reversed; reversible local nets</td>
+<td>side/reverse; bridge convention differs from ceoloide</td>
+<td><strong>Manual work</strong>: 21 pads, 0 tracks reversible: manual local routing required</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/pads.js">infused-kim/pads</a></td>
+<td>1..N=net_1..net_N; default net_6=PAD_5</td>
+<td>side/reverse/mirror; face-local renumbering</td>
+<td><strong>Defect</strong>: 6-pad defaults alias 5/6</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/point_debugger.js">infused-kim/point_debugger</a></td>
+<td>Diagnostic graphics</td>
+<td>drawing options</td>
+<td><strong>Source-reviewed</strong>: Local malformed-reference quote repair</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/smd_0805.js">infused-kim/smd_0805</a></td>
+<td>2i-1=net_i_from,2i=net_i_to; optional swap</td>
+<td>side/reverse/mirror; face-local renumbering</td>
+<td><strong>Source-reviewed</strong>: Do not assume pad-number equivalence across faces</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/switch_power.js">infused-kim/switch_power</a></td>
+<td>F2/B5=BAT_P common; F3/B6=RAW; other terminal NC</td>
+<td>side/reverse</td>
+<td><strong>Source-reviewed</strong>: Middle-pad net convention differs from ceoloide</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/switch_reset.js">infused-kim/switch_reset</a></td>
+<td>Two1=GND and two2=RST per populated face</td>
+<td>side/reverse</td>
+<td><strong>Source-reviewed</strong>: Repeated same-net pad IDs intentional</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/text.js">infused-kim/text</a></td>
+<td>Text graphics</td>
+<td>drawing options</td>
+<td><strong>Source-reviewed</strong>: Nonphysical utility</td>
+</tr>
+<tr>
+<td><a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/trackpoint_mount.js">infused-kim/trackpoint_mount</a></td>
+<td>Mounting holes only; separate connector needed</td>
+<td>side/reverse affects drawings/models</td>
+<td><strong>Source-reviewed</strong>: Bundled extension guard rejects undersized center drill</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mapping-and-assembly-rules-to-preserve">Mapping and assembly rules to preserve</h2>
+<ul>
+<li><strong>Switch contacts are nonpolar, but their net separation is essential.</strong> Swapping two isolated contact labels is different from assigning both to one net. Ceoloide Choc solder uses1=to/2=from while its hotswap convention is1=from/2=to; combined mounting can therefore reuse a number across different nets. Infused Choc retains1=from/2=to. Treat schematic-linked compatibility as a separate test. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_choc_v1_v2.js" title="Source line 442">Choc source</a></li>
+<li><strong>Connector names do not guarantee polarity.</strong> Ceoloide Molex defaults1=GND,2=BAT_P; infused defaults1=RAW,2=GND for the same two-circuit package. Preserve explicit cable mapping when changing provider. The actual family is Molex 78171-0002, 1.20 mm pitch, not Pico-EZmate Plus 212134. <a href="https://www.molex.com/en-us/products/series-chart/78171">Molex manufacturer</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/BOARDSTUDIO.md" title="Source line 175">Local convention</a></li>
+<li><strong>TRRS symmetric mode deliberately changes topology.</strong> It combines physical R1 with TP and emits three independent signal groups. Ordinary R1 is emitted as pad5 despite a pin1 comment. This is not a drop-in four-signal reversible socket. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/trrs_pj320a.js" title="Source line 119">Source</a></li>
+<li><strong>Reversible MCU/display jumpers need an assembly state.</strong> Local socket nets, solder-bridge choices and optional supplied tracks must be recorded separately. Infused nice!view has 21 pads and no tracks in its reversible output; routing and solder bridges are still needed. Ceoloide displays supply local tracks but do not route the keyboard bus. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/vendor/infused-kim/nice_view.js" title="Source line 295">Source</a></li>
+<li><strong>Optional MCU pins are package-specific.</strong> SuperMini positions differ from nice!nano, and reduced reversible SuperMini omits P107 to avoid overlap. With full reversible jumpers, optional pins are omitted even if requested. Nonreversible extra-pin mode emits P101/P102/P107. Reduced reversible nice!nano emits mirrored P101/P102 and central P107; SuperMini emits only mirrored P101/P102. Reduced-jumper configurations also require appropriate firmware pin mapping. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/mcu_supermini_nrf52840.js" title="Source line 564">Source</a></li>
+<li><strong>LED logical identity and physical view are separate checks.</strong> Declared mapping is1=VCC,2=DOUT,3=GND,4=DIN. <a href="https://github.com/ceoloide/ergogen-footprints/issues/80">Issue80</a> alleges a physical numbering/view discrepancy; this audit does not promote the allegation into a proven defect. Existing model alignment notes do not replace a manufacturer-view comparison. <a href="https://cdn-shop.adafruit.com/product-files/4960/4960_SK6812MINI-E_REV02_EN.pdf">OPSCO datasheet</a></li>
+</ul>
+<h2 id="keepout-compatibility-defect">Keepout compatibility defect</h2>
+<p>The unmodified upstream generator declares <code>side:'F&amp;B'</code> and documents F/B alternatives. Engine shorthand type inference evaluates the default as a numeric expression and obtains NaN. Default native output contains <code>(layers &quot;NaN.Cu&quot;)</code>; explicit F and B throw a number-type error. Explicit F&amp;B takes a different path and preserves the intended layer token. Fix the parameter typing/inference boundary and assert valid layer names, not merely successful generation. <a href="verify-edge.json">Native probes</a> <a href="assets/keepout-default.kicad_pcb">Retained default PCB</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/utility_keepout_zone.js" title="Source line 13">Source</a></p>
+<h2 id="secondary-findings-and-limits">Secondary findings and limits</h2>
+<p>SSD1306 <code>gnd_trace_width</code> selects local2/F and local3/B, whose adjacent bridge destinations are VCC. Unequal-width generation exposes the mismatch; default equal widths hide it. This concerns configurable width selection, not a demonstrated signal short. <a href="verify-edge.json">Unequal-width and option-toggle native probes</a> independently retain these observations. Both ceoloide MCUs declare but do not read <code>invert_jumpers_position</code>. MX declares but does not use outer pad-width controls. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/display_ssd1306.js" title="Source line 253">SSD source</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/mcu_nice_nano.js" title="Source line 108">MCU option</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_mx.js" title="Source line 228">MX widths</a></p>
+<p>Gateron reversible hotswap has two pairs of 3 mm drills whose centers are approximately 2.084mm apart (DERIVED: <code>sqrt(1.8²+1.05²)</code>). This is overlapping drill geometry, not an explicitly routed slot. Its custom solder polygons also need arbitrary-angle copper checks. Board-house acceptance and full DRC remain unresolved. The selected physical model target is KS-33H10B050NN-Y31; it does not establish KS27 equivalence. <a href="file:///home/chris/projects/ts-boardstudio2/footprints/switch_gateron_ks27_ks33.js" title="Source line 340">Generator</a> <a href="https://gateron.com/u_file/2311/10/file/GATERONKS-33LowProfileRed20SwitchWhiteBottomHousingKS-33H10B050NN-Y31.pdf">Exact Y31 drawing</a></p>
+<h2 id="provenance-and-licensing">Provenance and licensing</h2>
+<p>The source inventory is complete at file/hash level, but some patch explanations underdescribe behavioral changes. <a href="assets/diff-ceoloide-switch_gateron_ks27_ks33.js.txt">Gateron’s retained diff</a> adds model transforms beyond its filename-quoting patch reason; <a href="assets/diff-infused-kim-choc.js.txt">infused Choc’s retained diff</a> adds socket-model suppression omitted from its patch reason. Model placement changes generally differ from copper corrections; reset-THT land geometry and other explicit source patches must remain individually documented. <a href="local-provenance.json">Retained upstream/local diffs</a></p>
+<p>Ceoloide uses per-file MIT and CC-BY-NC-SA notices. Infused’s LICENSE is CC-BY-NC-SA4.0, while its README link/text is inconsistent; preserve the notice and flag the discrepancy. Repository-level license labels cannot clear borrowed files or models. The catalogue marks unknown/conflicting rights for review and uses links; this research adds no new footprint imports to the product. <a href="https://github.com/ceoloide/ergogen-footprints/blob/48935f54b456ff1503d78d6b17d9d146b54e8ade/README.md">Ceoloide README</a> <a href="https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/LICENSE">Infused LICENSE</a> <a href="https://github.com/infused-kim/kb_ergogen_fp/blob/bb80a207d8a6fa7b9245caad2c2d97e2adc2f612/README.md">Infused README</a></p>
+<h2 id="verification-and-confidence">Verification and confidence</h2>
+<ul>
+<li><strong>Measured source integrity:</strong> 39 modules; 12 identical, 27 patched, all expected hashes match. <a href="verify-inventory.json">Proof</a></li>
+<li><strong>Native switch probes:</strong> 15 parameter cases × 3 rotations = 45 local generations, with another 45 from pinned upstream. Output observations agree. The retained harness output records Node 24.14.0; independent replay is documented in the <a href="execution-review.md">execution review</a>. <a href="verify-switches.cjs">Script</a> <a href="verify-switches.jsonl">Results</a></li>
+<li><strong>Broad raw-source probes:</strong> 132 configurations across all 39 modules, including four focused repros; 131 generated, one rejected despite a documented valid keepout <code>side:B</code> option. The default keepout also emits invalid <code>NaN.Cu</code>, which the initial pad/segment-only summarizer missed. Success means generation/inspection completed, not electrical correctness. Utilities can legitimately emit no component pads. This probe captures per-case errors and exits successfully even if cases fail; its exit code is not a validation gate. <a href="verify-local.cjs">Script</a> <a href="verify-local-summary.json">Summary</a></li>
+<li><strong>Existing footprint suite:</strong> <code>pnpm test:footprints</code> completed successfully on Node 24.14.0. Some model tests give all terminals the same test net and cannot detect signal collapse. <a href="footprint-tests.txt">Transcript</a> <a href="footprint-tests-receipt.json">Execution receipt</a> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/scripts/mxModels.test.mjs" title="Source line 16">MX fixture</a></li>
+<li><strong>Historical evidence:</strong> <a href="file:///home/chris/projects/ts-boardstudio2/footprints/manifest/alignment.json">alignment manifests</a> record unverified historical native KiCad/model checks for selected cases. They were not rerun here. The Choc matrix contains a currently failing electrical combination and needs reconciliation with those past records. <a href="file:///home/chris/projects/ts-boardstudio2/app/scripts/qa/model-contacts.cjs" title="Source line 179">QA matrix</a></li>
+</ul>
+<p>This is an evidence inventory, not license clearance; see the <a href="license-audit.md">license audit</a>.</p>
+<p>No desktop KiCad load/save, DRC, schematic-update, manufacturing-tolerance or physical assembly certification is claimed; <a href="environment.json"><code>kicad-cli</code> is unavailable</a>. Native output means Board Studio’s <code>engine.process</code>, not execution of the KiCad application. Tests apply to the inspected worktree and source pins, not future upstream revisions.</p>
+<p>The raw-versus-staged comparison matched the measured pad/segment/via inventories for all 132 corresponding configurations, including the same caught failure. Model staging does not repair the retained copper/net defects. This comparison is not full source-byte or all-geometry equality. <a href="staging-comparison.json">Comparison</a></p>
+<h2 id="master-list-admission-policy">Master-list admission policy</h2>
+<p>The <a href="MASTER_CATALOGUE.md">master catalogue</a> is the working inventory. For adoption, store provider/revision/hash/license, exact package, pad-to-signal map, side convention, mounting variants, jumper assembly, and separately scoped verification records. Promote a variant only after:</p>
+<ol>
+<li>Parsing the generator contract and rejecting unsupported option combinations.</li>
+<li>Generating distinct nets across supported sides, reversibility, mounting methods and rotations.</li>
+<li>Checking physical contacts, pad numbers, explicit net tags and geometric connectivity separately.</li>
+<li>Confirming manufacturer pin/view orientation and package dimensions.</li>
+<li>Completing native KiCad roundtrip/DRC and a chosen jumper assembly test.</li>
+</ol>
+<p>These are proposed acceptance criteria; no catalogue entry gains fabrication approval merely by being listed.</p>
+<h2 id="evidence-trail-and-gaps">Evidence trail and gaps</h2>
+<p><a href="claim-graph.md">Claim graph</a>, <a href="intent-diff.md">intent comparison</a>, <a href="observation-manifest.md">observation manifest</a>, <a href="verification-economics.md">verification decisions</a>, <a href="cause-disappearance.md">cause status</a>, and <a href="expansion-log.md">expansion log</a> record supported, corrected and unresolved claims. Search and source limitations include the LED view question, Gateron manufacturing/rotation checks, controller connectivity rebuild, copied-file licensing, and exact schematic-update behavior for mixed-net pad-number reuse.</p>
+</main></html>
