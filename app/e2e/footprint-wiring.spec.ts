@@ -4,6 +4,19 @@ import { setValue } from '../src/utils/studioSource';
 import { CONFIG_LOCAL_STORAGE_KEY } from '../src/context/constants';
 import { openCode, openExport, readSource } from './utils/studio';
 
+declare global {
+  interface Window {
+    monaco?: {
+      readonly editor: {
+        getModels(): readonly {
+          getLanguageId(): string;
+          setValue(value: string): void;
+        }[];
+      };
+    };
+  }
+}
+
 const TIMEOUT = 60000;
 test('blocks a raw diode junction break and restores export after repair', async ({
   page,
@@ -49,17 +62,27 @@ test('blocks a raw diode junction break and restores export after repair', async
   await expect(download).toBeEnabled({ timeout: TIMEOUT });
 
   await openCode(page);
-  const editor = page.getByRole('textbox', { name: 'Editor content' });
-  await editor.focus();
-  await editor.press('ControlOrMeta+KeyA');
-  await page.keyboard.insertText(broken);
+  const edit = (source: string) =>
+    page.evaluate((value) => {
+      const model = window.monaco?.editor
+        .getModels()
+        .find((candidate) => candidate.getLanguageId() === 'yaml');
+      if (!model) throw new Error('The project YAML editor is not mounted.');
+      model.setValue(value);
+    }, source);
+  await edit(broken);
   await expect.poll(() => readSource(page)).toBe(broken);
   await openExport(page);
   await expect(download).toBeDisabled();
   const status = page.getByRole('status', { name: 'Project status' });
+  const design = page
+    .getByRole('navigation', { name: 'Design workflow' })
+    .getByRole('button', { name: 'Design', exact: true });
+  await design.click();
   await expect(status).toContainText('Layout positions current', {
     timeout: TIMEOUT,
   });
+  await openExport(page);
   await expect(download).toBeDisabled();
   await status.getByRole('button', { name: /^Review \d+ blockers?$/ }).click();
   const findings = page.getByRole('region', { name: 'Project findings' });
@@ -71,13 +94,14 @@ test('blocks a raw diode junction break and restores export after repair', async
   await findings.getByRole('button', { name: 'Close findings' }).click();
 
   await openCode(page);
-  await editor.focus();
-  await editor.press('ControlOrMeta+KeyA');
-  await page.keyboard.insertText(clean);
+  await edit(clean);
   await expect.poll(() => readSource(page)).toBe(clean);
   await openExport(page);
   await expect(download).toBeEnabled({ timeout: TIMEOUT });
+  await design.click();
   await expect(status).toContainText('Layout positions current');
+  await openExport(page);
+  await expect(download).toBeEnabled();
   await page.screenshot({
     path: testInfo.outputPath('raw-wiring-repaired.png'),
     fullPage: true,
