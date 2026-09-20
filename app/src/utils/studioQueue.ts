@@ -141,6 +141,7 @@ export class StudioQueue {
   dispose() {
     clearTimeout(this.settle);
     clearTimeout(this.grace);
+    this.grace = undefined;
     this.worker?.terminate();
     this.worker = null;
     this.running = null;

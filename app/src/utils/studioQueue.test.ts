@@ -60,6 +60,35 @@ it('replaces a blocked worker only after its grace period', () => {
   expect(workers[1].postMessage.mock.calls[0][0].inputConfig).toBe('b');
   queue.dispose();
 });
+it('publishes the latest edit after cancellation during grace and queue reuse', () => {
+  const { queue, publish } = setup();
+  queue.schedule(request('a'));
+  vi.advanceTimersByTime(SETTLE_MS);
+  queue.schedule(request('b'));
+  queue.dispose();
+  queue.schedule(request('c'));
+  vi.advanceTimersByTime(SETTLE_MS);
+
+  queue.schedule(request('d'));
+  vi.advanceTimersByTime(SUPERSEDE_MS);
+
+  const replacement = workers[2];
+  expect(replacement).toBeDefined();
+  const message = replacement.postMessage.mock.calls[0][0];
+  expect(message.inputConfig).toBe('d');
+  replacement.onmessage?.({
+    data: {
+      type: 'success',
+      requestId: message.requestId,
+      revision: 'd',
+      results: {},
+    },
+  });
+  expect(publish).toHaveBeenCalledWith(
+    expect.objectContaining({ type: 'success', revision: 'd' })
+  );
+  queue.dispose();
+});
 it('rejects replies with mismatched revisions and retains a reusable worker', () => {
   const { queue, publish } = setup();
   queue.schedule(request('a'));

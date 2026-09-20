@@ -1,0 +1,27 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/studioQueue.test.ts (4 tests | 1 failed) 10ms
+   × publishes the latest edit after cancellation during grace and queue reuse 4ms
+     → expected undefined to be defined
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/studioQueue.test.ts > publishes the latest edit after cancellation during grace and queue reuse
+AssertionError: expected undefined to be defined
+ ❯ src/utils/studioQueue.test.ts:76:23
+     74| 
+     75|   const replacement = workers[2];
+     76|   expect(replacement).toBeDefined();
+       |                       ^
+     77|   const message = replacement.postMessage.mock.calls[0][0];
+     78|   expect(message.inputConfig).toBe('d');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  13:40:26
+   Duration  916ms (transform 47ms, setup 70ms, collect 31ms, tests 10ms, environment 561ms, prepare 63ms)
+
