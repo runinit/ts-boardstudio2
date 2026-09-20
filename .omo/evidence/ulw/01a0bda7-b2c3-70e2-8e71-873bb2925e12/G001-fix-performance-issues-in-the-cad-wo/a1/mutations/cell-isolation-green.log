@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/addCellBatch.test.ts (2 tests) 377ms
+   ✓ fills only the requested native cell with its exact defaults and free identity 306ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:27:14
+   Duration  1.79s (transform 204ms, setup 83ms, collect 584ms, tests 377ms, environment 549ms, prepare 58ms)
+

@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ ../.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/mutations/mutationProfile.test.ts (4 tests | 3 skipped) 178ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 3 skipped (4)
+   Start at  04:25:17
+   Duration  1.59s (transform 199ms, setup 71ms, collect 598ms, tests 178ms, environment 555ms, prepare 59ms)
+

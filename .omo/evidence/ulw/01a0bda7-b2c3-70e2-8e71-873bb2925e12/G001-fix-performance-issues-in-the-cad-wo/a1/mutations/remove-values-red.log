@@ -1,0 +1,201 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/removeSourceValues.test.ts (10 tests | 9 failed) 26ms
+   × removeSourceValues > preserves unrelated bytes when removing adjacent block fields 6ms
+     → expected '# header\nm:\n  a: 1\n  b: 2\n  # ret…' to be '# header\nm:\n  # retained\n  c: "03"…' // Object.is equality
+   × removeSourceValues > removes flow siblings a and b with valid separators 9ms
+     → expected [ 'a', 'b', 'c' ] to deeply equal [ 'c' ]
+   × removeSourceValues > removes flow siblings b and c with valid separators 2ms
+     → expected [ 'a', 'b', 'c' ] to deeply equal [ 'a' ]
+   × removeSourceValues > removes flow siblings a and c with valid separators 2ms
+     → expected [ 'a', 'b', 'c' ] to deeply equal [ 'b' ]
+   × removeSourceValues > leaves an empty mapping when every sibling is removed 2ms
+     → expected { m: { a: 1, b: 2 }, t: 3 } to deeply equal { m: {}, t: 3 }
+   × removeSourceValues > leaves an empty mapping when every sibling is removed 1ms
+     → expected { m: { a: 1, b: 2 }, t: 3 } to deeply equal { m: {}, t: 3 }
+   × removeSourceValues > ignores nested and duplicate removals under a removed field 1ms
+     → expected 'm: {a: {x: 1}, b: 2}\n' to be 'm: {b: 2}\n' // Object.is equality
+   × removeSourceValues > allows deleting an anchor and its alias together 0ms
+     → expected 'a: &value {x: 1}\nb: *value\nc: 3\n' to be 'c: 3\n' // Object.is equality
+   × removeSourceValues > rejects a dangling alias after all deletions 2ms
+     → expected [Function] to throw an error
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > preserves unrelated bytes when removing adjacent block fields
+AssertionError: expected '# header\nm:\n  a: 1\n  b: 2\n  # ret…' to be '# header\nm:\n  # retained\n  c: "03"…' // Object.is equality
+
+- Expected
++ Received
+
+  # header
+  m:
++   a: 1
++   b: 2
+    # retained
+    c: "03" # tail
+  t: 4
+
+
+ ❯ src/utils/removeSourceValues.test.ts:8:66
+      6|   it('preserves unrelated bytes when removing adjacent block fields', …
+      7|     const source = '# header\nm:\n  a: 1\n  b: 2\n  # retained\n  c: "…
+      8|     expect(removeSourceValues(source, [['m', 'a'], ['m', 'b']])).toBe(
+       |                                                                  ^
+      9|       '# header\nm:\n  # retained\n  c: "03" # tail\nt: 4\n'
+     10|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > removes flow siblings a and b with valid separators
+AssertionError: expected [ 'a', 'b', 'c' ] to deeply equal [ 'c' ]
+
+- Expected
++ Received
+
+  Array [
++   "a",
++   "b",
+    "c",
+  ]
+
+ ❯ src/utils/removeSourceValues.test.ts:15:44
+     13|     'removes flow siblings %s and %s with valid separators', (a, b) =>…
+     14|       const result = removeSourceValues('m: {a: 1, b: 2, c: 3}\nt: "04…
+     15|       expect(Object.keys(parse(result).m)).toEqual(['a', 'b', 'c'].fil…
+       |                                            ^
+     16|       expect(result).toContain('t: "04" # keep\n');
+     17|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > removes flow siblings b and c with valid separators
+AssertionError: expected [ 'a', 'b', 'c' ] to deeply equal [ 'a' ]
+
+- Expected
++ Received
+
+  Array [
+    "a",
++   "b",
++   "c",
+  ]
+
+ ❯ src/utils/removeSourceValues.test.ts:15:44
+     13|     'removes flow siblings %s and %s with valid separators', (a, b) =>…
+     14|       const result = removeSourceValues('m: {a: 1, b: 2, c: 3}\nt: "04…
+     15|       expect(Object.keys(parse(result).m)).toEqual(['a', 'b', 'c'].fil…
+       |                                            ^
+     16|       expect(result).toContain('t: "04" # keep\n');
+     17|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > removes flow siblings a and c with valid separators
+AssertionError: expected [ 'a', 'b', 'c' ] to deeply equal [ 'b' ]
+
+- Expected
++ Received
+
+  Array [
++   "a",
+    "b",
++   "c",
+  ]
+
+ ❯ src/utils/removeSourceValues.test.ts:15:44
+     13|     'removes flow siblings %s and %s with valid separators', (a, b) =>…
+     14|       const result = removeSourceValues('m: {a: 1, b: 2, c: 3}\nt: "04…
+     15|       expect(Object.keys(parse(result).m)).toEqual(['a', 'b', 'c'].fil…
+       |                                            ^
+     16|       expect(result).toContain('t: "04" # keep\n');
+     17|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > leaves an empty mapping when every sibling is removed
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > leaves an empty mapping when every sibling is removed
+AssertionError: expected { m: { a: 1, b: 2 }, t: 3 } to deeply equal { m: {}, t: 3 }
+
+- Expected
++ Received
+
+  Object {
+-   "m": Object {},
++   "m": Object {
++     "a": 1,
++     "b": 2,
++   },
+    "t": 3,
+  }
+
+ ❯ src/utils/removeSourceValues.test.ts:22:29
+     20|     'leaves an empty mapping when every sibling is removed', source =>…
+     21|       const result = removeSourceValues(source, [['m', 'a'], ['m', 'b'…
+     22|       expect(parse(result)).toEqual({m: {}, t: 3});
+       |                             ^
+     23|     }
+     24|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > ignores nested and duplicate removals under a removed field
+AssertionError: expected 'm: {a: {x: 1}, b: 2}\n' to be 'm: {b: 2}\n' // Object.is equality
+
+- Expected
++ Received
+
+- m: {b: 2}
++ m: {a: {x: 1}, b: 2}
+
+
+ ❯ src/utils/removeSourceValues.test.ts:26:101
+     24|   );
+     25|   it('ignores nested and duplicate removals under a removed field', ()…
+     26|     expect(removeSourceValues('m: {a: {x: 1}, b: 2}\n', [['m', 'a', 'x…
+       |                                                                                                     ^
+     27|   });
+     28|   it('allows deleting an anchor and its alias together', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > allows deleting an anchor and its alias together
+AssertionError: expected 'a: &value {x: 1}\nb: *value\nc: 3\n' to be 'c: 3\n' // Object.is equality
+
+- Expected
++ Received
+
++ a: &value {x: 1}
++ b: *value
+  c: 3
+
+
+ ❯ src/utils/removeSourceValues.test.ts:29:87
+     27|   });
+     28|   it('allows deleting an anchor and its alias together', () => {
+     29|     expect(removeSourceValues('a: &value {x: 1}\nb: *value\nc: 3\n', […
+       |                                                                                       ^
+     30|   });
+     31|   it('rejects a dangling alias after all deletions', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > rejects a dangling alias after all deletions
+AssertionError: expected [Function] to throw an error
+ ❯ src/utils/removeSourceValues.test.ts:32:86
+     30|   });
+     31|   it('rejects a dangling alias after all deletions', () => {
+     32|     expect(() => removeSourceValues('a: &value {x: 1}\nb: *value\nc: 3…
+       |                                                                                      ^
+     33|   });
+     34|   it('preserves source when every requested field is absent', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 1 passed (10)
+   Start at  04:04:57
+   Duration  921ms (transform 43ms, setup 69ms, collect 33ms, tests 26ms, environment 597ms, prepare 56ms)
+

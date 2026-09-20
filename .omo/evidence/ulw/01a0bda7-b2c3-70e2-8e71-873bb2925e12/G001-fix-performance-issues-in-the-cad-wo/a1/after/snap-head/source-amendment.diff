@@ -1,0 +1,44 @@
+--- .omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/after/snap-head/source-2.yaml	2026-09-20 05:35:06.138438775 -0400
++++ .omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/after/snap-head/source-3.yaml	2026-09-20 05:35:06.138438775 -0400
+@@ -94,10 +94,16 @@
+           led: false
+     openSetup: false
+     bridges:
+-      main_edge: []
++      main_edge: [ fingers_c1_r1_follower ]
+     outline:
+       bridges:
+-        main_edge: {}
++        main_edge: { fingers_c1_r1_follower: { from: { ref: fingers_c1_r1 }, to: { ref: follower }, width: 10, ends: flat } }
++      managed:
++        main:
++          - regions.main_keycap
++          - regions.main_body
++          - boundaries.main_edge
++          - profiles.main_outline
+ units:
+   u: 19.05
+   v: u
+@@ -189,7 +195,7 @@
+     thickness: pcb_thickness
+     profile: profiles.main_outline
+ designs:
+-  regions: {main_keycap: { select: { kind: key, pcb: main }, envelope: keycap, close: 2 }}
++  regions: {main_keycap: { select: { kind: key, pcb: main }, envelope: keycap, close: 2 }, main_body: { select: { kind: component, pcb: main }, envelope: body }}
+   profiles: {main_outline: { from: boundaries.main_edge }}
+   stackups:
+     main:
+@@ -200,12 +206,4 @@
+       layers: {}
+   boundaries:
+     main_edge:
+-      clearance: 2
+-      simplify: 2
+-      corners:
+-        fillet: 2
+-      holes: fill
+-      connected: single
+-      from:
+-        - regions.main_keycap
+-      bridges: {}
++      { clearance: 2, simplify: 2, corners: { fillet: 2 }, holes: fill, connected: single, from: [ regions.main_keycap, regions.main_body ], bridges: { fingers_c1_r1_follower: { from: { ref: fingers_c1_r1 }, to: { ref: follower }, width: 10, ends: flat } } }

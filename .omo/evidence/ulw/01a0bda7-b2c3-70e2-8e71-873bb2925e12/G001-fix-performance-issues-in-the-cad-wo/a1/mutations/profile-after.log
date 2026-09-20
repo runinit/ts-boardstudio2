@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/mutationProfile.test.ts (2 tests) 11578ms
+   ✓ profiles real resize and key mutations 10625ms
+   ✓ profiles the captured browser source 952ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  04:03:14
+   Duration  13.00s (transform 178ms, setup 71ms, collect 576ms, tests 11.58s, environment 558ms, prepare 60ms)
+

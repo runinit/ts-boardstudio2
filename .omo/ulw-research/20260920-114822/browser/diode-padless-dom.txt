@@ -1,0 +1,46 @@
+- main:
+  - button "download"
+  - button "flip"
+  - status: 0.00, 0.00 mm
+  - button "svg:zoom_footprint" [disabled]:
+    - text: svg:zoom_footprint
+    - img
+  - button "svg:zoom_page":
+    - text: svg:zoom_page
+    - img
+  - button "layers"
+  - button "category"
+  - button "memory"
+  - button "hub"
+  - button "list"
+  - button "info"
+  - button "settings"
+  - button "help"
+  - text: Nets search
+  - textbox "search"
+  - menu:
+    - menuitem "0"
+    - menuitem "1 RAW"
+    - menuitem "2 GND"
+    - menuitem "3 RST"
+    - menuitem "4 VCC"
+    - menuitem "5 P21"
+    - menuitem "6 P20"
+    - menuitem "7 P19"
+    - menuitem "8 P18"
+    - menuitem "9 P15"
+    - menuitem "10 P14"
+    - menuitem "11 P16"
+    - menuitem "12 P10"
+    - menuitem "13 R1"
+    - menuitem "14 C1"
+    - menuitem "15 P2"
+    - menuitem "16 P3"
+    - menuitem "17 P4"
+    - menuitem "18 P5"
+    - menuitem "19 P6"
+    - menuitem "20 P7"
+    - menuitem "21 P8"
+    - menuitem "22 P9"
+    - menuitem "23 fingers_c1_r1_switch"
+  - text: Click or tap to interact

@@ -1,0 +1,58 @@
+{"kind":"native/clearance.check","ms":0.21292200000004868}
+{"kind":"layout","ms":100.67219499999999}
+{"kind":"designs/geometry.union","ms":220.490324}
+{"kind":"designs/geometry.union","ms":0.36609499999997297}
+{"kind":"outline-start","id":1,"paths":240,"distance":2,"inside":false}
+{"kind":"designs/geometry.union","ms":241.24563899999998}
+{"kind":"outline-end","id":1,"ms":463.45062600000006}
+{"kind":"outline-start","id":2,"paths":92,"distance":2,"inside":true}
+{"kind":"outline-end","id":2,"ms":263.8909899999999}
+{"kind":"outline-start","id":3,"paths":240,"distance":2.001,"inside":false}
+{"kind":"designs/geometry.union","ms":209.10169800000017}
+{"kind":"outline-end","id":3,"ms":400.35272499999996}
+{"kind":"outline-start","id":4,"paths":92,"distance":2.001,"inside":true}
+{"kind":"outline-end","id":4,"ms":282.6351099999997}
+{"kind":"outline-start","id":5,"paths":240,"distance":2,"inside":false}
+{"kind":"designs/geometry.union","ms":194.7640510000001}
+{"kind":"outline-end","id":5,"ms":371.90654700000005}
+{"kind":"outline-start","id":6,"paths":92,"distance":1.999,"inside":true}
+{"kind":"outline-end","id":6,"ms":412.4978249999999}
+{"kind":"designs/geometry.close","ms":2493.330352}
+{"kind":"designs/geometry.offset","ms":0.13568499999973938}
+{"kind":"designs/geometry.union","ms":0.13083499999993364}
+{"kind":"designs/geometry.union","ms":0.3627440000000206}
+{"kind":"designs/geometry.close","ms":0.1362819999999374}
+{"kind":"designs/geometry.union","ms":0.12745700000004945}
+{"kind":"outline-start","id":7,"paths":68,"distance":2,"inside":false}
+{"kind":"outline-end","id":7,"ms":259.4032480000001}
+{"kind":"designs/geometry.offset","ms":260.63951099999986}
+{"kind":"outline-start","id":8,"paths":15,"distance":2,"inside":false}
+{"kind":"outline-end","id":8,"ms":18.20552299999963}
+{"kind":"outline-start","id":9,"paths":19,"distance":2,"inside":true}
+{"kind":"outline-end","id":9,"ms":23.52730100000008}
+{"kind":"designs/geometry.close","ms":45.927520000000186}
+{"kind":"designs/geometry.union","ms":0.05796999999984109}
+DesignError: designs.boundaries.main_edge.corners: Corner relief cannot meet adjacent edges tangentially; reduce its size
+    at Object.fail (/home/chris/projects/ts-boardstudio2/engine/src/designs/geometry.js:21:50)
+    at checkFillets (/home/chris/projects/ts-boardstudio2/engine/src/designs/finishing.js:117:23)
+    at Object.corners (/home/chris/projects/ts-boardstudio2/engine/src/designs/finishing.js:237:5)
+    at finish (/home/chris/projects/ts-boardstudio2/engine/src/designs/index.js:157:44)
+    at resolve (/home/chris/projects/ts-boardstudio2/engine/src/designs/index.js:258:25)
+    at exports.parse (/home/chris/projects/ts-boardstudio2/engine/src/designs/index.js:304:64)
+    at compile (/home/chris/projects/ts-boardstudio2/engine/src/ergogen.js:70:42)
+    at Object.process (/home/chris/projects/ts-boardstudio2/engine/src/ergogen.js:137:28)
+    at /home/chris/projects/ts-boardstudio2/.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/engine/profile60.cjs:31:66
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  diagnostics: [
+    {
+      feature: 'designs.boundaries.main_edge.corners',
+      sourcePath: 'designs.boundaries.main_edge.corners',
+      message: 'Corner relief cannot meet adjacent edges tangentially; reduce its size',
+      explanation: 'Corner relief cannot meet adjacent edges tangentially; reduce its size',
+      code: 'geometry',
+      severity: 'error',
+      action: 'Review the affected feature and its clearance, then generate again.',
+      repairs: [Array]
+    }
+  ]
+}

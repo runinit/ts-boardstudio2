@@ -1,0 +1,45 @@
+Command, run from repository root:
+
+TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS","moduleResolution":"Node"}' \
+  node -r ./app/node_modules/ts-node/register/transpile-only \
+  .omo/teams/team-093fd156/artifacts/worker-grace-reuse-proof.cjs
+
+Runtime:
+
+- Node: v22.22.3
+- pnpm: 11.26.0
+- ts-node: 10.9.2
+- repository HEAD: 347229abc1561a44a2dc6cc0cee50969b49b267e
+- app/src/utils/studioQueue.ts SHA-256:
+  cc2c05c6a28baa2a25150d7f8015d80c690c7cd51acc16036cf21dab5a468d9e
+- app/src/utils/studioQueue.ts was clean in git status when executed.
+
+Output:
+
+{
+  "reusedObservation": {
+    "workersCreated": 2,
+    "freshWorkerTerminateCalls": 0,
+    "freshWorkerMessages": [
+      "studio",
+      "supersede"
+    ]
+  },
+  "controlObservation": {
+    "workersCreated": 2,
+    "firstWorkerTerminateCalls": 1,
+    "firstWorkerMessages": [
+      "studio",
+      "supersede"
+    ]
+  }
+}
+
+Interpretation:
+
+The same queue can create a fresh worker after dispose, so cancellation is not
+terminal. When dispose clears an active grace timeout without assigning
+`this.grace = undefined`, the stale truthy handle makes the next supersession
+return at studioQueue.ts:54-55 without arming a new hard-termination timer. The
+fresh-queue control terminates after the application policy's 1,000 ms minimum
+timer delay. This timer does not guarantee exact elapsed termination latency.

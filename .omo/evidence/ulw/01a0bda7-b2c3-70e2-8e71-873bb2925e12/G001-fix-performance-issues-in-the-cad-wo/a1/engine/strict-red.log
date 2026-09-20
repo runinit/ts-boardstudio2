@@ -1,0 +1,23 @@
+
+
+  Native notched matrix outline performance
+    1) retains the explicit intersection ray when a strict bundle deletes temporary options
+
+
+  0 passing (8ms)
+  1 failing
+
+  1) Native notched matrix outline performance
+       retains the explicit intersection ray when a strict bundle deletes temporary options:
+     TypeError: Cannot delete property 'farPoint' of #<Object>
+      at Object.<anonymous> (test/unit/native_outline_offset.js:37:13)
+      at Object.invoke (/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/sinon@21.1.2/node_modules/sinon/lib/sinon/behavior.js:182:32)
+      at Object.functionStub (/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/sinon@21.1.2/node_modules/sinon/lib/sinon/stub.js:48:43)
+      at outline.invoke (/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/sinon@21.1.2/node_modules/sinon/lib/sinon/proxy-invoke.js:71:47)
+      at Object.outline (/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/sinon@21.1.2/node_modules/sinon/lib/sinon/proxy.js:287:26)
+      at Object.offset (src/designs/geometry.js:69:28)
+      at Context.<anonymous> (test/unit/native_outline_offset.js:41:26)
+      at process.processImmediate (node:internal/timers:504:21)
+
+
+

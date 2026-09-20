@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/removeSourceValues.test.ts (11 tests) 21ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  04:06:43
+   Duration  930ms (transform 57ms, setup 71ms, collect 51ms, tests 21ms, environment 586ms, prepare 56ms)
+

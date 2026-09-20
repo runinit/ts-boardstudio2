@@ -1,0 +1,538 @@
+{
+  "ok": true,
+  "plan": {
+    "version": 1,
+    "evidenceLayoutVersion": 2,
+    "createdAt": "2026-09-20T15:50:03.263Z",
+    "updatedAt": "2026-09-20T16:16:23.772Z",
+    "briefPath": ".omo/ulw-loop/pcb-research-20260920-114822/brief.md",
+    "goalsPath": ".omo/ulw-loop/pcb-research-20260920-114822/goals.json",
+    "ledgerPath": ".omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl",
+    "codexGoalMode": "aggregate",
+    "goals": [
+      {
+        "id": "G001-status-awaiting-required-deliverable",
+        "title": "Document intended electrical contract and approved Markdown format",
+        "objective": "Document intended electrical contract and approved Markdown format; research only; stop when cited evidence and scope limits are documented.",
+        "status": "complete",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Document intended electrical contract and approved Markdown format",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.344Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Document intended electrical contract and approved Markdown format",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.386Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Document intended electrical contract and approved Markdown format",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.429Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 1,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:16:11.889Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+        "startedAt": "2026-09-20T16:13:27.387Z",
+        "completedAt": "2026-09-20T16:16:11.889Z",
+        "evidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md"
+      },
+      {
+        "id": "G002-core-question-why-do-board-studio-pc",
+        "title": "Trace matrix, component and controller net intent",
+        "objective": "Trace matrix, component and controller net intent; research only; stop when cited evidence and scope limits are documented.",
+        "status": "complete",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Trace matrix, component and controller net intent",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.471Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Trace matrix, component and controller net intent",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.513Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Trace matrix, component and controller net intent",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.558Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 1,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:16:23.720Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+        "startedAt": "2026-09-20T16:16:11.893Z",
+        "completedAt": "2026-09-20T16:16:23.720Z",
+        "evidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md"
+      },
+      {
+        "id": "G003-priority-electrical-connectivity-fir",
+        "title": "Verify pad emission and footprint import boundaries",
+        "objective": "Verify pad emission and footprint import boundaries; research only; stop when cited evidence and scope limits are documented.",
+        "status": "complete",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Verify pad emission and footprint import boundaries",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.598Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Verify pad emission and footprint import boundaries",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.641Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Verify pad emission and footprint import boundaries",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.683Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 1,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:16:23.769Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+        "startedAt": "2026-09-20T16:16:23.724Z",
+        "completedAt": "2026-09-20T16:16:23.769Z",
+        "evidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md"
+      },
+      {
+        "id": "G004-research-axes-matrix-net-intent-app",
+        "title": "Verify native compiler and KiCad representation",
+        "objective": "Verify native compiler and KiCad representation; research only; stop when cited evidence and scope limits are documented.",
+        "status": "in_progress",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Verify native compiler and KiCad representation",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.727Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Verify native compiler and KiCad representation",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.769Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Verify native compiler and KiCad representation",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.814Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 1,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:16:23.772Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+        "startedAt": "2026-09-20T16:16:23.772Z"
+      },
+      {
+        "id": "G005-sources-local-app-engine-footprints",
+        "title": "Compare viewer, generation and export boundaries",
+        "objective": "Compare viewer, generation and export boundaries; research only; stop when cited evidence and scope limits are documented.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Compare viewer, generation and export boundaries",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.858Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Compare viewer, generation and export boundaries",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.901Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Compare viewer, generation and export boundaries",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.946Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:13:26.946Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes."
+      },
+      {
+        "id": "G006-proposed-report-english-approximatel",
+        "title": "Execute reproductions and counterexamples",
+        "objective": "Execute reproductions and counterexamples; research only; stop when cited evidence and scope limits are documented.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Execute reproductions and counterexamples",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:26.986Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Execute reproductions and counterexamples",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.028Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Execute reproductions and counterexamples",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.071Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:13:27.071Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes."
+      },
+      {
+        "id": "G007-format-approved-markdown-user-reply",
+        "title": "Refine cited Markdown findings and remedies",
+        "objective": "Refine cited Markdown findings and remedies; research only; stop when cited evidence and scope limits are documented.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Refine cited Markdown findings and remedies",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.118Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Refine cited Markdown findings and remedies",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.166Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Refine cited Markdown findings and remedies",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.214Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:13:27.214Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes."
+      },
+      {
+        "id": "G008-hypotheses-h1-app-assembly-omits-ove",
+        "title": "Render report and close research evidence",
+        "objective": "Render report and close research evidence; research only; stop when cited evidence and scope limits are documented.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "Source trace and cited observation for Render report and close research evidence",
+            "userModel": "happy",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.255Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C002",
+            "scenario": "Counterexample or explicit limitation for Render report and close research evidence",
+            "userModel": "edge",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": true,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.298Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          },
+          {
+            "id": "C003",
+            "scenario": "Independent verification or source exception for Render report and close research evidence",
+            "userModel": "regression",
+            "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+            "essential": false,
+            "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+            "status": "pass",
+            "capturedAt": "2026-09-20T16:13:27.344Z",
+            "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T15:50:03.263Z",
+        "updatedAt": "2026-09-20T16:13:27.344Z",
+        "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+        "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes."
+      }
+    ],
+    "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/pcb-research-20260920-114822/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl as the audit trail.",
+    "activeGoalId": "G004-research-axes-matrix-net-intent-app"
+  },
+  "goal": {
+    "id": "G003-priority-electrical-connectivity-fir",
+    "title": "Verify pad emission and footprint import boundaries",
+    "objective": "Verify pad emission and footprint import boundaries; research only; stop when cited evidence and scope limits are documented.",
+    "status": "complete",
+    "successCriteria": [
+      {
+        "id": "C001",
+        "scenario": "Source trace and cited observation for Verify pad emission and footprint import boundaries",
+        "userModel": "happy",
+        "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+        "essential": true,
+        "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+        "status": "pass",
+        "capturedAt": "2026-09-20T16:13:26.598Z",
+        "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+      },
+      {
+        "id": "C002",
+        "scenario": "Counterexample or explicit limitation for Verify pad emission and footprint import boundaries",
+        "userModel": "edge",
+        "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+        "essential": true,
+        "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+        "status": "pass",
+        "capturedAt": "2026-09-20T16:13:26.641Z",
+        "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+      },
+      {
+        "id": "C003",
+        "scenario": "Independent verification or source exception for Verify pad emission and footprint import boundaries",
+        "userModel": "regression",
+        "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+        "essential": false,
+        "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+        "status": "pass",
+        "capturedAt": "2026-09-20T16:13:26.683Z",
+        "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+      }
+    ],
+    "attempt": 1,
+    "createdAt": "2026-09-20T15:50:03.263Z",
+    "updatedAt": "2026-09-20T16:16:23.769Z",
+    "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+    "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+    "startedAt": "2026-09-20T16:16:23.724Z",
+    "completedAt": "2026-09-20T16:16:23.769Z",
+    "evidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md"
+  },
+  "ledgerEntry": {
+    "at": "2026-09-20T16:16:23.769Z",
+    "kind": "goal_completed",
+    "goalId": "G003-priority-electrical-connectivity-fir",
+    "status": "complete",
+    "evidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md",
+    "codexGoal": {
+      "goal": {
+        "threadId": "01a0bf80-95d7-76e0-b274-f65de30b6e3b",
+        "objective": "Complete the durable ulw-loop plan in .omo/ulw-loop/pcb-research-20260920-114822/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl as the audit trail.",
+        "status": "active",
+        "tokensUsed": 8510,
+        "timeUsedSeconds": 60,
+        "createdAt": 1789920691,
+        "updatedAt": 1789920751
+      },
+      "remainingTokens": null,
+      "completionBudgetReport": null
+    }
+  },
+  "next": {
+    "resumed": false,
+    "goal": {
+      "id": "G004-research-axes-matrix-net-intent-app",
+      "title": "Verify native compiler and KiCad representation",
+      "objective": "Verify native compiler and KiCad representation; research only; stop when cited evidence and scope limits are documented.",
+      "status": "in_progress",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "Source trace and cited observation for Verify native compiler and KiCad representation",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+          "status": "pass",
+          "capturedAt": "2026-09-20T16:13:26.727Z",
+          "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+        },
+        {
+          "id": "C002",
+          "scenario": "Counterexample or explicit limitation for Verify native compiler and KiCad representation",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+          "status": "pass",
+          "capturedAt": "2026-09-20T16:13:26.769Z",
+          "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+        },
+        {
+          "id": "C003",
+          "scenario": "Independent verification or source exception for Verify native compiler and KiCad representation",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md",
+          "essential": false,
+          "capturedEvidence": ".omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md; .omo/ulw-research/20260920-114822/verify-core.jsonl; .omo/ulw-research/20260920-114822/REFINEMENT.md; .omo/ulw-research/20260920-114822/assets/render-manifest.json",
+          "status": "pass",
+          "capturedAt": "2026-09-20T16:13:26.814Z",
+          "notes": "Research-shaped criterion; source/runtime evidence independently refined; fresh final visual reviewers A/B PASS, all10 screenshots. No product changes or commit."
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-09-20T15:50:03.263Z",
+      "updatedAt": "2026-09-20T16:16:23.772Z",
+      "steeringEvidence": ".omo/ulw-research/20260920-114822/BRIEF.md",
+      "steeringRationale": "Replace automatic paragraph-derived wording with concrete research axes.",
+      "startedAt": "2026-09-20T16:16:23.772Z"
+    },
+    "instruction": {
+      "text": "UlwLoop aggregate-goal handoff\nMode: aggregate\nPlan: .omo/ulw-loop/pcb-research-20260920-114822/goals.json\nLedger: .omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl\nGoal: G004-research-axes-matrix-net-intent-app — Verify native compiler and KiCad representation\n\nActive goal:\n- id: G004-research-axes-matrix-net-intent-app\n- title: Verify native compiler and KiCad representation\n- objective: Verify native compiler and KiCad representation; research only; stop when cited evidence and scope limits are documented.\n\nSuccess criteria:\n- [C001] [essential] (happy) Source trace and cited observation for Verify native compiler and KiCad representation — expect: .omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md — status: pass\n- [C002] [essential] (edge) Counterexample or explicit limitation for Verify native compiler and KiCad representation — expect: .omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md — status: pass\n- [C003] [non-essential] (regression) Independent verification or source exception for Verify native compiler and KiCad representation — expect: .omo/ulw-research/20260920-114822/SYNTHESIS.md; .omo/ulw-research/20260920-114822/claim-graph.md — status: pass\n\nCodex goal integration constraints:\n- Use the create_goal payload exactly as rendered: objective only.\n- Goals are unlimited. Do not add numeric limits.\n- Codex goal = the whole omo ulw-loop run; OMO G001/G002/etc. = ledger stories.\n- First call get_goal. If no active goal exists, call create_goal with the aggregate payload below.\n- If get_goal reports the same aggregate objective as active, continue this OMO story without creating a new Codex goal.\n- If a different active or incomplete Codex goal exists, finish/checkpoint that goal before starting this ulw-loop.\n- This is not the final story: do not call update_goal mid-aggregate; checkpoint this OMO ledger story and continue the remaining stories. update_goal is reserved for the final story after the mandatory quality gate passes.\n- Evidence layout v2: write every artifact for the active goal (QA matrix, review reports, receipts) under the current attempt directory — read currentAttemptDir from `omo ulw-loop status --json` (.omo/evidence/ulw/<session>/<goalId>/a<attempt>). The final checkpoint rejects quality-gate artifacts outside that directory.\n- This is not the final ulw-loop story; do not run the final reviewer/manual-QA/gate-review quality gate yet.\n- Checkpoint this OMO story with a fresh get_goal snapshot whose objective matches the aggregate payload.\n- If blocked or failed, checkpoint with --status failed and the failure evidence; rerun complete-goals --session-id pcb-research-20260920-114822 --retry-failed to resume.\n\ncreate_goal payload:\n{\n  \"objective\": \"Complete the durable ulw-loop plan in .omo/ulw-loop/pcb-research-20260920-114822/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl as the audit trail.\"\n}",
+      "json": {
+        "objective": "Complete the durable ulw-loop plan in .omo/ulw-loop/pcb-research-20260920-114822/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/pcb-research-20260920-114822/ledger.jsonl as the audit trail."
+      }
+    }
+  },
+  "summary": {
+    "total": 8,
+    "pending": 4,
+    "in_progress": 1,
+    "complete": 3,
+    "failed": 0,
+    "blocked": 0,
+    "review_blocked": 0,
+    "needs_user_decision": 0,
+    "superseded": 0,
+    "criteria": {
+      "total": 24,
+      "pass": 24,
+      "pending": 0,
+      "fail": 0,
+      "blocked": 0
+    }
+  }
+}

@@ -1,0 +1,13 @@
+run,metric,ms
+sustained-0,firstMoveToFirstTransformMs,23.899999976158142
+sustained-0,pointerUpToPersistedMs,98.5
+sustained-0,pointerUpToCommittedPolygonMs,157.60000002384186
+sustained-0,pointerUpToWorkerTerminalMs,3228.600000023842
+sustained-1,firstMoveToFirstTransformMs,30.300000071525574
+sustained-1,pointerUpToPersistedMs,104.20000004768372
+sustained-1,pointerUpToCommittedPolygonMs,164.89999997615814
+sustained-1,pointerUpToWorkerTerminalMs,3309.0
+sustained-2,firstMoveToFirstTransformMs,34.5
+sustained-2,pointerUpToPersistedMs,103.10000002384186
+sustained-2,pointerUpToCommittedPolygonMs,164.10000002384186
+sustained-2,pointerUpToWorkerTerminalMs,3238.2999999523163

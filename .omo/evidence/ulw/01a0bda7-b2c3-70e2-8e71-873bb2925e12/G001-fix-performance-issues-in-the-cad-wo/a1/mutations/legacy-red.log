@@ -1,0 +1,28 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/studioSourceBatch.test.ts (3 tests | 1 failed) 637ms
+   ✓ adds a row with native electronics without reparsing for every default field 341ms
+   × initializes legacy key electronics in one insertion per new key 203ms
+     → expected 13 to be less than or equal to 12
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/studioSourceBatch.test.ts > initializes legacy key electronics in one insertion per new key
+AssertionError: expected 13 to be less than or equal to 12
+ ❯ src/utils/studioSourceBatch.test.ts:80:22
+     78|     studio_diode: { what: 'diode', placement: { at: [0, -5, 0] }, para…
+     79|   });
+     80|   expect(parseCount).toBeLessThanOrEqual(12);
+       |                      ^
+     81| });
+     82| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  04:01:38
+   Duration  2.02s (transform 171ms, setup 71ms, collect 553ms, tests 637ms, environment 559ms, prepare 59ms)
+

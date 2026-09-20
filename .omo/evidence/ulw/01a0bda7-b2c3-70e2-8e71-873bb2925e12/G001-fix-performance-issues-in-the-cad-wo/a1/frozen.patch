@@ -1,0 +1,2819 @@
+diff --git a/app/CHANGELOG.md b/app/CHANGELOG.md
+index 4276c16..fb88b28 100644
+--- a/app/CHANGELOG.md
++++ b/app/CHANGELOG.md
+@@ -1,5 +1,15 @@
+ # Changelog
+ 
++## Faster layout edits and outlines
++
++September 20, 2026
++
++Adding or removing keys, rows, and columns now updates the project in batches,
++reducing pauses on larger keyboards. Automatic board outlines generate faster
++while retaining authored layouts, electronics, and source comments.
++Repeated automatic outline updates also reuse managed regions instead of adding
++unused recipes to the project.
++
+ ## Snapping settings beneath the tool
+ 
+ September 13, 2026
+diff --git a/app/e2e/studio-performance.spec.ts b/app/e2e/studio-performance.spec.ts
+new file mode 100644
+index 0000000..9b20677
+--- /dev/null
++++ b/app/e2e/studio-performance.spec.ts
+@@ -0,0 +1,249 @@
++import { test, expect, type Page } from '@playwright/test';
++import { mkdir, readFile, writeFile } from 'node:fs/promises';
++import { resolve } from 'node:path';
++import { parse } from 'yaml';
++import {
++  installProbe,
++  createMeasurement,
++  settle,
++  measurePreparation,
++  measureFrozenRebuild,
++  performanceFixture,
++  verifyComponentMove,
++} from './utils/studioPerformance';
++import { openInspector, readSource } from './utils/studio';
++const output = resolve(process.env.PERF_OUTPUT || 'test-results/performance');
++const rows = Number(process.env.PERF_NATIVE_ROWS || 6);
++const columns = Number(process.env.PERF_COLUMNS || 10);
++const total = rows * columns;
++const lastKey = `Select fingers_c${columns}_r1`;
++const key = (page: Page) =>
++  page.getByRole('button', { name: lastKey, exact: true });
++const keys = (page: Page) =>
++  page.getByRole('button', { name: /^Select fingers_c\d+_r\d+$/ });
++test('measures real keyboard editing response and source correctness', async ({
++  page,
++}) => {
++  const initial = process.env.PERF_SOURCE
++    ? await readFile(process.env.PERF_SOURCE, 'utf8')
++    : performanceFixture(columns, rows);
++  test.setTimeout(600000);
++  page.setDefaultTimeout(15000);
++  await mkdir(output, { recursive: true });
++  await writeFile(resolve(output, 'initial-source.yaml'), initial);
++  const errors: string[] = [];
++  const results: unknown[] = [];
++  page.on('pageerror', (error) => errors.push(error.message));
++  page.on('console', (message) => {
++    if (message.type() === 'error') errors.push(message.text());
++  });
++  await page.setViewportSize({ width: 1440, height: 1000 });
++  await installProbe(page, initial);
++  try {
++    await page.goto('./');
++    await expect(keys(page)).toHaveCount(total);
++    await settle(page);
++    await page
++      .getByRole('button', { name: 'Select Objects', exact: true })
++      .click();
++    await key(page).click();
++    await page
++      .getByRole('button', { name: 'Snapping settings', exact: true })
++      .click();
++    await page.getByLabel('Custom snap increment').fill('1');
++    await page
++      .getByRole('button', { name: 'Snapping settings', exact: true })
++      .click();
++    await page.screenshot({ path: resolve(output, 'before.png') });
++    const measure = createMeasurement(page, output, results, errors);
++    for (
++      let repeat = 0;
++      repeat < Number(process.env.PERF_REPEATS || 1);
++      repeat++
++    ) {
++      await measure(
++        `nudge-${repeat}`,
++        'keydown',
++        () => key(page).press('ArrowRight'),
++        async () => {
++          await expect
++            .poll(
++              async () =>
++                parse(await readSource(page)).layout.objects[
++                  `fingers_c${columns}_r1`
++                ].placement.override.at
++            )
++            .toEqual([repeat + 1, 0, 0]);
++        }
++      );
++    }
++    await measureFrozenRebuild(page, output, results);
++    if (process.env.PERF_REBUILD_ONLY === '1') {
++      expect(errors).toEqual([]);
++      return;
++    }
++    for (
++      let repeat = 0;
++      repeat < Number(process.env.PERF_REPEATS || 1);
++      repeat++
++    ) {
++      const before = parse(await readSource(page)).layout.objects[
++        `fingers_c${columns}_r1`
++      ].placement.override.at;
++      const box = await key(page).boundingBox();
++      if (!box) throw new Error('Selected key has no rendered bounds');
++      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
++      await page.mouse.down();
++      await measure(
++        `drag-${repeat}`,
++        'pointermove',
++        async () => {
++          await page.mouse.move(
++            box.x + box.width / 2 + 12,
++            box.y + box.height / 2,
++            { steps: 3 }
++          );
++          await page.mouse.up();
++        },
++        async () => {
++          await expect
++            .poll(
++              async () =>
++                parse(await readSource(page)).layout.objects[
++                  `fingers_c${columns}_r1`
++                ].placement.override.at[0]
++            )
++            .toBeGreaterThan(before[0]);
++        }
++      );
++    }
++    await openInspector(page);
++    await page
++      .getByRole('button', { name: `fingers ${total} keys`, exact: true })
++      .click();
++    for (const dimension of ['columns', 'rows']) {
++      const field = page.getByLabel(`Matrix ${dimension}`, { exact: true });
++      const base = dimension === 'columns' ? columns : rows;
++      for (
++        let repeat = 0;
++        repeat < Number(process.env.PERF_REPEATS || 1);
++        repeat++
++      ) {
++        for (const delta of [1, 0]) {
++          await field.fill(String(base + delta));
++          const count =
++            dimension === 'columns'
++              ? (base + delta) * rows
++              : (base + delta) * columns;
++          if (!delta)
++            await measurePreparation(
++              page,
++              field,
++              results,
++              `remove-${dimension}-${repeat}`
++            );
++          const confirm = page.getByRole('button', {
++            name: 'Remove keys and resize',
++            exact: true,
++          });
++          await measure(
++            `${delta ? 'add' : 'remove'}-${dimension}-${repeat}`,
++            delta ? 'keydown' : 'click',
++            () => (delta ? field.press('Tab') : confirm.click()),
++            async () => {
++              await expect(keys(page)).toHaveCount(count);
++              expect(
++                Object.keys(
++                  parse(await readSource(page)).layout.objects
++                ).filter((id) => /^fingers_c\d+_r\d+$/.test(id)).length
++              ).toBe(count);
++            }
++          );
++        }
++      }
++    }
++    await page
++      .getByRole('button', { name: 'Select Columns', exact: true })
++      .click();
++    await page.getByRole('button', { name: 'Fit layout', exact: true }).click();
++    await page
++      .getByRole('button', { name: 'Select fingers_c2_r1', exact: true })
++      .click();
++    await page
++      .locator('summary')
++      .filter({ hasText: /^Column keys$/ })
++      .click();
++    for (
++      let repeat = 0;
++      repeat < Number(process.env.PERF_REPEATS || 1);
++      repeat++
++    ) {
++      await measure(
++        `remove-key-${repeat}`,
++        'click',
++        () =>
++          page
++            .getByRole('button', {
++              name: `Remove fingers_c2_r2`,
++              exact: true,
++            })
++            .click(),
++        async () => {
++          await expect(keys(page)).toHaveCount(total - 1);
++          expect(
++            parse(await readSource(page)).layout.objects[
++              `fingers_c${columns}_r2`
++            ]
++          ).toBeUndefined();
++        }
++      );
++      await measure(
++        `add-key-${repeat}`,
++        'click',
++        () =>
++          page
++            .getByRole('button', { name: 'Add key in row 2', exact: true })
++            .click(),
++        async () => {
++          await expect(keys(page)).toHaveCount(total);
++          expect(
++            parse(await readSource(page)).layout.objects[
++              `fingers_c${columns}_r2`
++            ].cell
++          ).toEqual(['c2', 'r2']);
++        }
++      );
++    }
++    const finalSource = await readSource(page);
++    await page
++      .getByRole('button', { name: 'Undo project edit', exact: true })
++      .click();
++    await expect(keys(page)).toHaveCount(total - 1);
++    await page
++      .getByRole('button', { name: 'Redo project edit', exact: true })
++      .click();
++    await expect.poll(() => readSource(page)).toBe(finalSource);
++    await settle(page);
++    await page.screenshot({ path: resolve(output, 'after.png') });
++    await writeFile(resolve(output, 'final-source.yaml'), finalSource);
++    await page.reload();
++    await expect(keys(page)).toHaveCount(total);
++    expect(await readSource(page)).toBe(finalSource);
++    if (process.env.PERF_NATIVE_ROWS) await verifyComponentMove(page, output);
++    expect(errors).toEqual([]);
++  } finally {
++    await writeFile(
++      resolve(output, 'worker-packets.json'),
++      JSON.stringify(await page.evaluate(() => window.studioPackets), null, 2)
++    );
++    await writeFile(
++      resolve(output, 'last-source.yaml'),
++      await readSource(page)
++    );
++    await writeFile(
++      resolve(output, 'timings.json'),
++      JSON.stringify({ results, errors }, null, 2)
++    );
++    await page.screenshot({ path: resolve(output, 'last-state.png') });
++  }
++});
+diff --git a/app/e2e/utils/studioPerformance.ts b/app/e2e/utils/studioPerformance.ts
+new file mode 100644
+index 0000000..735c64b
+--- /dev/null
++++ b/app/e2e/utils/studioPerformance.ts
+@@ -0,0 +1,247 @@
++import { regionEvidence } from './studioPerformanceProbe';
++import { waitForStudio, writeWorkerPackets } from './studioPerformanceWorker';
++import { expect, type Page, type Locator } from '@playwright/test';
++import { writeFile } from 'node:fs/promises';
++import { resolve } from 'node:path';
++export { installProbe, performanceFixture } from './studioPerformanceProbe';
++import { readSource, openInspector } from './studio';
++import { parse } from 'yaml';
++export const settle = async (page: Page) => {
++  await expect(page.getByText(/^Updating (layout|outline)…$/)).toHaveCount(0, {
++    timeout: 60000,
++  });
++  await expect(page.getByText(/Layout analysis failed/)).toHaveCount(0);
++  await expect(
++    page.getByText('Showing the last valid geometry.', { exact: true })
++  ).toHaveCount(0);
++  await expect(
++    page
++      .getByRole('group', { name: 'Interactive board layout' })
++      .locator('polyline')
++      .first()
++  ).toHaveAttribute('points', /[-\d.]+,[-\d.]+/);
++};
++export function createMeasurement(
++  page: Page,
++  output: string,
++  results: unknown[],
++  errors: string[]
++) {
++  async function measure(
++    name: string,
++    event: string,
++    action: () => Promise<void>,
++    verify: () => Promise<void>
++  ) {
++    await settle(page);
++    const before = await readSource(page);
++    const contour = page
++      .getByRole('group', { name: 'Interactive board layout' })
++      .locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]');
++    const outlineBefore = await contour.innerHTML();
++    await page.evaluate(
++      ({ event, source }) => {
++        const probe = window.performanceProbe;
++        Object.assign(probe, {
++          start: 0,
++          visible: 0,
++          persisted: 0,
++          committed: 0,
++          polygon: [
++            ...document.querySelectorAll(
++              '[aria-label="Interactive board layout"] [role="button"] polygon'
++            ),
++          ]
++            .map((node) => node.getAttribute('points'))
++            .join('|'),
++          armed: true,
++          event,
++          source,
++          geometry: [
++            ...document.querySelectorAll(
++              '[aria-label="Interactive board layout"] [role="button"] polygon'
++            ),
++          ]
++            .map(
++              (node) =>
++                `${node.parentElement?.getAttribute('transform')}:${node.getAttribute('points')}`
++            )
++            .join('|'),
++        });
++      },
++      { event, source: before }
++    );
++    await action();
++    const actionSource = await readSource(page);
++    const start = await page.evaluate(() => window.performanceProbe.start);
++    await verify();
++    const acknowledgment = await waitForStudio(page, actionSource, start);
++    await writeWorkerPackets(
++      page,
++      resolve(output, `${name}-worker.json`),
++      acknowledgment.requestId,
++      acknowledgment.revision
++    );
++    await settle(page);
++    const result = await page.evaluate((name) => {
++      const probe = window.performanceProbe;
++      probe.armed = false;
++      return {
++        name,
++        inputToVisibleMs: probe.visible ? probe.visible - probe.start : null,
++        inputToPersistedMs: probe.persisted
++          ? probe.persisted - probe.start
++          : null,
++        committedPolygonMs: probe.committed
++          ? probe.committed - probe.start
++          : null,
++        settledMs: performance.now() - probe.start,
++        longTasks: probe.tasks.filter((task) => task.start >= probe.start),
++        visibleBudgetMs: 100,
++        persistedBudgetMs: 100,
++        visiblePass: !!probe.visible && probe.visible - probe.start < 100,
++        persistedPass: !!probe.persisted && probe.persisted - probe.start < 100,
++      };
++    }, name);
++    results.push({
++      ...result,
++      acknowledgment,
++      regions: regionEvidence(before, await readSource(page)),
++      outlineSettledWithin5s: acknowledgment.publishedSuccessMs < 5000,
++      outlineSettledWithin60s: acknowledgment.publishedSuccessMs < 60000,
++    });
++    await writeFile(
++      resolve(output, `${name}-source.yaml`),
++      await readSource(page)
++    );
++    await writeFile(
++      resolve(output, 'timings.json'),
++      JSON.stringify({ results, errors }, null, 2)
++    );
++    await settle(page);
++    await expect(contour).toBeVisible();
++    if (name.startsWith('nudge-'))
++      expect(await contour.innerHTML()).not.toBe(outlineBefore);
++    return before;
++  }
++  return measure;
++}
++export async function measurePreparation(
++  page: Page,
++  field: Locator,
++  results: unknown[],
++  name: string
++) {
++  const source = await readSource(page);
++  await page.evaluate(() =>
++    Object.assign(window.performanceProbe, {
++      armed: true,
++      event: 'keydown',
++      start: 0,
++    })
++  );
++  await field.press('Tab');
++  await expect(
++    page.getByRole('dialog', { name: 'Review matrix resize' })
++  ).toBeVisible();
++  const elapsedMs = await page.evaluate(
++    () => performance.now() - window.performanceProbe.start
++  );
++  expect(await readSource(page)).toBe(source);
++  results.push({
++    name: name + '-preparation',
++    tabToDialogMs: elapsedMs,
++    sourceUnchanged: true,
++  });
++}
++
++export async function measureFrozenRebuild(
++  page: Page,
++  output: string,
++  results: unknown[]
++) {
++  const automatic = page.getByRole('checkbox', { name: 'Automatic outline' });
++  const freezeStart = await page.evaluate(() => performance.now());
++  await automatic.uncheck();
++  await waitForStudio(page, await readSource(page), freezeStart);
++  await settle(page);
++  await writeFile(
++    resolve(output, 'post-nudge-frozen-source.yaml'),
++    await readSource(page)
++  );
++  await page.evaluate(() =>
++    Object.assign(window.performanceProbe, {
++      armed: true,
++      event: 'click',
++      start: 0,
++    })
++  );
++  const frozen = await readSource(page);
++  await page
++    .getByRole('button', { name: 'Rebuild outline', exact: true })
++    .click();
++  const start = await page.evaluate(() => window.performanceProbe.start);
++  const acknowledgment = await waitForStudio(page, frozen, start);
++  await writeWorkerPackets(
++    page,
++    resolve(output, 'rebuild-worker.json'),
++    acknowledgment.requestId,
++    acknowledgment.revision
++  );
++  await settle(page);
++  const elapsedMs = await page.evaluate(
++    () => performance.now() - window.performanceProbe.start
++  );
++  await expect(automatic).not.toBeChecked();
++  results.push({
++    name: 'frozen-rebuild',
++    completedMs: elapsedMs,
++    acknowledgment,
++    regions: regionEvidence(frozen, await readSource(page)),
++  });
++  await page.screenshot({ path: resolve(output, 'post-nudge-rebuilt.png') });
++  const automaticStart = await page.evaluate(() => performance.now());
++  await automatic.check();
++  await waitForStudio(page, await readSource(page), automaticStart);
++  await settle(page);
++}
++
++export async function verifyComponentMove(page: Page, output: string) {
++  const id = 'fingers_c1_r1_diode';
++  const before = await readSource(page);
++  const label = parse(before).layout.objects[id].label || id;
++  const inspector = await openInspector(page);
++  await inspector
++    .locator('summary')
++    .filter({ hasText: /^Components and free objects$/ })
++    .click();
++  await inspector.getByRole('button', { name: label }).click();
++  const started = await page.evaluate(() => performance.now());
++  await inspector.getByLabel('X', { exact: true }).fill('1');
++  await inspector.getByLabel('X', { exact: true }).press('Tab');
++  await expect
++    .poll(
++      async () =>
++        parse(await readSource(page)).layout.objects[id].placement.at[0]
++    )
++    .toBe(1);
++  await settle(page);
++  const edited = await readSource(page);
++  await waitForStudio(page, edited, started);
++  await page
++    .getByRole('button', { name: 'Undo project edit', exact: true })
++    .click();
++  await expect.poll(() => readSource(page)).toBe(before);
++  await page
++    .getByRole('button', { name: 'Redo project edit', exact: true })
++    .click();
++  await expect.poll(() => readSource(page)).toBe(edited);
++  await page.reload();
++  await waitForStudio(page, edited, 0);
++  await settle(page);
++  expect(await readSource(page)).toBe(edited);
++  await writeFile(resolve(output, 'component-moved-source.yaml'), edited);
++  await page.screenshot({
++    path: resolve(output, 'component-moved-reloaded.png'),
++  });
++}
+diff --git a/app/e2e/utils/studioPerformanceProbe.ts b/app/e2e/utils/studioPerformanceProbe.ts
+new file mode 100644
+index 0000000..9be50b6
+--- /dev/null
++++ b/app/e2e/utils/studioPerformanceProbe.ts
+@@ -0,0 +1,129 @@
++import { installWorkerProbe } from './studioPerformanceWorker';
++import { compileSetup, defaultSetup } from '../../src/utils/designSetup';
++import { addCluster, addOutline } from '../../src/utils/studioSource';
++import { expect, type Page } from '@playwright/test';
++import { parse } from 'yaml';
++import { CONFIG_LOCAL_STORAGE_KEY } from '../../src/context/constants';
++
++type Probe = {
++  start: number;
++  visible: number;
++  persisted: number;
++  committed: number;
++  polygon: string;
++  tasks: { start: number; duration: number }[];
++  armed: boolean;
++  event: string;
++  source: string;
++  geometry: string;
++};
++declare global {
++  interface Window {
++    performanceProbe: Probe;
++  }
++}
++
++export async function installProbe(page: Page, initial: string) {
++  await installWorkerProbe(page);
++  await page.addInitScript(
++    ({ source, storageKey }) => {
++      localStorage.setItem(storageKey, JSON.stringify(source));
++      const saved = () => {
++        const projects = JSON.parse(
++          localStorage.getItem('ergogen:multi-config') || 'null'
++        );
++        return (
++          projects?.configs?.find(
++            (item: { id: string }) => item.id === projects.activeConfigId
++          )?.config || JSON.parse(localStorage.getItem(storageKey) || '""')
++        );
++      };
++      const geometry = () =>
++        [
++          ...document.querySelectorAll(
++            '[aria-label="Interactive board layout"] [role="button"] polygon'
++          ),
++        ]
++          .map(
++            (node) =>
++              `${node.parentElement?.getAttribute('transform')}:${node.getAttribute('points')}`
++          )
++          .join('|');
++      const probe: Probe = {
++        start: 0,
++        visible: 0,
++        persisted: 0,
++        committed: 0,
++        polygon: '',
++        tasks: [],
++        armed: false,
++        event: '',
++        source: '',
++        geometry: '',
++      };
++      window.performanceProbe = probe;
++      for (const name of ['keydown', 'click', 'pointermove'])
++        document.addEventListener(
++          name,
++          (event) => {
++            if (!probe.armed || probe.start || name !== probe.event) return;
++            probe.start = event.timeStamp;
++          },
++          true
++        );
++      new PerformanceObserver((list) => {
++        for (const entry of list.getEntries())
++          probe.tasks.push({
++            start: entry.startTime,
++            duration: entry.duration,
++          });
++      }).observe({ type: 'longtask', buffered: true });
++      const frame = () => {
++        if (probe.armed && probe.start) {
++          if (!probe.persisted && saved() !== probe.source)
++            probe.persisted = performance.now();
++          const polygon = [
++            ...document.querySelectorAll(
++              '[aria-label="Interactive board layout"] [role="button"] polygon'
++            ),
++          ]
++            .map((node) => node.getAttribute('points'))
++            .join('|');
++          if (!probe.committed && polygon !== probe.polygon)
++            probe.committed = performance.now();
++          if (!probe.visible && geometry() !== probe.geometry)
++            probe.visible = performance.now();
++        }
++        requestAnimationFrame(frame);
++      };
++      requestAnimationFrame(frame);
++    },
++    { source: initial, storageKey: CONFIG_LOCAL_STORAGE_KEY }
++  );
++}
++
++export const performanceFixture = (columns: number, rows: number) =>
++  process.env.PERF_NATIVE_ROWS
++    ? compileSetup({
++        ...defaultSetup(),
++        columns,
++        rows,
++        led: process.env.PERF_LED === '1',
++      })
++    : addOutline(
++        addCluster(
++          'schema: ergogen/v1\nlayout: {objects: {}}\npcbs: {main: {}}\n',
++          'fingers',
++          'columns',
++          { columns, rows }
++        )
++      );
++
++export function regionEvidence(before: string, after: string) {
++  const names = (source: string) =>
++    Object.keys(parse(source).designs?.regions || {}).sort();
++  const original = names(before),
++    current = names(after);
++  expect(current).toEqual(original);
++  return { before: original.length, after: current.length, ids: current };
++}
+diff --git a/app/e2e/utils/studioPerformanceWorker.ts b/app/e2e/utils/studioPerformanceWorker.ts
+new file mode 100644
+index 0000000..5f2f54b
+--- /dev/null
++++ b/app/e2e/utils/studioPerformanceWorker.ts
+@@ -0,0 +1,152 @@
++import { writeFile } from 'node:fs/promises';
++import type { Page } from '@playwright/test';
++
++type Packet = {
++  direction: 'request' | 'reply';
++  time: number;
++  type: string;
++  requestId: string;
++  revision: string;
++  source?: string;
++  stage?: string;
++  error?: string;
++};
++declare global {
++  interface Window {
++    studioPackets: Packet[];
++  }
++}
++
++export async function installWorkerProbe(page: Page) {
++  await page.addInitScript(() => {
++    window.studioPackets = [];
++    const record = (message: unknown, direction: Packet['direction']) => {
++      if (
++        typeof message !== 'object' ||
++        message === null ||
++        !('requestId' in message) ||
++        typeof message.requestId !== 'string' ||
++        !('revision' in message) ||
++        typeof message.revision !== 'string' ||
++        !('type' in message) ||
++        typeof message.type !== 'string'
++      )
++        return;
++      const source =
++        direction === 'request' && 'inputConfig' in message
++          ? message.inputConfig
++          : 'source' in message
++            ? message.source
++            : undefined;
++      window.studioPackets.push({
++        direction,
++        time: performance.now(),
++        type: message.type,
++        requestId: message.requestId,
++        revision: message.revision,
++        source: typeof source === 'string' ? source : undefined,
++        stage:
++          'stage' in message && typeof message.stage === 'string'
++            ? message.stage
++            : undefined,
++        error:
++          'error' in message && typeof message.error === 'string'
++            ? message.error
++            : undefined,
++      });
++    };
++    const NativeWorker = window.Worker;
++    window.Worker = class extends NativeWorker {
++      constructor(url: string | URL, options?: WorkerOptions) {
++        super(url, options);
++        this.addEventListener('message', (event) =>
++          record(event.data, 'reply')
++        );
++      }
++      postMessage(message: unknown, transfer: Transferable[]): void;
++      postMessage(message: unknown, options?: StructuredSerializeOptions): void;
++      postMessage(
++        message: unknown,
++        options: Transferable[] | StructuredSerializeOptions = []
++      ): void {
++        record(message, 'request');
++        if (Array.isArray(options)) super.postMessage(message, options);
++        else super.postMessage(message, options);
++      }
++    };
++  });
++}
++
++export async function waitForStudio(page: Page, source: string, after: number) {
++  await page.waitForFunction(
++    ({ source, after }) => {
++      const request = window.studioPackets.findLast(
++        (packet) =>
++          packet.direction === 'request' &&
++          packet.type === 'studio' &&
++          packet.source === source &&
++          packet.time >= after
++      );
++      return (
++        request &&
++        window.studioPackets.some(
++          (packet) =>
++            packet.direction === 'reply' &&
++            packet.requestId === request.requestId &&
++            packet.revision === request.revision &&
++            ['success', 'error'].includes(packet.type)
++        )
++      );
++    },
++    { source, after },
++    { timeout: 60000 }
++  );
++  const packets = await page.evaluate(
++    ({ source, after }) => {
++      const request = window.studioPackets.findLast(
++        (packet) =>
++          packet.direction === 'request' &&
++          packet.type === 'studio' &&
++          packet.source === source &&
++          packet.time >= after
++      );
++      if (!request) return [];
++      return window.studioPackets.filter(
++        (packet) =>
++          packet.requestId === request.requestId &&
++          packet.revision === request.revision
++      );
++    },
++    { source, after }
++  );
++  const request = packets.find((packet) => packet.direction === 'request');
++  const outline = packets.find((packet) => packet.stage === 'outline');
++  const success = packets.find((packet) => packet.type === 'success');
++  if (!request || !outline || !success)
++    throw new Error(JSON.stringify(packets));
++  return {
++    requestId: request.requestId,
++    revision: request.revision,
++    outlineStageMs: outline.time - after,
++    publishedSuccessMs: success.time - after,
++    requestToOutlineMs: outline.time - request.time,
++    requestToSuccessMs: success.time - request.time,
++  };
++}
++
++export async function writeWorkerPackets(
++  page: Page,
++  path: string,
++  requestId: string,
++  revision: string
++) {
++  const packets = await page.evaluate(
++    ({ requestId, revision }) =>
++      window.studioPackets.filter(
++        (packet) =>
++          packet.requestId === requestId && packet.revision === revision
++      ),
++    { requestId, revision }
++  );
++  await writeFile(path, JSON.stringify(packets, null, 2));
++}
+diff --git a/app/public/dependencies/ergogen.js b/app/public/dependencies/ergogen.js
+index 7252b0b..dc5e5d8 100644
+--- a/app/public/dependencies/ergogen.js
++++ b/app/public/dependencies/ergogen.js
+@@ -1234,6 +1234,8 @@
+ 		    return u[operation](clone(left), clone(right))
+ 		};
+ 		const union = models => models.reduce((result, model) => combine(result, model), {paths: {}});
++		// MakerJS deletes farPoint between path unions; retain the explicit ray throughout repair steps.
++		const offsetOptions = () => Object.create({farPoint: u.farPoint});
+ 		const offset = (model, distance, joints = Joint.Round) => {
+ 		    if (Math.abs(distance) < EPSILON) {
+ 		        return clone(model)
+@@ -1253,7 +1255,7 @@
+ 		    const steps = radii.length ? Math.max(2, Math.ceil(distance / Math.min(...radii) * 2)) : 2;
+ 		    if (steps > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit'); }
+ 		    for (let step = 0; step < steps; step++) {
+-		        result = m.model.outline(result, distance / steps, joints, false, {farPoint: u.farPoint});
++		        result = m.model.outline(result, distance / steps, joints, false, offsetOptions());
+ 		    }
+ 		    if (!valid(result)) {
+ 		        // Shallow notches between neighboring keys need smaller analytic steps.
+@@ -1261,7 +1263,7 @@
+ 		        if (repairs > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit'); }
+ 		        result = clone(model);
+ 		        for (let step = 0; step < repairs; step++) {
+-		            result = m.model.outline(result, distance / repairs, joints, false, {farPoint: u.farPoint});
++		            result = m.model.outline(result, distance / repairs, joints, false, offsetOptions());
+ 		        }
+ 		    }
+ 		    if (!valid(result)) { fail('designs', 'Offset failed to preserve the profile extent'); }
+@@ -1319,14 +1321,14 @@
+ 		        fail(name, 'Profile removes occupied area or required clearance', 'clearance');
+ 		    }
+ 		};
+-		const close = (model, radius) => {
++		const close = (model, radius, resize = offset) => {
+ 		    if (!radius) { return clone(model) }
+ 		    // Keep exact closing first; retry contraction short of collapsing its new arcs.
+ 		    const adjusted = radius + ARC_COLLAPSE_ADJUSTMENT;
+ 		    const attempts = [[radius, radius], [adjusted, adjusted], [radius, Math.max(0, radius - ARC_COLLAPSE_ADJUSTMENT)]];
+ 		    for (const [expansion, contraction] of attempts) {
+ 		        try {
+-		            const closed = offset(offset(model, expansion), -contraction);
++		            const closed = resize(resize(model, expansion), -contraction);
+ 		            validate(closed, 'designs');
+ 		            if (contains(closed, model)) { return closed }
+ 		            const restored = combine(model, closed);
+@@ -46511,6 +46513,7 @@ ${content}
+ 
+ 		const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies'];
+ 		const analysisCache = new WeakMap();
++		const outlineCache = new WeakMap();
+ 		const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+ 
+ 		// Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
+@@ -46575,9 +46578,22 @@ ${content}
+ 		        if (config.regions[`${id}_keys`]) { config.regions[`${id}_keys`] = {outline:ref}; }
+ 		        if (config.regions[`${id}_switches`]) { config.regions[`${id}_switches`] = {outline:ref}; }
+ 		    }
+-		    const features = {}, resolved = {}, active = new Set(), generated = {}, cases = {};
+-		    const report = {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE};
++		    const scope = options.analysis && options.preparedLayout?.scene;
++		    const staged = scope && outlineCache.get(scope);
++		    if (scope) { outlineCache.delete(scope); }
++		    const geometry = staged && staged.key === options.outlineKey ? staged.geometry : undefined;
++		    const features = geometry?.report.features || {}, resolved = geometry?.resolved || {}, active = new Set(), generated = geometry?.generated || {}, cases = {};
++		    const report = geometry?.report || {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE};
+ 		    const dim = (value, name) => g.number(value, name, units);
++		    const offsets = new Map();
++		    const offset = (model, distance, joints = g.Joint.Round) => {
++		        if (Math.abs(distance) < g.EPSILON) { return g.offset(model, distance, joints) }
++		        const key = JSON.stringify([model, distance, joints]);
++		        if (offsets.has(key)) { return g.clone(offsets.get(key)) }
++		        const result = g.offset(model, distance, joints);
++		        offsets.set(key, g.clone(result));
++		        return result
++		    };
+ 
+ 		    const locate = (spec, name) => {
+ 		        if (spec && typeof spec === 'object' && spec.feature) {
+@@ -46641,7 +46657,7 @@ ${content}
+ 		        const clearance = dim(spec.clearance || 0, `${name}.clearance`);
+ 		        const rounding = dim(spec.round || 0, `${name}.round`);
+ 		        if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative'); }
+-		        model = g.offset(model, clearance);
++		        model = offset(model, clearance);
+ 		        model = g.round(model, rounding);
+ 		        const simplification = dim(spec.simplify || 0, `${name}.simplify`);
+ 		        if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative'); }
+@@ -46654,7 +46670,7 @@ ${content}
+ 		            const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units);
+ 		            model = requireFinishing().corners(model, {[style]:size}, `${name}.corners`);
+ 		        }
+-		        const required = !g.empty(occupied) && clearance > 0 ? g.offset(occupied, clearance) : occupied;
++		        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied;
+ 		        model = modify(model, spec, name, required);
+ 		        g.validate(model, name, spec.connected || 'multiple');
+ 		        g.requireContains(model, required, name);
+@@ -46699,7 +46715,7 @@ ${content}
+ 		                occupied = g.union(groups);
+ 		                const radius = dim(spec.close || 0, `${name}.close`);
+ 		                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative'); }
+-		                groups = groups.map(group => finish(g.close(group, radius), spec, name, group));
++		                groups = groups.map(group => finish(g.close(group, radius, offset), spec, name, group));
+ 		                model = g.union(groups);
+ 		                if (g.chains(model).length < groups.reduce((count, group) => count + g.chains(group).length, 0)) {
+ 		                    g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected');
+@@ -46716,7 +46732,7 @@ ${content}
+ 		                groups = sources.flatMap(source => source.groups);
+ 		                const radius = dim(spec.close || 0, `${name}.close`);
+ 		                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative'); }
+-		                groups = groups.map(group => g.close(group, radius));
++		                groups = groups.map(group => g.close(group, radius, offset));
+ 		                model = g.union(groups);
+ 		                for (const [bridge, bridgeSpec] of Object.entries(spec.bridges || {})) {
+ 		                    const path = `${name}.bridges.${bridge}`;
+@@ -46772,7 +46788,7 @@ ${content}
+ 		                model = shape(spec, name);
+ 		                const height = a.numarr(spec.height, `${name}.height`, 2)(units);
+ 		                if (height[0] >= height[1]) { g.fail(name, 'Height range must increase'); }
+-		                model = g.offset(model, dim(spec.clearance || 0, `${name}.clearance`));
++		                model = offset(model, dim(spec.clearance || 0, `${name}.clearance`));
+ 		                occupied = model;
+ 		                groups = [model];
+ 		            } else if (section === 'sketches') {
+@@ -46794,7 +46810,7 @@ ${content}
+ 
+ 		    // Solving is asynchronous; the geometry graph remains deterministic afterwards.
+ 		    const solvedSketches = {};
+-		    for (const [id, sketch] of Object.entries(config.sketches || {})) {
++		    for (const [id, sketch] of Object.entries(geometry ? {} : config.sketches || {})) {
+ 		        const solver = requireSketches();
+ 		        solvedSketches[id] = await solver.parse(sketch, `designs.sketches.${id}`, units, points, options);
+ 		    }
+@@ -46802,6 +46818,10 @@ ${content}
+ 		        for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`); }
+ 		    }
+ 		    if (options.outlineOnly) {
++		        // Transfer geometry once within a prepared request, before callers can mutate its output.
++		        if (scope && options.outlineKey) {
++		            outlineCache.set(scope, {key: options.outlineKey, geometry: deepcopy({resolved, generated, report})});
++		        }
+ 		        return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
+ 		    }
+ 		    const boardSources = options.boardSources ? options.boardSources(generated) : {};
+@@ -48060,7 +48080,8 @@ ${content}
+ 		            }));
+ 		            analysisKey = JSON.stringify([{...config, designs:{...config.designs, assemblies}}, options.assets]);
+ 		        }
+-		        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey,
++		        const outlineKey = options.analysis && prepared?.scene ? JSON.stringify([config, options.assets]) : undefined;
++		        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey, outlineKey,
+ 		            scene, region: (spec, path) => geometry.region(scene, spec, path),
+ 		            shape: (spec,path,point) => geometry.project({matrix:requireFrames().local([point.x,point.y,0],point.r),sourcePath:path},scene.envelope(spec,path)),
+ 		            boardSources: generated => {
+diff --git a/app/src/utils/addCellBatch.test.ts b/app/src/utils/addCellBatch.test.ts
+new file mode 100644
+index 0000000..8bb8a24
+--- /dev/null
++++ b/app/src/utils/addCellBatch.test.ts
+@@ -0,0 +1,90 @@
++import {
++  addCell,
++  addCluster,
++  addObject,
++  readStudio,
++  removeObject,
++  setValue,
++} from './studioSource';
++import { applyKeyDefaults } from './keyOptions';
++import { compileSetup, defaultSetup } from './designSetup';
++
++const parsing = vi.hoisted(() => ({ calls: 0 }));
++vi.mock('yaml', async (importOriginal) => {
++  const actual = await importOriginal<typeof import('yaml')>();
++  return {
++    ...actual,
++    parseDocument: (...args: Parameters<typeof actual.parseDocument>) => {
++      parsing.calls++;
++      return actual.parseDocument(...args);
++    },
++  };
++});
++
++it.each(['native', 'legacy'] as const)(
++  'fills only the requested %s cell with its exact defaults and free identity',
++  (kind) => {
++    // Given: two holes, a conflicting name, and explicit column defaults.
++    let source =
++      kind === 'native'
++        ? compileSetup({ ...defaultSetup(), columns: 2, rows: 2 })
++        : addCluster(
++            '# preserved cell comment\nschema: ergogen/v1\nlayout: {objects: {}}\n',
++            'fingers',
++            'columns',
++            { columns: 2, rows: 2 }
++          );
++    source = removeObject(
++      removeObject(source, 'objects', 'fingers_c1_r1'),
++      'objects',
++      'fingers_c2_r2'
++    );
++    source = setValue(source, ['layout', 'objects', 'fingers_c2_r2'], {
++      kind: 'anchor',
++      label: 'reserved identity',
++    });
++    source = setValue(source, ['meta', 'studio', 'columns', 'fingers', 'c2'], {
++      size: [23, 19],
++      diodeAt: [2, -6, 0],
++      led: true,
++    });
++    const original = readStudio(source);
++    let reference = addObject(
++      source,
++      'fingers_c2_r2_2',
++      'key',
++      undefined,
++      'defer'
++    );
++    reference = setValue(
++      reference,
++      ['layout', 'objects', 'fingers_c2_r2_2', 'cluster'],
++      'fingers'
++    );
++    reference = setValue(
++      reference,
++      ['layout', 'objects', 'fingers_c2_r2_2', 'cell'],
++      ['c2', 'r2']
++    );
++    const expected = readStudio(applyKeyDefaults(reference, 'fingers_c2_r2_2'));
++    parsing.calls = 0;
++
++    // When: the selected empty cell is inserted.
++    const result = addCell(source, 'fingers', 'c2', 'r2');
++    const parseCount = parsing.calls;
++    const actual = readStudio(result);
++
++    // Then: full ownership/options/net output matches the prior public composition.
++    expect(actual).toEqual(expected);
++    expect(readStudio(source)).toEqual(original);
++    expect(actual.layout.objects?.fingers_c1_r1).toBeUndefined();
++    expect(actual.layout.objects?.fingers_c2_r2_2).toMatchObject({
++      kind: 'key',
++      cell: ['c2', 'r2'],
++      envelopes: { keycap: { size: [23, 19] } },
++    });
++    if (kind === 'legacy')
++      expect(result.startsWith('# preserved cell comment\n')).toBe(true);
++    expect(parseCount).toBeLessThanOrEqual(kind === 'native' ? 7 : 3);
++  }
++);
+diff --git a/app/src/utils/appendSourceFields.test.ts b/app/src/utils/appendSourceFields.test.ts
+new file mode 100644
+index 0000000..9925817
+--- /dev/null
++++ b/app/src/utils/appendSourceFields.test.ts
+@@ -0,0 +1,127 @@
++import { describe, expect, it, vi } from 'vitest';
++import { parse } from 'yaml';
++import { appendFields, editField, editMappingFields } from './designSource';
++
++const parsing = vi.hoisted(() => ({ calls: 0 }));
++vi.mock('yaml', async (importOriginal) => {
++  const actual = await importOriginal<typeof import('yaml')>();
++  return {
++    ...actual,
++    parseDocument: (...args: Parameters<typeof actual.parseDocument>) => {
++      parsing.calls++;
++      return actual.parseDocument(...args);
++    },
++  };
++});
++
++describe('editMappingFields', () => {
++  it.each(['\n', '\r\n'])(
++    'matches individual edits with %j source bytes',
++    (newline) => {
++      const source = [
++        '# header',
++        'm:',
++        '  a: "old" # note',
++        '  b:',
++        '    old: 1',
++        '  c: [1, 2] # keep',
++        'tail: { x: 3 }',
++        '',
++      ].join(newline);
++      const entries = { a: { x: 2 }, b: { y: 3 }, c: [4, 5], d: 6 };
++      const expected = Object.entries(entries).reduce(
++        (result, [key, value]) => editField(result, ['m', key], value),
++        source
++      );
++      expect(editMappingFields(source, ['m'], entries)).toBe(expected);
++    }
++  );
++  it('upserts existing and missing flow fields', () => {
++    expect(
++      editMappingFields('m: {a: 1, b: 2} # keep\n', ['m'], { a: 3, c: 4 })
++    ).toBe('m: {a: 3, b: 2, c: 4} # keep\n');
++  });
++  it('adds a missing parent mapping', () => {
++    expect(editMappingFields('m: {}\n', ['m', 'nested'], { a: 1, b: 2 })).toBe(
++      'm: {nested: { a: 1, b: 2 }}\n'
++    );
++  });
++  it('rejects a scalar parent', () => {
++    expect(() => editMappingFields('m: 1\n', ['m'], { a: 2 })).toThrow();
++  });
++  it('parses once when replacing many immediate mapping fields', () => {
++    const source =
++      '# upsert parse-count fixture\nm: {' +
++      Array.from({ length: 40 }, (_, i) => `item_${i}: ${i}`).join(', ') +
++      '}\n';
++    const entries = Object.fromEntries(
++      Array.from({ length: 80 }, (_, i) => [`item_${i}`, i + 100])
++    );
++    parsing.calls = 0;
++    const result = editMappingFields(source, ['m'], entries);
++    const count = parsing.calls;
++    expect(parse(result).m).toEqual(entries);
++    expect(count).toBe(1);
++  });
++});
++
++describe('appendFields', () => {
++  it('appends block entries while preserving unrelated authored bytes', () => {
++    const source = '# header\nm:\n  old: "01" # retained\ntail: [1,  2]\n';
++    const result = appendFields(source, ['m'], { next: 2, last: { x: 3 } });
++    expect(result).toBe(
++      '# header\nm:\n  old: "01" # retained\n  next: 2\n  last:\n    x: 3\ntail: [1,  2]\n'
++    );
++  });
++  it.each(['\n', '\r\n'])(
++    'preserves %j line endings when adding block entries',
++    (newline) => {
++      const source = ['m:', '  old: 1 # keep', 'tail: 2', ''].join(newline);
++      const result = appendFields(source, ['m'], { a: 3, b: 4 });
++      expect(result).toBe(
++        ['m:', '  old: 1 # keep', '  a: 3', '  b: 4', 'tail: 2', ''].join(
++          newline
++        )
++      );
++    }
++  );
++  it.each(['{}', '{old: 1}'])(
++    'appends entries to flow mapping %s',
++    (mapping) => {
++      const source = `m: ${mapping} # keep\r\nt: "02"\r\n`;
++      const result = appendFields(source, ['m'], { a: 3, b: 4 });
++      expect(result).toBe(
++        `m: {${mapping === '{}' ? '' : 'old: 1, '}a: 3, b: 4} # keep\r\nt: "02"\r\n`
++      );
++    }
++  );
++  it('adds a missing mapping in one edit', () => {
++    const result = appendFields('m: {} # retained\n', ['m', 'nested'], {
++      a: 1,
++      b: 2,
++    });
++    expect(result).toBe('m: {nested: { a: 1, b: 2 }} # retained\n');
++  });
++  it('rejects overwriting existing fields', () => {
++    expect(() =>
++      appendFields('m: {old: 1}\n', ['m'], { old: 2, next: 3 })
++    ).toThrow();
++  });
++  it('rejects a nonmapping parent', () => {
++    expect(() => appendFields('m: 1\n', ['m'], { a: 2 })).toThrow();
++  });
++  it('parses the original source once for many additions', () => {
++    const source = '# parser-count fixture\nm: {original: 0}\n';
++    const additions = Object.fromEntries(
++      Array.from({ length: 80 }, (_, i) => [
++        `item_${i}`,
++        { kind: 'key', index: i },
++      ])
++    );
++    parsing.calls = 0;
++    const result = appendFields(source, ['m'], additions);
++    const count = parsing.calls;
++    expect(parse(result).m).toEqual({ original: 0, ...additions });
++    expect(count).toBe(1);
++  });
++});
+diff --git a/app/src/utils/applyAssembly.ts b/app/src/utils/applyAssembly.ts
+index 7f637b9..224ef93 100644
+--- a/app/src/utils/applyAssembly.ts
++++ b/app/src/utils/applyAssembly.ts
+@@ -4,6 +4,7 @@ import { assemblyParts, compileKey } from './keyAssembly';
+ import { keyNets, syncControllerNets } from './assemblyNets';
+ import { syncAssemblyMirrors } from './assemblyMirrors';
+ import { syncLedChains } from './assemblyWiring';
++import { editMappingFields, type SourcePath } from './designSource';
+ import {
+   getValue,
+   readStudio,
+@@ -16,7 +17,8 @@ export function applyAssembly(
+   ids: string[],
+   setup: DesignSetup,
+   policy: 'preserve' | 'replace',
+-  scope: 'keys' | 'cluster' | 'column' | 'layout' = 'keys'
++  scope: 'keys' | 'cluster' | 'column' | 'layout' = 'keys',
++  newKeys = false
+ ): string {
+   const templates = (getValue(source, ['meta', 'studio', 'templates']) ||
+     {}) as Record<string, KeyAssembly>;
+@@ -43,8 +45,30 @@ export function applyAssembly(
+   setup = { ...setup, template };
+   const parts = assemblyParts(setup);
+   const part = `assembly_${setup.family}_${setup.mounting}`;
+-  let result = setValue(source, ['parts', part], parts.key);
+   const data = readStudio(source);
++  const deferred =
++    newKeys &&
++    ids.every(
++      (id) =>
++        !getValue(source, ['meta', 'studio', 'electronics', id]) &&
++        !Object.values(data.layout.objects || {}).some(
++          (item) => item.properties?.owner === id
++        )
++    );
++  const edits = new Map<
++    string,
++    { path: SourcePath; values: Record<string, unknown> }
++  >();
++  const write = (input: string, path: SourcePath, value: unknown) => {
++    if (!deferred) return setValue(input, path, value);
++    const parent = path.slice(0, -1);
++    const signature = JSON.stringify(parent);
++    const group = edits.get(signature) || { path: parent, values: {} };
++    group.values[String(path.at(-1))] = value;
++    edits.set(signature, group);
++    return input;
++  };
++  let result = write(source, ['parts', part], parts.key);
+   for (const id of ids) {
+     const item = data.layout.objects?.[id];
+     if (item?.kind !== 'key') {
+@@ -147,7 +171,7 @@ export function applyAssembly(
+     ) {
+       models = existingModels as typeof models;
+     }
+-    result = setValue(result, ['layout', 'objects', id], {
++    result = write(result, ['layout', 'objects', id], {
+       ...item,
+       part,
+       models,
+@@ -178,7 +202,7 @@ export function applyAssembly(
+         continue;
+       }
+       const componentPart = `assembly_${role}`;
+-      result = setValue(result, ['parts', componentPart], parts[role]);
++      result = write(result, ['parts', componentPart], parts[role]);
+       const name = existing?.[0] || `${id}_${role}`;
+       if (!existing && data.layout.objects?.[name]) {
+         throw new Error(`${name} already belongs to another component.`);
+@@ -222,7 +246,7 @@ export function applyAssembly(
+           old.placement?.rotate !== baseline.rotate ||
+           (old as { side?: string }).side !==
+             (baseline.side === 'F' ? 'top' : 'bottom'));
+-      result = setValue(result, ['layout', 'objects', name], {
++      result = write(result, ['layout', 'objects', name], {
+         ...old,
+         ...child,
+         part: componentPart,
+@@ -257,7 +281,7 @@ export function applyAssembly(
+       });
+     }
+   }
+-  result = setValue(
++  result = write(
+     result,
+     ['meta', 'studio', 'templates', setup.template.name],
+     setup.template
+@@ -277,15 +301,21 @@ export function applyAssembly(
+                 item?.cell?.[0] || '',
+               ]
+             : ['meta', 'studio', 'layouts', item?.cluster || ''];
+-      result = setValue(result, path, {
++      result = write(result, path, {
+         ...(getValue(result, path) as object),
+         assemblyTemplate: setup.template.name,
+       });
+     }
+   }
++  for (const group of Array.from(edits.values())) {
++    result = editMappingFields(result, group.path, group.values);
++  }
+   return syncControllerNets(
+     syncAssemblySupport(
+-      syncAssemblyMirrors(source, syncLedChains(source, result))
++      syncAssemblyMirrors(
++        source,
++        syncLedChains(source, result, deferred ? data : undefined)
++      )
+     )
+   );
+ }
+diff --git a/app/src/utils/assemblyWiring.ts b/app/src/utils/assemblyWiring.ts
+index 397ce4b..a935bee 100644
+--- a/app/src/utils/assemblyWiring.ts
++++ b/app/src/utils/assemblyWiring.ts
+@@ -5,9 +5,17 @@ const paramsOf = (item: { footprints?: Record<string, unknown> }) =>
+   (item.footprints?.main as { params?: Params } | undefined)?.params || {};
+ 
+ // Geometry edits leave wiring alone; topology edits reconnect only managed chains.
+-export function syncLedChains(before: string, source: string): string {
+-  const old = readStudio(before),
+-    next = readStudio(source);
++export function syncLedChains(
++  before: string,
++  source: string,
++  old = readStudio(before)
++): string {
++  const next = readStudio(source);
++  const previousFindings = getValue(source, [
++    'meta',
++    'studio',
++    'electricalFindings',
++  ]) as string[] | undefined;
+   let result = source;
+   const findings: string[] = [];
+   for (const board of Object.keys(next.pcbs || {})) {
+@@ -60,11 +68,6 @@ export function syncLedChains(before: string, source: string): string {
+       input = params.P2;
+     }
+   }
+-  const previousFindings = getValue(source, [
+-    'meta',
+-    'studio',
+-    'electricalFindings',
+-  ]) as string[] | undefined;
+   if (findings.length) {
+     result = setValue(
+       result,
+diff --git a/app/src/utils/designSource.ts b/app/src/utils/designSource.ts
+index c783911..8da080e 100644
+--- a/app/src/utils/designSource.ts
++++ b/app/src/utils/designSource.ts
+@@ -1,4 +1,5 @@
+ import { isMap, isScalar, isNode, stringify } from 'yaml';
++import type { YAMLMap } from 'yaml';
+ import { sourceDocument } from './sourceSnapshot';
+ 
+ export type SourcePath = (string | number)[];
+@@ -9,6 +10,64 @@ export interface DesignEditEvent {
+   applied: boolean;
+ }
+ 
++export function appendFields(
++  source: string,
++  path: SourcePath,
++  entries: Record<string, unknown>
++): string {
++  const names = Object.keys(entries);
++  if (!names.length) return source;
++  const parent = document(source).getIn(path, true);
++  if (parent === undefined) return editField(source, path, entries);
++  if (!isMap(parent)) {
++    throw new Error('Append named fields to a mapping.');
++  }
++  if (names.some((name) => parent.has(name))) {
++    throw new Error('Choose new, unique field names.');
++  }
++  return appendMapping(source, parent, entries);
++}
++
++export function editMappingFields(
++  source: string,
++  path: SourcePath,
++  entries: Record<string, unknown>
++): string {
++  if (!Object.keys(entries).length) return source;
++  const parent = document(source).getIn(path, true);
++  if (parent === undefined) return editField(source, path, entries);
++  if (!isMap(parent)) throw new Error('Edit named fields in a mapping.');
++  const additions: Record<string, unknown> = {};
++  const replacements: { start: number; end: number; text: string }[] = [];
++  for (const [key, value] of Object.entries(entries)) {
++    const node = parent.get(key, true);
++    if (node === undefined) {
++      additions[key] = value;
++      continue;
++    }
++    if (!isNode(node) || !node.range) {
++      throw new Error('This field has no editable source range.');
++    }
++    replacements.push({
++      start: node.range[0],
++      end: node.range[1],
++      text: renderValue(source, node.range[1], isScalar(node), value),
++    });
++  }
++  const appended = Object.keys(additions).length
++    ? appendMapping(source, parent, additions)
++    : source;
++  replacements.sort((a, b) => a.start - b.start);
++  let cursor = 0;
++  const pieces: string[] = [];
++  for (const replacement of replacements) {
++    pieces.push(appended.slice(cursor, replacement.start), replacement.text);
++    cursor = replacement.end;
++  }
++  pieces.push(appended.slice(cursor));
++  return pieces.join('');
++}
++
+ const document = (source: string) => {
+   const doc = sourceDocument(source);
+   if (doc.errors.length) {
+@@ -28,12 +87,7 @@ export function editDesign(
+   if (isScalar(node) && node.range) {
+     return (
+       source.slice(0, node.range[0]) +
+-      stringify(value, {
+-        collectionStyle: 'flow',
+-        aliasDuplicateObjects: false,
+-        flowCollectionPadding: false,
+-        lineWidth: 0,
+-      }).trimEnd() +
++      renderValue(source, node.range[1], true, value) +
+       source.slice(node.range[1])
+     );
+   }
+@@ -56,6 +110,17 @@ export function editDesign(
+   for (let index = path.length - 1; index >= depth; index--) {
+     addition = { [path[index]]: addition };
+   }
++  return appendMapping(source, parent, addition);
++}
++
++function appendMapping(
++  source: string,
++  parent: YAMLMap,
++  addition: unknown
++): string {
++  if (!parent.range) {
++    throw new Error('This field has no editable source range.');
++  }
+   if (parent.flow) {
+     const rendered = stringify(addition, {
+       collectionStyle: 'flow',
+@@ -176,22 +241,30 @@ export function editField(
+   if (!isNode(node) || !node.range) {
+     throw new Error('This field has no editable source range.');
+   }
+-  // Replace this field only, including when a list gains or loses a member.
++  return (
++    source.slice(0, node.range[0]) +
++    renderValue(source, node.range[1], false, value) +
++    source.slice(node.range[1])
++  );
++}
++
++function renderValue(
++  source: string,
++  end: number,
++  scalar: boolean,
++  value: unknown
++): string {
+   const next = stringify(value, {
+     collectionStyle: 'flow',
+     lineWidth: 0,
+     aliasDuplicateObjects: false,
++    flowCollectionPadding: !scalar,
+   }).trimEnd();
+   const newline =
+-    source[node.range[1] - 1] === '\n'
++    !scalar && source[end - 1] === '\n'
+       ? source.includes('\r\n')
+         ? '\r\n'
+         : '\n'
+       : '';
+-  return (
+-    source.slice(0, node.range[0]) +
+-    next +
+-    newline +
+-    source.slice(node.range[1])
+-  );
++  return next + newline;
+ }
+diff --git a/app/src/utils/keyOptions.ts b/app/src/utils/keyOptions.ts
+index fca9a73..5468474 100644
+--- a/app/src/utils/keyOptions.ts
++++ b/app/src/utils/keyOptions.ts
+@@ -5,7 +5,13 @@ import {
+   type DesignSetup,
+   type KeyAssembly,
+ } from './designSetup';
+-import { getValue, setValue, removeValue, readStudio } from './studioSource';
++import {
++  getValue,
++  setValue,
++  removeValue,
++  readStudio,
++  type StudioItem,
++} from './studioSource';
+ import { setLayout } from './layoutSource';
+ 
+ export interface KeyOptions {
+@@ -25,6 +31,58 @@ const DEFAULT_KEY_OPTIONS: KeyOptions = {
+   diodeAt: [0, -5, 0],
+   ledAt: [0, 5, 0],
+ };
++
++function electronicsBinding(kind: 'diode' | 'led', at: number[]) {
++  return kind === 'diode'
++    ? {
++        what: 'diode',
++        placement: { at },
++        params: { from: '{{name}}_switch', to: '{{row_net}}' },
++      }
++    : {
++        what: 'ceoloide/led_sk6812mini-e',
++        placement: { at },
++        params: {
++          side: 'B',
++          include_traces_vias: false,
++          P1: 'VCC',
++          P3: 'GND',
++          P4: '{{name}}_led_in',
++          P2: '{{name}}_led_out',
++        },
++      };
++}
++
++export function prepareNewKey(source: string, item: StudioItem) {
++  const options = keyOptions(source, item.cluster, item.cell?.[0]);
++  const part = readStudio(source).parts?.[item.part || ''];
++  const binding = part?.footprints?.switch;
++  if (
++    getValue(source, ['meta', 'studio', 'setup']) ||
++    options.assemblyTemplate ||
++    !binding ||
++    typeof binding !== 'object' ||
++    !('what' in binding) ||
++    !binding.what
++  ) {
++    return undefined;
++  }
++  const footprints: Record<string, unknown> = {};
++  const electronics: Record<string, unknown> = {};
++  if (options.diode) {
++    footprints.switch = { params: { to: '{{name}}_switch' } };
++    footprints.studio_diode = electronicsBinding('diode', options.diodeAt);
++    electronics.diode = { switch: null };
++  }
++  if (options.led) {
++    footprints.studio_led = electronicsBinding('led', options.ledAt);
++    electronics.led = {};
++  }
++  return {
++    item: Object.keys(footprints).length ? { ...item, footprints } : item,
++    electronics,
++  };
++}
+ export function keyOptions(
+   source: string,
+   cluster = '',
+@@ -93,10 +151,15 @@ export function setKeyOptions(
+ }
+ 
+ export function keySetup(source: string, id: string): DesignSetup | undefined {
++  return keySetupFor(source, readStudio(source).layout.objects?.[id]);
++}
++export function keySetupFor(
++  source: string,
++  item: StudioItem | undefined
++): DesignSetup | undefined {
+   const saved = getValue(source, ['meta', 'studio', 'setup']) as
+     | DesignSetup
+     | undefined;
+-  const item = readStudio(source).layout.objects?.[id];
+   const options = keyOptions(source, item?.cluster, item?.cell?.[0]);
+   const name = item?.properties?.assembly_template || options.assemblyTemplate;
+   const template = getValue(source, [
+@@ -257,24 +320,21 @@ export function keyElectronics(
+         ...instance,
+         params: { ...instance.params, to: '{{name}}_switch' },
+       });
+-      result = setLayout(result, 'objects', id, ['footprints', name], {
+-        what: 'diode',
+-        placement: { at },
+-        params: { from: '{{name}}_switch', to: '{{row_net}}' },
+-      });
++      result = setLayout(
++        result,
++        'objects',
++        id,
++        ['footprints', name],
++        electronicsBinding(kind, at)
++      );
+     } else {
+-      result = setLayout(result, 'objects', id, ['footprints', name], {
+-        what: 'ceoloide/led_sk6812mini-e',
+-        placement: { at },
+-        params: {
+-          side: 'B',
+-          include_traces_vias: false,
+-          P1: 'VCC',
+-          P3: 'GND',
+-          P4: '{{name}}_led_in',
+-          P2: '{{name}}_led_out',
+-        },
+-      });
++      result = setLayout(
++        result,
++        'objects',
++        id,
++        ['footprints', name],
++        electronicsBinding(kind, at)
++      );
+     }
+   }
+   return result;
+@@ -318,3 +378,47 @@ export function applyKeyDefaults(source: string, id: string): string {
+     ...item.properties,
+   });
+ }
++
++export function applyNewKeyDefaults(source: string, ids: string[]): string {
++  const groups = new Map<string, { setup: DesignSetup; ids: string[] }>();
++  let result = source;
++  for (const id of ids) {
++    const item = readStudio(result).layout.objects?.[id];
++    const setup = keySetup(result, id);
++    if (!setup || item?.kind !== 'key') {
++      result = applyKeyDefaults(result, id);
++      continue;
++    }
++    const options = keyOptions(result, item.cluster, item.cell?.[0]);
++    if (
++      JSON.stringify(item.envelopes?.keycap?.size) !==
++      JSON.stringify(options.size)
++    ) {
++      result = setLayout(
++        result,
++        'objects',
++        id,
++        ['envelopes', 'keycap', 'size'],
++        options.size
++      );
++    }
++    const signature = JSON.stringify(setup);
++    const group = groups.get(signature);
++    if (group) {
++      group.ids.push(id);
++    } else {
++      groups.set(signature, { setup, ids: [id] });
++    }
++  }
++  for (const group of Array.from(groups.values())) {
++    result = applyAssembly(
++      result,
++      group.ids,
++      group.setup,
++      'preserve',
++      'keys',
++      true
++    );
++  }
++  return result;
++}
+diff --git a/app/src/utils/removeSourceValues.test.ts b/app/src/utils/removeSourceValues.test.ts
+new file mode 100644
+index 0000000..90ab262
+--- /dev/null
++++ b/app/src/utils/removeSourceValues.test.ts
+@@ -0,0 +1,76 @@
++import { describe, expect, it } from 'vitest';
++import { parse } from 'yaml';
++import { removeSourceValues } from './removeSourceValues';
++
++describe('removeSourceValues', () => {
++  it('preserves CRLF when replacing an emptied block mapping', () => {
++    const source = 'm:\r\n  a: 1\r\n  b: 2\r\nt: 3\r\n';
++    expect(
++      removeSourceValues(source, [
++        ['m', 'a'],
++        ['m', 'b'],
++      ])
++    ).toBe('m:\r\n  {}\r\nt: 3\r\n');
++  });
++  it('preserves unrelated bytes when removing adjacent block fields', () => {
++    const source =
++      '# header\nm:\n  a: 1\n  b: 2\n  # retained\n  c: "03" # tail\nt: 4\n';
++    expect(
++      removeSourceValues(source, [
++        ['m', 'a'],
++        ['m', 'b'],
++      ])
++    ).toBe('# header\nm:\n  # retained\n  c: "03" # tail\nt: 4\n');
++  });
++  it.each([
++    ['a', 'b'],
++    ['b', 'c'],
++    ['a', 'c'],
++  ])('removes flow siblings %s and %s with valid separators', (a, b) => {
++    const result = removeSourceValues(
++      'm: {a: 1, b: 2, c: 3}\nt: "04" # keep\n',
++      [
++        ['m', a],
++        ['m', b],
++      ]
++    );
++    expect(Object.keys(parse(result).m)).toEqual(
++      ['a', 'b', 'c'].filter((key) => key !== a && key !== b)
++    );
++    expect(result).toContain('t: "04" # keep\n');
++  });
++  it.each(['m:\n  a: 1\n  b: 2\nt: 3\n', 'm: {a: 1, b: 2}\nt: 3\n'])(
++    'leaves an empty mapping when every sibling is removed',
++    (source) => {
++      const result = removeSourceValues(source, [
++        ['m', 'a'],
++        ['m', 'b'],
++      ]);
++      expect(parse(result)).toEqual({ m: {}, t: 3 });
++    }
++  );
++  it('ignores nested and duplicate removals under a removed field', () => {
++    expect(
++      removeSourceValues('m: {a: {x: 1}, b: 2}\n', [
++        ['m', 'a', 'x'],
++        ['m', 'a'],
++        ['m', 'a'],
++      ])
++    ).toBe('m: {b: 2}\n');
++  });
++  it('allows deleting an anchor and its alias together', () => {
++    expect(
++      removeSourceValues('a: &value {x: 1}\nb: *value\nc: 3\n', [['a'], ['b']])
++    ).toBe('c: 3\n');
++  });
++  it('rejects a dangling alias after all deletions', () => {
++    expect(() =>
++      removeSourceValues('a: &value {x: 1}\nb: *value\nc: 3\n', [['a']])
++    ).toThrow();
++  });
++  it('preserves source when every requested field is absent', () => {
++    expect(removeSourceValues('a: 1 # keep\n', [['missing']])).toBe(
++      'a: 1 # keep\n'
++    );
++  });
++});
+diff --git a/app/src/utils/removeSourceValues.ts b/app/src/utils/removeSourceValues.ts
+new file mode 100644
+index 0000000..e1fdbf0
+--- /dev/null
++++ b/app/src/utils/removeSourceValues.ts
+@@ -0,0 +1,100 @@
++import { isMap, isNode, isScalar, parseDocument } from 'yaml';
++import type { YAMLMap } from 'yaml';
++import type { SourcePath } from './designSource';
++import { sourceDocument } from './sourceSnapshot';
++
++type Edit = {
++  readonly start: number;
++  readonly end: number;
++  readonly text: string;
++};
++
++export function removeSourceValues(
++  source: string,
++  paths: readonly SourcePath[]
++): string {
++  if (!paths.length) return source;
++  const doc = sourceDocument(source);
++  const groups = new Map<YAMLMap, Set<number>>();
++  const requested = new Set(paths.map((path) => JSON.stringify(path)));
++  for (const path of paths) {
++    if (
++      path.some((_, index) =>
++        requested.has(JSON.stringify(path.slice(0, index)))
++      )
++    )
++      continue;
++    if (doc.getIn(path, true) === undefined) continue;
++    const parent = doc.getIn(path.slice(0, -1), true);
++    if (!isMap(parent)) throw new Error('Remove a named field from a mapping.');
++    const index = parent.items.findIndex(
++      (item) => isScalar(item.key) && item.key.value === path.at(-1)
++    );
++    if (index < 0) continue;
++    const entry = parent.items[index];
++    if (
++      !isScalar(entry.key) ||
++      !entry.key.range ||
++      !isNode(entry.value) ||
++      !entry.value.range
++    ) {
++      throw new Error('This field has no editable source range.');
++    }
++    const indices = groups.get(parent) || new Set<number>();
++    indices.add(index);
++    groups.set(parent, indices);
++  }
++  const edits: Edit[] = [];
++  groups.forEach((indices, parent) => {
++    if (indices.size === parent.items.length) {
++      if (!parent.range)
++        throw new Error('This field has no editable source range.');
++      const [start, end] = parent.range;
++      edits.push({
++        start,
++        end,
++        text:
++          parent.flow || !source.slice(start, end).endsWith('\n')
++            ? '{}'
++            : source.slice(start, end).endsWith('\r\n')
++              ? '{}\r\n'
++              : '{}\n',
++      });
++      return;
++    }
++    const sorted = Array.from(indices).sort((a, b) => a - b);
++    for (let offset = 0; offset < sorted.length; offset++) {
++      const first = sorted[offset];
++      let last = first;
++      while (sorted[offset + 1] === last + 1) last = sorted[++offset];
++      const key = parent.items[first].key;
++      const value = parent.items[last].value;
++      if (!isScalar(key) || !key.range || !isNode(value) || !value.range) {
++        throw new Error('This field has no editable source range.');
++      }
++      let start = key.range[0],
++        end = value.range[2];
++      if (parent.flow) {
++        end = value.range[1];
++        const next = parent.items[last + 1]?.key;
++        if (isScalar(next) && next.range) end = next.range[0];
++        else start = source.lastIndexOf(',', start);
++      } else start = source.lastIndexOf('\n', start - 1) + 1;
++      edits.push({ start, end, text: '' });
++    }
++  });
++  if (!edits.length) return source;
++  edits.sort((a, b) => a.start - b.start);
++  let cursor = 0;
++  const pieces: string[] = [];
++  for (const edit of edits) {
++    pieces.push(source.slice(cursor, edit.start), edit.text);
++    cursor = edit.end;
++  }
++  pieces.push(source.slice(cursor));
++  const result = pieces.join('');
++  const check = parseDocument(result);
++  if (check.errors.length) throw new Error(check.errors[0].message);
++  check.toJS();
++  return result;
++}
+diff --git a/app/src/utils/studioOutlineReuse.test.ts b/app/src/utils/studioOutlineReuse.test.ts
+new file mode 100644
+index 0000000..db86840
+--- /dev/null
++++ b/app/src/utils/studioOutlineReuse.test.ts
+@@ -0,0 +1,84 @@
++import { prepareOutlines } from './studioOutline';
++import { createMatrix, getValue, readStudio, setValue } from './studioSource';
++
++const matrix = () =>
++  createMatrix(
++    '# retained outline comment\nschema: ergogen/v1\nlayout: {objects: {}}\n',
++    2,
++    2
++  );
++
++it('reuses managed region identities across repeated automatic rebuilds', () => {
++  // Given: the first rebuild records Studio ownership references.
++  const initial = prepareOutlines(matrix());
++  const ids = Object.keys(readStudio(initial).designs?.regions || {});
++
++  // When: subsequent layout edits repeatedly prepare the same managed outline.
++  let result = initial;
++  for (let index = 0; index < 5; index++) result = prepareOutlines(result);
++
++  // Then: ownership records do not turn the managed region into a shared recipe.
++  expect(Object.keys(readStudio(result).designs?.regions || {})).toEqual(ids);
++  expect(
++    getValue(result, ['meta', 'studio', 'outline', 'managed', 'main'])
++  ).toEqual(
++    getValue(initial, ['meta', 'studio', 'outline', 'managed', 'main'])
++  );
++  expect(result.startsWith('# retained outline comment\n')).toBe(true);
++});
++
++it.each(['shared', 'custom'] as const)(
++  'preserves %s regions while subsequent managed rebuilds remain bounded',
++  (kind) => {
++    // Given: a formerly automatic region gains a real consumer or authored selector.
++    const initial = prepareOutlines(matrix());
++    const id = Object.keys(readStudio(initial).designs?.regions || {})[0];
++    const source =
++      kind === 'shared'
++        ? setValue(initial, ['designs', 'profiles', 'other'], {
++            from: `regions.${id}`,
++          })
++        : setValue(
++            initial,
++            ['designs', 'regions', id, 'select', 'cluster'],
++            'fingers'
++          );
++    const preserved = getValue(source, ['designs', 'regions', id]);
++
++    // When: a replacement automatic recipe is created and then rebuilt again.
++    const first = prepareOutlines(source);
++    const result = prepareOutlines(first);
++
++    // Then: real shared/authored recipes retain their identity; the new automatic one is reused.
++    expect(getValue(result, ['designs', 'regions', id])).toEqual(preserved);
++    expect(Object.keys(readStudio(result).designs?.regions || {})).toEqual(
++      Object.keys(readStudio(first).designs?.regions || {})
++    );
++    if (kind === 'shared')
++      expect(getValue(result, ['designs', 'profiles', 'other', 'from'])).toBe(
++        `regions.${id}`
++      );
++  }
++);
++
++it('retains a region referenced by another board ownership record', () => {
++  // Given: another ownership record still names the current region.
++  const initial = prepareOutlines(matrix());
++  const id = Object.keys(readStudio(initial).designs?.regions || {})[0];
++  const source = setValue(
++    initial,
++    ['meta', 'studio', 'outline', 'managed', 'other'],
++    [`regions.${id}`]
++  );
++
++  // When: only the main outline is rebuilt.
++  const result = prepareOutlines(source);
++
++  // Then: the exemption is limited to the rebuilt board's own ownership record.
++  expect(getValue(result, ['designs', 'regions', id])).toEqual(
++    getValue(source, ['designs', 'regions', id])
++  );
++  expect(
++    getValue(result, ['designs', 'boundaries', 'main_edge', 'from'])
++  ).not.toContain(`regions.${id}`);
++});
+diff --git a/app/src/utils/studioSource.ts b/app/src/utils/studioSource.ts
+index c54ca9c..4d5ad60 100644
+--- a/app/src/utils/studioSource.ts
++++ b/app/src/utils/studioSource.ts
+@@ -8,10 +8,20 @@ import { syncLedChains } from './assemblyWiring';
+ import type { LayoutReport } from 'ergogen/src/native';
+ import { isMap, isScalar, isNode, parseDocument } from 'yaml';
+ import { sourceDocument, sourceValue } from './sourceSnapshot';
+-import { editField as setValue, SourcePath } from './designSource';
++import { removeSourceValues } from './removeSourceValues';
++import {
++  appendFields,
++  editField as setValue,
++  SourcePath,
++} from './designSource';
+ export { editField as setValue } from './designSource';
+ import { LayoutSection, setLayout } from './layoutSource';
+-import { applyKeyDefaults, keyOptions } from './keyOptions';
++import {
++  applyNewKeyDefaults,
++  keyOptions,
++  keySetupFor,
++  prepareNewKey,
++} from './keyOptions';
+ import { addDimension } from './designUnits';
+ import {
+   OUTLINE_CLEARANCE,
+@@ -267,12 +277,28 @@ export function addObject(
+         ) + 1;
+     }
+   }
+-  result = setValue(result, ['layout', 'objects', id], item);
++  if (kind === 'key' && defaults === 'apply') {
++    item.envelopes = {
++      keycap: { size: keyOptions(result, item.cluster, item.cell?.[0]).size },
++    };
++  }
++  const prepared =
++    kind === 'key' && defaults === 'apply'
++      ? prepareNewKey(result, item)
++      : undefined;
++  result = setValue(result, ['layout', 'objects', id], prepared?.item || item);
+   if (defaults === 'defer') {
+     return result;
+   }
++  if (prepared && Object.keys(prepared.electronics).length) {
++    result = setValue(
++      result,
++      ['meta', 'studio', 'electronics', id],
++      prepared.electronics
++    );
++  }
+   return initBoardOutlines(
+-    kind === 'key' ? applyKeyDefaults(result, id) : result
++    kind === 'key' && !prepared ? applyNewKeyDefaults(result, [id]) : result
+   );
+ }
+ export function addCluster(
+@@ -400,10 +426,34 @@ export function addCell(
+     Object.keys(data.layout.objects || {}),
+     `${cluster}_${column}_${row}`
+   );
+-  let next = addObject(source, id, 'key', undefined, 'defer');
+-  next = setValue(next, ['layout', 'objects', id, 'cluster'], cluster);
+-  next = setValue(next, ['layout', 'objects', id, 'cell'], [column, row]);
+-  return applyKeyDefaults(next, id);
++  const [withPart, part] = keyPart(source);
++  const pcb = Object.keys(data.pcbs || {})[0];
++  const item: StudioItem = {
++    kind: 'key',
++    label: id,
++    part,
++    ...(pcb ? { pcb, layer: pcbLayer(data, pcb) } : {}),
++    cluster,
++    cell: [column, row],
++    envelopes: { keycap: { size: keyOptions(withPart, cluster, column).size } },
++  };
++  const prepared = prepareNewKey(withPart, item);
++  let next = setValue(
++    withPart,
++    ['layout', 'objects', id],
++    prepared?.item || item
++  );
++  if (!prepared) {
++    return applyNewKeyDefaults(next, [id]);
++  }
++  if (Object.keys(prepared.electronics).length) {
++    next = setValue(
++      next,
++      ['meta', 'studio', 'electronics', id],
++      prepared.electronics
++    );
++  }
++  return next;
+ }
+ export function moveColumn(
+   source: string,
+@@ -525,25 +575,34 @@ export function removeObject(
+   section: LayoutSection,
+   id: string
+ ): string {
+-  const data = readStudio(source),
+-    item = data.layout[section]?.[id];
+-  if (!item) {
+-    throw new Error('Select an authored object.');
+-  }
+-  if (
+-    item.locked ||
+-    (item.cluster && data.layout.clusters?.[item.cluster]?.locked)
+-  ) {
+-    throw new Error('Unlock this object before deleting it.');
++  return removeObjects(source, section, [id]);
++}
++function removeObjects(
++  source: string,
++  section: LayoutSection,
++  ids: string[]
++): string {
++  const data = readStudio(source);
++  for (const id of ids) {
++    const item = data.layout[section]?.[id];
++    if (!item) {
++      throw new Error('Select an authored object.');
++    }
++    if (
++      item.locked ||
++      (item.cluster && data.layout.clusters?.[item.cluster]?.locked)
++    ) {
++      throw new Error('Unlock this object before deleting it.');
++    }
+   }
+   const members =
+     section === 'clusters'
+-      ? Object.entries(data.layout.objects || {}).filter(
+-          ([, member]) => member.cluster === id
++      ? Object.entries(data.layout.objects || {}).filter(([, member]) =>
++          ids.includes(member.cluster || '')
+         )
+       : [];
+   // Owned electronics follow deletion of their key or matrix.
+-  const owners = new Set([id, ...members.map(([key]) => key)]);
++  const owners = new Set([...ids, ...members.map(([key]) => key)]);
+   for (const [key, member] of Object.entries(data.layout.objects || {})) {
+     if (
+       typeof member.properties?.owner === 'string' &&
+@@ -558,7 +617,7 @@ export function removeObject(
+     throw new Error('Unlock the cluster members before deleting it.');
+   }
+   const targets = [
+-    { section, id },
++    ...ids.map((id) => ({ section, id })),
+     ...members.map(([key]) => ({ section: 'objects' as const, id: key })),
+   ];
+   source = clearAutoBridges(source, targets);
+@@ -604,23 +663,17 @@ export function removeObject(
+       `Used by ${references.join(', ')}. Update these references first.`
+     );
+   }
++  const paths: SourcePath[] = [];
+   for (const target of targets) {
+     if (target.section === 'objects') {
+-      source = removeValue(source, [
+-        'meta',
+-        'studio',
+-        'electronics',
+-        target.id,
+-      ]);
++      paths.push(['meta', 'studio', 'electronics', target.id]);
+     } else {
+-      source = removeValue(source, ['meta', 'studio', 'layouts', target.id]);
+-      source = removeValue(source, ['meta', 'studio', 'columns', target.id]);
++      paths.push(['meta', 'studio', 'layouts', target.id]);
++      paths.push(['meta', 'studio', 'columns', target.id]);
+     }
++    paths.push(['layout', target.section, target.id]);
+   }
+-  const next = targets.reduce(
+-    (next, target) => removeValue(next, ['layout', target.section, target.id]),
+-    source
+-  );
++  const next = removeSourceValues(source, paths);
+   return syncControllerNets(
+     syncAssemblySupport(
+       syncAssemblyMirrors(source, syncLedChains(source, next))
+@@ -663,14 +716,12 @@ export function resizeCluster(
+   );
+   const memberKey = (item: StudioItem) =>
+     arc ? String(item.index) : JSON.stringify(item.cell);
+-  let result = source;
+-  const removed: string[] = [];
+-  for (const [key, item] of members) {
+-    if (!desired.includes(memberKey(item))) {
+-      removed.push(key);
+-      result = removeObject(result, 'objects', key);
+-    }
+-  }
++  const removed = members
++    .filter(([, item]) => !desired.includes(memberKey(item)))
++    .map(([key]) => key);
++  let result = removed.length
++    ? removeObjects(source, 'objects', removed)
++    : source;
+   if (!arc) {
+     result = setValue(
+       result,
+@@ -683,6 +734,13 @@ export function resizeCluster(
+       rows
+     );
+   }
++  const added: string[] = [];
++  const additions: Record<string, StudioItem> = {};
++  const electronics: Record<string, unknown> = {};
++  const reserved = new Set(
++    Object.keys(readStudio(result).layout.objects || {})
++  );
++  let part: string | undefined;
+   for (const cell of desired) {
+     const oldCell = arc ? [] : (JSON.parse(cell) as string[]);
+     const hole =
+@@ -694,26 +752,49 @@ export function resizeCluster(
+       continue;
+     }
+     const key = nextId(
+-      Object.keys(readStudio(result).layout.objects || {}),
++      Array.from(reserved),
+       `${id}_${arc ? cell : (JSON.parse(cell) as string[]).join('_')}`
+     );
+-    result = addObject(result, key, 'key', undefined, 'defer');
+-    result = setValue(result, ['layout', 'objects', key, 'cluster'], id);
+-    result = setValue(
+-      result,
+-      ['layout', 'objects', key, arc ? 'index' : 'cell'],
+-      arc ? Number(cell) : JSON.parse(cell)
+-    );
++    if (!part) {
++      [result, part] = keyPart(result);
++    }
++    const defaultPcb = Object.keys(data.pcbs || {})[0];
+     const pcb =
+       data.layout.layers?.[cluster.layer || '']?.surface?.match(
+         /^pcb\.(.+)\.top$/
+       )?.[1];
+-    if (pcb) {
+-      result = setValue(result, ['layout', 'objects', key, 'pcb'], pcb);
++    const item: StudioItem = {
++      kind: 'key',
++      label: key,
++      part,
++      ...(defaultPcb
++        ? { pcb: defaultPcb, layer: pcbLayer(data, defaultPcb) }
++        : {}),
++      cluster: id,
++      ...(arc ? { index: Number(cell) } : { cell: oldCell }),
++      ...(pcb ? { pcb } : {}),
++      envelopes: { keycap: { size: keyOptions(result, id, oldCell[0]).size } },
++    };
++    const prepared = prepareNewKey(result, item);
++    additions[key] = prepared?.item || item;
++    if (prepared) {
++      if (Object.keys(prepared.electronics).length) {
++        electronics[key] = prepared.electronics;
++      }
++    } else {
++      added.push(key);
++    }
++    reserved.add(key);
++    const setup = keySetupFor(result, item);
++    for (const role of ['diode', 'led'] as const) {
++      if (setup?.[role]) {
++        reserved.add(`${key}_${role}`);
++      }
+     }
+-    result = applyKeyDefaults(result, key);
+   }
+-  return reviewResize(source, result, removed);
++  result = appendFields(result, ['layout', 'objects'], additions);
++  result = appendFields(result, ['meta', 'studio', 'electronics'], electronics);
++  return reviewResize(source, applyNewKeyDefaults(result, added), removed);
+ }
+ function copyBindings(item: StudioItem) {
+   if (!item.footprints) {
+@@ -967,14 +1048,27 @@ export function addOutline(
+       },
+     },
+   };
+-  const references = (value: unknown, ref: string): boolean => {
++  const ownershipPath = ['meta', 'studio', 'outline', 'managed', board];
++  const references = (
++    value: unknown,
++    ref: string,
++    path: string[] = []
++  ): boolean => {
++    if (
++      path.length === ownershipPath.length &&
++      path.every((key, index) => key === ownershipPath[index])
++    ) {
++      return false;
++    }
+     if (value === ref) {
+       return true;
+     }
+     if (!value || typeof value !== 'object') {
+       return false;
+     }
+-    return Object.values(value).some((child) => references(child, ref));
++    return Object.entries(value).some(([key, child]) =>
++      references(child, ref, [...path, key])
++    );
+   };
+   // Only replace exclusive automatic recipes; authored or shared regions keep their identity.
+   const previousRegions = previousRegionRefs.filter((id) => {
+diff --git a/app/src/utils/studioSourceBatch.test.ts b/app/src/utils/studioSourceBatch.test.ts
+new file mode 100644
+index 0000000..4089662
+--- /dev/null
++++ b/app/src/utils/studioSourceBatch.test.ts
+@@ -0,0 +1,243 @@
++import { ResizeReview } from './resizeReview';
++import { compileSetup, defaultSetup } from './designSetup';
++import {
++  addCluster,
++  addObject,
++  readStudio,
++  resizeCluster,
++  setValue,
++} from './studioSource';
++
++const parsing = vi.hoisted(() => ({ calls: 0 }));
++vi.mock('yaml', async (importOriginal) => {
++  const actual = await importOriginal<typeof import('yaml')>();
++  return {
++    ...actual,
++    parseDocument: (...args: Parameters<typeof actual.parseDocument>) => {
++      parsing.calls++;
++      return actual.parseDocument(...args);
++    },
++  };
++});
++
++it('adds a row with native electronics without reparsing for every default field', () => {
++  // Given: a generated board whose existing key and project comment must survive.
++  const source =
++    '# authored project comment\n' +
++    compileSetup({
++      ...defaultSetup(),
++      columns: 3,
++      rows: 2,
++    });
++  const original = readStudio(source).layout.objects?.fingers_c1_r1;
++  parsing.calls = 0;
++
++  // When: one row creates three keys and their owned diodes.
++  const result = resizeCluster(source, 'fingers', { rows: ['r1', 'r2', 'r3'] });
++  const parseCount = parsing.calls;
++  const objects = readStudio(result).layout.objects || {};
++
++  // Then: authored state, identities, matrix nets and ownership are preserved.
++  expect(result.startsWith('# authored project comment\n')).toBe(true);
++  expect(objects.fingers_c1_r1).toEqual(original);
++  expect(
++    Object.values(objects).filter((item) => item.kind === 'key')
++  ).toHaveLength(9);
++  expect(objects.fingers_c3_r3).toMatchObject({
++    kind: 'key',
++    cluster: 'fingers',
++    cell: ['c3', 'r3'],
++    properties: { column_net: 'C3', row_net: 'R3' },
++  });
++  expect(objects.fingers_c3_r3_diode).toMatchObject({
++    properties: { owner: 'fingers_c3_r3', role: 'diode' },
++  });
++  expect(parseCount).toBeLessThanOrEqual(10);
++});
++
++it('reserves owned component identities before adding another named cell', () => {
++  // Given: authored row names may overlap a generated diode suffix.
++  const source = compileSetup({ ...defaultSetup(), columns: 1, rows: 1 });
++
++  // When: both rows are added in one resize.
++  const result = resizeCluster(source, 'fingers', {
++    rows: ['r1', 'r2', 'r2_diode'],
++  });
++
++  // Then: the second key receives the same collision-free identity as a sequential addition.
++  const objects = readStudio(result).layout.objects || {};
++  expect(objects.fingers_c1_r2_diode.properties?.owner).toBe('fingers_c1_r2');
++  expect(objects.fingers_c1_r2_diode_2).toMatchObject({
++    kind: 'key',
++    cell: ['c1', 'r2_diode'],
++  });
++});
++
++it('initializes legacy key electronics in one insertion per new key', () => {
++  // Given: the browser matrix creation path uses inline legacy electronics.
++  const source = addCluster(
++    '# retained\nschema: ergogen/v1\nlayout: {objects: {}}\n',
++    'fingers',
++    'columns',
++    { columns: 3, rows: 2 }
++  );
++  parsing.calls = 0;
++
++  // When: one row is added.
++  const result = resizeCluster(source, 'fingers', { rows: ['r1', 'r2', 'r3'] });
++  const parseCount = parsing.calls;
++  const objects = readStudio(result).layout.objects || {};
++
++  // Then: switch/diode wiring and retained source are correct with bounded parsing.
++  expect(result.startsWith('# retained\n')).toBe(true);
++  expect(objects.fingers_c3_r3.footprints).toEqual({
++    switch: { params: { to: '{{name}}_switch' } },
++    studio_diode: {
++      what: 'diode',
++      placement: { at: [0, -5, 0] },
++      params: { from: '{{name}}_switch', to: '{{row_net}}' },
++    },
++  });
++  expect(parseCount).toBeLessThanOrEqual(5);
++});
++
++it('removes one row and its owned electronics with one source deletion pass', () => {
++  // Given: unedited generated keys can be removed without a review prompt.
++  const source =
++    '# retained shrink comment\n' +
++    compileSetup({ ...defaultSetup(), columns: 3, rows: 2 });
++  const original = readStudio(source).layout.objects?.fingers_c1_r1;
++  parsing.calls = 0;
++
++  // When: three keys are removed as one matrix operation.
++  const result = resizeCluster(source, 'fingers', { rows: ['r1'] });
++  const parseCount = parsing.calls;
++  const objects = readStudio(result).layout.objects || {};
++
++  // Then: retained keys remain exact and removed keys leave no owned components.
++  expect(result.startsWith('# retained shrink comment\n')).toBe(true);
++  expect(objects.fingers_c1_r1).toEqual(original);
++  expect(
++    Object.values(objects).filter((item) => item.kind === 'key')
++  ).toHaveLength(3);
++  expect(objects.fingers_c1_r2).toBeUndefined();
++  expect(objects.fingers_c1_r2_diode).toBeUndefined();
++  expect(parseCount).toBeLessThanOrEqual(8);
++});
++
++it('keeps an edited owned diode behind the resize review boundary', () => {
++  // Given: an owned diode has a manual placement edit.
++  const source = setValue(
++    compileSetup({ ...defaultSetup(), columns: 2, rows: 2 }),
++    ['layout', 'objects', 'fingers_c2_r2_diode', 'placement', 'at'],
++    [7, -3, 0]
++  );
++
++  // When: its row is removed as one batch.
++  let review: ResizeReview | undefined;
++  try {
++    resizeCluster(source, 'fingers', { rows: ['r1'] });
++  } catch (error) {
++    if (!(error instanceof ResizeReview)) throw error;
++    review = error;
++  }
++
++  // Then: the original source is retained until the complete candidate is accepted.
++  expect(review).toBeInstanceOf(ResizeReview);
++  expect(review?.proposal.before).toBe(source);
++  expect(review?.proposal.keys).toEqual(['fingers_c1_r2', 'fingers_c2_r2']);
++  expect(
++    readStudio(review?.proposal.after || source).layout.objects
++      ?.fingers_c2_r2_diode
++  ).toBeUndefined();
++});
++
++it('matches ordinary assembly application when compiling a batch of new keys', async () => {
++  // Given: inserted keys have no prior electronics recipe or owned components.
++  const { applyAssembly } = await import('./applyAssembly');
++  const setup = { ...defaultSetup(), columns: 2, rows: 1, led: true };
++  let source = compileSetup(setup);
++  const original = readStudio(source);
++  const keys = ['fingers_c1_r1', 'fingers_c2_r1'];
++  source = setValue(
++    source,
++    ['layout', 'objects'],
++    Object.fromEntries(
++      keys.map((id) => {
++        const item = original.layout.objects?.[id];
++        return [
++          id,
++          {
++            kind: 'key',
++            part: item?.part,
++            pcb: item?.pcb,
++            cluster: item?.cluster,
++            cell: item?.cell,
++            envelopes: { keycap: { size: [18, 18] } },
++          },
++        ];
++      })
++    )
++  );
++  const expected = readStudio(applyAssembly(source, keys, setup, 'preserve'));
++
++  // When: the same new keys use deferred mapping writes.
++  const result = applyAssembly(source, keys, setup, 'preserve', 'keys', true);
++
++  // Then: native parts, generated nets, LED chain, templates and owners match exactly.
++  expect(readStudio(result)).toEqual(expected);
++});
++
++it('creates one loose key with native owned electronics without intermediate field edits', () => {
++  // Given: a native assembly board accepts a new loose key.
++  const source = compileSetup({ ...defaultSetup(), columns: 3, rows: 2 });
++  parsing.calls = 0;
++
++  // When: a single key is added.
++  const result = addObject(source, 'extra', 'key');
++  const parseCount = parsing.calls;
++  const objects = readStudio(result).layout.objects || {};
++
++  // Then: its part, independent net identity and owned diode are complete.
++  expect(objects.extra).toMatchObject({
++    kind: 'key',
++    part: 'assembly_mx_solder',
++    pcb: 'main',
++    properties: { column_net: 'extra_c1', row_net: 'extra_row' },
++  });
++  expect(objects.extra_diode.properties?.owner).toBe('extra');
++  expect(parseCount).toBeLessThanOrEqual(6);
++});
++
++it('keeps different column recipes when a row creates multiple assembly groups', () => {
++  // Given: the first column uses LEDs without diodes and the second uses defaults.
++  const source = setValue(
++    compileSetup({ ...defaultSetup(), columns: 2, rows: 1 }),
++    ['meta', 'studio', 'columns', 'fingers', 'c1'],
++    { diode: false, led: true }
++  );
++
++  // When: one row adds keys in both columns.
++  const result = resizeCluster(source, 'fingers', { rows: ['r1', 'r2'] });
++
++  // Then: each key and its owned electronics retain their resolved recipe.
++  const objects = readStudio(result).layout.objects || {};
++  expect(objects.fingers_c1_r2_led.properties?.owner).toBe('fingers_c1_r2');
++  expect(objects.fingers_c1_r2_diode).toBeUndefined();
++  expect(objects.fingers_c2_r2_diode.properties?.owner).toBe('fingers_c2_r2');
++  expect(objects.fingers_c2_r2_led).toBeUndefined();
++});
++
++it('rejects batch removal when an owned component is locked', () => {
++  // Given: one diode in the removed row is locked.
++  const source = setValue(
++    compileSetup({ ...defaultSetup(), columns: 2, rows: 2 }),
++    ['layout', 'objects', 'fingers_c2_r2_diode', 'locked'],
++    true
++  );
++
++  // When / Then: the complete resize is rejected before offering a candidate.
++  expect(() => resizeCluster(source, 'fingers', { rows: ['r1'] })).toThrow(
++    'Unlock'
++  );
++});
+diff --git a/engine/src/designs/geometry.js b/engine/src/designs/geometry.js
+index d3de647..5bfd5db 100644
+--- a/engine/src/designs/geometry.js
++++ b/engine/src/designs/geometry.js
+@@ -60,6 +60,8 @@ const combine = (left, right, operation = 'add') => {
+     return u[operation](clone(left), clone(right))
+ }
+ const union = models => models.reduce((result, model) => combine(result, model), {paths: {}})
++// MakerJS deletes farPoint between path unions; retain the explicit ray throughout repair steps.
++const offsetOptions = () => Object.create({farPoint: u.farPoint})
+ const offset = (model, distance, joints = Joint.Round) => {
+     if (Math.abs(distance) < EPSILON) {
+         return clone(model)
+@@ -79,7 +81,7 @@ const offset = (model, distance, joints = Joint.Round) => {
+     const steps = radii.length ? Math.max(2, Math.ceil(distance / Math.min(...radii) * 2)) : 2
+     if (steps > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit') }
+     for (let step = 0; step < steps; step++) {
+-        result = m.model.outline(result, distance / steps, joints, false, {farPoint: u.farPoint})
++        result = m.model.outline(result, distance / steps, joints, false, offsetOptions())
+     }
+     if (!valid(result)) {
+         // Shallow notches between neighboring keys need smaller analytic steps.
+@@ -87,7 +89,7 @@ const offset = (model, distance, joints = Joint.Round) => {
+         if (repairs > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit') }
+         result = clone(model)
+         for (let step = 0; step < repairs; step++) {
+-            result = m.model.outline(result, distance / repairs, joints, false, {farPoint: u.farPoint})
++            result = m.model.outline(result, distance / repairs, joints, false, offsetOptions())
+         }
+     }
+     if (!valid(result)) { fail('designs', 'Offset failed to preserve the profile extent') }
+@@ -145,14 +147,14 @@ const requireContains = (outer, inner, name) => {
+         fail(name, 'Profile removes occupied area or required clearance', 'clearance')
+     }
+ }
+-const close = (model, radius) => {
++const close = (model, radius, resize = offset) => {
+     if (!radius) { return clone(model) }
+     // Keep exact closing first; retry contraction short of collapsing its new arcs.
+     const adjusted = radius + ARC_COLLAPSE_ADJUSTMENT
+     const attempts = [[radius, radius], [adjusted, adjusted], [radius, Math.max(0, radius - ARC_COLLAPSE_ADJUSTMENT)]]
+     for (const [expansion, contraction] of attempts) {
+         try {
+-            const closed = offset(offset(model, expansion), -contraction)
++            const closed = resize(resize(model, expansion), -contraction)
+             validate(closed, 'designs')
+             if (contains(closed, model)) { return closed }
+             const restored = combine(model, closed)
+diff --git a/engine/src/designs/index.js b/engine/src/designs/index.js
+index 8a0dae5..abf18f6 100644
+--- a/engine/src/designs/index.js
++++ b/engine/src/designs/index.js
+@@ -8,6 +8,7 @@ const {deepcopy} = require('../utils')
+ 
+ const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies']
+ const analysisCache = new WeakMap()
++const outlineCache = new WeakMap()
+ const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
+ 
+ // Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
+@@ -72,9 +73,22 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+         if (config.regions[`${id}_keys`]) { config.regions[`${id}_keys`] = {outline:ref} }
+         if (config.regions[`${id}_switches`]) { config.regions[`${id}_switches`] = {outline:ref} }
+     }
+-    const features = {}, resolved = {}, active = new Set(), generated = {}, cases = {}
+-    const report = {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE}
++    const scope = options.analysis && options.preparedLayout?.scene
++    const staged = scope && outlineCache.get(scope)
++    if (scope) { outlineCache.delete(scope) }
++    const geometry = staged && staged.key === options.outlineKey ? staged.geometry : undefined
++    const features = geometry?.report.features || {}, resolved = geometry?.resolved || {}, active = new Set(), generated = geometry?.generated || {}, cases = {}
++    const report = geometry?.report || {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE}
+     const dim = (value, name) => g.number(value, name, units)
++    const offsets = new Map()
++    const offset = (model, distance, joints = g.Joint.Round) => {
++        if (Math.abs(distance) < g.EPSILON) { return g.offset(model, distance, joints) }
++        const key = JSON.stringify([model, distance, joints])
++        if (offsets.has(key)) { return g.clone(offsets.get(key)) }
++        const result = g.offset(model, distance, joints)
++        offsets.set(key, g.clone(result))
++        return result
++    }
+ 
+     const locate = (spec, name) => {
+         if (spec && typeof spec === 'object' && spec.feature) {
+@@ -138,7 +152,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+         const clearance = dim(spec.clearance || 0, `${name}.clearance`)
+         const rounding = dim(spec.round || 0, `${name}.round`)
+         if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative') }
+-        model = g.offset(model, clearance)
++        model = offset(model, clearance)
+         model = g.round(model, rounding)
+         const simplification = dim(spec.simplify || 0, `${name}.simplify`)
+         if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative') }
+@@ -151,7 +165,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+             const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units)
+             model = require('./finishing').corners(model, {[style]:size}, `${name}.corners`)
+         }
+-        const required = !g.empty(occupied) && clearance > 0 ? g.offset(occupied, clearance) : occupied
++        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied
+         model = modify(model, spec, name, required)
+         g.validate(model, name, spec.connected || 'multiple')
+         g.requireContains(model, required, name)
+@@ -196,7 +210,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+                 occupied = g.union(groups)
+                 const radius = dim(spec.close || 0, `${name}.close`)
+                 if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
+-                groups = groups.map(group => finish(g.close(group, radius), spec, name, group))
++                groups = groups.map(group => finish(g.close(group, radius, offset), spec, name, group))
+                 model = g.union(groups)
+                 if (g.chains(model).length < groups.reduce((count, group) => count + g.chains(group).length, 0)) {
+                     g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected')
+@@ -213,7 +227,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+                 groups = sources.flatMap(source => source.groups)
+                 const radius = dim(spec.close || 0, `${name}.close`)
+                 if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
+-                groups = groups.map(group => g.close(group, radius))
++                groups = groups.map(group => g.close(group, radius, offset))
+                 model = g.union(groups)
+                 for (const [bridge, bridgeSpec] of Object.entries(spec.bridges || {})) {
+                     const path = `${name}.bridges.${bridge}`
+@@ -269,7 +283,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+                 model = shape(spec, name)
+                 const height = a.numarr(spec.height, `${name}.height`, 2)(units)
+                 if (height[0] >= height[1]) { g.fail(name, 'Height range must increase') }
+-                model = g.offset(model, dim(spec.clearance || 0, `${name}.clearance`))
++                model = offset(model, dim(spec.clearance || 0, `${name}.clearance`))
+                 occupied = model
+                 groups = [model]
+             } else if (section === 'sketches') {
+@@ -291,7 +305,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+ 
+     // Solving is asynchronous; the geometry graph remains deterministic afterwards.
+     const solvedSketches = {}
+-    for (const [id, sketch] of Object.entries(config.sketches || {})) {
++    for (const [id, sketch] of Object.entries(geometry ? {} : config.sketches || {})) {
+         const solver = require('./sketches')
+         solvedSketches[id] = await solver.parse(sketch, `designs.sketches.${id}`, units, points, options)
+     }
+@@ -299,6 +313,10 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
+         for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`) }
+     }
+     if (options.outlineOnly) {
++        // Transfer geometry once within a prepared request, before callers can mutate its output.
++        if (scope && options.outlineKey) {
++            outlineCache.set(scope, {key: options.outlineKey, geometry: deepcopy({resolved, generated, report})})
++        }
+         return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
+     }
+     const boardSources = options.boardSources ? options.boardSources(generated) : {}
+diff --git a/engine/src/ergogen.js b/engine/src/ergogen.js
+index 61e0435..ca7ba8d 100644
+--- a/engine/src/ergogen.js
++++ b/engine/src/ergogen.js
+@@ -66,7 +66,8 @@ const compile = async (raw, options={}, logger=()=>{}) => {
+             }))
+             analysisKey = JSON.stringify([{...config, designs:{...config.designs, assemblies}}, options.assets])
+         }
+-        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey,
++        const outlineKey = options.analysis && prepared?.scene ? JSON.stringify([config, options.assets]) : undefined
++        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey, outlineKey,
+             scene, region: (spec, path) => geometry.region(scene, spec, path),
+             shape: (spec,path,point) => geometry.project({matrix:require('./native/frames').local([point.x,point.y,0],point.r),sourcePath:path},scene.envelope(spec,path)),
+             boardSources: generated => {
+diff --git a/engine/test/unit/native_outline_cache.js b/engine/test/unit/native_outline_cache.js
+new file mode 100644
+index 0000000..5621096
+--- /dev/null
++++ b/engine/test/unit/native_outline_cache.js
+@@ -0,0 +1,64 @@
++const assert = require('node:assert/strict')
++const crypto = require('node:crypto')
++const engine = require('../../src/ergogen')
++const g = require('../../src/designs/geometry')
++const fixture = require('../fixtures/native/matrix-outline-recovery.json')
++const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
++const settings = {analysis: true, debug: true, svg: true}
++const input = () => structuredClone(fixture)
++
++describe('Native staged outline reuse', function() {
++    this.timeout(120000)
++
++    it('retains complete analysis output without rebuilding the published outline geometry', async () => {
++        const source = input()
++        const expected = await engine.process(source, settings)
++        assert.equal(hash(expected.outlines), '1eb82f1b99004f490e957249f7d36d7d627de33e88227b3a1d1837d988b26f29')
++        assert.equal(hash(expected.designs.features), '8b059258e09975f330d83edda26044b410876ba583c8cbbefa5eb963e058529b')
++        const preparedLayout = await engine.solveLayout(source)
++        const options = {...settings, preparedLayout}
++        const describe = sinon.spy(g, 'describe')
++        const outline = await engine.process(source, {...options, outlineOnly: true})
++        const described = describe.callCount
++        outline.designs.features['profiles.board'].bounds.low[0] = -999
++        const actual = await engine.process(source, options)
++        assert.deepEqual(actual, expected, 'Staged analysis retains all geometry and diagnostics despite caller mutation')
++        assert.equal(describe.callCount, described, 'Analysis must consume the completed outline geometry instead of rebuilding it')
++        await engine.process(source, options)
++        assert.ok(describe.callCount > described, 'The geometry handoff is consumed once')
++    })
++
++    for (const change of ['source', 'assets', 'scene']) {
++        it(`rebuilds and retains complete output when the ${change} changes between stages`, async () => {
++            const source = input()
++            const options = {...settings, preparedLayout: await engine.solveLayout(source)}
++            await engine.process(source, {...options, outlineOnly: true})
++            if (change === 'source') { source.designs.boundaries.edge.clearance = 3 }
++            if (change === 'assets') { options.assets = {'notes.txt': 'changed'} }
++            if (change === 'scene') { options.preparedLayout = await engine.solveLayout(source) }
++            const describe = sinon.spy(g, 'describe')
++            const actual = await engine.process(source, options)
++            assert.ok(describe.callCount > 0, 'Changed inputs cannot consume stale geometry')
++            const expected = await engine.process(source, {...options, preparedLayout: undefined})
++            assert.deepEqual(actual, expected)
++        })
++    }
++})
++
++describe('Native staged PCB output', function() {
++    this.timeout(120000)
++    it('retains board compilation and findings after publishing outlines', async () => {
++        const source = {
++            schema: 'ergogen/v1',
++            layout: {objects: {key: {kind: 'key', pcb: 'main', footprints: {switch: {what: 'mx', params: {from: 'C', to: 'R'}}}}}},
++            designs: {regions: {board: {shape: {size: [80, 60]}}}, profiles: {board: {from: 'regions.board'}}},
++            pcbs: {main: {profile: 'profiles.board'}}
++        }
++        const expected = await engine.process(source, settings)
++        const options = {...settings, preparedLayout: await engine.solveLayout(source)}
++        await engine.process(source, {...options, outlineOnly: true})
++        const actual = await engine.process(source, options)
++        assert.ok(actual.pcbs.main.includes('(kicad_pcb'))
++        assert.deepEqual(actual, expected)
++    })
++})
+diff --git a/engine/test/unit/native_outline_offset.js b/engine/test/unit/native_outline_offset.js
+new file mode 100644
+index 0000000..e485a4a
+--- /dev/null
++++ b/engine/test/unit/native_outline_offset.js
+@@ -0,0 +1,56 @@
++const assert = require('node:assert/strict')
++const crypto = require('node:crypto')
++const m = require('makerjs')
++const engine = require('../../src/ergogen')
++const g = require('../../src/designs/geometry')
++const hash = value => crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex')
++
++const matrix = () => {
++    const columns = Array.from({length: 10}, (_, index) => `c${index + 1}`)
++    const rows = Array.from({length: 6}, (_, index) => `r${index + 1}`)
++    return {
++        schema: 'ergogen/v1',
++        layout: {
++            clusters: {fingers: {arrangement: {type: 'columns', columns, rows, pitch: [19, 19]}}},
++            objects: Object.fromEntries(columns.flatMap(column => rows.map(row => [`fingers_${column}_${row}`, {
++                kind: 'key', pcb: 'main', cluster: 'fingers', cell: [column, row], envelopes: {keycap: {size: [18, 18]}},
++                ...(column === 'c10' && row === 'r1' ? {placement: {at: [3, 0, 0]}} : {})
++            }])))
++        },
++        pcbs: {main: {profile: 'profiles.main_outline'}},
++        designs: {
++            regions: {main_keycap: {select: {kind: 'key', pcb: 'main'}, envelope: 'keycap', close: 2}},
++            boundaries: {main_edge: {from: ['regions.main_keycap'], clearance: 2, simplify: 2, corners: {fillet: 2}, holes: 'fill', connected: 'single', bridges: {}}},
++            profiles: {main_outline: {from: 'boundaries.main_edge'}}
++        }
++    }
++}
++
++describe('Native notched matrix outline performance', function() {
++    this.timeout(120000)
++    it('retains the explicit intersection ray when a strict bundle deletes repair options', () => {
++        const outline = m.model.outline
++        let calls = 0
++        sinon.stub(m.model, 'outline').callsFake(function(model, distance, joints, inside, options) {
++            'use strict'
++            if (++calls === 1) { return g.clone(model) }
++            const ray = options.farPoint
++            options.farPoint = [0, 0]
++            delete options.farPoint
++            assert.deepEqual(options.farPoint, ray)
++            return outline(model, distance, joints, inside, options)
++        })
++        const result = g.offset(new m.models.Rectangle(10, 10), 1)
++        assert.deepEqual(m.measure.modelExtents(result).low, [-1, -1])
++        assert.deepEqual(m.measure.modelExtents(result).high, [11, 11])
++    })
++
++    it('retains the exported contour without repeated repairs after a three millimetre key move', async () => {
++        const outline = sinon.spy(m.model, 'outline')
++        const result = await engine.process(matrix(), {analysis: true, outlineOnly: true, debug: true, svg: true})
++        assert.equal(hash(g.paths(result.designs.features['profiles.main_outline'].model)), '55512e458f3eb136640d7da7088164ada70748b75454ab76c77dc8074555da52')
++        assert.equal(hash(result.outlines.main_outline.svg), 'e20e5530643cc784b2c68c337bd3ef13660e56a0919a3bd46c9b07ca111af3fd')
++        assert.equal(hash(result.outlines.main_outline.dxf), '19ebb8591b7a570e3910bc87b518f20d044f070a26f172dd3c1e9d67474502f8')
++        assert.ok(outline.callCount <= 9, `Expected bounded analytic offsets, observed ${outline.callCount} calls`)
++    })
++})

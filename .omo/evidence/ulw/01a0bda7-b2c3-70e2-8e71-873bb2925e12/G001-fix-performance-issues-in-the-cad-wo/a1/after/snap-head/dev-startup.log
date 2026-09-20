@@ -1,0 +1,73 @@
+[2m[WebServer] [22m(node:1828509) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mFailed to resolve dependency: ergogen/src/native, present in 'optimizeDeps.include'
+
+Running 1 test using 1 worker
+
+(node:1828555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1828555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22m
+[2m[WebServer] [22m- /tmp/boardstudio-snap-head-audit
+[2m[WebServer] [22m- /home/chris/projects/ts-boardstudio2/node_modules/.pnpm/vite@5.4.21_@types+node@24.10.1_terser@5.44.1/node_modules/vite/dist/client
+[2m[WebServer] [22m
+[2m[WebServer] [22mRefer to docs https://vite.dev/config/server-options.html#server-fs-allow for configurations and more details.
+[2m[WebServer] [22m
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mFiles in the public directory are served at the root path.
+[2m[WebServer] [22mInstead of /public/dependencies/openjscad.js, use /dependencies/openjscad.js.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff2" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mThe request url "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@fontsource+roboto@5.3.0/node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff" is outside of Vite serving allow list.
+[2m[WebServer] [22mFiles in the public directory are served at the root path.
+[2m[WebServer] [22mInstead of /public/dependencies/openjscad.js, use /dependencies/openjscad.js.
+  ✘  1 [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop (8.1s)
+
+
+  1) [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByRole('status', { name: 'Project status' })
+    Expected substring: [32m"Layout positions current"[39m
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('status', { name: 'Project status' })[22m
+    [2m    5 × locator resolved to <div role="status" class="sc-gGmLfs dZwohQ" aria-label="Project status">…</div>[22m
+    [2m      - unexpected value "Updating layout… · 1 keyView findings"[22m
+
+
+      21 |   await expect(
+      22 |     page.getByRole('status', { name: 'Project status' })
+    > 23 |   ).toContainText('Layout positions current');
+         |     ^
+      24 | }
+      25 | function board() {
+      26 |   return setValue(
+        at open (/tmp/boardstudio-snap-head-audit/app/e2e/settings-consolidation.spec.ts:23:5)
+        at /tmp/boardstudio-snap-head-audit/app/e2e/settings-consolidation.spec.ts:149:3
+
+    Error Context: ../../../home/chris/projects/ts-boardstudio2/.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/after/snap-head/results/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../home/chris/projects/ts-boardstudio2/.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/after/snap-head/results/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../home/chris/projects/ts-boardstudio2/.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/after/snap-head/results/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop 

@@ -1,0 +1,122 @@
+[
+  {
+    "mode": "layout",
+    "ms": 135.49013200000002,
+    "records": {
+      "native/clearance.check": {
+        "count": 1,
+        "ms": 0.20388200000002143
+      },
+      "io.twodee": {
+        "count": 1,
+        "ms": 17.498926000000097
+      }
+    },
+    "outlines": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "features": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "mode": "outline",
+    "ms": 1095.729159,
+    "records": {
+      "native/clearance.check": {
+        "count": 1,
+        "ms": 0.019874999999956344
+      },
+      "io.twodee": {
+        "count": 2,
+        "ms": 6.755112000000167
+      },
+      "designs/geometry.union": {
+        "count": 69,
+        "ms": 600.673827
+      },
+      "designs/geometry.close": {
+        "count": 123,
+        "ms": 134.76186800000198
+      },
+      "designs/geometry.offset": {
+        "count": 64,
+        "ms": 133.54300800000112
+      },
+      "designs/geometry.round": {
+        "count": 63,
+        "ms": 0.6874820000009549
+      },
+      "designs/geometry.requireContains": {
+        "count": 64,
+        "ms": 60.4786160000009
+      },
+      "designs/geometry.describe": {
+        "count": 7,
+        "ms": 47.803396000000134
+      },
+      "designs/geometry.combine": {
+        "count": 3,
+        "ms": 14.556770000000142
+      }
+    },
+    "outlines": "1eb82f1b99004f490e957249f7d36d7d627de33e88227b3a1d1837d988b26f29",
+    "features": "8b059258e09975f330d83edda26044b410876ba583c8cbbefa5eb963e058529b"
+  },
+  {
+    "mode": "analysis",
+    "ms": 980.124746,
+    "records": {
+      "native/clearance.check": {
+        "count": 1,
+        "ms": 0.01873899999986861
+      },
+      "io.twodee": {
+        "count": 2,
+        "ms": 6.10745900000029
+      },
+      "designs/geometry.union": {
+        "count": 69,
+        "ms": 554.8021000000003
+      },
+      "designs/geometry.close": {
+        "count": 123,
+        "ms": 88.8579490000011
+      },
+      "designs/geometry.offset": {
+        "count": 64,
+        "ms": 125.88342699999953
+      },
+      "designs/geometry.round": {
+        "count": 63,
+        "ms": 0.5298439999994571
+      },
+      "designs/geometry.requireContains": {
+        "count": 64,
+        "ms": 53.861316999997825
+      },
+      "designs/geometry.describe": {
+        "count": 7,
+        "ms": 46.96344999999951
+      },
+      "designs/geometry.combine": {
+        "count": 3,
+        "ms": 14.110829999999623
+      }
+    },
+    "outlines": "1eb82f1b99004f490e957249f7d36d7d627de33e88227b3a1d1837d988b26f29",
+    "features": "8b059258e09975f330d83edda26044b410876ba583c8cbbefa5eb963e058529b"
+  },
+  {
+    "mode": "cached-analysis",
+    "ms": 20.715718999999808,
+    "records": {
+      "native/clearance.check": {
+        "count": 1,
+        "ms": 0.025747000000137632
+      },
+      "io.twodee": {
+        "count": 2,
+        "ms": 6.076712000000043
+      }
+    },
+    "outlines": "1eb82f1b99004f490e957249f7d36d7d627de33e88227b3a1d1837d988b26f29",
+    "features": "8b059258e09975f330d83edda26044b410876ba583c8cbbefa5eb963e058529b"
+  }
+]

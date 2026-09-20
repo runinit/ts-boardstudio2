@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/designSource.test.ts (8 tests) 25ms
+ ✓ src/utils/appendSourceFields.test.ts (9 tests) 48ms
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  04:08:49
+   Duration  1.85s (transform 70ms, setup 119ms, collect 92ms, tests 72ms, environment 1.18s, prepare 111ms)
+

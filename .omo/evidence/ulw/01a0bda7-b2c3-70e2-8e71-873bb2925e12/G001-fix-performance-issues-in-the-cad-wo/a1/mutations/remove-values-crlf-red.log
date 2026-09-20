@@ -1,0 +1,37 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/removeSourceValues.test.ts (11 tests | 1 failed) 28ms
+   × removeSourceValues > preserves CRLF when replacing an emptied block mapping 15ms
+     → expected 'm:\r\n  {}\nt: 3\r\n' to be 'm:\r\n  {}\r\nt: 3\r\n' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/removeSourceValues.test.ts > removeSourceValues > preserves CRLF when replacing an emptied block mapping
+AssertionError: expected 'm:\r\n  {}\nt: 3\r\n' to be 'm:\r\n  {}\r\nt: 3\r\n' // Object.is equality
+
+- Expected
++ Received
+
+  m:
+-   {}
++   {}
+  t: 3
+
+
+ ❯ src/utils/removeSourceValues.test.ts:8:66
+      6|   it('preserves CRLF when replacing an emptied block mapping', () => {
+      7|     const source = 'm:\r\n  a: 1\r\n  b: 2\r\nt: 3\r\n';
+      8|     expect(removeSourceValues(source, [['m', 'a'], ['m', 'b']])).toBe(
+       |                                                                  ^
+      9|       'm:\r\n  {}\r\nt: 3\r\n'
+     10|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  04:06:30
+   Duration  1.06s (transform 62ms, setup 76ms, collect 63ms, tests 28ms, environment 661ms, prepare 65ms)
+

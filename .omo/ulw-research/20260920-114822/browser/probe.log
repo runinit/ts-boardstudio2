@@ -1,0 +1,5 @@
+{"name":"baseline","event":"load","pads":46}
+{"name":"plain-matrix","event":"load","pads":46}
+{"name":"diode-padless","event":"load","pads":29}
+{"name":"ui-add-cluster","event":"load","pads":46}
+{"errors":[{"url":"http://127.0.0.1:38591/$$:0:$$","status":404},"Failed to load resource: the server responded with a status of 404 (Not Found)",{"url":"http://127.0.0.1:38591/$$:0:$$","status":404},"Failed to load resource: the server responded with a status of 404 (Not Found)",{"url":"http://127.0.0.1:38591/$$:0:$$","status":404},"Failed to load resource: the server responded with a status of 404 (Not Found)",{"url":"http://127.0.0.1:38591/$$:0:$$","status":404},"Failed to load resource: the server responded with a status of 404 (Not Found)"]}

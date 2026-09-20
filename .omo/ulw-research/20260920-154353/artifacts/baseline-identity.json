@@ -1,0 +1,72 @@
+{
+  "observedAt": "2026-09-20T16:06:05.425Z",
+  "head": "347229abc1561a44a2dc6cc0cee50969b49b267e",
+  "indexTree": "348e0e5f520a45268ba80a01f90627f8a0f575d8",
+  "stagedPatchSha256": "2629ad6baca3a38072a3edb2777416d82a75e2a16d8a02943047db0ad70623ec",
+  "distAssets": [
+    {
+      "path": "app/dist/assets/FootprintLibrary-BMaLbe4C.js",
+      "sha256": "c7f70e1a95e65625579e7c6908808f7da1f2d1c9523dc4966f50ee5eec5612b8"
+    },
+    {
+      "path": "app/dist/assets/PcbPreview-CbSFDrD4.js",
+      "sha256": "9bc605a20d0f0619478d1515aadbf4cd9a79bbb146db8806bb3060451b59535c"
+    },
+    {
+      "path": "app/dist/assets/StlPreview-C1PWc3UE.js",
+      "sha256": "f532051a1b3991b461c39d5634b62c719d41d08f6a842b5869cc79cb0d30842f"
+    },
+    {
+      "path": "app/dist/assets/ergogen.worker-DLl6-PjQ.js",
+      "sha256": "39d9820c00b64eead9fc71c9ef9bf64c9d6dbdaad858f851733dc42a2d04b9cd"
+    },
+    {
+      "path": "app/dist/assets/footprint.worker-C5TDyhLZ.js",
+      "sha256": "d12523d8bf29634f290f66c0cb4356a03d5f697086092240f3b158b31661bb97"
+    },
+    {
+      "path": "app/dist/assets/index-BpuJ1SNf.js",
+      "sha256": "d161db4f9a0bc114c2e87a75af3ecd7b7731f51711888e579907c853482cab6e"
+    },
+    {
+      "path": "app/dist/assets/index-CcwoAEff.js",
+      "sha256": "799b633fc8ed94eb59bc0e38b9517ffcbee9fc5f9604184ff26fc901cc23223e"
+    },
+    {
+      "path": "app/dist/assets/index-Drk1y3D7.js",
+      "sha256": "6f23916d1b23c035eaa6c68223fddb8999e8c2b7965e62cc4e66926241636f2c"
+    },
+    {
+      "path": "app/dist/assets/jscad.worker-BVgkQPxZ.js",
+      "sha256": "4876b8d00b20331528a818a9cdf3a183e6982041f19b2b1d29ccf66f554a017c"
+    },
+    {
+      "path": "app/dist/assets/math-CCywmkuP.js",
+      "sha256": "dc45288b62c34f63fc698fc3feeb5b391d604d5ad31e1629cbc6234cfd4f53dd"
+    },
+    {
+      "path": "app/dist/assets/model.worker-CZ2UtJ9y.js",
+      "sha256": "d3859243697fbfea7dd81e229090c668762adf8b9e4714c97a3f0902d6425293"
+    },
+    {
+      "path": "app/dist/assets/replicad-z_ocCytR.js",
+      "sha256": "96735fc0c8a5226c6aa121f70279e780c6544859b563355a0db32ad0a2b3df41"
+    },
+    {
+      "path": "app/dist/assets/replicad_single--OvWNQgj.js",
+      "sha256": "5cdbf63e6344fc30394450a029c25f635f8be460bd63c0b5d457f2ade89a15c4"
+    },
+    {
+      "path": "app/dist/assets/replicad_single-BOMV_TPW.js",
+      "sha256": "592c117ee93f650c1ddfa05f295ae3e0b096213bacb70f51c8deedafcd49abdf"
+    },
+    {
+      "path": "app/dist/assets/replicad_single-C6KmGDXh.js",
+      "sha256": "745d2facfa209fa2e44e35f160320355dbf6227f4323456f14d00e6eb0d04dd9"
+    },
+    {
+      "path": "app/dist/assets/replicad_single-DFjaXPIN.js",
+      "sha256": "86b782ae623253509bb4bc00a9e87ccac31baf813852af207e84b1fb29e24031"
+    }
+  ]
+}

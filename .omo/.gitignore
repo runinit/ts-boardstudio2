@@ -1,0 +1,3 @@
+# Preserve archived browser evidence despite the repository's generated-output rules.
+!**/test-results/
+!**/playwright-report/

@@ -1,0 +1,17 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/studioSource.test.ts (20 tests) 2518ms
+   ✓ mounts a new matrix on its PCB top surface 481ms
+   ✓ mounts new thumb clusters and loose keys on the existing PCB layer 537ms
+   ✓ deletes a cluster and its own members together 521ms
+ ✓ src/utils/studioSourceBatch.test.ts (7 tests) 622ms
+ ✓ src/utils/keyOptions.test.ts (5 tests) 545ms
+   ✓ compiles managed switch, diode and LED footprints with separate nets 315ms
+
+ Test Files  3 passed (3)
+      Tests  32 passed (32)
+   Start at  04:14:54
+   Duration  7.45s (transform 215ms, setup 166ms, collect 1.43s, tests 3.68s, environment 1.64s, prepare 160ms)
+

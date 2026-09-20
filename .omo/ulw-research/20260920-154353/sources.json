@@ -1,0 +1,225 @@
+[
+  {
+    "id": "S01",
+    "title": "Canvas pointer and rendering code",
+    "path": "app/src/molecules/StudioCanvas.tsx",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S02",
+    "title": "Drag proposals and snapping",
+    "path": "app/src/utils/studioMove.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S03",
+    "title": "Studio hook and queue",
+    "path": "app/src/hooks/useStudio.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S04",
+    "title": "Worker queue",
+    "path": "app/src/utils/studioQueue.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S05",
+    "title": "Studio worker pipeline",
+    "path": "app/src/workers/studioPipeline.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S06",
+    "title": "Outline source preparation and snapshots",
+    "path": "app/src/utils/studioOutline.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S07",
+    "title": "Outline geometry and memoization",
+    "path": "engine/src/designs/index.js",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S08",
+    "title": "Offset, validation and containment",
+    "path": "engine/src/designs/geometry.js",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S09",
+    "title": "Finishing and simplification",
+    "path": "engine/src/designs/finishing.js",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S10",
+    "title": "CAD auto-generation gate",
+    "path": "app/src/context/ConfigContext.tsx",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S11",
+    "title": "World polygon generation",
+    "path": "app/src/utils/layoutDrawing.ts",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S12",
+    "title": "Pointer Events Level 3",
+    "url": "https://www.w3.org/TR/pointerevents3/",
+    "kind": "external-primary",
+    "family": "W3C Pointer Events"
+  },
+  {
+    "id": "S13",
+    "title": "Event Timing API",
+    "url": "https://www.w3.org/TR/event-timing/",
+    "kind": "external-primary",
+    "family": "W3C Event Timing"
+  },
+  {
+    "id": "S14",
+    "title": "React external-store contract",
+    "url": "https://react.dev/reference/react/useSyncExternalStore",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S15",
+    "title": "React transition execution",
+    "url": "https://react.dev/reference/react/startTransition",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S16",
+    "title": "HTML worker lifetime and communication",
+    "url": "https://html.spec.whatwg.org/multipage/workers.html",
+    "kind": "external-primary",
+    "family": "WHATWG"
+  },
+  {
+    "id": "S17",
+    "title": "MessagePort structured serialization",
+    "url": "https://html.spec.whatwg.org/multipage/web-messaging.html#message-port-post-message-steps",
+    "kind": "external-primary",
+    "family": "WHATWG"
+  },
+  {
+    "id": "S18",
+    "title": "MakerJS incremental expansion",
+    "url": "https://github.com/microsoft/maker.js/blob/77a8779cdd7037efad1be8aac951adb4d06acb50/packages/maker.js/src/core/expand.ts",
+    "kind": "external-primary",
+    "family": "MakerJS"
+  },
+  {
+    "id": "S19",
+    "title": "MakerJS boolean combine",
+    "url": "https://github.com/microsoft/maker.js/blob/77a8779cdd7037efad1be8aac951adb4d06acb50/packages/maker.js/src/core/combine.ts",
+    "kind": "external-primary",
+    "family": "MakerJS"
+  },
+  {
+    "id": "S20",
+    "title": "Clipper2 TypeScript port and precision limits",
+    "url": "https://github.com/countertype/clipper2-ts/blob/bf6e0303217bdffcbe2f03ab7f6218194df8e7e4/README.md",
+    "kind": "external-primary",
+    "family": "clipper2-ts"
+  },
+  {
+    "id": "S21",
+    "title": "Clipper offset arc tolerance",
+    "url": "https://www.angusj.com/clipper2/Docs/Units/Clipper.Offset/Classes/ClipperOffset/Properties/ArcTolerance.htm",
+    "kind": "external-primary",
+    "family": "Clipper2"
+  },
+  {
+    "id": "S22",
+    "title": "Excalidraw drag and transient override implementation",
+    "url": "https://github.com/excalidraw/excalidraw/blob/97c68dd371e13c017a8dcca49f8b3995ba7890a8/packages/excalidraw/components/App.tsx",
+    "kind": "external-primary",
+    "family": "Excalidraw"
+  },
+  {
+    "id": "S23",
+    "title": "tldraw geometry caches",
+    "url": "https://github.com/tldraw/tldraw/blob/05ba06d341d4fc7212812c30cb80309c011d428a/packages/editor/src/lib/editor/Editor.ts",
+    "kind": "external-primary",
+    "family": "tldraw"
+  },
+  {
+    "id": "S24",
+    "title": "Long Animation Frames specification",
+    "url": "https://www.w3.org/TR/long-animation-frames/",
+    "kind": "external-primary",
+    "family": "W3C LoAF"
+  },
+  {
+    "id": "S25",
+    "title": "Playwright mouse automation",
+    "url": "https://playwright.dev/docs/api/class-mouse",
+    "kind": "external-primary",
+    "family": "Playwright"
+  },
+  {
+    "id": "S26",
+    "title": "Corrected React external-store RFC",
+    "url": "https://github.com/reactjs/rfcs/blob/dd61503420de363abfeb0e4cffeee7b6d241b13e/text/0214-use-sync-external-store.md",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S27",
+    "title": "Corrected browser runtime evidence",
+    "artifact": "artifacts/drag-final.json",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S28",
+    "title": "Repeated engine runtime evidence",
+    "artifact": "artifacts/outline-repeat.json",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S29",
+    "title": "React memo and local state",
+    "url": "https://react.dev/reference/react/memo",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S30",
+    "title": "React DOM-ref ownership guidance",
+    "url": "https://react.dev/learn/manipulating-the-dom-with-refs#best-practices-for-dom-manipulation-with-refs",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S31",
+    "title": "HTML rendering update ordering",
+    "url": "https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering",
+    "kind": "external-primary",
+    "family": "WHATWG"
+  },
+  {
+    "id": "S32",
+    "title": "BoardStudio commit adapter",
+    "path": "app/src/molecules/BoardStudio.tsx",
+    "kind": "local-primary"
+  },
+  {
+    "id": "S33",
+    "title": "React18 immediate transition callback",
+    "url": "https://github.com/facebook/react/blob/v18.3.1/packages/react/src/ReactStartTransition.js#L14-L36",
+    "kind": "external-primary",
+    "family": "React"
+  },
+  {
+    "id": "S34",
+    "title": "Executed queue reuse grace proof",
+    "artifact": "verify-queue-grace.md",
+    "kind": "local-primary"
+  }
+]

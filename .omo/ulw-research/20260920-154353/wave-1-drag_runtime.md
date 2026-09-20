@@ -1,0 +1,7 @@
+# K: first executed browser probe
+
+Chromium147/Playwright1.59.1 Node24; fixture sha aac51972a25285321902e491412184a69bc4c820eaa594cf54979ebf6f555779. Actual production dist. Sustained216px route observed local transforms, but no committed source change; cause unknown (status omitted). Do not call spacing rejection. First transient DOM observation32.7ms after pointerdown, not input-to-presentation. Separate captured offcanvas drag observed source87.7ms and polygon151.0ms; worker request326.2ms, no completion within7s. Single sequential operational trace, no latency distribution. Pointercancel produced no source change. Artifacts drag-diagnose.json, initial script, log. K prepares bounded net12px run; L owns CPU now.
+
+Evidence correction: live temp harness was edited after diagnosis. The archived script is a later revision and does not reconstruct the old216px path exactly. Raw observations remain bounded operational evidence only. Negative final-move-to-first-transform field is invalid and excluded: first transform precedes final move. New run must freeze producer hash.
+
+Further O audit: offcanvas studio-2 returned ERROR at+2776.6ms, not merely no success within7s. Error payload was omitted by old harness; cause unknown. Zoom scenario target x=-26.98 outside viewport, excluded. Pointercancel operational events cannot prove valid-object cancellation after offcanvas state. New run must capture errors, target bounds and fresh contexts.

@@ -1,0 +1,10 @@
+{
+  "ok": false,
+  "error": {
+    "code": "ULW_LOOP_QUALITY_GATE_INVALID",
+    "message": "Final quality gate is missing qualityGate evidence.",
+    "details": {
+      "field": "qualityGate"
+    }
+  }
+}

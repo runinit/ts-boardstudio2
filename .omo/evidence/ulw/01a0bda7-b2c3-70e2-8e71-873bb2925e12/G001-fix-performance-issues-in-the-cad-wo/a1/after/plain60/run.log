@@ -1,0 +1,47 @@
+[2m[WebServer] [22m(node:1805164) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1805176) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:1805199) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1805199) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/studio-performance.spec.ts:27:5 › measures real keyboard editing response and source correctness (3.1m)
+
+
+  1) [chromium] › e2e/studio-performance.spec.ts:27:5 › measures real keyboard editing response and source correctness 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/Layout analysis failed/)
+    Expected: [32m0[39m
+    Received: [31m1[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for getByText(/Layout analysis failed/)[22m
+    [2m    9 × locator resolved to 1 element[22m
+    [2m      - unexpected value "1"[22m
+
+
+       at utils/studioPerformance.ts:12
+
+      10 |     timeout: 60000,
+      11 |   });
+    > 12 |   await expect(page.getByText(/Layout analysis failed/)).toHaveCount(0);
+         |                                                          ^
+      13 |   await expect(
+      14 |     page.getByText('Showing the last valid geometry.', { exact: true })
+      15 |   ).toHaveCount(0);
+        at settle (/home/chris/projects/ts-boardstudio2/app/e2e/utils/studioPerformance.ts:12:58)
+        at measure (/home/chris/projects/ts-boardstudio2/app/e2e/utils/studioPerformance.ts:126:5)
+        at /home/chris/projects/ts-boardstudio2/app/e2e/studio-performance.spec.ts:178:7
+
+    Error Context: test-results/studio-performance-measure-1f861-onse-and-source-correctness-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/studio-performance.spec.ts:27:5 › measures real keyboard editing response and source correctness 

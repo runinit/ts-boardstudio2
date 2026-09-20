@@ -1,0 +1,41 @@
+{
+  "results": [
+    {
+      "name": "nudge-0",
+      "inputToVisibleMs": 168.69999992847443,
+      "inputToPersistedMs": 104.79999995231628,
+      "settledMs": 8125.799999952316,
+      "longTasks": [
+        {
+          "start": 10664.699999928474,
+          "duration": 102
+        },
+        {
+          "start": 10770.299999952316,
+          "duration": 59
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false
+    },
+    {
+      "name": "nudge-1",
+      "inputToVisibleMs": 79.5,
+      "inputToPersistedMs": 29.399999976158142,
+      "settledMs": 12054.799999952316,
+      "longTasks": [
+        {
+          "start": 30288,
+          "duration": 76
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true
+    }
+  ],
+  "errors": []
+}

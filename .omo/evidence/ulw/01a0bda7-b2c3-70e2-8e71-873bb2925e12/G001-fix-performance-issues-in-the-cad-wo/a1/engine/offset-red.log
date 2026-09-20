@@ -1,0 +1,24 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Native notched matrix outline performance
+    1) retains the exported contour without repeated repairs after a three millimetre key move
+
+
+  0 passing (47s)
+  1 failing
+
+  1) Native notched matrix outline performance
+       retains the exported contour without repeated repairs after a three millimetre key move:
+
+      AssertionError [ERR_ASSERTION]: Expected bounded analytic offsets, observed 52 calls
+      + expected - actual
+
+      -false
+      +true
+      
+      at Context.<anonymous> (test/unit/native_outline_offset.js:37:16)
+
+
+
+[ELIFECYCLE] Test failed. See above for more details.

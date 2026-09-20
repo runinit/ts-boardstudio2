@@ -1,0 +1,36 @@
+[2m[WebServer] [22m(node:1756780) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1756792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:1756947) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1756947) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness (1.6m)
+
+
+  1) [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness 
+
+    Test was interrupted.
+
+    Error: page.evaluate: Target page, context or browser has been closed
+
+       at utils/studio.ts:22
+
+      20 | // Inspect the portable saved source, including edits made while Code is closed.
+      21 | export const readSource = (page: Page): Promise<string> =>
+    > 22 |   page.evaluate(() => {
+         |        ^
+      23 |     const prefix = location.pathname.startsWith('/ergogen-gui-preview/')
+      24 |       ? 'preview:'
+      25 |       : '';
+        at readSource (/home/chris/projects/ts-boardstudio2/app/e2e/utils/studio.ts:22:8)
+        at /home/chris/projects/ts-boardstudio2/app/e2e/studio-performance.spec.ts:162:74
+
+    Error Context: test-results/studio-performance-measure-98adb-onse-and-source-correctness-chromium/error-context.md
+
+  1 interrupted
+    [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness 

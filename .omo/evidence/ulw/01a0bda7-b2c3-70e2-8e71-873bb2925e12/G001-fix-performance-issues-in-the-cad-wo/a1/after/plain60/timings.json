@@ -1,0 +1,410 @@
+{
+  "results": [
+    {
+      "name": "nudge-0",
+      "inputToVisibleMs": 104.30000007152557,
+      "inputToPersistedMs": 104.10000002384186,
+      "committedPolygonMs": 163.60000002384186,
+      "settledMs": 3283.9000000953674,
+      "longTasks": [
+        {
+          "start": 5485.5,
+          "duration": 101
+        },
+        {
+          "start": 5590.399999976158,
+          "duration": 55
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": true,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "nudge-1",
+      "inputToVisibleMs": 29.699999928474426,
+      "inputToPersistedMs": 29.59999990463257,
+      "committedPolygonMs": 81.19999992847443,
+      "settledMs": 3463.1999999284744,
+      "longTasks": [
+        {
+          "start": 12226.5,
+          "duration": 52
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": true,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "nudge-2",
+      "inputToVisibleMs": 30.100000023841858,
+      "inputToPersistedMs": 29.90000009536743,
+      "committedPolygonMs": 105.80000007152557,
+      "settledMs": 123.30000007152557,
+      "longTasks": [
+        {
+          "start": 12424,
+          "duration": 57
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": true,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "frozen-rebuild",
+      "completedMs": 14016
+    },
+    {
+      "name": "drag-0",
+      "inputToVisibleMs": 30,
+      "inputToPersistedMs": 86,
+      "committedPolygonMs": 148.29999995231628,
+      "settledMs": 7932.299999952316,
+      "longTasks": [
+        {
+          "start": 49062.89999997616,
+          "duration": 58
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "drag-1",
+      "inputToVisibleMs": 32.09999990463257,
+      "inputToPersistedMs": 98.59999990463257,
+      "committedPolygonMs": 152.09999990463257,
+      "settledMs": 7125.199999928474,
+      "longTasks": [],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "drag-2",
+      "inputToVisibleMs": 30.899999976158142,
+      "inputToPersistedMs": 93.29999995231628,
+      "committedPolygonMs": 144.70000004768372,
+      "settledMs": 5529.399999976158,
+      "longTasks": [],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-columns-0",
+      "inputToVisibleMs": 124.20000004768372,
+      "inputToPersistedMs": 124.10000002384186,
+      "committedPolygonMs": 124.20000004768372,
+      "settledMs": 6584,
+      "longTasks": [
+        {
+          "start": 70043.60000002384,
+          "duration": 122
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-columns-0-preparation",
+      "tabToDialogMs": 128.20000004768372,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-columns-0",
+      "inputToVisibleMs": 58.5,
+      "inputToPersistedMs": 58.39999997615814,
+      "committedPolygonMs": 58.5,
+      "settledMs": 6103.099999904633,
+      "longTasks": [
+        {
+          "start": 76906.70000004768,
+          "duration": 58
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-columns-1",
+      "inputToVisibleMs": 117.39999997615814,
+      "inputToPersistedMs": 117.29999995231628,
+      "committedPolygonMs": 117.39999997615814,
+      "settledMs": 7344,
+      "longTasks": [
+        {
+          "start": 83081.39999997616,
+          "duration": 116
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-columns-1-preparation",
+      "tabToDialogMs": 119.29999995231628,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-columns-1",
+      "inputToVisibleMs": 51.799999952316284,
+      "inputToPersistedMs": 51.60000002384186,
+      "committedPolygonMs": 51.700000047683716,
+      "settledMs": 6702.700000047684,
+      "longTasks": [
+        {
+          "start": 90656.5,
+          "duration": 51
+        },
+        {
+          "start": 97272.29999995232,
+          "duration": 69
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-columns-2",
+      "inputToVisibleMs": 151.69999992847443,
+      "inputToPersistedMs": 151.5,
+      "committedPolygonMs": 151.69999992847443,
+      "settledMs": 8110.899999976158,
+      "longTasks": [
+        {
+          "start": 97438.70000004768,
+          "duration": 150
+        },
+        {
+          "start": 105476.89999997616,
+          "duration": 54
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-columns-2-preparation",
+      "tabToDialogMs": 134.79999995231628,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-columns-2",
+      "inputToVisibleMs": 55.59999990463257,
+      "inputToPersistedMs": 55.5,
+      "committedPolygonMs": 55.5,
+      "settledMs": 7258,
+      "longTasks": [
+        {
+          "start": 105805.70000004768,
+          "duration": 55
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-rows-0",
+      "inputToVisibleMs": 129.90000009536743,
+      "inputToPersistedMs": 129.70000004768372,
+      "committedPolygonMs": 129.80000007152557,
+      "settledMs": 9681.300000071526,
+      "longTasks": [
+        {
+          "start": 113133,
+          "duration": 128
+        },
+        {
+          "start": 122717.79999995232,
+          "duration": 77
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-rows-0-preparation",
+      "tabToDialogMs": 167.89999997615814,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-rows-0",
+      "inputToVisibleMs": 65.60000002384186,
+      "inputToPersistedMs": 65.29999995231628,
+      "committedPolygonMs": 65.5,
+      "settledMs": 7819.100000023842,
+      "longTasks": [
+        {
+          "start": 123106,
+          "duration": 63
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-rows-1",
+      "inputToVisibleMs": 145.80000007152557,
+      "inputToPersistedMs": 145.70000004768372,
+      "committedPolygonMs": 145.80000007152557,
+      "settledMs": 10486.100000023842,
+      "longTasks": [
+        {
+          "start": 130992.5,
+          "duration": 144
+        },
+        {
+          "start": 141408.39999997616,
+          "duration": 51
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-rows-1-preparation",
+      "tabToDialogMs": 134.30000007152557,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-rows-1",
+      "inputToVisibleMs": 54.699999928474426,
+      "inputToPersistedMs": 54.60000002384186,
+      "committedPolygonMs": 54.60000002384186,
+      "settledMs": 8411.899999976158,
+      "longTasks": [
+        {
+          "start": 141737.70000004768,
+          "duration": 54
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "add-rows-2",
+      "inputToVisibleMs": 128.80000007152557,
+      "inputToPersistedMs": 128.60000002384186,
+      "committedPolygonMs": 128.70000004768372,
+      "settledMs": 11490.400000095367,
+      "longTasks": [
+        {
+          "start": 150214.39999997616,
+          "duration": 127
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": false,
+      "persistedPass": false,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-rows-2-preparation",
+      "tabToDialogMs": 128,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "remove-rows-2",
+      "inputToVisibleMs": 52.5,
+      "inputToPersistedMs": 52.39999997615814,
+      "committedPolygonMs": 52.5,
+      "settledMs": 9229.799999952316,
+      "longTasks": [
+        {
+          "start": 161953.79999995232,
+          "duration": 51
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    },
+    {
+      "name": "remove-key-0",
+      "inputToVisibleMs": 68.69999992847443,
+      "inputToPersistedMs": 68.60000002384186,
+      "committedPolygonMs": 68.60000002384186,
+      "settledMs": 8503.899999976158,
+      "longTasks": [
+        {
+          "start": 171503.70000004768,
+          "duration": 66
+        }
+      ],
+      "visibleBudgetMs": 100,
+      "persistedBudgetMs": 100,
+      "visiblePass": true,
+      "persistedPass": true,
+      "outlineSettledWithin5s": false,
+      "outlineSettledWithin60s": true
+    }
+  ],
+  "errors": []
+}

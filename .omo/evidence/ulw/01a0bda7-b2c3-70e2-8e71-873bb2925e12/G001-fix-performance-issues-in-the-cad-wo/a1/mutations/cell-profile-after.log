@@ -1,0 +1,39 @@
+Scope: all 4 workspace projects
+✓ Lockfile passes supply-chain policies (verified 55m ago)
+..                                       | Progress: resolved 1, reused 0, downloaded 0, added 0
+[WARN] deprecated @jscad/csg@0.7.0: See @jscad/modeling
+[WARN] deprecated eslint@9.39.4: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+../engine                                | [WARN] deprecated glob@11.1.0
+..                                       | Progress: resolved 93, reused 92, downloaded 0, added 0
+..                                       | Progress: resolved 399, reused 265, downloaded 0, added 0
+..                                       | Progress: resolved 458, reused 433, downloaded 0, added 0
+..                                       | Progress: resolved 757, reused 665, downloaded 0, added 0
+..                                       | Progress: resolved 1008, reused 863, downloaded 5, added 0
+[WARN] 4 deprecated subdependencies found: glob@10.5.0, glob@11.0.3, source-map@0.8.0-beta.0, three-mesh-bvh@0.7.8
+..                                       |   +3   -3 +-
+..                                       | Progress: resolved 1076, reused 980, downloaded 5, added 3, done
+. postinstall$ pnpm run build-ergogen
+. postinstall: $ ./patch/patch_ergogen.sh
+. postinstall: {"ceoloide":24,"infusedKim":15}
+. postinstall: src/ergogen.js → dist/ergogen.js...
+. postinstall: (!) Circular dependencies
+. postinstall: src/utils.js -> src/assert.js -> src/utils.js
+. postinstall: src/utils.js -> src/assert.js -> src/point.js -> src/utils.js
+. postinstall: created dist/ergogen.js in 2s
+. postinstall: Done
+. prepare$ husky
+. prepare: .git can't be found
+. prepare: Done
+
+Done in 10.5s using pnpm v11.26.0
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ ../.omo/evidence/ulw/01a0bda7-b2c3-70e2-8e71-873bb2925e12/G001-fix-performance-issues-in-the-cad-wo/a1/mutations/mutationProfile.test.ts (3 tests | 2 skipped) 709ms
+   ✓ profiles selected cell insertion 708ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 2 skipped (3)
+   Start at  04:24:37
+   Duration  2.18s (transform 193ms, setup 77ms, collect 615ms, tests 709ms, environment 583ms, prepare 60ms)
+

@@ -1,0 +1,25 @@
+{
+  "sources": 34,
+  "primarySources": 34,
+  "externalDomains": [
+    "www.w3.org",
+    "react.dev",
+    "html.spec.whatwg.org",
+    "github.com",
+    "www.angusj.com",
+    "playwright.dev"
+  ],
+  "researchWorkers": 15,
+  "refinementWorkers": 15,
+  "researchWaves": 3,
+  "refinementPasses": 1,
+  "excursions": 1,
+  "verificationBundles": 5,
+  "unresolvedClaims": 2,
+  "refutedClaims": 3,
+  "startUtc": "2026-09-20T15:43:53Z",
+  "finalGateWorkers": 1,
+  "totalWorkers": 31,
+  "deliveryUtc": "2026-09-20T16:46:15.947539+00:00",
+  "elapsedMinutes": 62
+}

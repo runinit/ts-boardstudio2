@@ -1,0 +1,6 @@
+Final QA processes exited: plain3repeat exit1 stale harness assertion; correctedplain1repeat exit0; native exit1 stale component selector after mainflow; component focused exit0; snap exit1 existing assertion.
+Port3107 ss check after snap: no listener.
+Temporary app/e2e/perf-component-capture.spec.ts removed; archival copy final-component/capture-spec.ts.
+Prior temporary continuous capture spec removed.
+Generated settings screenshots archived and restored; final desktop-snapping archived final-snap/desktop-snapping.png and restored HEAD.
+Chromium package intentionally retained for reproducible tests; no preview/browser left owned by this lane.

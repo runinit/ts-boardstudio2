@@ -1,0 +1,17 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  KiCad 10
+    ✔ defaults to native KiCad 10 and supports explicit selection
+    ✔ preserves explicit legacy and injected templates
+    ✔ normalizes routed copper and preserves numeric-looking names
+    ✔ orders legacy arc coordinates for the native parser
+    ✔ escapes net and board names and keeps empty nets
+    ✔ normalizes zones and leaves native quoted net names intact
+    ✔ rejects malformed fragments and mismatched net names
+    ✔ continues to reject engine 4 configurations
+    ✔ rejects unknown numeric references with board and fragment context
+
+
+  9 passing (57ms)
+

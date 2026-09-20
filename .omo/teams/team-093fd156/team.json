@@ -1,0 +1,452 @@
+{
+  "schemaVersion": 3,
+  "transport": "multi_agent_v2",
+  "teamId": "bdc0971d-2dd4-46a9-af96-9f0a11466f9a",
+  "teamName": "cad-research-refinement",
+  "sessionName": "cad-research-refinement",
+  "sessionId": "team-093fd156",
+  "threadTitleConvention": null,
+  "status": "archived",
+  "createdAt": "2026-09-20T16:12:25.204Z",
+  "updatedAt": "2026-09-20T16:43:22.813Z",
+  "archivedAt": "2026-09-20T16:43:22.813Z",
+  "leader": {
+    "kind": "main-session",
+    "sessionId": null,
+    "agentPath": "/root"
+  },
+  "communication": {
+    "memberLanguage": "english",
+    "replyToUserInUserLanguage": true
+  },
+  "worktree": {
+    "enabled": false,
+    "baseBranch": "dev",
+    "root": "/home/chris/projects/ts-boardstudio2/.omo/teams/team-093fd156/worktrees"
+  },
+  "paths": {
+    "dir": "/home/chris/projects/ts-boardstudio2/.omo/teams/team-093fd156",
+    "team": "/home/chris/projects/ts-boardstudio2/.omo/teams/team-093fd156/team.json",
+    "guide": "/home/chris/projects/ts-boardstudio2/.omo/teams/team-093fd156/guide.md",
+    "artifacts": "/home/chris/projects/ts-boardstudio2/.omo/teams/team-093fd156/artifacts"
+  },
+  "members": [
+    {
+      "id": "A",
+      "name": "drag_code",
+      "focus": "Drag rendering/source ownership",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_drag_code",
+      "agentPath": "/root/refine_drag_code",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "B",
+      "name": "browser_evidence",
+      "focus": "Browser sample endpoints and raw correlation",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_browser_evidence",
+      "agentPath": "/root/refine_browser_evidence",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "C",
+      "name": "outline_evidence",
+      "focus": "Outline warmup/profile counts and exact parity",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_outline_evidence",
+      "agentPath": "/root/refine_outline_evidence",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "D",
+      "name": "cache",
+      "focus": "Cache invalidation and freeze claims",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_cache",
+      "agentPath": "/root/refine_cache",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "E",
+      "name": "precision",
+      "focus": "Geometry precision and approximation scope",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_precision",
+      "agentPath": "/root/refine_precision",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "F",
+      "name": "pointer",
+      "focus": "Pointer capture and input standard claims",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_pointer",
+      "agentPath": "/root/refine_pointer",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "G",
+      "name": "react",
+      "focus": "React API and rendering recommendations",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_react",
+      "agentPath": "/root/refine_react",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "H",
+      "name": "workers",
+      "focus": "Worker cancellation and serialization claims",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_workers",
+      "agentPath": "/root/refine_workers",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "I",
+      "name": "oss",
+      "focus": "OSS patterns and source permalink integrity",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_oss",
+      "agentPath": "/root/refine_oss",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "J",
+      "name": "ranking",
+      "focus": "Ranked fixes against measured bottlenecks",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_ranking",
+      "agentPath": "/root/refine_ranking",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "K",
+      "name": "claims",
+      "focus": "Claim graph and intent coverage",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_claims",
+      "agentPath": "/root/refine_claims",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "L",
+      "name": "repro",
+      "focus": "Reproducibility and fixture provenance",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_repro",
+      "agentPath": "/root/refine_repro",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "M",
+      "name": "sources",
+      "focus": "Source ledger counts and citation scope",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_sources",
+      "agentPath": "/root/refine_sources",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "N",
+      "name": "report_code",
+      "focus": "Markdown artifact code-quality and links",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_report_code",
+      "agentPath": "/root/refine_report_code",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "O",
+      "name": "report_qa",
+      "focus": "Rendered report QA and assets",
+      "lens": "perspective",
+      "deliverable": "Independent PASS/REVISE with exact artifact-backed corrections; no production or journal edits",
+      "taskName": "refine_report_qa",
+      "agentPath": "/root/refine_report_qa",
+      "threadId": null,
+      "threadTitle": null,
+      "cwd": null,
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    }
+  ],
+  "log": [
+    {
+      "ts": "2026-09-20T16:12:25.204Z",
+      "event": "created",
+      "detail": "team cad-research-refinement"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.428Z",
+      "event": "add-member",
+      "detail": "member A (perspective): Drag rendering/source ownership"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.481Z",
+      "event": "add-member",
+      "detail": "member B (perspective): Browser sample endpoints and raw correlation"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.531Z",
+      "event": "add-member",
+      "detail": "member C (perspective): Outline warmup/profile counts and exact parity"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.579Z",
+      "event": "add-member",
+      "detail": "member D (perspective): Cache invalidation and freeze claims"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.627Z",
+      "event": "add-member",
+      "detail": "member E (perspective): Geometry precision and approximation scope"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.680Z",
+      "event": "add-member",
+      "detail": "member F (perspective): Pointer capture and input standard claims"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.732Z",
+      "event": "add-member",
+      "detail": "member G (perspective): React API and rendering recommendations"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.779Z",
+      "event": "add-member",
+      "detail": "member H (perspective): Worker cancellation and serialization claims"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.830Z",
+      "event": "add-member",
+      "detail": "member I (perspective): OSS patterns and source permalink integrity"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.878Z",
+      "event": "add-member",
+      "detail": "member J (perspective): Ranked fixes against measured bottlenecks"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.931Z",
+      "event": "add-member",
+      "detail": "member K (perspective): Claim graph and intent coverage"
+    },
+    {
+      "ts": "2026-09-20T16:13:01.979Z",
+      "event": "add-member",
+      "detail": "member L (perspective): Reproducibility and fixture provenance"
+    },
+    {
+      "ts": "2026-09-20T16:13:02.025Z",
+      "event": "add-member",
+      "detail": "member M (perspective): Source ledger counts and citation scope"
+    },
+    {
+      "ts": "2026-09-20T16:13:02.076Z",
+      "event": "add-member",
+      "detail": "member N (perspective): Markdown artifact code-quality and links"
+    },
+    {
+      "ts": "2026-09-20T16:13:02.124Z",
+      "event": "add-member",
+      "detail": "member O (perspective): Rendered report QA and assets"
+    },
+    {
+      "ts": "2026-09-20T16:16:29.819Z",
+      "event": "bind-agent",
+      "detail": "member A -> agent /root/refine_drag_code"
+    },
+    {
+      "ts": "2026-09-20T16:16:29.867Z",
+      "event": "bind-agent",
+      "detail": "member B -> agent /root/refine_browser_evidence"
+    },
+    {
+      "ts": "2026-09-20T16:16:29.915Z",
+      "event": "bind-agent",
+      "detail": "member C -> agent /root/refine_outline_evidence"
+    },
+    {
+      "ts": "2026-09-20T16:16:29.961Z",
+      "event": "bind-agent",
+      "detail": "member D -> agent /root/refine_cache"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.011Z",
+      "event": "bind-agent",
+      "detail": "member E -> agent /root/refine_precision"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.059Z",
+      "event": "bind-agent",
+      "detail": "member F -> agent /root/refine_pointer"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.107Z",
+      "event": "bind-agent",
+      "detail": "member G -> agent /root/refine_react"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.154Z",
+      "event": "bind-agent",
+      "detail": "member H -> agent /root/refine_workers"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.205Z",
+      "event": "bind-agent",
+      "detail": "member I -> agent /root/refine_oss"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.255Z",
+      "event": "bind-agent",
+      "detail": "member J -> agent /root/refine_ranking"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.306Z",
+      "event": "bind-agent",
+      "detail": "member K -> agent /root/refine_claims"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.361Z",
+      "event": "bind-agent",
+      "detail": "member L -> agent /root/refine_repro"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.408Z",
+      "event": "bind-agent",
+      "detail": "member M -> agent /root/refine_sources"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.456Z",
+      "event": "bind-agent",
+      "detail": "member N -> agent /root/refine_report_code"
+    },
+    {
+      "ts": "2026-09-20T16:16:30.504Z",
+      "event": "bind-agent",
+      "detail": "member O -> agent /root/refine_report_qa"
+    },
+    {
+      "ts": "2026-09-20T16:43:22.813Z",
+      "event": "archive",
+      "detail": "Research refinement and corrected report QA complete; all members terminal."
+    }
+  ]
+}

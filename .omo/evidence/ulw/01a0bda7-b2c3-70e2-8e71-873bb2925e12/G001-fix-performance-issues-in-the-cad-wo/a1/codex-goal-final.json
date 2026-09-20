@@ -1,0 +1,13 @@
+{
+  "goal": {
+    "threadId": "01a0bda7-b2c3-70e2-8e71-873bb2925e12",
+    "objective": "Fix performance issues in the CAD workspace and layout designer: moving components, adding and removing rows, columns, and keys, and outline generation are very slow.",
+    "status": "complete",
+    "tokensUsed": 1922963,
+    "timeUsedSeconds": 7985,
+    "createdAt": 1789889215,
+    "updatedAt": 1789897200
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null
+}

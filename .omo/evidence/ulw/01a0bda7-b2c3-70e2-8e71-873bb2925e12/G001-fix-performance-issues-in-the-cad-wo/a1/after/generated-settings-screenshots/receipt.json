@@ -1,0 +1,12 @@
+{
+  "files": [
+    "app/docs/design-qa/settings-consolidation/desktop-assembly.png",
+    "app/docs/design-qa/settings-consolidation/desktop-case-stack.png",
+    "app/docs/design-qa/settings-consolidation/desktop-setup-stack.png",
+    "app/docs/design-qa/settings-consolidation/desktop-snapping.png",
+    "app/docs/design-qa/settings-consolidation/mobile-320-snapping.png",
+    "app/docs/design-qa/settings-consolidation/mobile-390-snapping.png"
+  ],
+  "initiallyCleanConfirmedBy": "root initial status contained only AGENTS hierarchy changes",
+  "restoredFrom": "HEAD"
+}

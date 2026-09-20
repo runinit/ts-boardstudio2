@@ -1,0 +1,45 @@
+[2m[WebServer] [22m(node:1753381) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1753393) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:1753614) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1753614) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness (1.5m)
+
+
+  1) [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByText(/^Updating (layout|outline)…$/)
+    Expected: [32m0[39m
+    Received: [31m2[39m
+    Timeout:  60000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 60000ms[22m
+    [2m  - waiting for getByText(/^Updating (layout|outline)…$/)[22m
+    [2m    63 × locator resolved to 2 elements[22m
+    [2m       - unexpected value "2"[22m
+
+
+      25 | const keys = (page: Page) => page.getByRole('button', { name: /^Select fingers_c\d+_r\d+$/ });
+      26 | const settle = async (page: Page) => {
+    > 27 |   await expect(page.getByText(/^Updating (layout|outline)…$/)).toHaveCount(0, { timeout: 60000 });
+         |                                                                ^
+      28 |   await expect(page.getByRole('group', { name: 'Interactive board layout' }).locator('polyline').first()).toBeAttached();
+      29 | };
+      30 |
+        at settle (/home/chris/projects/ts-boardstudio2/app/e2e/studio-performance.spec.ts:27:64)
+        at measure (/home/chris/projects/ts-boardstudio2/app/e2e/studio-performance.spec.ts:84:13)
+        at /home/chris/projects/ts-boardstudio2/app/e2e/studio-performance.spec.ts:101:7
+
+    Error Context: test-results/studio-performance-measure-98adb-onse-and-source-correctness-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/studio-performance.spec.ts:31:5 › measures real 60-key editing response and source correctness 

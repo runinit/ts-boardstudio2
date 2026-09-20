@@ -1,0 +1,36 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/assemblyRegression.test.ts (26 tests) 16036ms
+   ✓ can grow the matrix after default onboarding 965ms
+   ✓ can add a cluster after default onboarding 683ms
+   ✓ preserves the LED chain when changing a key assembly placement 752ms
+   ✓ updates linked mirrored bindings and adds new right-board keys 472ms
+   ✓ keeps new mirrored keys and assembly offsets valid in native PCB and body geometry 964ms
+   ✓ keeps a managed LED chain connected when reopening setup after layout edits 478ms
+   ✓ resolves the added arc cluster and its owned electronics 485ms
+   ✓ reproduces resized 7x5 geometry and the automatic outline with a separate 2x2 matrix 7841ms
+   ✓ generates PCB files after populating an empty single board 409ms
+   ✓ generates PCB files after populating an empty mirrored board 874ms
+ ✓ src/utils/studioSource.test.ts (20 tests) 4000ms
+   ✓ mounts a new matrix on its PCB top surface 805ms
+   ✓ mounts new thumb clusters and loose keys on the existing PCB layer 1009ms
+   ✓ deletes a cluster and its own members together 909ms
+ ✓ src/utils/studioSourceBatch.test.ts (4 tests) 692ms
+   ✓ adds a row with native electronics without reparsing for every default field 401ms
+ ✓ src/utils/designSetup.test.ts (7 tests) 4697ms
+   ✓ deletes a key and its owned components together 510ms
+   ✓ duplicates a matrix with exactly one owned diode per copied key 3720ms
+ ✓ src/utils/keyOptions.test.ts (5 tests) 590ms
+   ✓ compiles managed switch, diode and LED footprints with separate nets 324ms
+ ✓ src/utils/assemblyScope.test.ts (4 tests) 1541ms
+   ✓ preserves explicit column and key recipes when changing the board 862ms
+   ✓ resets a matrix to its board recipe while retaining a column override 400ms
+ ✓ src/utils/sourceSnapshot.test.ts (2 tests) 11ms
+
+ Test Files  7 passed (7)
+      Tests  68 passed (68)
+   Start at  04:06:04
+   Duration  35.98s (transform 451ms, setup 372ms, collect 2.71s, tests 27.57s, environment 3.99s, prepare 389ms)
+

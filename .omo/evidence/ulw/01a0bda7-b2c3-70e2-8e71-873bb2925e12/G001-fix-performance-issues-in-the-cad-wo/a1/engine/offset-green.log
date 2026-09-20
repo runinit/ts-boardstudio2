@@ -1,0 +1,18 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Native notched matrix outline performance
+    ✔ retains the exported contour without repeated repairs after a three millimetre key move (8500ms)
+
+  Native staged outline reuse
+    ✔ retains complete analysis output without rebuilding the published outline geometry (2398ms)
+    ✔ rebuilds and retains complete output when the source changes between stages (2622ms)
+    ✔ rebuilds and retains complete output when the assets changes between stages (2357ms)
+    ✔ rebuilds and retains complete output when the scene changes between stages (2353ms)
+
+  Native staged PCB output
+    ✔ retains board compilation and findings after publishing outlines
+
+
+  6 passing (18s)
+

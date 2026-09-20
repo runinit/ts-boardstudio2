@@ -1,0 +1,70 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/appendSourceFields.test.ts (9 tests | 3 failed) 267ms
+   × appendFields > adds a missing mapping in one edit 7ms
+     → expected 'm: {nested: { a: 1 , b: 2}} # retaine…' to be 'm: {nested: { a: 1, b: 2 }} # retaine…' // Object.is equality
+   × appendFields > rejects overwriting existing fields 3ms
+     → expected [Function] to throw an error
+   × appendFields > parses the original source once for many additions 236ms
+     → expected 80 to be 1 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/appendSourceFields.test.ts > appendFields > adds a missing mapping in one edit
+AssertionError: expected 'm: {nested: { a: 1 , b: 2}} # retaine…' to be 'm: {nested: { a: 1, b: 2 }} # retaine…' // Object.is equality
+
+- Expected
++ Received
+
+- m: {nested: { a: 1, b: 2 }} # retained
++ m: {nested: { a: 1 , b: 2}} # retained
+
+
+ ❯ src/utils/appendSourceFields.test.ts:35:20
+     33|   it('adds a missing mapping in one edit', () => {
+     34|     const result = appendFields('m: {} # retained\n', ['m', 'nested'],…
+     35|     expect(result).toBe('m: {nested: { a: 1, b: 2 }} # retained\n');
+       |                    ^
+     36|   });
+     37|   it('rejects overwriting existing fields', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/utils/appendSourceFields.test.ts > appendFields > rejects overwriting existing fields
+AssertionError: expected [Function] to throw an error
+ ❯ src/utils/appendSourceFields.test.ts:38:77
+     36|   });
+     37|   it('rejects overwriting existing fields', () => {
+     38|     expect(() => appendFields('m: {old: 1}\n', ['m'], { old: 2, next: …
+       |                                                                             ^
+     39|   });
+     40|   it('rejects a nonmapping parent', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/utils/appendSourceFields.test.ts > appendFields > parses the original source once for many additions
+AssertionError: expected 80 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 80
+
+ ❯ src/utils/appendSourceFields.test.ts:50:19
+     48|     const count = parsing.calls;
+     49|     expect(parse(result).m).toEqual({original: 0, ...additions});
+     50|     expect(count).toBe(1);
+       |                   ^
+     51|   });
+     52| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 6 passed (9)
+   Start at  04:08:17
+   Duration  1.22s (transform 75ms, setup 71ms, collect 75ms, tests 267ms, environment 591ms, prepare 60ms)
+

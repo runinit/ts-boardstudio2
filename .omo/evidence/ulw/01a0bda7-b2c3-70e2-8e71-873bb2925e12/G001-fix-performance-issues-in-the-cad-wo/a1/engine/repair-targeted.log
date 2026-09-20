@@ -1,0 +1,22 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  ✔ rounds a splayed matrix cavity into closed contours (1292ms)
+  ✔ extrudes offset arcs whose chord error is below geometric precision (510ms)
+  ✔ extrudes a gasket roof with sub-tolerance offset slivers (277ms)
+  Native notched matrix outline performance
+    ✔ retains the explicit intersection ray when a strict bundle deletes repair options
+    ✔ retains the exported contour without repeated repairs after a three millimetre key move (7835ms)
+
+  Native staged outline reuse
+    ✔ retains complete analysis output without rebuilding the published outline geometry (2795ms)
+    ✔ rebuilds and retains complete output when the source changes between stages (3020ms)
+    ✔ rebuilds and retains complete output when the assets changes between stages (2676ms)
+    ✔ rebuilds and retains complete output when the scene changes between stages (2559ms)
+
+  Native staged PCB output
+    ✔ retains board compilation and findings after publishing outlines
+
+
+  10 passing (21s)
+

@@ -1,0 +1,42 @@
+[2m[WebServer] [22m(node:1802938) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1802950) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:1802976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1802976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/perf-continuous-capture.spec.ts:165:5 › keeps drags, nudges and inspector edits through delayed outline updates (15.1s)
+
+
+  1) [chromium] › e2e/perf-continuous-capture.spec.ts:165:5 › keeps drags, nudges and inspector edits through delayed outline updates 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')[22m
+
+
+      25 | async function visibleOutline(page: Page) {
+      26 |   // Horizontal SVG segments have zero-height bounds; inspect their enclosing drawing.
+    > 27 |   await expect(outline(page)).toBeVisible();
+         |                               ^
+      28 |   await expect(outline(page).locator('polyline').first()).toHaveAttribute(
+      29 |     'points',
+      30 |     /[-\d.]+,[-\d.]+/
+        at visibleOutline (/home/chris/projects/ts-boardstudio2/app/e2e/perf-continuous-capture.spec.ts:27:31)
+        at /home/chris/projects/ts-boardstudio2/app/e2e/perf-continuous-capture.spec.ts:279:9
+
+    Error Context: test-results/perf-continuous-capture-ke-6ced4-ugh-delayed-outline-updates-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/perf-continuous-capture.spec.ts:165:5 › keeps drags, nudges and inspector edits through delayed outline updates 

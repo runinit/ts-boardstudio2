@@ -1,0 +1,330 @@
+[
+  {
+    "name": "baseline",
+    "event": "load",
+    "sourcePads": 46,
+    "parsedPads": 46,
+    "sourceFootprints": 7,
+    "parsedFootprints": 7,
+    "footprints": [
+      {
+        "reference": "X16970d43",
+        "libraryLink": "ProMicro",
+        "pads": 24,
+        "undefinedPadNumbers": 24,
+        "netNames": [
+          "RAW",
+          "GND",
+          "RST",
+          "VCC",
+          "P21",
+          "P20",
+          "P19",
+          "P18",
+          "P15",
+          "P14",
+          "P16",
+          "P10",
+          "C2",
+          "C1",
+          "R1",
+          "LED_DATA",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      },
+      {
+        "reference": "Xf89d51b7",
+        "libraryLink": "ceoloide:switch_mx",
+        "pads": 5,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "",
+          "C1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xec10466e",
+        "libraryLink": "ceoloide:diode_tht_sod123",
+        "pads": 2,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "R1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "X89fb0fa8",
+        "libraryLink": "ceoloide:led_SK6812mini-e (per-keysingle-side)",
+        "pads": 4,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "LED_1",
+          "VCC",
+          "GND",
+          "LED_DATA"
+        ]
+      },
+      {
+        "reference": "X876ba2fe",
+        "libraryLink": "ceoloide:switch_mx",
+        "pads": 5,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "",
+          "C2",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xc49a3d7b",
+        "libraryLink": "ceoloide:diode_tht_sod123",
+        "pads": 2,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "R1",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "X881af91d",
+        "libraryLink": "ceoloide:led_SK6812mini-e (per-keysingle-side)",
+        "pads": 4,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "LED_2",
+          "VCC",
+          "GND",
+          "LED_1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "plain-matrix",
+    "event": "load",
+    "sourcePads": 46,
+    "parsedPads": 46,
+    "sourceFootprints": 5,
+    "parsedFootprints": 5,
+    "footprints": [
+      {
+        "reference": "X8d4cc759",
+        "libraryLink": "ComboDiode",
+        "pads": 6,
+        "undefinedPadNumbers": 6,
+        "netNames": [
+          "fingers_r1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xf89d51b7",
+        "libraryLink": "MX",
+        "pads": 5,
+        "undefinedPadNumbers": 2,
+        "netNames": [
+          "",
+          "fingers_c1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xb2d7db84",
+        "libraryLink": "ComboDiode",
+        "pads": 6,
+        "undefinedPadNumbers": 6,
+        "netNames": [
+          "fingers_r1",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "X876ba2fe",
+        "libraryLink": "MX",
+        "pads": 5,
+        "undefinedPadNumbers": 2,
+        "netNames": [
+          "",
+          "fingers_c2",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "X9c733b1c",
+        "libraryLink": "ProMicro",
+        "pads": 24,
+        "undefinedPadNumbers": 24,
+        "netNames": [
+          "RAW",
+          "GND",
+          "RST",
+          "VCC",
+          "P21",
+          "P20",
+          "P19",
+          "P18",
+          "P15",
+          "P14",
+          "P16",
+          "P10",
+          "P1",
+          "P0",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "diode-padless",
+    "event": "load",
+    "sourcePads": 29,
+    "parsedPads": 29,
+    "sourceFootprints": 3,
+    "parsedFootprints": 3,
+    "footprints": [
+      {
+        "reference": "X16970d43",
+        "libraryLink": "ProMicro",
+        "pads": 24,
+        "undefinedPadNumbers": 24,
+        "netNames": [
+          "RAW",
+          "GND",
+          "RST",
+          "VCC",
+          "P21",
+          "P20",
+          "P19",
+          "P18",
+          "P15",
+          "P14",
+          "P16",
+          "P10",
+          "R1",
+          "C1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      },
+      {
+        "reference": "Xf89d51b7",
+        "libraryLink": "ceoloide:switch_mx",
+        "pads": 5,
+        "undefinedPadNumbers": 0,
+        "netNames": [
+          "",
+          "C1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xec10466e",
+        "libraryLink": "ceoloide:diode_tht_sod123",
+        "pads": 0,
+        "undefinedPadNumbers": 0,
+        "netNames": []
+      }
+    ]
+  },
+  {
+    "name": "ui-add-cluster",
+    "event": "load",
+    "sourcePads": 46,
+    "parsedPads": 46,
+    "sourceFootprints": 5,
+    "parsedFootprints": 5,
+    "footprints": [
+      {
+        "reference": "X8d4cc759",
+        "libraryLink": "ComboDiode",
+        "pads": 6,
+        "undefinedPadNumbers": 6,
+        "netNames": [
+          "fingers_r1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xf89d51b7",
+        "libraryLink": "MX",
+        "pads": 5,
+        "undefinedPadNumbers": 2,
+        "netNames": [
+          "",
+          "fingers_c1",
+          "fingers_c1_r1_switch"
+        ]
+      },
+      {
+        "reference": "Xb2d7db84",
+        "libraryLink": "ComboDiode",
+        "pads": 6,
+        "undefinedPadNumbers": 6,
+        "netNames": [
+          "fingers_r1",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "X876ba2fe",
+        "libraryLink": "MX",
+        "pads": 5,
+        "undefinedPadNumbers": 2,
+        "netNames": [
+          "",
+          "fingers_c2",
+          "fingers_c2_r1_switch"
+        ]
+      },
+      {
+        "reference": "X9c733b1c",
+        "libraryLink": "ProMicro",
+        "pads": 24,
+        "undefinedPadNumbers": 24,
+        "netNames": [
+          "RAW",
+          "GND",
+          "RST",
+          "VCC",
+          "P21",
+          "P20",
+          "P19",
+          "P18",
+          "P15",
+          "P14",
+          "P16",
+          "P10",
+          "P1",
+          "P0",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      }
+    ]
+  }
+]

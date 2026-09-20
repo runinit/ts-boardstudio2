@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/studioSourceBatch.test.ts (2 tests | 1 failed) 399ms
+   ✓ adds a row with native electronics without reparsing for every default field 348ms
+   × reserves owned component identities before adding another named cell 51ms
+     → fingers_c1_r2_diode already belongs to another component.
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/studioSourceBatch.test.ts > reserves owned component identities before adding another named cell
+Error: fingers_c1_r2_diode already belongs to another component.
+ ❯ Module.applyAssembly src/utils/applyAssembly.ts:184:15
+    182|       const name = existing?.[0] || `${id}_${role}`;
+    183|       if (!existing && data.layout.objects?.[name]) {
+    184|         throw new Error(`${name} already belongs to another component.…
+       |               ^
+    185|       }
+    186|       const compiledChild = recipe[`${id}_${role}`];
+ ❯ Module.applyKeyDefaultsBatch src/utils/keyOptions.ts:354:14
+ ❯ Module.resizeCluster src/utils/studioSource.ts:728:31
+ ❯ src/utils/studioSourceBatch.test.ts:56:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  03:59:39
+   Duration  1.80s (transform 179ms, setup 72ms, collect 574ms, tests 399ms, environment 559ms, prepare 59ms)
+

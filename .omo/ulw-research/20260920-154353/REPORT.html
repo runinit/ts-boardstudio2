@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="qa-source" content="/home/chris/projects/ts-boardstudio2/.omo/ulw-research/20260920-154353/SYNTHESIS.md">
+  <base href="file:///home/chris/projects/ts-boardstudio2/.omo/ulw-research/20260920-154353/">
+  <title>CAD drag responsiveness and outline generation</title>
+  <style>
+:root {
+  color-scheme: light;
+  --page: #f5f7fa;
+  --paper: #ffffff;
+  --ink: #17212b;
+  --muted: #536171;
+  --rule: #d8e0e8;
+  --accent: #145da0;
+  --accent-soft: #e7f1fb;
+  --code: #eef2f6;
+  --quote: #f4f8fc;
+  --radius: 10px;
+  --measure: 76rem;
+  --space-1: .35rem;
+  --space-2: .65rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.25rem;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--page); }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--page);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
+.report {
+  width: min(calc(100% - 2rem), var(--measure));
+  margin: 2.5rem auto 5rem;
+  padding: clamp(1.35rem, 3vw, 3rem);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px rgb(23 33 43 / 7%);
+}
+h1, h2, h3, h4 { color: #0f385e; line-height: 1.2; letter-spacing: -.012em; }
+h1 { margin: 0 0 var(--space-5); font-size: clamp(2rem, 4vw, 3.2rem); }
+h2 { margin: 2.8rem 0 var(--space-3); padding-bottom: .4rem; border-bottom: 2px solid var(--accent-soft); font-size: clamp(1.45rem, 2.5vw, 2rem); }
+h3 { margin: 2rem 0 .6rem; font-size: 1.3rem; }
+h4 { margin: 1.25rem 0 .45rem; font-size: 1.08rem; }
+p, ul, ol, dl, table, blockquote, pre { margin: 0 0 var(--space-3); }
+ul, ol { padding-left: 1.5rem; }
+li + li { margin-top: .25rem; }
+a { color: var(--accent); text-decoration-thickness: .08em; text-underline-offset: .15em; }
+a:hover, a:focus-visible { color: #0a3d68; }
+img { display: block; max-width: 100%; height: auto; margin: var(--space-4) auto; border: 1px solid var(--rule); border-radius: 6px; }
+.report-figure { margin: var(--space-4) 0 var(--space-5); }
+.figure-scroll { overflow-x: auto; padding: .25rem .25rem .55rem; border: 1px solid var(--rule); border-radius: 6px; background: rgb(251 252 254); }
+.report-figure img { width: 700px; max-width: none; margin: 0 auto; }
+.report-figure figcaption { margin-top: .45rem; color: var(--muted); font-size: .88rem; }
+blockquote { padding: .8rem 1rem; border-left: 4px solid var(--accent); background: var(--quote); color: var(--muted); }
+code { padding: .12em .3em; border-radius: 4px; background: var(--code); font-size: .9em; }
+pre { max-width: 100%; overflow-x: auto; padding: 1rem; border-radius: 7px; background: #182532; color: #f0f5f9; line-height: 1.45; }
+pre code { padding: 0; background: transparent; color: inherit; font-size: .88em; }
+.table-scroll { max-width: 100%; overflow-x: auto; margin: 0 0 var(--space-3); border: 1px solid var(--rule); border-radius: 6px; }
+.scroll-cue { margin: 0; padding: .35rem .65rem; color: var(--muted); background: var(--accent-soft); font-size: .86rem; }
+.table-scroll table { width: max-content; min-width: 100%; margin: 0; border-collapse: collapse; border: 0; }
+th, td { min-width: 8rem; padding: .55rem .7rem; border: 1px solid var(--rule); text-align: left; vertical-align: top; }
+th { background: var(--accent-soft); color: #0f385e; }
+hr { margin: var(--space-5) 0; border: 0; border-top: 1px solid var(--rule); }
+sup a { text-decoration: none; }
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .report { width: calc(100% - 1rem); margin: .5rem auto 2rem; padding: 1rem; border-radius: 7px; }
+  h1 { font-size: 2rem; }
+  h2 { margin-top: 2rem; }
+  th, td { min-width: 7rem; padding: .45rem .55rem; }
+}
+</style>
+</head>
+<body><main class="report"><h1 id="cad-drag-responsiveness-and-outline-generation">CAD drag responsiveness and outline generation</h1>
+<p>Research scope: current staged baseline; no new production changes.</p>
+<p>34 primary sources · 6 external domains · 30 discovery/refinement workers · 3 research waves + independent refinement · 5 executed verification bundles · 1 excursion. Assembled after 42 minutes; final review/QA follows. Two optimization claims remain unresolved and three claims were refuted.</p>
+<h2 id="findings-that-change-the-next-fix">Findings that change the next fix</h2>
+<p><strong>Separate continuous dragging, committed movement, and exact outline completion.</strong> They are different paths and need different measurements. <code>StudioCanvas</code> updates local drag state during movement and applies an SVG group translation. On release it proposes a source edit through BoardStudio’s realtime-source guard and ConfigContext edit adapter. <a href="../../../app/src/molecules/BoardStudio.tsx" title="BoardStudio commit adapter">S32</a> Outline work runs through the Studio worker queue. Moving every pointer event does not rewrite YAML or start ordinary auto-generation in CAD mode. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/studioMove.ts" title="Drag proposals and snapping">S02</a> <a href="../../../app/src/utils/studioQueue.ts" title="Worker queue">S04</a> <a href="../../../app/src/context/ConfigContext.tsx" title="CAD auto-generation gate">S10</a></p>
+<p><strong>Profile the release path first; reuse of unchanged canvas geometry is a separate rendering candidate.</strong> The current browser probe observed long main-thread tasks around release, without attributing their cost. <a href="verify-drag-final.md">Browser trace</a> A local drag-state render still maps every displayed object and recomputes <code>layoutPolygon</code>, although the temporary motion is expressed by a group translation. Cache the base points or isolate stable object children before considering a renderer rewrite. This is a source-supported opportunity, not a measured speedup. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/layoutDrawing.ts" title="World polygon generation">S11</a></p>
+<p><strong>The residual outline cost is concentrated in closing and offsets in the measured fixture.</strong> MakerJS expands paths and incrementally combines them, with intersection splitting and point-inside classification. Board Studio adds closing offsets, validation, containment and finishing. The executed profile places most inclusive outline time inside MakerJS outline calls. The existing one-shot handoff and offset memoization are already part of the baseline; proposing them again would not address the residual cost. <a href="verify-outline-profile.md">Profile</a> <a href="../../../engine/src/designs/index.js" title="Outline geometry and memoization">S07</a> <a href="../../../engine/src/designs/geometry.js" title="Offset, validation and containment">S08</a> <a href="https://github.com/microsoft/maker.js/blob/77a8779cdd7037efad1be8aac951adb4d06acb50/packages/maker.js/src/core/expand.ts" title="MakerJS incremental expansion">S18</a> <a href="https://github.com/microsoft/maker.js/blob/77a8779cdd7037efad1be8aac951adb4d06acb50/packages/maker.js/src/core/combine.ts" title="MakerJS boolean combine">S19</a></p>
+<h2 id="current-measurements">Current measurements</h2>
+<p><strong>MEASURED, repeated engine runs:</strong> three warmed, uninstrumented outline passes took <strong>7.621 / 7.799 / 7.887 s</strong>. Separate layout solves took <strong>32–40 ms</strong>. A direct outline→freeze→analysis experiment took <strong>626 ms</strong> for the following snapshot analysis and preserved the measured profile/exports. This is one difficult fixture, not a population latency estimate. <a href="artifacts/outline-repeat.json">Repeated measurements</a>.</p>
+<figure class="report-figure"><div class="figure-scroll" role="region" tabindex="0" aria-label="Scrollable figure: Three outline runs and following analysis"><img alt="Three outline runs and following analysis" src="assets/outline-observations.png"></div><figcaption>Scroll horizontally to inspect this figure on narrow screens.</figcaption></figure>
+<p><strong>MEASURED, engine diagnostic:</strong> on the fixed 60-key board with one key moved +3 mm, a full direct engine run took <strong>8.51 s</strong>. A separate warm, instrumented outline pass took <strong>7.67 s</strong>; nine MakerJS outline calls accounted for <strong>6.47 s of inclusive wrapped time</strong>, while validation accounted for about <strong>95 ms</strong>. These nested timings cannot be added, and the instrumented pass is not an uninstrumented benchmark. <a href="artifacts/outline-profile.json">Engine raw data</a> · <a href="verify-outline-profile.md">Harness and scope</a>.</p>
+<p>Snapshot-following analysis took <strong>612 ms</strong> in that process. Exact assertions covered <code>profiles.main_outline</code> extracted analytic paths, bounds and contour count, plus <code>main_outline</code> SVG/DXF, on this fixture. They do not establish whole-engine, PCB or case-output equality. Thus the measured priority is expensive closing/offset work, rather than assuming the cache-key miss repeats the entire outline build. The cache had already been consumed before this snapshot pass, so this is not a controlled cache-hit/miss comparison. <a href="verify-outline-profile.md">Engine verification</a>.</p>
+<p><strong>MEASURED, browser:</strong> three fresh Chromium contexts completed the same bounded drag and received correlated worker success. First movement→DOM preview ranged <strong>23.9–34.5 ms</strong>; pointerup→changed polygon <strong>157.6–164.9 ms</strong>; pointerup→worker success receipt <strong>3.229–3.309 s</strong>. Each run also recorded roughly 100 ms and 55 ms main-thread tasks around release. This points to the release path as a worthwhile drag investigation; the trace does not attribute those tasks to a particular function. <a href="verify-drag-final.md">Browser verification</a>.</p>
+<figure class="report-figure"><div class="figure-scroll" role="region" tabindex="0" aria-label="Scrollable figure: Browser timing observations from three valid drags"><img alt="Browser timing observations from three valid drags" src="assets/drag-observations.png"></div><figcaption>Scroll horizontally to inspect this figure on narrow screens.</figcaption></figure>
+<p>These are exploratory instrumented observations, not physical display latency or stable tail estimates. The observer reads storage and DOM every frame, with no observer-free control. Success receipt does not mean the final outline was already visibly published. The earlier diagnosis is excluded from these results. <a href="verify-drag-diagnosis-audit.md">Probe audit</a>.</p>
+<p>The separate per-call diagnostic identifies three large positive expansions: <strong>240 paths</strong> at distances <strong>2 / 1 / 2.001 mm</strong>, taking approximately <strong>1.86 / 1.84 / 1.96 s</strong> respectively. They have different parameters, so this does not show an identical offset missed by the existing memo. Investigate why these expansions and retries are necessary and how to reduce their input/combination work while retaining geometry parity. <a href="artifacts/outline-repeat.json">Per-call records</a>.</p>
+<p><strong>Do not compare the browser and engine numbers as a speedup:</strong> the browser moves <code>fingers_c1_r1</code>, while the engine fixture moves <code>fingers_c10_r1</code> by +3 mm; their endpoints also differ. <a href="artifacts/drag-final.json" title="Corrected browser runtime evidence">S27</a> <a href="artifacts/outline-repeat.json" title="Repeated engine runtime evidence">S28</a></p>
+<figure class="report-figure"><div class="figure-scroll" role="region" tabindex="0" aria-label="Scrollable figure: Per-call outline diagnostic"><img alt="Per-call outline diagnostic" src="assets/expansion-profile.png"></div><figcaption>Scroll horizontally to inspect this figure on narrow screens.</figcaption></figure>
+<h2 id="drag-path-and-safe-optimization-boundaries">Drag path and safe optimization boundaries</h2>
+<p>The current path is:</p>
+<ol>
+<li>Capture the pointer and save the selection, source and start coordinates.</li>
+<li>After the screen-distance threshold, convert coordinates, compute snapping and update local drag state.</li>
+<li>Render transient translation on selected object groups while recomputing the displayed polygon point strings.</li>
+<li>On release, create a proposal and perform the synchronous spacing/source checks. If a successful candidate preview is already ready, validate its pose before committing. Otherwise commit immediately when no preview error is present, then derive the draft layout and schedule analysis. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/studioMove.ts" title="Drag proposals and snapping">S02</a></li>
+</ol>
+<p>Application render code computes world-space polygon points; React declaratively applies both points and the group’s temporary <code>translate</code>. A <code>previewReady</code> result changes the visible report and resets translation. An imperative fast path therefore needs an explicit reset/handoff; manual mutation can conflict with React-managed attributes. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/layoutDrawing.ts" title="World polygon generation">S11</a> <a href="https://react.dev/learn/manipulating-the-dom-with-refs#best-practices-for-dom-manipulation-with-refs" title="React DOM-ref ownership guidance">S30</a></p>
+<p>A useful first experiment is to retain base points by immutable item identity and view side, and render the changing translation separately. Check whether layout objects retain identity before choosing the key. Wrapping <code>StudioCanvas</code> in <code>memo</code> cannot suppress its own drag-state renders. A useful boundary would isolate stable per-item children, with stable props or a correct comparator. <a href="https://react.dev/reference/react/memo" title="React memo and local state">S29</a> This recommendation is an inference from the current rendering path, not a benchmark result. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/layoutDrawing.ts" title="World polygon generation">S11</a></p>
+<p>A second experiment is to sample the latest pointer position once per animation frame. It must flush the final release coordinate, preserve snapping, and cancel pending work on pointer cancellation. Browsers may already coalesce movement; another animation-frame boundary can add latency. First improve the measurement: match input to the transform it causes, or capture sustained frame-work traces with observer overhead controlled. Retain frame coalescing only if this evidence shows less work without worse first-preview or final-drop latency. <a href="https://www.w3.org/TR/pointerevents3/" title="Pointer Events Level 3">S12</a></p>
+<p>Two calls to the pure <code>snapFrame</code> lookup occur in one snapping expression. Reusing the result is a small cleanup, but it is not established as a material bottleneck. Source parsing, cloning and broad context updates belong mainly to the release path and must be profiled separately. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/utils/studioMove.ts" title="Drag proposals and snapping">S02</a> <a href="../../../app/src/hooks/useStudio.ts" title="Studio hook and queue">S03</a></p>
+<h2 id="outline-path-and-caching">Outline path and caching</h2>
+<p><code>StudioQueue</code> keeps one running job and a replaceable pending job. Its settle timer is 180 ms; superseded work receives a revision message and can be terminated after a 1,000 ms grace timer in the normal lifecycle; the reuse defect below can prevent that timer from being rearmed. These constants are not measured end-to-end latency guarantees. Synchronous geometry cannot consume a supersession message until it yields, while worker termination can abort the running script. Revision checks separately prevent obsolete results from being accepted. Worker messaging serializes through the associated MessagePort before queued delivery; this contract does not establish the local cost of copying a payload. <a href="https://html.spec.whatwg.org/multipage/web-messaging.html#message-port-post-message-steps" title="MessagePort structured serialization">S17</a> <a href="../../../app/src/utils/studioQueue.ts" title="Worker queue">S04</a> <a href="../../../app/src/workers/studioPipeline.ts" title="Studio worker pipeline">S05</a> <a href="https://html.spec.whatwg.org/multipage/workers.html" title="HTML worker lifetime and communication">S16</a></p>
+<p>The immediate outline-to-analysis cache uses prepared-scene identity and a serialized config/assets key, and is evicted on the next eligible analysis parse whether the key matches or not. It is not a persistent cache across edited boards. Within a parse, an offset cache keys by model structure and returns clones. Replacing structural keys with object identity could reduce key-building work but miss equivalent cloned models; no benefit is established. <a href="../../../engine/src/designs/index.js" title="Outline geometry and memoization">S07</a></p>
+<p>There is a specific handoff wrinkle: the worker can freeze generated outlines into source snapshots between outline-only processing and full analysis. This changes the config key and rejects the staged geometry entry. The next pass can resolve snapshots, so this does <strong>not</strong> prove another equally expensive outline build. The immediate freeze path measured 626 ms for following analysis in one unrandomized sample; it has no guarded-handoff counterfactual, so avoidable cache overhead remains unknown. If worthwhile, prefer a private handoff tied to the exact freeze result and prepared scene; do not globally ignore authored snapshots in the cache key. <a href="../../../app/src/workers/studioPipeline.ts" title="Studio worker pipeline">S05</a> <a href="../../../app/src/utils/studioOutline.ts" title="Outline source preparation and snapshots">S06</a> <a href="../../../engine/src/designs/index.js" title="Outline geometry and memoization">S07</a></p>
+<p>A longer-term dependency cache needs the transitive dependency closure: at minimum placements, matrices, units, point metadata, selected envelopes, recipes, imported asset content, injected/legacy outlines and bridge/anchor dependencies. Include implementation identity if a cache can survive a code/runtime change. Keep caches for geometric models separate from serialized exports and downstream board/case results. <a href="../../../app/src/utils/studioOutline.ts" title="Outline source preparation and snapshots">S06</a> <a href="../../../engine/src/designs/index.js" title="Outline geometry and memoization">S07</a> <a href="../../../engine/src/designs/geometry.js" title="Offset, validation and containment">S08</a></p>
+<h2 id="ranked-next-experiments">Ranked next experiments</h2>
+<div class="table-scroll" role="region" tabindex="0" aria-label="Scrollable data table"><p class="scroll-cue">Scroll horizontally to inspect all table columns on narrow screens.</p><table>
+<thead>
+<tr>
+<th>Lane / priority</th>
+<th>Experiment</th>
+<th>Acceptance evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Correctness first</td>
+<td>Reset the cleared grace handle when cancelling/disposal; regress cancel-during-grace → reuse → supersede</td>
+<td>The reproduced queue must terminate obsolete work like the fresh-queue control <a href="verify-queue-grace.md" title="Executed queue reuse grace proof">S34</a></td>
+</tr>
+<tr>
+<td>Drag 1</td>
+<td>Attribute synchronous release cost, then reduce the dominant parsing/proposal/layout/render work</td>
+<td>Matched release-to-polygon improvement; exact source, pose and undo preserved</td>
+</tr>
+<tr>
+<td>Drag 2</td>
+<td>Reuse base polygon points; isolate moving groups</td>
+<td>Causally matched sustained preview/frame measurements; snap and re-grab stay correct</td>
+</tr>
+<tr>
+<td>Drag 3</td>
+<td>Frame-coalesce only demonstrated redundant input work</td>
+<td>No worse first preview or final drop; flush terminal coordinates and cancellation</td>
+</tr>
+<tr>
+<td>Outline 1</td>
+<td>Trace the three costly 240-path expansions to recipe and fallback callers; test less input/combination work</td>
+<td>Same fixture and warmup; profile analytic paths/SVG/DXF parity plus adversarial geometry cases</td>
+</tr>
+<tr>
+<td>Outline 2</td>
+<td>Investigate immediate freeze handoff only if profiling shows avoidable work</td>
+<td>626 ms is total following analysis, not promised cache savings; measure actual pipeline</td>
+</tr>
+<tr>
+<td>Longer term</td>
+<td>Dependency-aware recipe/component reuse</td>
+<td>Explicit invalidation matrix; stale-source and asset-change cases</td>
+</tr>
+<tr>
+<td>Deferred</td>
+<td>Authoritative polygon-kernel replacement</td>
+<td>Curve error, topology, erosion, clearance, exports and runtime all verified</td>
+</tr>
+</tbody>
+</table></div>
+<p>The release-first order is based on observed stalls, not function-level attribution. The engine profile supports prioritizing offsets over validation. It is an engineering recommendation, not a claim that each experiment will help. <a href="../../../app/src/molecules/StudioCanvas.tsx" title="Canvas pointer and rendering code">S01</a> <a href="../../../app/src/workers/studioPipeline.ts" title="Studio worker pipeline">S05</a> <a href="../../../engine/src/designs/index.js" title="Outline geometry and memoization">S07</a> <a href="../../../engine/src/designs/geometry.js" title="Offset, validation and containment">S08</a> <a href="https://github.com/countertype/clipper2-ts/blob/bf6e0303217bdffcbe2f03ab7f6218194df8e7e4/README.md" title="Clipper2 TypeScript port and precision limits">S20</a></p>
+<h2 id="geometry-correctness-constrains-the-alternatives">Geometry correctness constrains the alternatives</h2>
+<p>Native committed geometry retains lines, circular arcs and circles as analytic primitives; authored cubic sketch curves are flattened to segments before publication. Its precision stack contains different tolerances for design acceptance, endpoint matching, simplification and serialization; there is no demonstrated composed error budget. The current finishing simplifier performs successive locally bounded edits, rather than retaining the original curve as a global error reference. Do not describe its <code>limit</code> as a guaranteed global Hausdorff bound. <a href="../../../engine/src/designs/geometry.js" title="Offset, validation and containment">S08</a> <a href="../../../engine/src/designs/finishing.js" title="Finishing and simplification">S09</a></p>
+<p><code>clipper2-ts</code> supplies browser-compatible boolean and offset APIs, but uses polygonal paths and approximates rounded offsets with segments. Its numeric scaling and hole hierarchy need an explicit conversion contract. Availability is not proof of faster Board Studio outlines. A render-only approximate preview is a lower-risk experiment than replacing authoritative geometry or exports. <a href="https://github.com/countertype/clipper2-ts/blob/bf6e0303217bdffcbe2f03ab7f6218194df8e7e4/README.md" title="Clipper2 TypeScript port and precision limits">S20</a> <a href="https://www.angusj.com/clipper2/Docs/Units/Clipper.Offset/Classes/ClipperOffset/Properties/ArcTolerance.htm" title="Clipper offset arc tolerance">S21</a></p>
+<p>An acceptable approximation experiment must preserve exact committed output and test narrow gaps, nearly tangent arcs, nested holes, disconnected regions, negative offsets, mirrored transforms and large coordinates. Include gaps around the chain-matching threshold, ignored micro-paths and solid conversion’s snap/drop behavior. These are proposed verification cases, not cases already demonstrated in this run. <a href="../../../engine/src/designs/geometry.js" title="Offset, validation and containment">S08</a> <a href="../../../engine/src/designs/finishing.js" title="Finishing and simplification">S09</a> <a href="https://github.com/countertype/clipper2-ts/blob/bf6e0303217bdffcbe2f03ab7f6218194df8e7e4/README.md" title="Clipper2 TypeScript port and precision limits">S20</a></p>
+<h2 id="what-the-external-editor-examples-actually-show">What the external editor examples actually show</h2>
+<p><code>tldraw</code> caches derived geometry by shape content. Excalidraw exposes a transient render-override API, but its ordinary selection drag calls <code>dragSelectedElements</code> against the scene during pointer movement; the override method is not itself an animation-frame scheduler. These sources suggest useful patterns, not a ready-made performance result for this React/SVG canvas. <a href="https://github.com/excalidraw/excalidraw/blob/97c68dd371e13c017a8dcca49f8b3995ba7890a8/packages/excalidraw/components/App.tsx" title="Excalidraw drag and transient override implementation">S22</a> <a href="https://github.com/tldraw/tldraw/blob/05ba06d341d4fc7212812c30cb80309c011d428a/packages/editor/src/lib/editor/Editor.ts" title="tldraw geometry caches">S23</a></p>
+<p>Moving drag state to an external store or marking updates as transitions is not an established fix. <code>useSyncExternalStore</code> requires stable snapshots; subscription-triggered React updates are synchronous. In the app’s React 18 generation, <code>startTransition</code> invokes its callback immediately and may defer or interrupt the resulting render work. It does not offload computation in the handler/callback to another thread. <a href="https://react.dev/reference/react/useSyncExternalStore" title="React external-store contract">S14</a> <a href="https://react.dev/reference/react/startTransition" title="React transition execution">S15</a> <a href="https://github.com/reactjs/rfcs/blob/dd61503420de363abfeb0e4cffeee7b6d241b13e/text/0214-use-sync-external-store.md" title="Corrected React external-store RFC">S26</a> <a href="https://github.com/facebook/react/blob/v18.3.1/packages/react/src/ReactStartTransition.js#L14-L36" title="React18 immediate transition callback">S33</a></p>
+<h2 id="corrections-and-evidence-limits">Corrections and evidence limits</h2>
+<ul>
+<li><strong>No proven capture leak:</strong> Pointer Events requires implicit capture release after pointerup or pointercancel. Absence of an explicit release call is not itself a defect. Cross-browser execution remains separate from the normative contract. <a href="https://www.w3.org/TR/pointerevents3/" title="Pointer Events Level 3">S12</a></li>
+<li><strong>Queue reuse has a narrower cancellation defect:</strong> <code>analysis.cancel()</code> disposes worker state but retains the queue object; only unmount clears its ref. A later schedule can create a worker. The terminal-queue allegation was retracted. However, an executed follow-up found that cancel during an active grace timer leaves a stale timer handle; after queue reuse, another supersession can skip forced termination. A fresh-queue control terminated correctly. Fix and regress this specific lifecycle before relying on cancellation to bound obsolete work. <a href="../../../app/src/hooks/useStudio.ts" title="Studio hook and queue">S03</a> <a href="../../../app/src/utils/studioQueue.ts" title="Worker queue">S04</a> <a href="verify-queue-grace.md" title="Executed queue reuse grace proof">S34</a></li>
+<li><strong>No duplicate ordinary auto-generation during CAD:</strong> the context cancels and gates it while CAD is active. <a href="../../../app/src/context/ConfigContext.tsx" title="CAD auto-generation gate">S10</a></li>
+<li><strong>Historical timing ratios were not matched experiments:</strong> the earlier engine baseline included logging and output work; the later harness was warmed and excluded layout solving. Earlier browser preview, committed polygon and worker receipt timings were different endpoints. See the <a href="wave-1-skeptic_final.md">raw-harness audit</a>.</li>
+<li><strong>One invalid React RFC permalink was rejected and replaced</strong> with a verified file-history commit. Separate React pages remain one provenance family. <a href="https://github.com/reactjs/rfcs/blob/dd61503420de363abfeb0e4cffeee7b6d241b13e/text/0214-use-sync-external-store.md" title="Corrected React external-store RFC">S26</a></li>
+</ul>
+<p>Continuous pointer movement is excluded from Event Timing's eligible events. INP can reflect eligible drag endpoints, but cannot characterize continuous motion responsiveness by itself. Measure event-to-DOM-preview observation, frame intervals, release-to-committed layout and worker completion separately. A DOM observation in <code>requestAnimationFrame</code> confirms callback-visible state during a rendering update; it is not proof that pixels were physically presented. <a href="https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering" title="HTML rendering update ordering">S31</a> Long Animation Frames can identify long frames but do not capture every missed refresh deadline. Synthetic Playwright input also does not reproduce a physical mouse's hardware sampling. <a href="https://www.w3.org/TR/event-timing/" title="Event Timing API">S13</a> <a href="https://www.w3.org/TR/long-animation-frames/" title="Long Animation Frames specification">S24</a> <a href="https://playwright.dev/docs/api/class-mouse" title="Playwright mouse automation">S25</a></p>
+<h2 id="reproduction-and-provenance">Reproduction and provenance</h2>
+<p>Browser: <a href="artifacts/drag-final.cjs">exact producer</a>, <a href="artifacts/drag-final.json">raw samples</a>, <a href="verify-drag-final.md">scope and hashes</a>. Engine: <a href="artifacts/outline-repeat.cjs">exact producer</a>, <a href="artifacts/outline-repeat.json">raw samples</a>, <a href="verify-outline-profile.md">scope and hashes</a>. Shared <a href="artifacts/fixture-60.yaml">fixture</a> and <a href="artifacts/baseline-identity.json">baseline identity</a>. The scripts retain original temporary paths; reproduction setup is documented in <a href="REPRODUCE.md">REPRODUCE.md</a>. <a href="cleanup.md">Cleanup receipts</a>. All new research probes run outside production source files. Existing staged changes are the baseline and are preserved.</p>
+<p>The <a href="source-ledger.md">source ledger</a>, <a href="claim-graph.md">claim graph</a>, <a href="intent-diff.md">intent comparison</a>, <a href="observation-manifest.md">observation manifest</a> and <a href="expansion-log.md">expansion log</a> record the evidence and its limits. Recommendations without intervention evidence remain explicitly provisional.</p>
+<h2 id="remaining-limits-and-method">Remaining limits and method</h2>
+<p>No optimization intervention was benchmarked in this research. The rAF and polygon-cache benefits, alternative-kernel speed, native presentation latency, multi-selection snapping and broad cancel/amend races remain unproven. The queue grace defect is the confirmed narrow lifecycle exception. The <a href="lead-dispositions.md">lead dispositions</a> distinguish investigated findings from explicit future experiments.</p>
+<p>Discovery used fifteen independent axes and two expansion waves; a separate fifteen-member team challenged the evidence and report. Five executed verification bundles cover the initial rejected browser diagnosis, corrected browser run, engine profile, engine repeats and queue/control proof. One bounded excursion established the queue defect. Sources are primary code, standards, implementations and archived executions; multiple readers do not multiply independent datasets.</p>
+<h2 id="sources">Sources</h2>
+<p>See the <a href="source-ledger.md">numbered source ledger</a>. API claims use explicit primary-source exceptions; runtime conclusions rest on the archived experiments, not on repeated readers of the same page.</p></main></body>
+</html>
