@@ -11,7 +11,7 @@
  FAIL  src/utils/studioQueue.test.ts > publishes the latest edit after cancellation during grace and queue reuse
 AssertionError: expected undefined to be defined
  ❯ src/utils/studioQueue.test.ts:76:23
-     74| 
+     74|
      75|   const replacement = workers[2];
      76|   expect(replacement).toBeDefined();
        |                       ^
@@ -24,4 +24,3 @@ AssertionError: expected undefined to be defined
       Tests  1 failed | 3 passed (4)
    Start at  13:40:26
    Duration  916ms (transform 47ms, setup 70ms, collect 31ms, tests 10ms, environment 561ms, prepare 63ms)
-

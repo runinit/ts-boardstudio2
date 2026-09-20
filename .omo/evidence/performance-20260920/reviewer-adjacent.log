@@ -1,0 +1,52 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  ✔ keeps separated halves separate in derived profiles (536ms)
+  ✔ connects occupied regions through a narrow named bridge and excludes skipped keys
+  ✔ rejects smoothing that violates a declared clearance
+  Board outline recovery
+    ✔ keeps every diode and LED envelope during gap closing (8124ms)
+    ✔ handles contraction at the exact expansion radius
+    ✔ keeps all 33 keys in a filled multi-matrix board (3161ms)
+    ✔ fills incidental holes before finishing and keeps clearance (39ms)
+    ✔ preserves holes by default and when explicitly selected (49ms)
+    ✔ supports filled profiles and rejects unknown hole modes
+    ✔ retains explicit cutouts on filled boundaries
+    ✔ keeps inherited explicit cutouts when filling a derived profile (38ms)
+    ✔ never fills a protected gap silently
+    ✔ does not connect genuinely separate regions
+
+  Native staged outline reuse
+    ✔ retains complete analysis output without rebuilding the published outline geometry (2409ms)
+    ✔ rebuilds and retains complete output when the source changes between stages (2658ms)
+    ✔ rebuilds and retains complete output when the assets changes between stages (2419ms)
+    ✔ rebuilds and retains complete output when the scene changes between stages (2397ms)
+
+  Native staged PCB output
+    ✔ retains board compilation and findings after publishing outlines
+
+  Parametric designs
+    ✔ publishes profiles to the existing outline and case pipeline (42ms)
+    ✔ follows rotated, nonstandard keys and formula spacing (87ms)
+    ✔ keeps mirrored halves separate during gap closing (97ms)
+    ✔ rejects missing references, cycles and output collisions with feature paths (81ms)
+    ✔ rejects recesses that remove occupied area (39ms)
+    ✔ preserves holes from existing outlines
+
+  Design offset regression
+    ✔ expands rounded profiles farther than their original corner radius
+
+  Design rejection diagnostics
+    ✔ names excessive smoothing and disconnected profile failures (63ms)
+
+  Design assemblies
+    ✔ compiles plate into separate existing case operations
+    ✔ compiles tray into separate existing case operations
+    ✔ compiles stacked into separate existing case operations
+    ✔ compiles gasket into separate existing case operations
+    ✔ rejects posts outside the enclosure and colliding component envelopes
+    ✔ suggests gasket tabs along clear edges with editable anchors (48ms)
+    ✔ returns repeatable suggestions without silently installing mounts
+
+
+  33 passing (23s)

@@ -1,0 +1,5295 @@
+schema: ergogen/v1
+units:
+  u: 19.05
+  v: 19.05
+meta:
+  name: Keyboard
+  studio:
+    bridges:
+      main: []
+    setupRevision: 2
+    setup:
+      name: Keyboard
+      columns: 10
+      rows: 6
+      thumbs: 0
+      pitch: 19.05
+      topology: single
+      connection: wired
+      link: trrs
+      family: mx
+      mounting: solder
+      diode: true
+      led: false
+      encoder: false
+      reset: false
+      controller: ""
+      template:
+        name: Default key assembly
+        revision: 1
+        switch:
+          at:
+            - 0
+            - 0
+          rotate: 0
+          side: B
+        diode:
+          at:
+            - 0
+            - -5
+          rotate: 0
+          side: B
+        led:
+          at:
+            - 0
+            - 5
+          rotate: 0
+          side: B
+        options:
+          family: mx
+          mounting: solder
+          diode: true
+          led: false
+    findings:
+      - Component model alignment and physical envelopes require verification before PCB export.
+      - Choose a controller before PCB review.
+    templates:
+      Default key assembly:
+        { name: Default key assembly, revision: 1, switch: { at: [ 0, 0 ], rotate: 0, side: B }, diode: { at: [ 0, -5 ], rotate: 0, side: B }, led: { at: [ 0, 5 ], rotate: 0, side: B }, options: { family: mx, mounting: solder, diode: true, led: false } }
+    outline:
+      bridges:
+        main: {}
+      managed:
+        main:
+          [ regions.main, regions.main_components, boundaries.main, profiles.main ]
+      auto: true
+parts:
+  key:
+    revision: "1"
+    envelopes:
+      pcb:
+        size:
+          - 18
+          - 18
+      keycap:
+        size:
+          - 18
+          - 18
+      plate:
+        size:
+          - 14
+          - 14
+      body:
+        size:
+          - 14
+          - 14
+        height:
+          - 0
+          - 11.6
+  diode:
+    revision: "1"
+    envelopes:
+      pcb:
+        size:
+          - 4
+          - 2
+      body:
+        size:
+          - 2.8
+          - 1.8
+        height:
+          - 0
+          - 1.35
+  led:
+    revision: "1"
+    envelopes:
+      pcb:
+        size:
+          - 5
+          - 5
+      body:
+        size:
+          - 3.2
+          - 2.8
+        height:
+          - 0
+          - 1.9
+  assembly_mx_solder:
+    { revision: "1", envelopes: { pcb: { size: [ 18, 18 ] }, keycap: { size: [ 18, 18 ] }, plate: { size: [ 14, 14 ] }, body: { size: [ 14, 14 ], height: [ 0, 11.6 ] } } }
+  assembly_diode:
+    { revision: "1", envelopes: { pcb: { size: [ 4, 2 ] }, body: { size: [ 2.8, 1.8 ], height: [ 0, 1.35 ] } } }
+layout:
+  objects:
+    fingers_c1_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r1
+        role: diode
+        generated_nets:
+          from: fingers_c1_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c1_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r2
+        role: diode
+        generated_nets:
+          from: fingers_c1_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c1_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r3
+        role: diode
+        generated_nets:
+          from: fingers_c1_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c1_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r4
+        role: diode
+        generated_nets:
+          from: fingers_c1_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c1_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r5
+        role: diode
+        generated_nets:
+          from: fingers_c1_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c1_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c1
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C1
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C1
+            to: fingers_c1_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c1_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c1
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c1_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c1_r6
+        role: diode
+        generated_nets:
+          from: fingers_c1_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c1_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c2_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c2
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C2
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C2
+            to: fingers_c2_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c2_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c2
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c2_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c2_r1
+        role: diode
+        generated_nets:
+          from: fingers_c2_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c2_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c2_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c2
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C2
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C2
+            to: fingers_c2_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c2_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c2
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c2_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c2_r3
+        role: diode
+        generated_nets:
+          from: fingers_c2_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c2_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c2_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c2
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C2
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C2
+            to: fingers_c2_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c2_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c2
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c2_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c2_r4
+        role: diode
+        generated_nets:
+          from: fingers_c2_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c2_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c2_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c2
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C2
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C2
+            to: fingers_c2_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c2_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c2
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c2_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c2_r5
+        role: diode
+        generated_nets:
+          from: fingers_c2_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c2_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c2_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c2
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C2
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C2
+            to: fingers_c2_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c2_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c2
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c2_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c2_r6
+        role: diode
+        generated_nets:
+          from: fingers_c2_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c2_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c3_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r1
+        role: diode
+        generated_nets:
+          from: fingers_c3_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c3_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r2
+        role: diode
+        generated_nets:
+          from: fingers_c3_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c3_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r3
+        role: diode
+        generated_nets:
+          from: fingers_c3_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c3_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r4
+        role: diode
+        generated_nets:
+          from: fingers_c3_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c3_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r5
+        role: diode
+        generated_nets:
+          from: fingers_c3_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c3_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c3
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C3
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C3
+            to: fingers_c3_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c3_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c3
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c3_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c3_r6
+        role: diode
+        generated_nets:
+          from: fingers_c3_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c3_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c4_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r1
+        role: diode
+        generated_nets:
+          from: fingers_c4_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c4_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r2
+        role: diode
+        generated_nets:
+          from: fingers_c4_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c4_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r3
+        role: diode
+        generated_nets:
+          from: fingers_c4_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c4_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r4
+        role: diode
+        generated_nets:
+          from: fingers_c4_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c4_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r5
+        role: diode
+        generated_nets:
+          from: fingers_c4_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c4_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c4
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C4
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C4
+            to: fingers_c4_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c4_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c4
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c4_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c4_r6
+        role: diode
+        generated_nets:
+          from: fingers_c4_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c4_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c5_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r1
+        role: diode
+        generated_nets:
+          from: fingers_c5_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c5_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r2
+        role: diode
+        generated_nets:
+          from: fingers_c5_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c5_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r3
+        role: diode
+        generated_nets:
+          from: fingers_c5_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c5_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r4
+        role: diode
+        generated_nets:
+          from: fingers_c5_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c5_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r5
+        role: diode
+        generated_nets:
+          from: fingers_c5_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c5_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c5
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C5
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C5
+            to: fingers_c5_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c5_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c5
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c5_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c5_r6
+        role: diode
+        generated_nets:
+          from: fingers_c5_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c5_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c6_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r1
+        role: diode
+        generated_nets:
+          from: fingers_c6_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c6_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r2
+        role: diode
+        generated_nets:
+          from: fingers_c6_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c6_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r3
+        role: diode
+        generated_nets:
+          from: fingers_c6_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c6_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r4
+        role: diode
+        generated_nets:
+          from: fingers_c6_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c6_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r5
+        role: diode
+        generated_nets:
+          from: fingers_c6_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c6_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c6
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C6
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C6
+            to: fingers_c6_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c6_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c6
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c6_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c6_r6
+        role: diode
+        generated_nets:
+          from: fingers_c6_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c6_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c7_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r1
+        role: diode
+        generated_nets:
+          from: fingers_c7_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c7_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r2
+        role: diode
+        generated_nets:
+          from: fingers_c7_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c7_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r3
+        role: diode
+        generated_nets:
+          from: fingers_c7_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c7_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r4
+        role: diode
+        generated_nets:
+          from: fingers_c7_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c7_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r5
+        role: diode
+        generated_nets:
+          from: fingers_c7_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c7_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c7
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C7
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C7
+            to: fingers_c7_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c7_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c7
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c7_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c7_r6
+        role: diode
+        generated_nets:
+          from: fingers_c7_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c7_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c8_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r1
+        role: diode
+        generated_nets:
+          from: fingers_c8_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c8_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r2
+        role: diode
+        generated_nets:
+          from: fingers_c8_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c8_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r3
+        role: diode
+        generated_nets:
+          from: fingers_c8_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c8_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r4
+        role: diode
+        generated_nets:
+          from: fingers_c8_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c8_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r5
+        role: diode
+        generated_nets:
+          from: fingers_c8_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c8_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c8
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C8
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C8
+            to: fingers_c8_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c8_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c8
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c8_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c8_r6
+        role: diode
+        generated_nets:
+          from: fingers_c8_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c8_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c9_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r1
+        role: diode
+        generated_nets:
+          from: fingers_c9_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c9_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r2
+        role: diode
+        generated_nets:
+          from: fingers_c9_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c9_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r3
+        role: diode
+        generated_nets:
+          from: fingers_c9_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c9_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r4
+        role: diode
+        generated_nets:
+          from: fingers_c9_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c9_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r5
+        role: diode
+        generated_nets:
+          from: fingers_c9_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c9_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c9
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C9
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C9
+            to: fingers_c9_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c9_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c9
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c9_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c9_r6
+        role: diode
+        generated_nets:
+          from: fingers_c9_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c9_r6_switch
+            to: R6
+            side: B
+            reversible: false
+    fingers_c10_r1:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r1
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R1
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r1_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+      placement:
+        override:
+          at:
+            - 3
+            - 0
+            - 0
+          fixed:
+            x: true
+    fingers_c10_r1_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r1
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r1
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r1
+        role: diode
+        generated_nets:
+          from: fingers_c10_r1_switch
+          to: R1
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r1_switch
+            to: R1
+            side: B
+            reversible: false
+    fingers_c10_r2:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r2
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R2
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r2_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c10_r2_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r2
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r2
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r2
+        role: diode
+        generated_nets:
+          from: fingers_c10_r2_switch
+          to: R2
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r2_switch
+            to: R2
+            side: B
+            reversible: false
+    fingers_c10_r3:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r3
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R3
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r3_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c10_r3_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r3
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r3
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r3
+        role: diode
+        generated_nets:
+          from: fingers_c10_r3_switch
+          to: R3
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r3_switch
+            to: R3
+            side: B
+            reversible: false
+    fingers_c10_r4:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r4
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R4
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r4_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c10_r4_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r4
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r4
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r4
+        role: diode
+        generated_nets:
+          from: fingers_c10_r4_switch
+          to: R4
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r4_switch
+            to: R4
+            side: B
+            reversible: false
+    fingers_c10_r5:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r5
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R5
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r5_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c10_r5_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r5
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r5
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r5
+        role: diode
+        generated_nets:
+          from: fingers_c10_r5_switch
+          to: R5
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r5_switch
+            to: R5
+            side: B
+            reversible: false
+    fingers_c10_r6:
+      kind: key
+      part: key
+      envelopes:
+        body:
+          at:
+            - 0
+            - 0
+            - 0
+          rotate: 0
+      pcb: main
+      cluster: fingers
+      cell:
+        - c10
+        - r6
+      models:
+        - path: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+          asset: SW_Cherry_MX_PCB.stp
+          offset:
+            - 0
+            - 0
+            - 0
+          rotate:
+            - 0
+            - 0
+            - -0
+          scale:
+            - 1
+            - 1
+            - 1
+      properties:
+        column_net: C10
+        row_net: R6
+        assembly_template: Default key assembly
+      footprints:
+        switch:
+          what: ceoloide/switch_mx
+          params:
+            from: C10
+            to: fingers_c10_r6_switch
+            hotswap: false
+            solder: true
+            reversible: false
+            side: B
+            switch_3dmodel_filename: ${KIPRJMOD}/models/SW_Cherry_MX_PCB.stp
+            hotswap_3dmodel_filename: ""
+          placement:
+            at:
+              - 0
+              - 0
+              - 0
+            rotate: 0
+    fingers_c10_r6_diode:
+      kind: component
+      part: diode
+      cluster: fingers
+      cell:
+        - c10
+        - r6
+      pcb: main
+      side: bottom
+      envelopes:
+        body:
+          height:
+            - -2.95
+            - -1.6
+      placement:
+        ref: fingers_c10_r6
+        at:
+          - 0
+          - -5
+          - 0
+        rotate: 0
+      properties:
+        owner: fingers_c10_r6
+        role: diode
+        generated_nets:
+          from: fingers_c10_r6_switch
+          to: R6
+      footprints:
+        main:
+          what: ceoloide/diode_tht_sod123
+          params:
+            from: fingers_c10_r6_switch
+            to: R6
+            side: B
+            reversible: false
+  clusters:
+    fingers:
+      label: fingers
+      layer: main
+      arrangement:
+        type: columns
+        columns:
+          [ c1, c2, c3, c4, c5, c6, c7, c8, c9, c10 ]
+        rows:
+          [ r1, r2, r3, r4, r5, r6 ]
+        pitch:
+          - 19.05
+          - 19.05
+  layers:
+    main:
+      surface: pcb.main.top
+designs:
+  regions:
+    main:
+      { select: { kind: key, pcb: main }, envelope: keycap, close: 2 }
+    main_components:
+      { select: { kind: component, pcb: main }, envelope: pcb }
+  boundaries:
+    main:
+      { clearance: 2, simplify: 2, corners: { fillet: 2 }, holes: fill, connected: single, from: [ regions.main, regions.main_components ], bridges: {} }
+  profiles:
+    main:
+      { from: boundaries.main }
+pcbs:
+  main:
+    profile: profiles.main
+    thickness: 1.6

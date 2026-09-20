@@ -1,0 +1,1515 @@
+{
+  "id": 383,
+  "function": "BoardStudio",
+  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+  "line": 20415,
+  "column": 4828,
+  "selfMs": 2.268,
+  "inclusiveMs": 81.40200000000002,
+  "children": [
+    {
+      "id": 384,
+      "function": "react_production_min.useMemo",
+      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+      "line": 10,
+      "column": 7015,
+      "selfMs": 0,
+      "inclusiveMs": 42.29600000000001,
+      "children": [
+        {
+          "id": 385,
+          "function": "ti",
+          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+          "line": 39,
+          "column": 22687,
+          "selfMs": 0,
+          "inclusiveMs": 42.29600000000001,
+          "children": [
+            {
+              "id": 386,
+              "function": "",
+              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+              "line": 20415,
+              "column": 4993,
+              "selfMs": 0,
+              "inclusiveMs": 42.29600000000001,
+              "children": [
+                {
+                  "id": 387,
+                  "function": "readStudio",
+                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                  "line": 18602,
+                  "column": 13611,
+                  "selfMs": 0,
+                  "inclusiveMs": 42.29600000000001,
+                  "children": [
+                    {
+                      "id": 388,
+                      "function": "sourceValue",
+                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                      "line": 550,
+                      "column": 3310,
+                      "selfMs": 0.561,
+                      "inclusiveMs": 42.29600000000001,
+                      "children": [
+                        {
+                          "id": 389,
+                          "function": "snapshot$1",
+                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                          "line": 550,
+                          "column": 3001,
+                          "selfMs": 0,
+                          "inclusiveMs": 41.73500000000001,
+                          "children": [
+                            {
+                              "id": 390,
+                              "function": "parseDocument$1",
+                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                              "line": 550,
+                              "column": 1833,
+                              "selfMs": 0,
+                              "inclusiveMs": 38.96200000000001,
+                              "children": [
+                                {
+                                  "id": 391,
+                                  "function": "compose",
+                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                  "line": 524,
+                                  "column": 357,
+                                  "selfMs": 0,
+                                  "inclusiveMs": 38.96200000000001,
+                                  "children": [
+                                    {
+                                      "id": 392,
+                                      "function": "parse",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 546,
+                                      "column": 2193,
+                                      "selfMs": 2.116,
+                                      "inclusiveMs": 25.829,
+                                      "children": [
+                                        {
+                                          "id": 393,
+                                          "function": "next",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 546,
+                                          "column": 2336,
+                                          "selfMs": 0.55,
+                                          "inclusiveMs": 9.691,
+                                          "children": [
+                                            {
+                                              "id": 394,
+                                              "function": "step",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 546,
+                                              "column": 3238,
+                                              "selfMs": 4.488,
+                                              "inclusiveMs": 9.141,
+                                              "children": [
+                                                {
+                                                  "id": 395,
+                                                  "function": "flowCollection",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 548,
+                                                  "column": 4861,
+                                                  "selfMs": 2.823,
+                                                  "inclusiveMs": 4.09,
+                                                  "children": []
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": 397,
+                                          "function": "lex",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 529,
+                                          "column": 292,
+                                          "selfMs": 0.563,
+                                          "inclusiveMs": 13.663,
+                                          "children": [
+                                            {
+                                              "id": 398,
+                                              "function": "parseNext",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 534,
+                                              "column": 372,
+                                              "selfMs": 2.2539999999999996,
+                                              "inclusiveMs": 13.1,
+                                              "children": [
+                                                {
+                                                  "id": 399,
+                                                  "function": "parseFlowCollection",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 534,
+                                                  "column": 3058,
+                                                  "selfMs": 1.721,
+                                                  "inclusiveMs": 8.518,
+                                                  "children": [
+                                                    {
+                                                      "id": 404,
+                                                      "function": "pushIndicators",
+                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                      "line": 544,
+                                                      "column": 464,
+                                                      "selfMs": 2.273,
+                                                      "inclusiveMs": 2.837,
+                                                      "children": []
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "id": 406,
+                                                  "function": "parseDocument",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 534,
+                                                  "column": 2307,
+                                                  "selfMs": 1.211,
+                                                  "inclusiveMs": 2.3280000000000003,
+                                                  "children": []
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": 413,
+                                      "function": "next",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 524,
+                                      "column": 436,
+                                      "selfMs": 0,
+                                      "inclusiveMs": 13.132999999999997,
+                                      "children": [
+                                        {
+                                          "id": 414,
+                                          "function": "composeDoc$1",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 518,
+                                          "column": 4395,
+                                          "selfMs": 0,
+                                          "inclusiveMs": 13.132999999999997,
+                                          "children": [
+                                            {
+                                              "id": 415,
+                                              "function": "composeNode$1",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 518,
+                                              "column": 2495,
+                                              "selfMs": 0,
+                                              "inclusiveMs": 13.132999999999997,
+                                              "children": [
+                                                {
+                                                  "id": 416,
+                                                  "function": "composeCollection$1",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 488,
+                                                  "column": 431,
+                                                  "selfMs": 0,
+                                                  "inclusiveMs": 13.132999999999997,
+                                                  "children": [
+                                                    {
+                                                      "id": 417,
+                                                      "function": "resolveCollection$1",
+                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                      "line": 488,
+                                                      "column": 141,
+                                                      "selfMs": 0,
+                                                      "inclusiveMs": 13.132999999999997,
+                                                      "children": [
+                                                        {
+                                                          "id": 418,
+                                                          "function": "resolveBlockMap$1",
+                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                          "line": 482,
+                                                          "column": 904,
+                                                          "selfMs": 0,
+                                                          "inclusiveMs": 13.132999999999997,
+                                                          "children": [
+                                                            {
+                                                              "id": 419,
+                                                              "function": "composeNode$1",
+                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                              "line": 518,
+                                                              "column": 2495,
+                                                              "selfMs": 0,
+                                                              "inclusiveMs": 13.132999999999997,
+                                                              "children": [
+                                                                {
+                                                                  "id": 420,
+                                                                  "function": "composeCollection$1",
+                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                  "line": 488,
+                                                                  "column": 431,
+                                                                  "selfMs": 0,
+                                                                  "inclusiveMs": 13.132999999999997,
+                                                                  "children": [
+                                                                    {
+                                                                      "id": 421,
+                                                                      "function": "resolveCollection$1",
+                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                      "line": 488,
+                                                                      "column": 141,
+                                                                      "selfMs": 0,
+                                                                      "inclusiveMs": 13.132999999999997,
+                                                                      "children": [
+                                                                        {
+                                                                          "id": 422,
+                                                                          "function": "resolveFlowCollection$1",
+                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                          "line": 484,
+                                                                          "column": 1705,
+                                                                          "selfMs": 0,
+                                                                          "inclusiveMs": 11.475000000000001,
+                                                                          "children": [
+                                                                            {
+                                                                              "id": 423,
+                                                                              "function": "composeNode$1",
+                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                              "line": 518,
+                                                                              "column": 2495,
+                                                                              "selfMs": 0,
+                                                                              "inclusiveMs": 11.475000000000001,
+                                                                              "children": [
+                                                                                {
+                                                                                  "id": 424,
+                                                                                  "function": "composeCollection$1",
+                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                  "line": 488,
+                                                                                  "column": 431,
+                                                                                  "selfMs": 0,
+                                                                                  "inclusiveMs": 11.475000000000001,
+                                                                                  "children": [
+                                                                                    {
+                                                                                      "id": 425,
+                                                                                      "function": "resolveCollection$1",
+                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                      "line": 488,
+                                                                                      "column": 141,
+                                                                                      "selfMs": 0,
+                                                                                      "inclusiveMs": 11.475000000000001,
+                                                                                      "children": [
+                                                                                        {
+                                                                                          "id": 426,
+                                                                                          "function": "resolveFlowCollection$1",
+                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                          "line": 484,
+                                                                                          "column": 1705,
+                                                                                          "selfMs": 0,
+                                                                                          "inclusiveMs": 11.475000000000001,
+                                                                                          "children": [
+                                                                                            {
+                                                                                              "id": 427,
+                                                                                              "function": "composeNode$1",
+                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                              "line": 518,
+                                                                                              "column": 2495,
+                                                                                              "selfMs": 0,
+                                                                                              "inclusiveMs": 10.911000000000001,
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "id": 428,
+                                                                                                  "function": "composeCollection$1",
+                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                  "line": 488,
+                                                                                                  "column": 431,
+                                                                                                  "selfMs": 0,
+                                                                                                  "inclusiveMs": 10.911000000000001,
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "id": 429,
+                                                                                                      "function": "resolveCollection$1",
+                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                      "line": 488,
+                                                                                                      "column": 141,
+                                                                                                      "selfMs": 0.561,
+                                                                                                      "inclusiveMs": 10.911000000000001,
+                                                                                                      "children": [
+                                                                                                        {
+                                                                                                          "id": 430,
+                                                                                                          "function": "resolveFlowCollection$1",
+                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                          "line": 484,
+                                                                                                          "column": 1705,
+                                                                                                          "selfMs": 0,
+                                                                                                          "inclusiveMs": 10.350000000000001,
+                                                                                                          "children": [
+                                                                                                            {
+                                                                                                              "id": 431,
+                                                                                                              "function": "composeNode$1",
+                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                              "line": 518,
+                                                                                                              "column": 2495,
+                                                                                                              "selfMs": 0,
+                                                                                                              "inclusiveMs": 9.786000000000001,
+                                                                                                              "children": [
+                                                                                                                {
+                                                                                                                  "id": 432,
+                                                                                                                  "function": "composeCollection$1",
+                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                  "line": 488,
+                                                                                                                  "column": 431,
+                                                                                                                  "selfMs": 0,
+                                                                                                                  "inclusiveMs": 7.531,
+                                                                                                                  "children": [
+                                                                                                                    {
+                                                                                                                      "id": 433,
+                                                                                                                      "function": "resolveCollection$1",
+                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                      "line": 488,
+                                                                                                                      "column": 141,
+                                                                                                                      "selfMs": 0,
+                                                                                                                      "inclusiveMs": 7.531,
+                                                                                                                      "children": [
+                                                                                                                        {
+                                                                                                                          "id": 434,
+                                                                                                                          "function": "resolveFlowCollection$1",
+                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                          "line": 484,
+                                                                                                                          "column": 1705,
+                                                                                                                          "selfMs": 0,
+                                                                                                                          "inclusiveMs": 7.531,
+                                                                                                                          "children": [
+                                                                                                                            {
+                                                                                                                              "id": 436,
+                                                                                                                              "function": "composeNode$1",
+                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                              "line": 518,
+                                                                                                                              "column": 2495,
+                                                                                                                              "selfMs": 0,
+                                                                                                                              "inclusiveMs": 6.761,
+                                                                                                                              "children": [
+                                                                                                                                {
+                                                                                                                                  "id": 437,
+                                                                                                                                  "function": "composeCollection$1",
+                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                  "line": 488,
+                                                                                                                                  "column": 431,
+                                                                                                                                  "selfMs": 0,
+                                                                                                                                  "inclusiveMs": 5.632,
+                                                                                                                                  "children": [
+                                                                                                                                    {
+                                                                                                                                      "id": 438,
+                                                                                                                                      "function": "resolveCollection$1",
+                                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                      "line": 488,
+                                                                                                                                      "column": 141,
+                                                                                                                                      "selfMs": 0,
+                                                                                                                                      "inclusiveMs": 5.632,
+                                                                                                                                      "children": [
+                                                                                                                                        {
+                                                                                                                                          "id": 439,
+                                                                                                                                          "function": "resolveFlowCollection$1",
+                                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                          "line": 484,
+                                                                                                                                          "column": 1705,
+                                                                                                                                          "selfMs": 0,
+                                                                                                                                          "inclusiveMs": 5.632,
+                                                                                                                                          "children": [
+                                                                                                                                            {
+                                                                                                                                              "id": 440,
+                                                                                                                                              "function": "composeNode$1",
+                                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                              "line": 518,
+                                                                                                                                              "column": 2495,
+                                                                                                                                              "selfMs": 0.563,
+                                                                                                                                              "inclusiveMs": 5.632,
+                                                                                                                                              "children": [
+                                                                                                                                                {
+                                                                                                                                                  "id": 441,
+                                                                                                                                                  "function": "composeCollection$1",
+                                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                                  "line": 488,
+                                                                                                                                                  "column": 431,
+                                                                                                                                                  "selfMs": 0,
+                                                                                                                                                  "inclusiveMs": 5.069,
+                                                                                                                                                  "children": [
+                                                                                                                                                    {
+                                                                                                                                                      "id": 442,
+                                                                                                                                                      "function": "resolveCollection$1",
+                                                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                                      "line": 488,
+                                                                                                                                                      "column": 141,
+                                                                                                                                                      "selfMs": 0,
+                                                                                                                                                      "inclusiveMs": 5.069,
+                                                                                                                                                      "children": [
+                                                                                                                                                        {
+                                                                                                                                                          "id": 443,
+                                                                                                                                                          "function": "resolveFlowCollection$1",
+                                                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                                          "line": 484,
+                                                                                                                                                          "column": 1705,
+                                                                                                                                                          "selfMs": 0,
+                                                                                                                                                          "inclusiveMs": 5.069,
+                                                                                                                                                          "children": [
+                                                                                                                                                            {
+                                                                                                                                                              "id": 444,
+                                                                                                                                                              "function": "composeNode$1",
+                                                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                                              "line": 518,
+                                                                                                                                                              "column": 2495,
+                                                                                                                                                              "selfMs": 0,
+                                                                                                                                                              "inclusiveMs": 5.069,
+                                                                                                                                                              "children": [
+                                                                                                                                                                {
+                                                                                                                                                                  "id": 445,
+                                                                                                                                                                  "function": "composeScalar$1",
+                                                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                                                                  "line": 518,
+                                                                                                                                                                  "column": 385,
+                                                                                                                                                                  "selfMs": 1.127,
+                                                                                                                                                                  "inclusiveMs": 3.9379999999999997,
+                                                                                                                                                                  "children": []
+                                                                                                                                                                }
+                                                                                                                                                              ]
+                                                                                                                                                            }
+                                                                                                                                                          ]
+                                                                                                                                                        }
+                                                                                                                                                      ]
+                                                                                                                                                    }
+                                                                                                                                                  ]
+                                                                                                                                                }
+                                                                                                                                              ]
+                                                                                                                                            }
+                                                                                                                                          ]
+                                                                                                                                        }
+                                                                                                                                      ]
+                                                                                                                                    }
+                                                                                                                                  ]
+                                                                                                                                }
+                                                                                                                              ]
+                                                                                                                            }
+                                                                                                                          ]
+                                                                                                                        }
+                                                                                                                      ]
+                                                                                                                    }
+                                                                                                                  ]
+                                                                                                                },
+                                                                                                                {
+                                                                                                                  "id": 446,
+                                                                                                                  "function": "composeScalar$1",
+                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                                                  "line": 518,
+                                                                                                                  "column": 385,
+                                                                                                                  "selfMs": 0,
+                                                                                                                  "inclusiveMs": 2.255,
+                                                                                                                  "children": []
+                                                                                                                }
+                                                                                                              ]
+                                                                                                            }
+                                                                                                          ]
+                                                                                                        }
+                                                                                                      ]
+                                                                                                    }
+                                                                                                  ]
+                                                                                                }
+                                                                                              ]
+                                                                                            }
+                                                                                          ]
+                                                                                        }
+                                                                                      ]
+                                                                                    }
+                                                                                  ]
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": 479,
+                              "function": "toJS",
+                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                              "line": 476,
+                              "column": 3953,
+                              "selfMs": 0,
+                              "inclusiveMs": 2.7729999999999997,
+                              "children": [
+                                {
+                                  "id": 480,
+                                  "function": "toJS$1",
+                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                  "line": 421,
+                                  "column": 1664,
+                                  "selfMs": 0,
+                                  "inclusiveMs": 2.7729999999999997,
+                                  "children": [
+                                    {
+                                      "id": 481,
+                                      "function": "toJSON",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 470,
+                                      "column": 1814,
+                                      "selfMs": 0,
+                                      "inclusiveMs": 2.7729999999999997,
+                                      "children": [
+                                        {
+                                          "id": 482,
+                                          "function": "addPairToJSMap$1",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 463,
+                                          "column": 1307,
+                                          "selfMs": 0,
+                                          "inclusiveMs": 2.7729999999999997,
+                                          "children": [
+                                            {
+                                              "id": 483,
+                                              "function": "toJS$1",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 421,
+                                              "column": 1664,
+                                              "selfMs": 0,
+                                              "inclusiveMs": 2.7729999999999997,
+                                              "children": [
+                                                {
+                                                  "id": 484,
+                                                  "function": "toJSON",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 470,
+                                                  "column": 1814,
+                                                  "selfMs": 0,
+                                                  "inclusiveMs": 2.7729999999999997,
+                                                  "children": [
+                                                    {
+                                                      "id": 485,
+                                                      "function": "addPairToJSMap$1",
+                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                      "line": 463,
+                                                      "column": 1307,
+                                                      "selfMs": 0,
+                                                      "inclusiveMs": 2.7729999999999997,
+                                                      "children": [
+                                                        {
+                                                          "id": 486,
+                                                          "function": "toJS$1",
+                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                          "line": 421,
+                                                          "column": 1664,
+                                                          "selfMs": 0,
+                                                          "inclusiveMs": 2.7729999999999997,
+                                                          "children": [
+                                                            {
+                                                              "id": 487,
+                                                              "function": "toJSON",
+                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                              "line": 470,
+                                                              "column": 1814,
+                                                              "selfMs": 0,
+                                                              "inclusiveMs": 2.7729999999999997,
+                                                              "children": [
+                                                                {
+                                                                  "id": 488,
+                                                                  "function": "addPairToJSMap$1",
+                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                  "line": 463,
+                                                                  "column": 1307,
+                                                                  "selfMs": 0,
+                                                                  "inclusiveMs": 2.7729999999999997,
+                                                                  "children": [
+                                                                    {
+                                                                      "id": 489,
+                                                                      "function": "toJS$1",
+                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                      "line": 421,
+                                                                      "column": 1664,
+                                                                      "selfMs": 0.569,
+                                                                      "inclusiveMs": 2.7729999999999997,
+                                                                      "children": [
+                                                                        {
+                                                                          "id": 490,
+                                                                          "function": "toJSON",
+                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                          "line": 470,
+                                                                          "column": 1814,
+                                                                          "selfMs": 0,
+                                                                          "inclusiveMs": 2.2039999999999997,
+                                                                          "children": [
+                                                                            {
+                                                                              "id": 491,
+                                                                              "function": "addPairToJSMap$1",
+                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                              "line": 463,
+                                                                              "column": 1307,
+                                                                              "selfMs": 0,
+                                                                              "inclusiveMs": 2.2039999999999997,
+                                                                              "children": [
+                                                                                {
+                                                                                  "id": 492,
+                                                                                  "function": "toJS$1",
+                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                                  "line": 421,
+                                                                                  "column": 1664,
+                                                                                  "selfMs": 0,
+                                                                                  "inclusiveMs": 2.2039999999999997,
+                                                                                  "children": []
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 503,
+      "function": "useStudio",
+      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+      "line": 19235,
+      "column": 6570,
+      "selfMs": 0.565,
+      "inclusiveMs": 34.549,
+      "children": [
+        {
+          "id": 504,
+          "function": "react_production_min.useMemo",
+          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+          "line": 10,
+          "column": 7015,
+          "selfMs": 0,
+          "inclusiveMs": 28.717999999999993,
+          "children": [
+            {
+              "id": 505,
+              "function": "ti",
+              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+              "line": 39,
+              "column": 22687,
+              "selfMs": 0,
+              "inclusiveMs": 28.717999999999993,
+              "children": [
+                {
+                  "id": 506,
+                  "function": "",
+                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                  "line": 19235,
+                  "column": 7406,
+                  "selfMs": 0,
+                  "inclusiveMs": 28.717999999999993,
+                  "children": [
+                    {
+                      "id": 508,
+                      "function": "resolveLayout",
+                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                      "line": 19235,
+                      "column": 1067,
+                      "selfMs": 0,
+                      "inclusiveMs": 28.151999999999994,
+                      "children": [
+                        {
+                          "id": 511,
+                          "function": "resolve",
+                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                          "line": 839,
+                          "column": 8618,
+                          "selfMs": 0,
+                          "inclusiveMs": 21.982,
+                          "children": [
+                            {
+                              "id": 518,
+                              "function": "on",
+                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                              "line": 839,
+                              "column": 15328,
+                              "selfMs": 0,
+                              "inclusiveMs": 14.653000000000002,
+                              "children": [
+                                {
+                                  "id": 519,
+                                  "function": "Bt",
+                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                  "line": 839,
+                                  "column": 10588,
+                                  "selfMs": 0.557,
+                                  "inclusiveMs": 14.653000000000002,
+                                  "children": [
+                                    {
+                                      "id": 520,
+                                      "function": "",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 839,
+                                      "column": 15466,
+                                      "selfMs": 0.563,
+                                      "inclusiveMs": 14.096000000000002,
+                                      "children": [
+                                        {
+                                          "id": 521,
+                                          "function": "Dt",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 839,
+                                          "column": 9694,
+                                          "selfMs": 0.947,
+                                          "inclusiveMs": 4.513,
+                                          "children": [
+                                            {
+                                              "id": 522,
+                                              "function": "xt",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 839,
+                                              "column": 9078,
+                                              "selfMs": 0,
+                                              "inclusiveMs": 2.4339999999999997,
+                                              "children": [
+                                                {
+                                                  "id": 523,
+                                                  "function": "",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 839,
+                                                  "column": 9120,
+                                                  "selfMs": 0,
+                                                  "inclusiveMs": 2.4339999999999997,
+                                                  "children": [
+                                                    {
+                                                      "id": 524,
+                                                      "function": "St",
+                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                      "line": 839,
+                                                      "column": 8676,
+                                                      "selfMs": 0,
+                                                      "inclusiveMs": 2.4339999999999997,
+                                                      "children": [
+                                                        {
+                                                          "id": 525,
+                                                          "function": "nt",
+                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                          "line": 838,
+                                                          "column": 49224,
+                                                          "selfMs": 0,
+                                                          "inclusiveMs": 2.4339999999999997,
+                                                          "children": [
+                                                            {
+                                                              "id": 526,
+                                                              "function": "",
+                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                              "line": 838,
+                                                              "column": 43835,
+                                                              "selfMs": 0,
+                                                              "inclusiveMs": 2.4339999999999997,
+                                                              "children": [
+                                                                {
+                                                                  "id": 527,
+                                                                  "function": "An",
+                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                  "line": 8,
+                                                                  "column": 14625,
+                                                                  "selfMs": 0,
+                                                                  "inclusiveMs": 2.4339999999999997,
+                                                                  "children": [
+                                                                    {
+                                                                      "id": 528,
+                                                                      "function": "string, Map | Object",
+                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                      "line": 30,
+                                                                      "column": 9838,
+                                                                      "selfMs": 0,
+                                                                      "inclusiveMs": 2.4339999999999997,
+                                                                      "children": [
+                                                                        {
+                                                                          "id": 529,
+                                                                          "function": "An",
+                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                          "line": 8,
+                                                                          "column": 14625,
+                                                                          "selfMs": 0,
+                                                                          "inclusiveMs": 2.4339999999999997,
+                                                                          "children": [
+                                                                            {
+                                                                              "id": 530,
+                                                                              "function": "string",
+                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                              "line": 22,
+                                                                              "column": 2931,
+                                                                              "selfMs": 0,
+                                                                              "inclusiveMs": 2.4339999999999997,
+                                                                              "children": [
+                                                                                {
+                                                                                  "id": 531,
+                                                                                  "function": "X",
+                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                  "line": 27,
+                                                                                  "column": 208,
+                                                                                  "selfMs": 0.564,
+                                                                                  "inclusiveMs": 2.4339999999999997,
+                                                                                  "children": []
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": 547,
+                                          "function": "",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 839,
+                                          "column": 16862,
+                                          "selfMs": 0,
+                                          "inclusiveMs": 4.5329999999999995,
+                                          "children": [
+                                            {
+                                              "id": 548,
+                                              "function": "Vt",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 839,
+                                              "column": 13649,
+                                              "selfMs": 0,
+                                              "inclusiveMs": 4.5329999999999995,
+                                              "children": [
+                                                {
+                                                  "id": 549,
+                                                  "function": "xt",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 839,
+                                                  "column": 9078,
+                                                  "selfMs": 0,
+                                                  "inclusiveMs": 4.5329999999999995,
+                                                  "children": [
+                                                    {
+                                                      "id": 550,
+                                                      "function": "",
+                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                      "line": 839,
+                                                      "column": 9120,
+                                                      "selfMs": 0,
+                                                      "inclusiveMs": 4.5329999999999995,
+                                                      "children": [
+                                                        {
+                                                          "id": 551,
+                                                          "function": "St",
+                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                          "line": 839,
+                                                          "column": 8676,
+                                                          "selfMs": 0,
+                                                          "inclusiveMs": 4.5329999999999995,
+                                                          "children": [
+                                                            {
+                                                              "id": 552,
+                                                              "function": "nt",
+                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                              "line": 838,
+                                                              "column": 49224,
+                                                              "selfMs": 0,
+                                                              "inclusiveMs": 4.5329999999999995,
+                                                              "children": [
+                                                                {
+                                                                  "id": 553,
+                                                                  "function": "",
+                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                                  "line": 838,
+                                                                  "column": 43835,
+                                                                  "selfMs": 0,
+                                                                  "inclusiveMs": 4.5329999999999995,
+                                                                  "children": [
+                                                                    {
+                                                                      "id": 554,
+                                                                      "function": "An",
+                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                      "line": 8,
+                                                                      "column": 14625,
+                                                                      "selfMs": 0,
+                                                                      "inclusiveMs": 4.5329999999999995,
+                                                                      "children": [
+                                                                        {
+                                                                          "id": 555,
+                                                                          "function": "string, Map | Object",
+                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                          "line": 30,
+                                                                          "column": 9838,
+                                                                          "selfMs": 0.592,
+                                                                          "inclusiveMs": 4.5329999999999995,
+                                                                          "children": [
+                                                                            {
+                                                                              "id": 556,
+                                                                              "function": "An",
+                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                              "line": 8,
+                                                                              "column": 14625,
+                                                                              "selfMs": 0,
+                                                                              "inclusiveMs": 3.941,
+                                                                              "children": [
+                                                                                {
+                                                                                  "id": 557,
+                                                                                  "function": "string",
+                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                  "line": 22,
+                                                                                  "column": 2931,
+                                                                                  "selfMs": 0,
+                                                                                  "inclusiveMs": 3.941,
+                                                                                  "children": [
+                                                                                    {
+                                                                                      "id": 558,
+                                                                                      "function": "X",
+                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                      "line": 27,
+                                                                                      "column": 208,
+                                                                                      "selfMs": 0,
+                                                                                      "inclusiveMs": 3.941,
+                                                                                      "children": [
+                                                                                        {
+                                                                                          "id": 559,
+                                                                                          "function": "le",
+                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                          "line": 27,
+                                                                                          "column": 448,
+                                                                                          "selfMs": 0,
+                                                                                          "inclusiveMs": 2.816,
+                                                                                          "children": [
+                                                                                            {
+                                                                                              "id": 560,
+                                                                                              "function": "ue",
+                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                              "line": 30,
+                                                                                              "column": 227,
+                                                                                              "selfMs": 0,
+                                                                                              "inclusiveMs": 2.816,
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "id": 561,
+                                                                                                  "function": "$",
+                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                  "line": 30,
+                                                                                                  "column": 794,
+                                                                                                  "selfMs": 0,
+                                                                                                  "inclusiveMs": 2.816,
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "id": 562,
+                                                                                                      "function": "ae",
+                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                      "line": 30,
+                                                                                                      "column": 1297,
+                                                                                                      "selfMs": 0,
+                                                                                                      "inclusiveMs": 2.816,
+                                                                                                      "children": [
+                                                                                                        {
+                                                                                                          "id": 563,
+                                                                                                          "function": "Se",
+                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                          "line": 30,
+                                                                                                          "column": 1593,
+                                                                                                          "selfMs": 0,
+                                                                                                          "inclusiveMs": 2.816,
+                                                                                                          "children": [
+                                                                                                            {
+                                                                                                              "id": 564,
+                                                                                                              "function": "De",
+                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                              "line": 30,
+                                                                                                              "column": 1691,
+                                                                                                              "selfMs": 0,
+                                                                                                              "inclusiveMs": 2.816,
+                                                                                                              "children": [
+                                                                                                                {
+                                                                                                                  "id": 565,
+                                                                                                                  "function": "Ce",
+                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                  "line": 30,
+                                                                                                                  "column": 2033,
+                                                                                                                  "selfMs": 0.565,
+                                                                                                                  "inclusiveMs": 2.816,
+                                                                                                                  "children": [
+                                                                                                                    {
+                                                                                                                      "id": 566,
+                                                                                                                      "function": "Be",
+                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                      "line": 30,
+                                                                                                                      "column": 2255,
+                                                                                                                      "selfMs": 0,
+                                                                                                                      "inclusiveMs": 2.251,
+                                                                                                                      "children": [
+                                                                                                                        {
+                                                                                                                          "id": 567,
+                                                                                                                          "function": "Pe",
+                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                          "line": 30,
+                                                                                                                          "column": 2515,
+                                                                                                                          "selfMs": 0,
+                                                                                                                          "inclusiveMs": 2.251,
+                                                                                                                          "children": [
+                                                                                                                            {
+                                                                                                                              "id": 568,
+                                                                                                                              "function": "V",
+                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                              "line": 30,
+                                                                                                                              "column": 2980,
+                                                                                                                              "selfMs": 0,
+                                                                                                                              "inclusiveMs": 2.251,
+                                                                                                                              "children": [
+                                                                                                                                {
+                                                                                                                                  "id": 569,
+                                                                                                                                  "function": "de",
+                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                  "line": 30,
+                                                                                                                                  "column": 3232,
+                                                                                                                                  "selfMs": 0,
+                                                                                                                                  "inclusiveMs": 2.251,
+                                                                                                                                  "children": [
+                                                                                                                                    {
+                                                                                                                                      "id": 570,
+                                                                                                                                      "function": "xe",
+                                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                      "line": 30,
+                                                                                                                                      "column": 3482,
+                                                                                                                                      "selfMs": 0,
+                                                                                                                                      "inclusiveMs": 2.251,
+                                                                                                                                      "children": [
+                                                                                                                                        {
+                                                                                                                                          "id": 571,
+                                                                                                                                          "function": "we",
+                                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                          "line": 30,
+                                                                                                                                          "column": 3853,
+                                                                                                                                          "selfMs": 0,
+                                                                                                                                          "inclusiveMs": 2.251,
+                                                                                                                                          "children": [
+                                                                                                                                            {
+                                                                                                                                              "id": 572,
+                                                                                                                                              "function": "Ge",
+                                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                              "line": 30,
+                                                                                                                                              "column": 4261,
+                                                                                                                                              "selfMs": 0,
+                                                                                                                                              "inclusiveMs": 2.251,
+                                                                                                                                              "children": [
+                                                                                                                                                {
+                                                                                                                                                  "id": 573,
+                                                                                                                                                  "function": "$e",
+                                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                  "line": 30,
+                                                                                                                                                  "column": 4434,
+                                                                                                                                                  "selfMs": 0,
+                                                                                                                                                  "inclusiveMs": 2.251,
+                                                                                                                                                  "children": [
+                                                                                                                                                    {
+                                                                                                                                                      "id": 574,
+                                                                                                                                                      "function": "Ke",
+                                                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                      "line": 30,
+                                                                                                                                                      "column": 4635,
+                                                                                                                                                      "selfMs": 0,
+                                                                                                                                                      "inclusiveMs": 2.251,
+                                                                                                                                                      "children": [
+                                                                                                                                                        {
+                                                                                                                                                          "id": 575,
+                                                                                                                                                          "function": "_e",
+                                                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                          "line": 30,
+                                                                                                                                                          "column": 4898,
+                                                                                                                                                          "selfMs": 0,
+                                                                                                                                                          "inclusiveMs": 2.251,
+                                                                                                                                                          "children": [
+                                                                                                                                                            {
+                                                                                                                                                              "id": 576,
+                                                                                                                                                              "function": "Ne",
+                                                                                                                                                              "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                              "line": 30,
+                                                                                                                                                              "column": 5097,
+                                                                                                                                                              "selfMs": 0,
+                                                                                                                                                              "inclusiveMs": 2.251,
+                                                                                                                                                              "children": [
+                                                                                                                                                                {
+                                                                                                                                                                  "id": 577,
+                                                                                                                                                                  "function": "Ae",
+                                                                                                                                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                                  "line": 30,
+                                                                                                                                                                  "column": 5434,
+                                                                                                                                                                  "selfMs": 0,
+                                                                                                                                                                  "inclusiveMs": 2.251,
+                                                                                                                                                                  "children": [
+                                                                                                                                                                    {
+                                                                                                                                                                      "id": 578,
+                                                                                                                                                                      "function": "Me",
+                                                                                                                                                                      "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                                      "line": 30,
+                                                                                                                                                                      "column": 6533,
+                                                                                                                                                                      "selfMs": 0,
+                                                                                                                                                                      "inclusiveMs": 2.251,
+                                                                                                                                                                      "children": [
+                                                                                                                                                                        {
+                                                                                                                                                                          "id": 579,
+                                                                                                                                                                          "function": "ze",
+                                                                                                                                                                          "url": "http://127.0.0.1:4181/boardstudio/assets/math-Dq5eodGI.js",
+                                                                                                                                                                          "line": 30,
+                                                                                                                                                                          "column": 7136,
+                                                                                                                                                                          "selfMs": 0.565,
+                                                                                                                                                                          "inclusiveMs": 2.251,
+                                                                                                                                                                          "children": []
+                                                                                                                                                                        }
+                                                                                                                                                                      ]
+                                                                                                                                                                    }
+                                                                                                                                                                  ]
+                                                                                                                                                                }
+                                                                                                                                                              ]
+                                                                                                                                                            }
+                                                                                                                                                          ]
+                                                                                                                                                        }
+                                                                                                                                                      ]
+                                                                                                                                                    }
+                                                                                                                                                  ]
+                                                                                                                                                }
+                                                                                                                                              ]
+                                                                                                                                            }
+                                                                                                                                          ]
+                                                                                                                                        }
+                                                                                                                                      ]
+                                                                                                                                    }
+                                                                                                                                  ]
+                                                                                                                                }
+                                                                                                                              ]
+                                                                                                                            }
+                                                                                                                          ]
+                                                                                                                        }
+                                                                                                                      ]
+                                                                                                                    }
+                                                                                                                  ]
+                                                                                                                }
+                                                                                                              ]
+                                                                                                            }
+                                                                                                          ]
+                                                                                                        }
+                                                                                                      ]
+                                                                                                    }
+                                                                                                  ]
+                                                                                                }
+                                                                                              ]
+                                                                                            }
+                                                                                          ]
+                                                                                        }
+                                                                                      ]
+                                                                                    }
+                                                                                  ]
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": 588,
+                                          "function": "Qt",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 839,
+                                          "column": 14191,
+                                          "selfMs": 0.561,
+                                          "inclusiveMs": 3.925,
+                                          "children": []
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": 649,
+                              "function": "list",
+                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                              "line": 839,
+                              "column": 2372,
+                              "selfMs": 0.564,
+                              "inclusiveMs": 6.768000000000001,
+                              "children": [
+                                {
+                                  "id": 650,
+                                  "function": "_n",
+                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                  "line": 839,
+                                  "column": 19209,
+                                  "selfMs": 0,
+                                  "inclusiveMs": 6.204000000000001,
+                                  "children": [
+                                    {
+                                      "id": 651,
+                                      "function": "resolve",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 839,
+                                      "column": 1121,
+                                      "selfMs": 0.562,
+                                      "inclusiveMs": 5.647,
+                                      "children": [
+                                        {
+                                          "id": 652,
+                                          "function": "",
+                                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                          "line": 839,
+                                          "column": 1922,
+                                          "selfMs": 0,
+                                          "inclusiveMs": 3.9709999999999996,
+                                          "children": [
+                                            {
+                                              "id": 653,
+                                              "function": "st",
+                                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                              "line": 839,
+                                              "column": 668,
+                                              "selfMs": 0,
+                                              "inclusiveMs": 2.252,
+                                              "children": [
+                                                {
+                                                  "id": 654,
+                                                  "function": "o",
+                                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                                  "line": 698,
+                                                  "column": 19749,
+                                                  "selfMs": 1.689,
+                                                  "inclusiveMs": 2.252,
+                                                  "children": []
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": 664,
+                          "function": "serializable",
+                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                          "line": 838,
+                          "column": 58182,
+                          "selfMs": 0,
+                          "inclusiveMs": 5.046,
+                          "children": [
+                            {
+                              "id": 665,
+                              "function": "",
+                              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                              "line": 838,
+                              "column": 58246,
+                              "selfMs": 0,
+                              "inclusiveMs": 5.046,
+                              "children": [
+                                {
+                                  "id": 666,
+                                  "function": "",
+                                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                  "line": 838,
+                                  "column": 58327,
+                                  "selfMs": 0,
+                                  "inclusiveMs": 5.046,
+                                  "children": [
+                                    {
+                                      "id": 667,
+                                      "function": "nt",
+                                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                                      "line": 838,
+                                      "column": 57755,
+                                      "selfMs": 0,
+                                      "inclusiveMs": 5.046,
+                                      "children": []
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 677,
+          "function": "hasManagedOutline",
+          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+          "line": 19235,
+          "column": 5824,
+          "selfMs": 0,
+          "inclusiveMs": 5.266,
+          "children": [
+            {
+              "id": 678,
+              "function": "readStudio",
+              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+              "line": 18602,
+              "column": 13611,
+              "selfMs": 0,
+              "inclusiveMs": 3.0090000000000003,
+              "children": [
+                {
+                  "id": 679,
+                  "function": "sourceValue",
+                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                  "line": 550,
+                  "column": 3310,
+                  "selfMs": 3.0090000000000003,
+                  "inclusiveMs": 3.0090000000000003,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 794,
+              "function": "",
+              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+              "line": 19235,
+              "column": 5890,
+              "selfMs": 0,
+              "inclusiveMs": 2.2569999999999997,
+              "children": [
+                {
+                  "id": 795,
+                  "function": "managed",
+                  "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                  "line": 19235,
+                  "column": 4439,
+                  "selfMs": 0,
+                  "inclusiveMs": 2.2569999999999997,
+                  "children": [
+                    {
+                      "id": 796,
+                      "function": "readStudio",
+                      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                      "line": 18602,
+                      "column": 13611,
+                      "selfMs": 0,
+                      "inclusiveMs": 2.2569999999999997,
+                      "children": [
+                        {
+                          "id": 797,
+                          "function": "sourceValue",
+                          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+                          "line": 550,
+                          "column": 3310,
+                          "selfMs": 2.2569999999999997,
+                          "inclusiveMs": 2.2569999999999997,
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 798,
+      "function": "selectedKeys",
+      "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+      "line": 20335,
+      "column": 32986,
+      "selfMs": 0,
+      "inclusiveMs": 2.2889999999999997,
+      "children": [
+        {
+          "id": 799,
+          "function": "readStudio",
+          "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+          "line": 18602,
+          "column": 13611,
+          "selfMs": 0,
+          "inclusiveMs": 2.2889999999999997,
+          "children": [
+            {
+              "id": 800,
+              "function": "sourceValue",
+              "url": "http://127.0.0.1:4181/boardstudio/assets/index-CEP0Je5j.js",
+              "line": 550,
+              "column": 3310,
+              "selfMs": 2.2889999999999997,
+              "inclusiveMs": 2.2889999999999997,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

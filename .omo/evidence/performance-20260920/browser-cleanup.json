@@ -1,0 +1,15 @@
+{
+  "browserClosed": true,
+  "serversExited": [
+    {
+      "pid": 2066582,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "pid": 2066623,
+      "exitCode": 0,
+      "signal": null
+    }
+  ]
+}
