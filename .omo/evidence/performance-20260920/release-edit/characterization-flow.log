@@ -1,0 +1,71 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/layoutSource.performance.test.ts (3 tests | 2 failed) 445ms
+   × creates first movement and fixed axes without parsing intermediate YAML 20ms
+     → expected '# Preserve document\nschema: ergogen/…' to be '# Preserve document\nschema: ergogen/…' // Object.is equality
+   × creates first rotation and its fixed axis without parsing intermediate YAML 3ms
+     → expected '# Rotation\nschema: ergogen/v1\nunits…' to be '# Rotation\nschema: ergogen/v1\nunits…' // Object.is equality
+   ✓ keeps existing override sequence formulas and comments byte for byte 422ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/layoutSource.performance.test.ts > creates first movement and fixed axes without parsing intermediate YAML
+AssertionError: expected '# Preserve document\nschema: ergogen/…' to be '# Preserve document\nschema: ergogen/…' // Object.is equality
+
+- Expected
++ Received
+
+  # Preserve document
+  schema: ergogen/v1
+  units: {pitch: 19}
+  layout:
+    objects:
+      thumb:
+        kind: key
+-       placement: {at: [pitch, 0, 0], override: { at: [ 5, 0, 0 ], fixed: { x: true } }} # Preserve formula
++       placement: {at: [pitch, 0, 0], override: { at: [ 5, 0, 0 ] , fixed: { x: true }}} # Preserve formula
+
+
+ ❯ src/utils/layoutSource.performance.test.ts:31:19
+     29|   const cloneCount = clones.mock.calls.length;
+     30|
+     31|   expect(changed).toBe(source.replace(
+       |                   ^
+     32|     '{at: [pitch, 0, 0]}',
+     33|     '{at: [pitch, 0, 0], override: { at: [ 5, 0, 0 ], fixed: { x: true…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/utils/layoutSource.performance.test.ts > creates first rotation and its fixed axis without parsing intermediate YAML
+AssertionError: expected '# Rotation\nschema: ergogen/v1\nunits…' to be '# Rotation\nschema: ergogen/v1\nunits…' // Object.is equality
+
+- Expected
++ Received
+
+  # Rotation
+  schema: ergogen/v1
+  units: {pitch: 19}
+  layout:
+    objects:
+      thumb:
+        kind: key
+-       placement: {at: [pitch, 0, 0], override: { rotate: 15, fixed: { rotate: true } }} # Preserve formula
++       placement: {at: [pitch, 0, 0], override: { rotate: 15 , fixed: { rotate: true }}} # Preserve formula
+
+
+ ❯ src/utils/layoutSource.performance.test.ts:49:19
+     47|   const cloneCount = clones.mock.calls.length;
+     48|
+     49|   expect(changed).toBe(input.replace(
+       |                   ^
+     50|     '{at: [pitch, 0, 0]}',
+     51|     '{at: [pitch, 0, 0], override: { rotate: 15, fixed: { rotate: true…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  13:48:07
+   Duration  1.57s (transform 67ms, setup 80ms, collect 67ms, tests 445ms, environment 681ms, prepare 73ms)

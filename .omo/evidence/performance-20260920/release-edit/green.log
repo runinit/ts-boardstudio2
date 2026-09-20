@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/designSource.test.ts (8 tests) 29ms
+ ✓ src/utils/layoutSource.test.ts (10 tests) 59ms
+ ✓ src/utils/layoutSource.performance.test.ts (3 tests) 467ms
+   ✓ creates first movement and fixed axes without parsing intermediate YAML 458ms
+
+ Test Files  3 passed (3)
+      Tests  21 passed (21)
+   Start at  13:49:20
+   Duration  1.51s (transform 202ms, setup 185ms, collect 341ms, tests 554ms, environment 1.82s, prepare 180ms)

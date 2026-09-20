@@ -1,5 +1,14 @@
 # Changelog
 
+## Faster drag commits and outline recovery
+
+September 20, 2026
+
+The first move or rotation now saves its position and fixed axes together,
+reducing pauses when dropping components. Outline generation avoids redundant
+repair attempts while preserving exact exported curves. Cancelling an outline
+and resuming edits no longer leaves obsolete work blocking the latest edit.
+
 ## Faster layout edits and outlines
 
 September 20, 2026

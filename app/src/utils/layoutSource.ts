@@ -98,6 +98,33 @@ export function setLayout(
   const fixedPath = [...root, 'placement', 'override', 'fixed'];
   const prior = sourceValue(result, fixedPath);
   const before = sourceValue(result, path);
+  const fixesPlacement =
+    field[0] === 'placement' && ['at', 'rotate'].includes(String(coordinate));
+  const fixed: Record<string, boolean> = Array.isArray(prior)
+    ? Object.fromEntries(prior.map((axis) => [axis, true]))
+    : { ...((prior as Record<string, boolean>) || {}) };
+  if (fixesPlacement) {
+    if (coordinate === 'rotate') {
+      fixed.rotate = true;
+    } else if (Array.isArray(value)) {
+      const previous = (before || [0, 0, 0]) as unknown[];
+      value.forEach((item, index) => {
+        if (item !== previous[index]) {
+          fixed[['x', 'y', 'z'][index]] = true;
+        }
+      });
+    } else {
+      fixed[['x', 'y', 'z'][Number(field.at(-1))]] = true;
+    }
+    const overridePath = [...root, 'placement', 'override'];
+    if (
+      field.length === 3 &&
+      field[1] === 'override' &&
+      document.getIn(overridePath, true) === undefined
+    ) {
+      return editField(result, overridePath, { [coordinate]: value, fixed });
+    }
+  }
   const node = document.getIn(path, true);
   if (
     Array.isArray(value) &&
@@ -115,26 +142,8 @@ export function setLayout(
   } else {
     result = editField(result, path, value);
   }
-  if (
-    field[0] !== 'placement' ||
-    !['at', 'rotate'].includes(String(coordinate))
-  ) {
+  if (!fixesPlacement) {
     return result;
-  }
-  const fixed: Record<string, boolean> = Array.isArray(prior)
-    ? Object.fromEntries(prior.map((axis) => [axis, true]))
-    : { ...((prior as Record<string, boolean>) || {}) };
-  if (coordinate === 'rotate') {
-    fixed.rotate = true;
-  } else if (Array.isArray(value)) {
-    const previous = (before || [0, 0, 0]) as unknown[];
-    value.forEach((item, index) => {
-      if (item !== previous[index]) {
-        fixed[['x', 'y', 'z'][index]] = true;
-      }
-    });
-  } else {
-    fixed[['x', 'y', 'z'][Number(field.at(-1))]] = true;
   }
   // Repeated nudges do not need to rewrite axes that are already fixed.
   return JSON.stringify(prior) === JSON.stringify(fixed)
