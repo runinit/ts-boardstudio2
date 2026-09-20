@@ -5,7 +5,13 @@ import {
   type DesignSetup,
   type KeyAssembly,
 } from './designSetup';
-import { getValue, setValue, removeValue, readStudio } from './studioSource';
+import {
+  getValue,
+  setValue,
+  removeValue,
+  readStudio,
+  type StudioItem,
+} from './studioSource';
 import { setLayout } from './layoutSource';
 
 export interface KeyOptions {
@@ -25,6 +31,58 @@ const DEFAULT_KEY_OPTIONS: KeyOptions = {
   diodeAt: [0, -5, 0],
   ledAt: [0, 5, 0],
 };
+
+function electronicsBinding(kind: 'diode' | 'led', at: number[]) {
+  return kind === 'diode'
+    ? {
+        what: 'diode',
+        placement: { at },
+        params: { from: '{{name}}_switch', to: '{{row_net}}' },
+      }
+    : {
+        what: 'ceoloide/led_sk6812mini-e',
+        placement: { at },
+        params: {
+          side: 'B',
+          include_traces_vias: false,
+          P1: 'VCC',
+          P3: 'GND',
+          P4: '{{name}}_led_in',
+          P2: '{{name}}_led_out',
+        },
+      };
+}
+
+export function prepareNewKey(source: string, item: StudioItem) {
+  const options = keyOptions(source, item.cluster, item.cell?.[0]);
+  const part = readStudio(source).parts?.[item.part || ''];
+  const binding = part?.footprints?.switch;
+  if (
+    getValue(source, ['meta', 'studio', 'setup']) ||
+    options.assemblyTemplate ||
+    !binding ||
+    typeof binding !== 'object' ||
+    !('what' in binding) ||
+    !binding.what
+  ) {
+    return undefined;
+  }
+  const footprints: Record<string, unknown> = {};
+  const electronics: Record<string, unknown> = {};
+  if (options.diode) {
+    footprints.switch = { params: { to: '{{name}}_switch' } };
+    footprints.studio_diode = electronicsBinding('diode', options.diodeAt);
+    electronics.diode = { switch: null };
+  }
+  if (options.led) {
+    footprints.studio_led = electronicsBinding('led', options.ledAt);
+    electronics.led = {};
+  }
+  return {
+    item: Object.keys(footprints).length ? { ...item, footprints } : item,
+    electronics,
+  };
+}
 export function keyOptions(
   source: string,
   cluster = '',
@@ -93,10 +151,15 @@ export function setKeyOptions(
 }
 
 export function keySetup(source: string, id: string): DesignSetup | undefined {
+  return keySetupFor(source, readStudio(source).layout.objects?.[id]);
+}
+export function keySetupFor(
+  source: string,
+  item: StudioItem | undefined
+): DesignSetup | undefined {
   const saved = getValue(source, ['meta', 'studio', 'setup']) as
     | DesignSetup
     | undefined;
-  const item = readStudio(source).layout.objects?.[id];
   const options = keyOptions(source, item?.cluster, item?.cell?.[0]);
   const name = item?.properties?.assembly_template || options.assemblyTemplate;
   const template = getValue(source, [
@@ -257,24 +320,21 @@ export function keyElectronics(
         ...instance,
         params: { ...instance.params, to: '{{name}}_switch' },
       });
-      result = setLayout(result, 'objects', id, ['footprints', name], {
-        what: 'diode',
-        placement: { at },
-        params: { from: '{{name}}_switch', to: '{{row_net}}' },
-      });
+      result = setLayout(
+        result,
+        'objects',
+        id,
+        ['footprints', name],
+        electronicsBinding(kind, at)
+      );
     } else {
-      result = setLayout(result, 'objects', id, ['footprints', name], {
-        what: 'ceoloide/led_sk6812mini-e',
-        placement: { at },
-        params: {
-          side: 'B',
-          include_traces_vias: false,
-          P1: 'VCC',
-          P3: 'GND',
-          P4: '{{name}}_led_in',
-          P2: '{{name}}_led_out',
-        },
-      });
+      result = setLayout(
+        result,
+        'objects',
+        id,
+        ['footprints', name],
+        electronicsBinding(kind, at)
+      );
     }
   }
   return result;
@@ -317,4 +377,53 @@ export function applyKeyDefaults(source: string, id: string): string {
     led_next: `${id}_led_out`,
     ...item.properties,
   });
+}
+
+export function applyNewKeyDefaults(source: string, ids: string[]): string {
+  const groups: { signature: string; setup: DesignSetup; ids: string[] }[] = [];
+  let result = source;
+  const applyGroups = () => {
+    for (const group of groups) {
+      result = applyAssembly(
+        result,
+        group.ids,
+        group.setup,
+        'preserve',
+        'keys',
+        true
+      );
+    }
+    groups.length = 0;
+  };
+  for (const id of ids) {
+    const item = readStudio(result).layout.objects?.[id];
+    const setup = keySetup(result, id);
+    if (!setup || item?.kind !== 'key') {
+      applyGroups();
+      result = applyKeyDefaults(result, id);
+      continue;
+    }
+    const options = keyOptions(result, item.cluster, item.cell?.[0]);
+    if (
+      JSON.stringify(item.envelopes?.keycap?.size) !==
+      JSON.stringify(options.size)
+    ) {
+      result = setLayout(
+        result,
+        'objects',
+        id,
+        ['envelopes', 'keycap', 'size'],
+        options.size
+      );
+    }
+    const signature = JSON.stringify(setup);
+    const group = groups.at(-1);
+    if (group?.signature === signature) {
+      group.ids.push(id);
+    } else {
+      groups.push({ signature, setup, ids: [id] });
+    }
+  }
+  applyGroups();
+  return result;
 }

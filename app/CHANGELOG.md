@@ -1,5 +1,15 @@
 # Changelog
 
+## Faster layout edits and outlines
+
+September 20, 2026
+
+Adding or removing keys, rows, and columns now updates the project in batches,
+reducing pauses on larger keyboards. Automatic board outlines generate faster
+while retaining authored layouts, electronics, and source comments.
+Repeated automatic outline updates also reuse managed regions instead of adding
+unused recipes to the project.
+
 ## Snapping settings beneath the tool
 
 September 13, 2026

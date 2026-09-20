@@ -5,9 +5,17 @@ const paramsOf = (item: { footprints?: Record<string, unknown> }) =>
   (item.footprints?.main as { params?: Params } | undefined)?.params || {};
 
 // Geometry edits leave wiring alone; topology edits reconnect only managed chains.
-export function syncLedChains(before: string, source: string): string {
-  const old = readStudio(before),
-    next = readStudio(source);
+export function syncLedChains(
+  before: string,
+  source: string,
+  old = readStudio(before)
+): string {
+  const next = readStudio(source);
+  const previousFindings = getValue(source, [
+    'meta',
+    'studio',
+    'electricalFindings',
+  ]) as string[] | undefined;
   let result = source;
   const findings: string[] = [];
   for (const board of Object.keys(next.pcbs || {})) {
@@ -60,11 +68,6 @@ export function syncLedChains(before: string, source: string): string {
       input = params.P2;
     }
   }
-  const previousFindings = getValue(source, [
-    'meta',
-    'studio',
-    'electricalFindings',
-  ]) as string[] | undefined;
   if (findings.length) {
     result = setValue(
       result,

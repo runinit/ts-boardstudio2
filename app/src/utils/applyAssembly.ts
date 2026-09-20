@@ -4,6 +4,7 @@ import { assemblyParts, compileKey } from './keyAssembly';
 import { keyNets, syncControllerNets } from './assemblyNets';
 import { syncAssemblyMirrors } from './assemblyMirrors';
 import { syncLedChains } from './assemblyWiring';
+import { editMappingFields, type SourcePath } from './designSource';
 import {
   getValue,
   readStudio,
@@ -16,7 +17,8 @@ export function applyAssembly(
   ids: string[],
   setup: DesignSetup,
   policy: 'preserve' | 'replace',
-  scope: 'keys' | 'cluster' | 'column' | 'layout' = 'keys'
+  scope: 'keys' | 'cluster' | 'column' | 'layout' = 'keys',
+  newKeys = false
 ): string {
   const templates = (getValue(source, ['meta', 'studio', 'templates']) ||
     {}) as Record<string, KeyAssembly>;
@@ -43,8 +45,30 @@ export function applyAssembly(
   setup = { ...setup, template };
   const parts = assemblyParts(setup);
   const part = `assembly_${setup.family}_${setup.mounting}`;
-  let result = setValue(source, ['parts', part], parts.key);
   const data = readStudio(source);
+  const deferred =
+    newKeys &&
+    ids.every(
+      (id) =>
+        !getValue(source, ['meta', 'studio', 'electronics', id]) &&
+        !Object.values(data.layout.objects || {}).some(
+          (item) => item.properties?.owner === id
+        )
+    );
+  const edits = new Map<
+    string,
+    { path: SourcePath; values: Record<string, unknown> }
+  >();
+  const write = (input: string, path: SourcePath, value: unknown) => {
+    if (!deferred) return setValue(input, path, value);
+    const parent = path.slice(0, -1);
+    const signature = JSON.stringify(parent);
+    const group = edits.get(signature) || { path: parent, values: {} };
+    group.values[String(path.at(-1))] = value;
+    edits.set(signature, group);
+    return input;
+  };
+  let result = write(source, ['parts', part], parts.key);
   for (const id of ids) {
     const item = data.layout.objects?.[id];
     if (item?.kind !== 'key') {
@@ -147,7 +171,7 @@ export function applyAssembly(
     ) {
       models = existingModels as typeof models;
     }
-    result = setValue(result, ['layout', 'objects', id], {
+    result = write(result, ['layout', 'objects', id], {
       ...item,
       part,
       models,
@@ -178,7 +202,7 @@ export function applyAssembly(
         continue;
       }
       const componentPart = `assembly_${role}`;
-      result = setValue(result, ['parts', componentPart], parts[role]);
+      result = write(result, ['parts', componentPart], parts[role]);
       const name = existing?.[0] || `${id}_${role}`;
       if (!existing && data.layout.objects?.[name]) {
         throw new Error(`${name} already belongs to another component.`);
@@ -222,7 +246,7 @@ export function applyAssembly(
           old.placement?.rotate !== baseline.rotate ||
           (old as { side?: string }).side !==
             (baseline.side === 'F' ? 'top' : 'bottom'));
-      result = setValue(result, ['layout', 'objects', name], {
+      result = write(result, ['layout', 'objects', name], {
         ...old,
         ...child,
         part: componentPart,
@@ -257,7 +281,7 @@ export function applyAssembly(
       });
     }
   }
-  result = setValue(
+  result = write(
     result,
     ['meta', 'studio', 'templates', setup.template.name],
     setup.template
@@ -277,15 +301,21 @@ export function applyAssembly(
                 item?.cell?.[0] || '',
               ]
             : ['meta', 'studio', 'layouts', item?.cluster || ''];
-      result = setValue(result, path, {
+      result = write(result, path, {
         ...(getValue(result, path) as object),
         assemblyTemplate: setup.template.name,
       });
     }
   }
+  for (const group of Array.from(edits.values())) {
+    result = editMappingFields(result, group.path, group.values);
+  }
   return syncControllerNets(
     syncAssemblySupport(
-      syncAssemblyMirrors(source, syncLedChains(source, result))
+      syncAssemblyMirrors(
+        source,
+        syncLedChains(source, result, deferred ? data : undefined)
+      )
     )
   );
 }

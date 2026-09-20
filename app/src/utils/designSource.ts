@@ -1,4 +1,5 @@
 import { isMap, isScalar, isNode, stringify } from 'yaml';
+import type { YAMLMap } from 'yaml';
 import { sourceDocument } from './sourceSnapshot';
 
 export type SourcePath = (string | number)[];
@@ -7,6 +8,64 @@ export interface DesignEditEvent {
   before: string;
   after: string;
   applied: boolean;
+}
+
+export function appendFields(
+  source: string,
+  path: SourcePath,
+  entries: Record<string, unknown>
+): string {
+  const names = Object.keys(entries);
+  if (!names.length) return source;
+  const parent = document(source).getIn(path, true);
+  if (parent === undefined) return editField(source, path, entries);
+  if (!isMap(parent)) {
+    throw new Error('Append named fields to a mapping.');
+  }
+  if (names.some((name) => parent.has(name))) {
+    throw new Error('Choose new, unique field names.');
+  }
+  return appendMapping(source, parent, entries);
+}
+
+export function editMappingFields(
+  source: string,
+  path: SourcePath,
+  entries: Record<string, unknown>
+): string {
+  if (!Object.keys(entries).length) return source;
+  const parent = document(source).getIn(path, true);
+  if (parent === undefined) return editField(source, path, entries);
+  if (!isMap(parent)) throw new Error('Edit named fields in a mapping.');
+  const additions: Record<string, unknown> = {};
+  const replacements: { start: number; end: number; text: string }[] = [];
+  for (const [key, value] of Object.entries(entries)) {
+    const node = parent.get(key, true);
+    if (node === undefined) {
+      additions[key] = value;
+      continue;
+    }
+    if (!isNode(node) || !node.range) {
+      throw new Error('This field has no editable source range.');
+    }
+    replacements.push({
+      start: node.range[0],
+      end: node.range[1],
+      text: renderValue(source, node.range[1], isScalar(node), value),
+    });
+  }
+  const appended = Object.keys(additions).length
+    ? appendMapping(source, parent, additions)
+    : source;
+  replacements.sort((a, b) => a.start - b.start);
+  let cursor = 0;
+  const pieces: string[] = [];
+  for (const replacement of replacements) {
+    pieces.push(appended.slice(cursor, replacement.start), replacement.text);
+    cursor = replacement.end;
+  }
+  pieces.push(appended.slice(cursor));
+  return pieces.join('');
 }
 
 const document = (source: string) => {
@@ -28,12 +87,7 @@ export function editDesign(
   if (isScalar(node) && node.range) {
     return (
       source.slice(0, node.range[0]) +
-      stringify(value, {
-        collectionStyle: 'flow',
-        aliasDuplicateObjects: false,
-        flowCollectionPadding: false,
-        lineWidth: 0,
-      }).trimEnd() +
+      renderValue(source, node.range[1], true, value) +
       source.slice(node.range[1])
     );
   }
@@ -55,6 +109,17 @@ export function editDesign(
   let addition: unknown = value;
   for (let index = path.length - 1; index >= depth; index--) {
     addition = { [path[index]]: addition };
+  }
+  return appendMapping(source, parent, addition);
+}
+
+function appendMapping(
+  source: string,
+  parent: YAMLMap,
+  addition: unknown
+): string {
+  if (!parent.range) {
+    throw new Error('This field has no editable source range.');
   }
   if (parent.flow) {
     const rendered = stringify(addition, {
@@ -176,22 +241,30 @@ export function editField(
   if (!isNode(node) || !node.range) {
     throw new Error('This field has no editable source range.');
   }
-  // Replace this field only, including when a list gains or loses a member.
+  return (
+    source.slice(0, node.range[0]) +
+    renderValue(source, node.range[1], false, value) +
+    source.slice(node.range[1])
+  );
+}
+
+function renderValue(
+  source: string,
+  end: number,
+  scalar: boolean,
+  value: unknown
+): string {
   const next = stringify(value, {
     collectionStyle: 'flow',
     lineWidth: 0,
     aliasDuplicateObjects: false,
+    flowCollectionPadding: !scalar,
   }).trimEnd();
   const newline =
-    source[node.range[1] - 1] === '\n'
+    !scalar && source[end - 1] === '\n'
       ? source.includes('\r\n')
         ? '\r\n'
         : '\n'
       : '';
-  return (
-    source.slice(0, node.range[0]) +
-    next +
-    newline +
-    source.slice(node.range[1])
-  );
+  return next + newline;
 }

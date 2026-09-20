@@ -8,10 +8,20 @@ import { syncLedChains } from './assemblyWiring';
 import type { LayoutReport } from 'ergogen/src/native';
 import { isMap, isScalar, isNode, parseDocument } from 'yaml';
 import { sourceDocument, sourceValue } from './sourceSnapshot';
-import { editField as setValue, SourcePath } from './designSource';
+import { removeSourceValues } from './removeSourceValues';
+import {
+  appendFields,
+  editField as setValue,
+  SourcePath,
+} from './designSource';
 export { editField as setValue } from './designSource';
 import { LayoutSection, setLayout } from './layoutSource';
-import { applyKeyDefaults, keyOptions } from './keyOptions';
+import {
+  applyNewKeyDefaults,
+  keyOptions,
+  keySetupFor,
+  prepareNewKey,
+} from './keyOptions';
 import { addDimension } from './designUnits';
 import {
   OUTLINE_CLEARANCE,
@@ -267,12 +277,28 @@ export function addObject(
         ) + 1;
     }
   }
-  result = setValue(result, ['layout', 'objects', id], item);
+  if (kind === 'key' && defaults === 'apply') {
+    item.envelopes = {
+      keycap: { size: keyOptions(result, item.cluster, item.cell?.[0]).size },
+    };
+  }
+  const prepared =
+    kind === 'key' && defaults === 'apply'
+      ? prepareNewKey(result, item)
+      : undefined;
+  result = setValue(result, ['layout', 'objects', id], prepared?.item || item);
   if (defaults === 'defer') {
     return result;
   }
+  if (prepared && Object.keys(prepared.electronics).length) {
+    result = setValue(
+      result,
+      ['meta', 'studio', 'electronics', id],
+      prepared.electronics
+    );
+  }
   return initBoardOutlines(
-    kind === 'key' ? applyKeyDefaults(result, id) : result
+    kind === 'key' && !prepared ? applyNewKeyDefaults(result, [id]) : result
   );
 }
 export function addCluster(
@@ -400,10 +426,34 @@ export function addCell(
     Object.keys(data.layout.objects || {}),
     `${cluster}_${column}_${row}`
   );
-  let next = addObject(source, id, 'key', undefined, 'defer');
-  next = setValue(next, ['layout', 'objects', id, 'cluster'], cluster);
-  next = setValue(next, ['layout', 'objects', id, 'cell'], [column, row]);
-  return applyKeyDefaults(next, id);
+  const [withPart, part] = keyPart(source);
+  const pcb = Object.keys(data.pcbs || {})[0];
+  const item: StudioItem = {
+    kind: 'key',
+    label: id,
+    part,
+    ...(pcb ? { pcb, layer: pcbLayer(data, pcb) } : {}),
+    cluster,
+    cell: [column, row],
+    envelopes: { keycap: { size: keyOptions(withPart, cluster, column).size } },
+  };
+  const prepared = prepareNewKey(withPart, item);
+  let next = setValue(
+    withPart,
+    ['layout', 'objects', id],
+    prepared?.item || item
+  );
+  if (!prepared) {
+    return applyNewKeyDefaults(next, [id]);
+  }
+  if (Object.keys(prepared.electronics).length) {
+    next = setValue(
+      next,
+      ['meta', 'studio', 'electronics', id],
+      prepared.electronics
+    );
+  }
+  return next;
 }
 export function moveColumn(
   source: string,
@@ -525,25 +575,34 @@ export function removeObject(
   section: LayoutSection,
   id: string
 ): string {
-  const data = readStudio(source),
-    item = data.layout[section]?.[id];
-  if (!item) {
-    throw new Error('Select an authored object.');
-  }
-  if (
-    item.locked ||
-    (item.cluster && data.layout.clusters?.[item.cluster]?.locked)
-  ) {
-    throw new Error('Unlock this object before deleting it.');
+  return removeObjects(source, section, [id]);
+}
+function removeObjects(
+  source: string,
+  section: LayoutSection,
+  ids: string[]
+): string {
+  const data = readStudio(source);
+  for (const id of ids) {
+    const item = data.layout[section]?.[id];
+    if (!item) {
+      throw new Error('Select an authored object.');
+    }
+    if (
+      item.locked ||
+      (item.cluster && data.layout.clusters?.[item.cluster]?.locked)
+    ) {
+      throw new Error('Unlock this object before deleting it.');
+    }
   }
   const members =
     section === 'clusters'
-      ? Object.entries(data.layout.objects || {}).filter(
-          ([, member]) => member.cluster === id
+      ? Object.entries(data.layout.objects || {}).filter(([, member]) =>
+          ids.includes(member.cluster || '')
         )
       : [];
   // Owned electronics follow deletion of their key or matrix.
-  const owners = new Set([id, ...members.map(([key]) => key)]);
+  const owners = new Set([...ids, ...members.map(([key]) => key)]);
   for (const [key, member] of Object.entries(data.layout.objects || {})) {
     if (
       typeof member.properties?.owner === 'string' &&
@@ -558,7 +617,7 @@ export function removeObject(
     throw new Error('Unlock the cluster members before deleting it.');
   }
   const targets = [
-    { section, id },
+    ...ids.map((id) => ({ section, id })),
     ...members.map(([key]) => ({ section: 'objects' as const, id: key })),
   ];
   source = clearAutoBridges(source, targets);
@@ -604,23 +663,17 @@ export function removeObject(
       `Used by ${references.join(', ')}. Update these references first.`
     );
   }
+  const paths: SourcePath[] = [];
   for (const target of targets) {
     if (target.section === 'objects') {
-      source = removeValue(source, [
-        'meta',
-        'studio',
-        'electronics',
-        target.id,
-      ]);
+      paths.push(['meta', 'studio', 'electronics', target.id]);
     } else {
-      source = removeValue(source, ['meta', 'studio', 'layouts', target.id]);
-      source = removeValue(source, ['meta', 'studio', 'columns', target.id]);
+      paths.push(['meta', 'studio', 'layouts', target.id]);
+      paths.push(['meta', 'studio', 'columns', target.id]);
     }
+    paths.push(['layout', target.section, target.id]);
   }
-  const next = targets.reduce(
-    (next, target) => removeValue(next, ['layout', target.section, target.id]),
-    source
-  );
+  const next = removeSourceValues(source, paths);
   return syncControllerNets(
     syncAssemblySupport(
       syncAssemblyMirrors(source, syncLedChains(source, next))
@@ -663,14 +716,12 @@ export function resizeCluster(
   );
   const memberKey = (item: StudioItem) =>
     arc ? String(item.index) : JSON.stringify(item.cell);
-  let result = source;
-  const removed: string[] = [];
-  for (const [key, item] of members) {
-    if (!desired.includes(memberKey(item))) {
-      removed.push(key);
-      result = removeObject(result, 'objects', key);
-    }
-  }
+  const removed = members
+    .filter(([, item]) => !desired.includes(memberKey(item)))
+    .map(([key]) => key);
+  let result = removed.length
+    ? removeObjects(source, 'objects', removed)
+    : source;
   if (!arc) {
     result = setValue(
       result,
@@ -683,6 +734,13 @@ export function resizeCluster(
       rows
     );
   }
+  const added: string[] = [];
+  const additions: Record<string, StudioItem> = {};
+  const electronics: Record<string, unknown> = {};
+  const reserved = new Set(
+    Object.keys(readStudio(result).layout.objects || {})
+  );
+  let part: string | undefined;
   for (const cell of desired) {
     const oldCell = arc ? [] : (JSON.parse(cell) as string[]);
     const hole =
@@ -694,26 +752,49 @@ export function resizeCluster(
       continue;
     }
     const key = nextId(
-      Object.keys(readStudio(result).layout.objects || {}),
+      Array.from(reserved),
       `${id}_${arc ? cell : (JSON.parse(cell) as string[]).join('_')}`
     );
-    result = addObject(result, key, 'key', undefined, 'defer');
-    result = setValue(result, ['layout', 'objects', key, 'cluster'], id);
-    result = setValue(
-      result,
-      ['layout', 'objects', key, arc ? 'index' : 'cell'],
-      arc ? Number(cell) : JSON.parse(cell)
-    );
+    if (!part) {
+      [result, part] = keyPart(result);
+    }
+    const defaultPcb = Object.keys(data.pcbs || {})[0];
     const pcb =
       data.layout.layers?.[cluster.layer || '']?.surface?.match(
         /^pcb\.(.+)\.top$/
       )?.[1];
-    if (pcb) {
-      result = setValue(result, ['layout', 'objects', key, 'pcb'], pcb);
+    const item: StudioItem = {
+      kind: 'key',
+      label: key,
+      part,
+      ...(defaultPcb
+        ? { pcb: defaultPcb, layer: pcbLayer(data, defaultPcb) }
+        : {}),
+      cluster: id,
+      ...(arc ? { index: Number(cell) } : { cell: oldCell }),
+      ...(pcb ? { pcb } : {}),
+      envelopes: { keycap: { size: keyOptions(result, id, oldCell[0]).size } },
+    };
+    const prepared = prepareNewKey(result, item);
+    additions[key] = prepared?.item || item;
+    if (prepared) {
+      if (Object.keys(prepared.electronics).length) {
+        electronics[key] = prepared.electronics;
+      }
+    } else {
+      added.push(key);
     }
-    result = applyKeyDefaults(result, key);
+    reserved.add(key);
+    const setup = keySetupFor(result, item);
+    for (const role of ['diode', 'led'] as const) {
+      if (setup?.[role]) {
+        reserved.add(`${key}_${role}`);
+      }
+    }
   }
-  return reviewResize(source, result, removed);
+  result = appendFields(result, ['layout', 'objects'], additions);
+  result = appendFields(result, ['meta', 'studio', 'electronics'], electronics);
+  return reviewResize(source, applyNewKeyDefaults(result, added), removed);
 }
 function copyBindings(item: StudioItem) {
   if (!item.footprints) {
@@ -967,14 +1048,27 @@ export function addOutline(
       },
     },
   };
-  const references = (value: unknown, ref: string): boolean => {
+  const ownershipPath = ['meta', 'studio', 'outline', 'managed', board];
+  const references = (
+    value: unknown,
+    ref: string,
+    path: string[] = []
+  ): boolean => {
+    if (
+      path.length === ownershipPath.length &&
+      path.every((key, index) => key === ownershipPath[index])
+    ) {
+      return false;
+    }
     if (value === ref) {
       return true;
     }
     if (!value || typeof value !== 'object') {
       return false;
     }
-    return Object.values(value).some((child) => references(child, ref));
+    return Object.entries(value).some(([key, child]) =>
+      references(child, ref, [...path, key])
+    );
   };
   // Only replace exclusive automatic recipes; authored or shared regions keep their identity.
   const previousRegions = previousRegionRefs.filter((id) => {
