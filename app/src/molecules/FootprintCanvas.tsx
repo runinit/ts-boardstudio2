@@ -26,17 +26,25 @@ const Surface = styled.div`
     min-height: ${theme.caseWizard.planHeight};
   }
 `;
-const PreviewNotice = styled.p`
+const PreviewNotice = styled.details`
   position: absolute;
   z-index: 1;
   top: 0;
   left: 0;
-  right: 0;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
   margin: 0;
   padding: ${theme.spacing.sm};
   background: ${theme.colors.background};
   color: ${theme.colors.text};
   font-size: ${theme.workbench.textSize};
+  summary {
+    cursor: pointer;
+  }
+  p {
+    margin: ${theme.spacing.sm} 0 0;
+  }
 `;
 class Boundary extends Component<{ children: ReactNode }, { error: string }> {
   state = { error: '' };
@@ -100,18 +108,21 @@ export default function FootprintCanvas({
           diagnostic.code.includes('preview') ||
           diagnostic.code.startsWith('unsupported-')
       ) && (
-        <PreviewNotice role="status">
-          {Array.from(
-            new Set(
-              info.diagnostics
-                .filter(
-                  (diagnostic) =>
-                    diagnostic.code.includes('preview') ||
-                    diagnostic.code.startsWith('unsupported-')
-                )
-                .map((diagnostic) => diagnostic.message)
-            )
-          ).join(' ')}
+        <PreviewNotice>
+          <summary>Preview limitations</summary>
+          <p role="status">
+            {Array.from(
+              new Set(
+                info.diagnostics
+                  .filter(
+                    (diagnostic) =>
+                      diagnostic.code.includes('preview') ||
+                      diagnostic.code.startsWith('unsupported-')
+                  )
+                  .map((diagnostic) => diagnostic.message)
+              )
+            ).join(' ')}
+          </p>
         </PreviewNotice>
       )}
       <Boundary>
