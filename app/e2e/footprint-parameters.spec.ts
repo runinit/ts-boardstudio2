@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import JSZip from 'jszip';
 import { test, expect } from '@playwright/test';
 import { studio, openLibrary } from './utils/studio';
@@ -9,7 +9,7 @@ const source =
   'module.exports={params:{side:"F",reversible:false,width:1,offset:[0,0]},body:p=>`(module "Settings" (layer ${p.side}.Cu) ${p.at} (pad 1 smd rect (at ${p.offset[0]} 0) (size ${p.width} 1) (layers ${p.side}.Cu)) ${p.reversible ? "(pad 2 smd rect (at 0 2) (size 1 1) (layers B.Cu))" : ""})`}';
 test('regenerates footprint settings and reopens saved defaults', async ({
   page,
-}) => {
+}, testInfo) => {
   test.setTimeout(120000);
   await page.setViewportSize({ width: 1487, height: 1058 });
   await page.addInitScript(
@@ -60,14 +60,15 @@ test('regenerates footprint settings and reopens saved defaults', async ({
     .click();
   await expect(dialog.getByText(/Saved revision 1/)).toBeVisible();
   await dialog.getByText('Source & export', { exact: true }).click();
+  const archivePath = testInfo.outputPath('footprint-parameters.zip');
+  expect(existsSync(archivePath)).toBe(false);
   const exporting = page.waitForEvent('download');
   await dialog
     .getByRole('button', { name: 'Export footprint ZIP', exact: true })
     .click();
-  await (await exporting).saveAs('test-results/footprint-parameters.zip');
-  const archive = await JSZip.loadAsync(
-    readFileSync('test-results/footprint-parameters.zip')
-  );
+  await (await exporting).saveAs(archivePath);
+  expect(existsSync(archivePath)).toBe(true);
+  const archive = await JSZip.loadAsync(readFileSync(archivePath));
   const manifest = archive.file('footprint-library.json');
   if (!manifest) throw new Error('Missing footprint library snapshot');
   expect(JSON.parse(await manifest.async('string'))).toMatchObject({
@@ -81,7 +82,7 @@ test('regenerates footprint settings and reopens saved defaults', async ({
   const usage = archive.file('usage.yaml');
   expect(await usage?.async('string')).toContain('width: 3');
   await page.screenshot({
-    path: 'test-results/footprint-parameters-desktop.png',
+    path: testInfo.outputPath('footprint-parameters-desktop.png'),
   });
   await page.reload();
   await expect(studio(page)).toBeVisible();
@@ -100,6 +101,6 @@ test('regenerates footprint settings and reopens saved defaults', async ({
   ).toHaveValue('3');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
-    path: 'test-results/footprint-parameters-mobile.png',
+    path: testInfo.outputPath('footprint-parameters-mobile.png'),
   });
 });
