@@ -60,6 +60,8 @@ const combine = (left, right, operation = 'add') => {
     return u[operation](clone(left), clone(right))
 }
 const union = models => models.reduce((result, model) => combine(result, model), {paths: {}})
+// MakerJS deletes farPoint between path unions; retain the explicit ray throughout repair steps.
+const offsetOptions = () => Object.create({farPoint: u.farPoint})
 const offset = (model, distance, joints = Joint.Round) => {
     if (Math.abs(distance) < EPSILON) {
         return clone(model)
@@ -79,7 +81,7 @@ const offset = (model, distance, joints = Joint.Round) => {
     const steps = radii.length ? Math.max(2, Math.ceil(distance / Math.min(...radii) * 2)) : 2
     if (steps > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit') }
     for (let step = 0; step < steps; step++) {
-        result = m.model.outline(result, distance / steps, joints, false, {farPoint: u.farPoint})
+        result = m.model.outline(result, distance / steps, joints, false, offsetOptions())
     }
     if (!valid(result)) {
         // Shallow notches between neighboring keys need smaller analytic steps.
@@ -87,7 +89,7 @@ const offset = (model, distance, joints = Joint.Round) => {
         if (repairs > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit') }
         result = clone(model)
         for (let step = 0; step < repairs; step++) {
-            result = m.model.outline(result, distance / repairs, joints, false, {farPoint: u.farPoint})
+            result = m.model.outline(result, distance / repairs, joints, false, offsetOptions())
         }
     }
     if (!valid(result)) { fail('designs', 'Offset failed to preserve the profile extent') }
@@ -145,14 +147,14 @@ const requireContains = (outer, inner, name) => {
         fail(name, 'Profile removes occupied area or required clearance', 'clearance')
     }
 }
-const close = (model, radius) => {
+const close = (model, radius, resize = offset) => {
     if (!radius) { return clone(model) }
     // Keep exact closing first; retry contraction short of collapsing its new arcs.
     const adjusted = radius + ARC_COLLAPSE_ADJUSTMENT
     const attempts = [[radius, radius], [adjusted, adjusted], [radius, Math.max(0, radius - ARC_COLLAPSE_ADJUSTMENT)]]
     for (const [expansion, contraction] of attempts) {
         try {
-            const closed = offset(offset(model, expansion), -contraction)
+            const closed = resize(resize(model, expansion), -contraction)
             validate(closed, 'designs')
             if (contains(closed, model)) { return closed }
             const restored = combine(model, closed)

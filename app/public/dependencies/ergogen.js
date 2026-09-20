@@ -1234,6 +1234,8 @@
 		    return u[operation](clone(left), clone(right))
 		};
 		const union = models => models.reduce((result, model) => combine(result, model), {paths: {}});
+		// MakerJS deletes farPoint between path unions; retain the explicit ray throughout repair steps.
+		const offsetOptions = () => Object.create({farPoint: u.farPoint});
 		const offset = (model, distance, joints = Joint.Round) => {
 		    if (Math.abs(distance) < EPSILON) {
 		        return clone(model)
@@ -1253,7 +1255,7 @@
 		    const steps = radii.length ? Math.max(2, Math.ceil(distance / Math.min(...radii) * 2)) : 2;
 		    if (steps > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit'); }
 		    for (let step = 0; step < steps; step++) {
-		        result = m.model.outline(result, distance / steps, joints, false, {farPoint: u.farPoint});
+		        result = m.model.outline(result, distance / steps, joints, false, offsetOptions());
 		    }
 		    if (!valid(result)) {
 		        // Shallow notches between neighboring keys need smaller analytic steps.
@@ -1261,7 +1263,7 @@
 		        if (repairs > MAX_OFFSET_STEPS) { fail('designs', 'Offset exceeds the analytic subdivision limit'); }
 		        result = clone(model);
 		        for (let step = 0; step < repairs; step++) {
-		            result = m.model.outline(result, distance / repairs, joints, false, {farPoint: u.farPoint});
+		            result = m.model.outline(result, distance / repairs, joints, false, offsetOptions());
 		        }
 		    }
 		    if (!valid(result)) { fail('designs', 'Offset failed to preserve the profile extent'); }
@@ -1319,14 +1321,14 @@
 		        fail(name, 'Profile removes occupied area or required clearance', 'clearance');
 		    }
 		};
-		const close = (model, radius) => {
+		const close = (model, radius, resize = offset) => {
 		    if (!radius) { return clone(model) }
 		    // Keep exact closing first; retry contraction short of collapsing its new arcs.
 		    const adjusted = radius + ARC_COLLAPSE_ADJUSTMENT;
 		    const attempts = [[radius, radius], [adjusted, adjusted], [radius, Math.max(0, radius - ARC_COLLAPSE_ADJUSTMENT)]];
 		    for (const [expansion, contraction] of attempts) {
 		        try {
-		            const closed = offset(offset(model, expansion), -contraction);
+		            const closed = resize(resize(model, expansion), -contraction);
 		            validate(closed, 'designs');
 		            if (contains(closed, model)) { return closed }
 		            const restored = combine(model, closed);
@@ -46511,6 +46513,7 @@ ${content}
 
 		const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies'];
 		const analysisCache = new WeakMap();
+		const outlineCache = new WeakMap();
 		const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
 		// Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
@@ -46575,9 +46578,22 @@ ${content}
 		        if (config.regions[`${id}_keys`]) { config.regions[`${id}_keys`] = {outline:ref}; }
 		        if (config.regions[`${id}_switches`]) { config.regions[`${id}_switches`] = {outline:ref}; }
 		    }
-		    const features = {}, resolved = {}, active = new Set(), generated = {}, cases = {};
-		    const report = {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE};
+		    const scope = options.analysis && options.preparedLayout?.scene;
+		    const staged = scope && outlineCache.get(scope);
+		    if (scope) { outlineCache.delete(scope); }
+		    const geometry = staged && staged.key === options.outlineKey ? staged.geometry : undefined;
+		    const features = geometry?.report.features || {}, resolved = geometry?.resolved || {}, active = new Set(), generated = geometry?.generated || {}, cases = {};
+		    const report = geometry?.report || {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE};
 		    const dim = (value, name) => g.number(value, name, units);
+		    const offsets = new Map();
+		    const offset = (model, distance, joints = g.Joint.Round) => {
+		        if (Math.abs(distance) < g.EPSILON) { return g.offset(model, distance, joints) }
+		        const key = JSON.stringify([model, distance, joints]);
+		        if (offsets.has(key)) { return g.clone(offsets.get(key)) }
+		        const result = g.offset(model, distance, joints);
+		        offsets.set(key, g.clone(result));
+		        return result
+		    };
 
 		    const locate = (spec, name) => {
 		        if (spec && typeof spec === 'object' && spec.feature) {
@@ -46641,7 +46657,7 @@ ${content}
 		        const clearance = dim(spec.clearance || 0, `${name}.clearance`);
 		        const rounding = dim(spec.round || 0, `${name}.round`);
 		        if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative'); }
-		        model = g.offset(model, clearance);
+		        model = offset(model, clearance);
 		        model = g.round(model, rounding);
 		        const simplification = dim(spec.simplify || 0, `${name}.simplify`);
 		        if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative'); }
@@ -46654,7 +46670,7 @@ ${content}
 		            const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units);
 		            model = requireFinishing().corners(model, {[style]:size}, `${name}.corners`);
 		        }
-		        const required = !g.empty(occupied) && clearance > 0 ? g.offset(occupied, clearance) : occupied;
+		        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied;
 		        model = modify(model, spec, name, required);
 		        g.validate(model, name, spec.connected || 'multiple');
 		        g.requireContains(model, required, name);
@@ -46699,7 +46715,7 @@ ${content}
 		                occupied = g.union(groups);
 		                const radius = dim(spec.close || 0, `${name}.close`);
 		                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative'); }
-		                groups = groups.map(group => finish(g.close(group, radius), spec, name, group));
+		                groups = groups.map(group => finish(g.close(group, radius, offset), spec, name, group));
 		                model = g.union(groups);
 		                if (g.chains(model).length < groups.reduce((count, group) => count + g.chains(group).length, 0)) {
 		                    g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected');
@@ -46716,7 +46732,7 @@ ${content}
 		                groups = sources.flatMap(source => source.groups);
 		                const radius = dim(spec.close || 0, `${name}.close`);
 		                if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative'); }
-		                groups = groups.map(group => g.close(group, radius));
+		                groups = groups.map(group => g.close(group, radius, offset));
 		                model = g.union(groups);
 		                for (const [bridge, bridgeSpec] of Object.entries(spec.bridges || {})) {
 		                    const path = `${name}.bridges.${bridge}`;
@@ -46772,7 +46788,7 @@ ${content}
 		                model = shape(spec, name);
 		                const height = a.numarr(spec.height, `${name}.height`, 2)(units);
 		                if (height[0] >= height[1]) { g.fail(name, 'Height range must increase'); }
-		                model = g.offset(model, dim(spec.clearance || 0, `${name}.clearance`));
+		                model = offset(model, dim(spec.clearance || 0, `${name}.clearance`));
 		                occupied = model;
 		                groups = [model];
 		            } else if (section === 'sketches') {
@@ -46794,7 +46810,7 @@ ${content}
 
 		    // Solving is asynchronous; the geometry graph remains deterministic afterwards.
 		    const solvedSketches = {};
-		    for (const [id, sketch] of Object.entries(config.sketches || {})) {
+		    for (const [id, sketch] of Object.entries(geometry ? {} : config.sketches || {})) {
 		        const solver = requireSketches();
 		        solvedSketches[id] = await solver.parse(sketch, `designs.sketches.${id}`, units, points, options);
 		    }
@@ -46802,6 +46818,10 @@ ${content}
 		        for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`); }
 		    }
 		    if (options.outlineOnly) {
+		        // Transfer geometry once within a prepared request, before callers can mutate its output.
+		        if (scope && options.outlineKey) {
+		            outlineCache.set(scope, {key: options.outlineKey, geometry: deepcopy({resolved, generated, report})});
+		        }
 		        return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
 		    }
 		    const boardSources = options.boardSources ? options.boardSources(generated) : {};
@@ -48060,7 +48080,8 @@ ${content}
 		            }));
 		            analysisKey = JSON.stringify([{...config, designs:{...config.designs, assemblies}}, options.assets]);
 		        }
-		        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey,
+		        const outlineKey = options.analysis && prepared?.scene ? JSON.stringify([config, options.assets]) : undefined;
+		        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey, outlineKey,
 		            scene, region: (spec, path) => geometry.region(scene, spec, path),
 		            shape: (spec,path,point) => geometry.project({matrix:requireFrames().local([point.x,point.y,0],point.r),sourcePath:path},scene.envelope(spec,path)),
 		            boardSources: generated => {

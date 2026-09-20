@@ -8,6 +8,7 @@ const {deepcopy} = require('../utils')
 
 const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies']
 const analysisCache = new WeakMap()
+const outlineCache = new WeakMap()
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
 
 // Snapshots store finished paths in feature coordinates; no recipe is evaluated again.
@@ -72,9 +73,22 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         if (config.regions[`${id}_keys`]) { config.regions[`${id}_keys`] = {outline:ref} }
         if (config.regions[`${id}_switches`]) { config.regions[`${id}_switches`] = {outline:ref} }
     }
-    const features = {}, resolved = {}, active = new Set(), generated = {}, cases = {}
-    const report = {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE}
+    const scope = options.analysis && options.preparedLayout?.scene
+    const staged = scope && outlineCache.get(scope)
+    if (scope) { outlineCache.delete(scope) }
+    const geometry = staged && staged.key === options.outlineKey ? staged.geometry : undefined
+    const features = geometry?.report.features || {}, resolved = geometry?.resolved || {}, active = new Set(), generated = geometry?.generated || {}, cases = {}
+    const report = geometry?.report || {features, diagnostics: [], adjustments: [], assemblies: {}, tolerance: g.TOLERANCE}
     const dim = (value, name) => g.number(value, name, units)
+    const offsets = new Map()
+    const offset = (model, distance, joints = g.Joint.Round) => {
+        if (Math.abs(distance) < g.EPSILON) { return g.offset(model, distance, joints) }
+        const key = JSON.stringify([model, distance, joints])
+        if (offsets.has(key)) { return g.clone(offsets.get(key)) }
+        const result = g.offset(model, distance, joints)
+        offsets.set(key, g.clone(result))
+        return result
+    }
 
     const locate = (spec, name) => {
         if (spec && typeof spec === 'object' && spec.feature) {
@@ -138,7 +152,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         const clearance = dim(spec.clearance || 0, `${name}.clearance`)
         const rounding = dim(spec.round || 0, `${name}.round`)
         if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative') }
-        model = g.offset(model, clearance)
+        model = offset(model, clearance)
         model = g.round(model, rounding)
         const simplification = dim(spec.simplify || 0, `${name}.simplify`)
         if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative') }
@@ -151,7 +165,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
             const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units)
             model = require('./finishing').corners(model, {[style]:size}, `${name}.corners`)
         }
-        const required = !g.empty(occupied) && clearance > 0 ? g.offset(occupied, clearance) : occupied
+        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied
         model = modify(model, spec, name, required)
         g.validate(model, name, spec.connected || 'multiple')
         g.requireContains(model, required, name)
@@ -196,7 +210,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 occupied = g.union(groups)
                 const radius = dim(spec.close || 0, `${name}.close`)
                 if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
-                groups = groups.map(group => finish(g.close(group, radius), spec, name, group))
+                groups = groups.map(group => finish(g.close(group, radius, offset), spec, name, group))
                 model = g.union(groups)
                 if (g.chains(model).length < groups.reduce((count, group) => count + g.chains(group).length, 0)) {
                     g.fail(name, 'Clearance joins separated halves; use a named bridge', 'disconnected')
@@ -213,7 +227,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 groups = sources.flatMap(source => source.groups)
                 const radius = dim(spec.close || 0, `${name}.close`)
                 if (radius < 0) { g.fail(name, 'Gap-closing radius must be nonnegative') }
-                groups = groups.map(group => g.close(group, radius))
+                groups = groups.map(group => g.close(group, radius, offset))
                 model = g.union(groups)
                 for (const [bridge, bridgeSpec] of Object.entries(spec.bridges || {})) {
                     const path = `${name}.bridges.${bridge}`
@@ -269,7 +283,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 model = shape(spec, name)
                 const height = a.numarr(spec.height, `${name}.height`, 2)(units)
                 if (height[0] >= height[1]) { g.fail(name, 'Height range must increase') }
-                model = g.offset(model, dim(spec.clearance || 0, `${name}.clearance`))
+                model = offset(model, dim(spec.clearance || 0, `${name}.clearance`))
                 occupied = model
                 groups = [model]
             } else if (section === 'sketches') {
@@ -291,7 +305,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
 
     // Solving is asynchronous; the geometry graph remains deterministic afterwards.
     const solvedSketches = {}
-    for (const [id, sketch] of Object.entries(config.sketches || {})) {
+    for (const [id, sketch] of Object.entries(geometry ? {} : config.sketches || {})) {
         const solver = require('./sketches')
         solvedSketches[id] = await solver.parse(sketch, `designs.sketches.${id}`, units, points, options)
     }
@@ -299,6 +313,10 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         for (const id of Object.keys(config[section] || {})) { resolve(`${section}.${id}`) }
     }
     if (options.outlineOnly) {
+        // Transfer geometry once within a prepared request, before callers can mutate its output.
+        if (scope && options.outlineKey) {
+            outlineCache.set(scope, {key: options.outlineKey, geometry: deepcopy({resolved, generated, report})})
+        }
         return {outlines: generated, cases: {}, report, solids: {}, boardBundle: undefined}
     }
     const boardSources = options.boardSources ? options.boardSources(generated) : {}

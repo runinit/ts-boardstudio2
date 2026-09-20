@@ -66,7 +66,8 @@ const compile = async (raw, options={}, logger=()=>{}) => {
             }))
             analysisKey = JSON.stringify([{...config, designs:{...config.designs, assemblies}}, options.assets])
         }
-        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey,
+        const outlineKey = options.analysis && prepared?.scene ? JSON.stringify([config, options.assets]) : undefined
+        const design = await designs_lib.parse(Object.fromEntries(Object.entries(config.designs).filter(([key])=>key!=='stackups')), points, outlines, units, {...options, analysisKey, outlineKey,
             scene, region: (spec, path) => geometry.region(scene, spec, path),
             shape: (spec,path,point) => geometry.project({matrix:require('./native/frames').local([point.x,point.y,0],point.r),sourcePath:path},scene.envelope(spec,path)),
             boardSources: generated => {
