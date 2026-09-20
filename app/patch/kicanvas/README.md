@@ -4,6 +4,8 @@ Upstream: <https://github.com/theacodes/kicanvas>, MIT license (see LICENSE.md).
 `revision` pins the source; `pnpm-lock.yaml` pins build dependencies.
 `kicad10.patch` adds a board net registry, strict parsing, and preview events.
 Unconnected pads skip net labels instead of aborting board rendering.
+Legacy unquoted numeric pad identifiers are parsed as strings, preserving
+pad lookup and labels alongside quoted and alphanumeric identifiers.
 The GUI loads the viewer on demand and hides PCB source during startup.
 It also removes the external font stylesheet; the GUI bundles Fontsource fonts.
 

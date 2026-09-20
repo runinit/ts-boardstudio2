@@ -28,6 +28,27 @@ for (const bad of ['(kicad_pcb (', '(kicad_pcb (net "unterminated)', wrap('(segm
 }
 console.log('Net registry checks passed');
 
+const padIdentifiers = ['1', '2', '0', '"01"', '"A1"', '""', '"3"'];
+const expectedPadNumbers = ['1', '2', '0', '01', 'A1', '', '3'];
+const numberedPads = new KicadPCB('pad-identifiers', wrap(`
+ (footprint "numbered" (layer "F.Cu") (at 0 0)
+  ${padIdentifiers.map((identifier, index) => `
+   (pad ${identifier} smd rect (at ${index * 2} 0) (size 1 1)
+    (layers "F.Cu") (net "signal_${index}"))`).join('')})`));
+const numberedFootprint = numberedPads.footprints[0];
+assert.ok(numberedFootprint);
+assert.deepEqual(numberedFootprint.pads.map(pad => pad.number), expectedPadNumbers,
+ 'numeric pad identifiers must remain distinct strings');
+for (const [index, number] of expectedPadNumbers.entries()) {
+ const pad = numberedFootprint.pad_by_number(number);
+ assert.ok(pad, `missing pad ${number}`);
+ assert.equal(pad, numberedFootprint.pads[index]);
+ assert.equal(pad.netname, `signal_${index}`);
+ assert.equal(pad.type, 'smd');
+ assert.equal(pad.shape, 'rect');
+}
+console.log('Pad identifier checks passed');
+
 import { BoardPainter } from './src/viewers/board/painter';
 import { LayerSet } from './src/viewers/board/layers';
 import { NullRenderer, NullRenderLayer } from './src/graphics/null-renderer';

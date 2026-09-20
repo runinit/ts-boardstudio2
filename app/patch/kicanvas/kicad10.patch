@@ -48,6 +48,20 @@ index 2d2d2c6..1143bb6 100644
  }
  
  export class ZoneKeepout {
+@@ -1661,7 +1666,12 @@ export class Pad implements HasUniqueID, HasNetInfo {
+         const parsed = parse_expr(
+             expr,
+             P.start("pad"),
+-            P.positional("number", T.string),
++            P.positional("number", (obj, name, value) => {
++                if (typeof value === "number" && Number.isFinite(value)) {
++                    return String(value);
++                }
++                return T.string(obj, name, value);
++            }),
+             P.positional("type", T.string),
+             P.positional("shape", T.string),
+             P.item("at", At),
 diff --git a/src/kicad/net-registry.ts b/src/kicad/net-registry.ts
 new file mode 100644
 index 0000000..4c065fa
