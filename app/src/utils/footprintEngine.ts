@@ -1,5 +1,7 @@
 import * as ergogen from 'ergogen';
 import { createInjectionModule } from './injectionEvaluator';
+import { stringify } from 'yaml';
+import { extractParameters, parameterDefaults } from './footprintParameters';
 import type { FootprintInfo, LibraryEntry } from '../types/footprint';
 
 type Module = {
@@ -20,25 +22,15 @@ export async function prepareEntry(
         })
       : undefined;
   const source = conversion?.source || entry.module;
+  const defaults = { ...entry.parameters, ...params };
+  const configured = parameterDefaults(source, defaults);
   const resolved =
     entry.modelMode === 'replace'
-      ? ergogen.footprints.bind(source, entry.models, entry.target)
-      : source;
-  const module = createInjectionModule(source) as Module;
-  const parameters = Object.fromEntries(
-    Object.entries(module.params || {}).map(([key, spec]) => {
-      const definition =
-        spec && typeof spec === 'object'
-          ? (spec as { type?: string; value?: unknown })
-          : undefined;
-      const type =
-        definition?.type || (spec === undefined ? 'net' : typeof spec);
-      return [
-        key,
-        { type, value: definition?.value ?? (definition ? '' : spec) ?? '' },
-      ];
-    })
-  );
+      ? ergogen.footprints.bind(configured, entry.models, entry.target)
+      : configured;
+  const module = createInjectionModule(configured) as Module;
+  const original = createInjectionModule(source) as Module;
+  const parameters = extractParameters(original.params || {}, source);
   ergogen.inject('footprint', PREVIEW_NAME, module);
   const previewParams = {
     ...Object.fromEntries(
@@ -46,7 +38,7 @@ export async function prepareEntry(
         .filter(([, spec]) => spec.type === 'net')
         .map(([key]) => [key, `preview_${key}`])
     ),
-    ...params,
+    ...defaults,
   };
   const results = await ergogen.process(
     {
@@ -85,7 +77,9 @@ export async function prepareEntry(
     info,
     parameters,
     mapping: conversion?.mapping || entry.mapping,
-    yaml: conversion?.yaml || `what: ${entry.alias}\nparams: {}`,
+    yaml: Object.keys(defaults).length
+      ? stringify({ what: entry.alias, params: defaults })
+      : conversion?.yaml || `what: ${entry.alias}\nparams: {}`,
   };
 }
 

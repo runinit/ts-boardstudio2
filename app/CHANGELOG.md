@@ -1,5 +1,21 @@
 # Changelog
 
+## Corrected footprint wiring and options
+
+September 20, 2026
+
+Switch, controller, diode, display and generic-pad footprints now preserve the
+intended contact and track nets across supported mounting options. Unsupported
+MCU jumper inversion, single-sided drilled-SMD diodes and reversible Gateron
+hotswap now report actionable errors. MX outer pad width controls now take
+effect; the default outer edge expands by 0.05 mm.
+
+The footprint library exposes configurable settings and saved defaults, with
+previews showing the generated pad and drill geometry for the selected side and
+reversible options. All 18 built-in footprints are available again. Current matrix
+wiring conflicts now block PCB and outline exports, including bulk downloads,
+with findings that explain what needs fixing.
+
 ## Faster drag commits and outline recovery
 
 September 20, 2026

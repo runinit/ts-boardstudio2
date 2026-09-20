@@ -802,6 +802,24 @@ to the current draft. Cached portable bindings remain library-owned.
 `zip` and `ergogenBundleLoader` package/restore snapshots and cached models.
 See [CAD-WORKSPACE.md](CAD-WORKSPACE.md) for identity and portability rules.
 
+Library entries can store optional `parameters` defaults separately from original
+source and provenance. `footprintParameters` extracts declared parameter types and
+wraps generated modules with changed defaults; explicit Ergogen placement values
+still win. `prepareEntry` regenerates inspected geometry and source-selected models
+from those defaults. Preserve-mode models follow regeneration; replacement models
+stay owned by the draft. Revision checks reject obsolete previews, and pending or
+invalid settings block save/export. The same defaults travel with saved snapshots
+and exported modules; preview viewing direction remains separate from generator side.
+
+Inspection carries custom filled polygons and anchors, chamfers, drill dimensions
+and offsets, local tracks/vias, and zone/keepout rings into the shared SVG/Three
+preview geometry. Board copper is transformed into the selected footprint's local
+frame. Drill masks remove holes across overlapping shapes; zones show boundaries
+without simulating fills or clearances. Unsupported primitives and ambiguous
+multi-footprint copper ownership produce diagnostics. Blank-number electrical
+pad groups use optional `mappingKey` identities for persisted remapping, falling
+back to the pad number for ordinary groups; blank labels do not merge distinct nets.
+
 On Node 26, run unit tests with `NODE_OPTIONS=--no-experimental-webstorage` so
 Vitest uses jsdom storage. `PLAYWRIGHT_PORT=3002` isolates browser validation
 from an existing development server. Repack the engine dependency before a full

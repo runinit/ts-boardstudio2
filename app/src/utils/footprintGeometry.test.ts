@@ -74,3 +74,82 @@ it('normalizes placed pad rotations and mirrors each board side exactly once', a
   expect(footprintView(back, 'F')?.graphics[0].end).toEqual([2, 3]);
   expect(front.pads[0].at).toEqual([1, 2, 120]);
 });
+
+it('keeps custom jumper polygons instead of replacing their area with the anchor', () => {
+  // Given: the five-vertex arrow pad used by reversible controller jumpers.
+  const jumper = {
+    index: 0,
+    number: '1',
+    type: 'smd',
+    shape: 'custom',
+    at: [0, 0],
+    layers: ['F.Cu'],
+    mechanical: false,
+    size: [0.2, 0.2],
+    anchor: 'rect' as const,
+    polygons: [
+      [
+        [-0.5, -0.625],
+        [0.25, -0.625],
+        [0.5, 0],
+        [0.25, 0.625],
+        [-0.5, 0.625],
+      ],
+    ],
+  };
+  // When: the renderer asks for the pad contour.
+  const outline = padOutline(jumper);
+  // Then: the actual arrow extends beyond the tiny KiCad anchor.
+  expect(outline).toContainEqual([0.5, 0]);
+  expect(outline).toContainEqual([-0.5, 0.625]);
+});
+it('mirrors custom vertices, drill offsets and copper paths together', async () => {
+  // Given: placed asymmetric local copper and an offset hole.
+  const { footprintView } = await import('./footprintGeometry');
+  const front: FootprintInfo = {
+    targets: [],
+    nets: [],
+    models: [],
+    graphics: [],
+    diagnostics: [],
+    at: [10, 20, 37],
+    side: 'F',
+    pads: [
+      {
+        index: 0,
+        number: '1',
+        type: 'smd',
+        shape: 'custom',
+        size: [0.2, 0.2],
+        at: [1, 2, 52],
+        layers: ['F.Cu'],
+        mechanical: false,
+        polygons: [
+          [
+            [0, 0],
+            [1, 2],
+            [0, 3],
+          ],
+        ],
+        drillOffset: [0.2, 0.3],
+      },
+    ],
+    tracks: [
+      {
+        type: 'segment',
+        start: [1, 2],
+        end: [3, 4],
+        mid: [],
+        width: 0.2,
+        layer: 'B.Cu',
+      },
+    ],
+  };
+  // When: viewing its back side.
+  const back = footprintView(front, 'B');
+  // Then: each local frame reflects exactly once.
+  expect(back?.pads[0].at).toEqual([1, -2, -15]);
+  expect(back?.pads[0].polygons?.[0][1]).toEqual([1, -2]);
+  expect(back?.pads[0].drillOffset).toEqual([0.2, -0.3]);
+  expect(back?.tracks?.[0].end).toEqual([3, -4]);
+});

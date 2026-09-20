@@ -30,6 +30,8 @@ import type {
 } from '../types/footprint';
 import ModelEditor from './ModelEditor';
 import FootprintCanvas from './FootprintCanvas';
+import { FootprintParameters } from './FootprintParameters';
+import type { FootprintParameters as ParameterDefinitions } from '../types/footprint';
 import bundled from '../../.generated/footprints.json';
 import { theme } from '../theme/theme';
 
@@ -75,6 +77,8 @@ const Panel = styled.aside<{
     overflow-wrap: anywhere;
   }
   label {
+    min-width: 0;
+    overflow-wrap: anywhere;
     display: grid;
     gap: ${theme.spacing.xs};
     margin-bottom: ${theme.spacing.md};
@@ -283,10 +287,10 @@ export default function FootprintLibrary({
   // Resolve attached defaults for display without changing the saved draft.
   const previews = useBundledPreviews(draft?.models || [], draft?.assets || {});
   const [info, setInfo] = useState<FootprintInfo>();
-  const [parameters, setParameters] = useState<
-    Record<string, { type: string; value: unknown }>
-  >({});
-  const [params, setParams] = useState<Record<string, unknown>>({});
+  const [parameters, setParameters] = useState<ParameterDefinitions>({});
+  const params = draft?.parameters || {};
+  const [parametersValid, setParametersValid] = useState(true);
+  const [preparedRevision, setPreparedRevision] = useState('');
   const [yaml, setYaml] = useState('');
   const [active, setActive] = useState(0);
   const [tab, setTab] = useState<'model' | 'pads'>('model');
@@ -317,6 +321,7 @@ export default function FootprintLibrary({
   const history = useRef<LibraryEntry[]>([]);
   const operation = useRef<AbortController>();
   const current = useRef(draft);
+  const previewFace = useRef<{ id: string; value: unknown }>();
   current.current = draft;
   useEffect(() => () => operation.current?.abort(), []);
   const edit = (next: LibraryEntry) => {
@@ -336,11 +341,14 @@ export default function FootprintLibrary({
       drafts.current.set(draft.id, draft);
     }
     setDraft(drafts.current.get(entry.id) || entry);
-    setInfo(undefined);
+    if (draft?.id !== entry.id) {
+      setInfo(undefined);
+      setParameters({});
+      setParametersValid(true);
+    }
     setError('');
     history.current = histories.current.get(entry.id) || [];
     setStatus(history.current.length ? 'Unsaved footprint draft' : '');
-    setParams({});
     setActive(0);
   };
   // A catalogue item owns one draft, even after browsing another part.
@@ -367,6 +375,7 @@ export default function FootprintLibrary({
     }
     const controller = new AbortController();
     setInspecting(true);
+    setInfo(undefined);
     void prepareFootprint(
       { ...entry, modelMode: 'preserve' },
       controller.signal,
@@ -376,7 +385,17 @@ export default function FootprintLibrary({
         if (controller.signal.aborted) {
           return;
         }
+        const face =
+          params.side ?? prepared.parameters.side?.value ?? prepared.info.side;
+        if (
+          previewFace.current?.id !== entry.id ||
+          previewFace.current.value !== face
+        ) {
+          previewFace.current = { id: entry.id, value: face };
+          if (face === 'F' || face === 'B') setSide(face);
+        }
         setInfo(prepared.info);
+        setPreparedRevision(geometryRevision);
         setParameters(prepared.parameters);
         setYaml(prepared.yaml);
         setInspecting(false);
@@ -388,7 +407,7 @@ export default function FootprintLibrary({
                 module: prepared.module,
                 mapping: prepared.mapping,
                 models:
-                  previous.modelMode === 'preserve' && !previous.models.length
+                  previous.modelMode === 'preserve'
                     ? prepared.info.models
                     : previous.models,
               }
@@ -405,6 +424,8 @@ export default function FootprintLibrary({
     // The serialized geometry revision intentionally excludes immediate model transforms.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geometryRevision]);
+  const currentInfo =
+    preparedRevision === geometryRevision && parametersValid ? info : undefined;
   const available = useMemo(
     () => [
       ...Object.entries(bundled).map(([name, source]) => ({
@@ -538,7 +559,7 @@ export default function FootprintLibrary({
     setBusy(false);
   };
   const save = async () => {
-    if (!draft) {
+    if (!draft || !currentInfo || inspecting) {
       return;
     }
     operation.current?.abort();
@@ -577,7 +598,7 @@ export default function FootprintLibrary({
     }
   };
   const download = async () => {
-    if (!draft) {
+    if (!draft || !currentInfo || inspecting) {
       return;
     }
     const controller = new AbortController();
@@ -828,13 +849,17 @@ export default function FootprintLibrary({
               setSide((previous) => (previous === 'F' ? 'B' : 'F'))
             }
           >
-            {side === 'F' ? 'Front' : 'Back'} side
+            View {side === 'F' ? 'back' : 'front'}
           </button>
         </Toolbar>
         {draft ? (
           <FootprintCanvas
-            info={info}
-            models={draft.models}
+            info={currentInfo}
+            models={
+              draft.modelMode === 'preserve'
+                ? currentInfo?.models || []
+                : draft.models
+            }
             assets={previews.assets}
             selected={active}
             onSelect={setActive}
@@ -866,7 +891,8 @@ export default function FootprintLibrary({
             </p>
           </Panel>
         )}
-        {draft?.models.some((model) => modelPreview(model, previews.assets)) &&
+        {currentInfo &&
+          draft?.models.some((model) => modelPreview(model, previews.assets)) &&
           view === '3d' && (
             <Inset aria-label="Magnified model alignment">
               <FootprintCanvas
@@ -905,6 +931,8 @@ export default function FootprintLibrary({
                   disabled={
                     busy ||
                     modelBusy === 'busy' ||
+                    inspecting ||
+                    !currentInfo ||
                     !info ||
                     (info.targets.length > 1 &&
                       draft.modelMode === 'replace' &&
@@ -928,6 +956,15 @@ export default function FootprintLibrary({
                 </button>
               </div>
             </EditorHeader>
+            <FootprintParameters
+              key={`settings-${draft.id}`}
+              definitions={parameters}
+              values={params}
+              onValidity={setParametersValid}
+              onChange={(key, value) =>
+                edit({ ...draft, parameters: { ...params, [key]: value } })
+              }
+            />
             <Toolbar>
               <button
                 aria-pressed={tab === 'model'}
@@ -1002,26 +1039,30 @@ export default function FootprintLibrary({
                   </thead>
                   <tbody>
                     {info?.nets.map((net) => (
-                      <tr key={net.number}>
+                      <tr key={net.mappingKey ?? net.number}>
                         <td>
                           <button
                             aria-pressed={pad === net.number}
                             onClick={() => setPad(net.number)}
                           >
-                            {net.number}
+                            {net.number || `Unnumbered ${net.pads[0] + 1}`}
                           </button>
                         </td>
                         <td>
                           {draft.origin.kind === 'kicad' ? (
                             <input
-                              aria-label={`Pad ${net.number} net parameter`}
-                              value={draft.mapping[net.number] || net.parameter}
+                              aria-label={`Pad ${net.number || `unnumbered ${net.pads[0] + 1}`} net parameter`}
+                              value={
+                                draft.mapping[net.mappingKey ?? net.number] ||
+                                net.parameter
+                              }
                               onChange={(event) =>
                                 edit({
                                   ...draft,
                                   mapping: {
                                     ...draft.mapping,
-                                    [net.number]: event.target.value,
+                                    [net.mappingKey ?? net.number]:
+                                      event.target.value,
                                   },
                                 })
                               }
@@ -1058,8 +1099,9 @@ export default function FootprintLibrary({
                 {finding.message}
               </p>
             ))}
+
             <details>
-              <summary>Parameters & source</summary>
+              <summary>Source & export</summary>
               <label>
                 Library name
                 <input
@@ -1069,31 +1111,6 @@ export default function FootprintLibrary({
                   }
                 />
               </label>
-              {Object.entries(parameters)
-                .filter(([, parameter]) =>
-                  ['string', 'number', 'boolean', 'net'].includes(
-                    parameter.type
-                  )
-                )
-                .map(([key, parameter]) => (
-                  <label key={key}>
-                    {key}
-                    <input
-                      value={String(params[key] ?? parameter.value)}
-                      onChange={(event) =>
-                        setParams((previous) => ({
-                          ...previous,
-                          [key]:
-                            parameter.type === 'number'
-                              ? Number(event.target.value)
-                              : parameter.type === 'boolean'
-                                ? event.target.value === 'true'
-                                : event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                ))}
               <label>
                 Ergogen module
                 <textarea
@@ -1108,6 +1125,7 @@ export default function FootprintLibrary({
               </label>
               <pre>{yaml}</pre>
               <button
+                disabled={busy || inspecting || !currentInfo}
                 onClick={() =>
                   void download().catch((error) => setError(String(error)))
                 }

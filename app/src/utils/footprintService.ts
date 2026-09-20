@@ -4,6 +4,7 @@ import type {
   FootprintTarget,
   LibraryEntry,
   ModelBinding,
+  FootprintParameters,
 } from '../types/footprint';
 import { encodeAsset } from './caseAssets';
 import { identifyAsset } from './modelSources';
@@ -14,7 +15,7 @@ type Prepared = {
   info: FootprintInfo;
   mapping: Record<string, string>;
   yaml: string;
-  parameters: Record<string, { type: string; value: unknown }>;
+  parameters: FootprintParameters;
 };
 type ModelInfo = { bounds: number[][]; stl: string; vrml: string };
 const WORKER_TIMEOUT_MS = 120000;

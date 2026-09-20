@@ -68,26 +68,7 @@ export function graphicPoints(g: FootprintInfo['graphics'][number]): Point[] {
     center[1] + radius * Math.sin(angle + (sweep * i) / CIRCLE_STEPS),
   ]);
 }
-export function padOutline(p: FootprintInfo['pads'][number]) {
-  const [w, h] = p.size.map((value) => value / 2);
-  const radius =
-    p.shape === 'circle' || p.shape === 'oval'
-      ? Math.min(w, h)
-      : p.shape === 'roundrect'
-        ? Math.min(w, h) * 2 * (p.roundrect || 0)
-        : 0;
-  return [
-    [w - radius, h - radius],
-    [-w + radius, h - radius],
-    [-w + radius, -h + radius],
-    [w - radius, -h + radius],
-  ].flatMap(([x, y], corner) =>
-    Array.from({ length: CIRCLE_STEPS / 4 + 1 }, (_, i) => {
-      const angle = (corner * Math.PI) / 2 + (i * Math.PI) / (CIRCLE_STEPS / 2);
-      return [x + radius * Math.cos(angle), y + radius * Math.sin(angle)];
-    })
-  );
-}
+export { padOutline } from './footprintPadGeometry';
 
 // KiCad pad angles include the placement rotation; stored back-side graphics are already mirrored.
 export function footprintView(
@@ -105,8 +86,29 @@ export function footprintView(
     side,
     pads: info.pads.map((pad) => ({
       ...pad,
+      polygons: pad.polygons?.map((polygon) => polygon.map(point)),
+      drillOffset: pad.drillOffset ? point(pad.drillOffset) : undefined,
+      chamfer:
+        mirror === 1
+          ? pad.chamfer
+          : pad.chamfer?.map((corner) =>
+              corner.startsWith('top_')
+                ? corner.replace('top_', 'bottom_')
+                : corner.replace('bottom_', 'top_')
+            ),
       at: [...point(pad.at), ((pad.at[2] || 0) - (info.at?.[2] || 0)) * mirror],
     })),
+    zones: info.zones?.map((zone) => ({
+      ...zone,
+      polygons: zone.polygons.map((polygon) => polygon.map(point)),
+    })),
+    tracks: info.tracks?.map((track) => ({
+      ...track,
+      start: point(track.start),
+      end: point(track.end),
+      mid: point(track.mid),
+    })),
+    vias: info.vias?.map((via) => ({ ...via, at: point(via.at) })),
     graphics: info.graphics.map((graphic) => ({
       ...graphic,
       start: point(graphic.start),

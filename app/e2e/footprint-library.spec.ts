@@ -121,7 +121,7 @@ test('imports a KiCad bundle, aligns models, links placements, and exports a por
   await expect(
     dialog.getByText('4 linked placements · 1 projects')
   ).toBeVisible();
-  await dialog.getByText('Parameters & source', { exact: true }).click();
+  await dialog.getByText('Source & export', { exact: true }).click();
   const exportingFootprint = page.waitForEvent('download');
   await dialog
     .getByRole('button', { name: 'Export footprint ZIP', exact: true })
