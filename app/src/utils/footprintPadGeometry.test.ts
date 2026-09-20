@@ -87,3 +87,20 @@ it('retains custom polygon outlines, stroke width and an independent anchor', ()
     []
   );
 });
+it('produces no drill-mask triangles for an SMD pad without a drill', () => {
+  // Given: the same empty drill contour used by FootprintCopper for a Choc SMD contact.
+  const contact = { ...pad, type: 'smd', drillSize: undefined };
+  const mask = {
+    ...pad,
+    type: 'smd',
+    shape: 'custom',
+    size: [0, 0],
+    drillSize: undefined,
+    polygons: [drillOutline(contact)],
+  };
+  // When: building the real Three.js stencil-mask geometry.
+  const geometry = padShapeGeometry(mask);
+  // Then: an undrilled contact contributes no hole and does not crash the preview.
+  expect(geometry.index?.count || 0).toBe(0);
+  geometry.dispose();
+});

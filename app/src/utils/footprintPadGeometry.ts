@@ -93,23 +93,25 @@ export function outlinePath(points: number[][]): string {
 }
 
 export function padShapeGeometry(pad: Pad): ShapeGeometry {
-  const shapes = padContours(pad).map((outline) => {
-    const shape = new Shape();
-    outline.forEach(([x, y], index) =>
-      index ? shape.lineTo(x, -y) : shape.moveTo(x, -y)
-    );
-    shape.closePath();
-    const hole = drillOutline(pad);
-    if (hole.length) {
-      const path = new Path();
-      hole.forEach(([x, y], index) =>
-        index ? path.lineTo(x, -y) : path.moveTo(x, -y)
+  const shapes = padContours(pad)
+    .filter((outline) => outline.length >= 3)
+    .map((outline) => {
+      const shape = new Shape();
+      outline.forEach(([x, y], index) =>
+        index ? shape.lineTo(x, -y) : shape.moveTo(x, -y)
       );
-      path.closePath();
-      shape.holes.push(path);
-    }
-    return shape;
-  });
+      shape.closePath();
+      const hole = drillOutline(pad);
+      if (hole.length) {
+        const path = new Path();
+        hole.forEach(([x, y], index) =>
+          index ? path.lineTo(x, -y) : path.moveTo(x, -y)
+        );
+        path.closePath();
+        shape.holes.push(path);
+      }
+      return shape;
+    });
   return new ShapeGeometry(shapes);
 }
 
