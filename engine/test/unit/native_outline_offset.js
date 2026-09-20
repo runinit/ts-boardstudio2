@@ -51,6 +51,6 @@ describe('Native notched matrix outline performance', function() {
         assert.equal(hash(g.paths(result.designs.features['profiles.main_outline'].model)), '55512e458f3eb136640d7da7088164ada70748b75454ab76c77dc8074555da52')
         assert.equal(hash(result.outlines.main_outline.svg), 'e20e5530643cc784b2c68c337bd3ef13660e56a0919a3bd46c9b07ca111af3fd')
         assert.equal(hash(result.outlines.main_outline.dxf), '19ebb8591b7a570e3910bc87b518f20d044f070a26f172dd3c1e9d67474502f8')
-        assert.ok(outline.callCount <= 9, `Expected bounded analytic offsets, observed ${outline.callCount} calls`)
+        assert.ok(outline.callCount <= 7, `Expected bounded analytic offsets, observed ${outline.callCount} calls`)
     })
 })

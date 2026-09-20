@@ -1240,7 +1240,9 @@
 		    if (Math.abs(distance) < EPSILON) {
 		        return clone(model)
 		    }
-		    const direct = m.model.outline(clone(model), Math.abs(distance), joints, distance < 0, {farPoint: u.farPoint});
+		    // Retain the contraction ray to avoid closing retries; expansions keep their original ray selection.
+		    const direct = m.model.outline(clone(model), Math.abs(distance), joints, distance < 0,
+		        distance < 0 ? offsetOptions() : {farPoint: u.farPoint});
 		    if (distance < 0) { return direct }
 		    const bounds = m.measure.modelExtents(model);
 		    const valid = result => {

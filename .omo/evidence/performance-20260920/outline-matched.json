@@ -1,0 +1,38 @@
+{
+  "runtime": "v24.14.0",
+  "warmup": "one per variant",
+  "fixture": "fingers_c10_r1 +3mm",
+  "samples": [
+    {
+      "variant": "before",
+      "ms": 7593.532700000002,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    },
+    {
+      "variant": "after",
+      "ms": 5232.429852000001,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    },
+    {
+      "variant": "after",
+      "ms": 5210.164194000001,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    },
+    {
+      "variant": "before",
+      "ms": 7534.557440999997,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    },
+    {
+      "variant": "before",
+      "ms": 7537.485038999999,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    },
+    {
+      "variant": "after",
+      "ms": 5232.322754000001,
+      "sha256": "0b00df4f9299517e0d35d3cdbd109604a6cc5599b0ddd573b4661b2cce64145f"
+    }
+  ],
+  "parity": true
+}

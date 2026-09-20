@@ -1,0 +1,432 @@
+{
+  "before": {
+    "ms": 8037.4212,
+    "calls": [
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 240,
+        "ms": 1928.38732
+      },
+      {
+        "distance": 1,
+        "inside": false,
+        "paths": 240,
+        "ms": 1784.3962119999997
+      },
+      {
+        "distance": 1,
+        "inside": false,
+        "paths": 95,
+        "ms": 302.87405800000033
+      },
+      {
+        "distance": 2,
+        "inside": true,
+        "paths": 92,
+        "ms": 257.3171860000002
+      },
+      {
+        "distance": 2.001,
+        "inside": false,
+        "paths": 240,
+        "ms": 1912.705895
+      },
+      {
+        "distance": 2.001,
+        "inside": true,
+        "paths": 92,
+        "ms": 290.3058769999998
+      },
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 61,
+        "ms": 216.9414859999997
+      },
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 16,
+        "ms": 12.229260999998587
+      },
+      {
+        "distance": 2,
+        "inside": true,
+        "paths": 13,
+        "ms": 11.475919000000431
+      }
+    ],
+    "contour": {
+      "paths": [
+        {
+          "type": "line",
+          "origin": [
+            -9,
+            -11
+          ],
+          "end": [
+            161,
+            -11
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            161,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 270,
+          "endAngle": 300.0000001084161
+        },
+        {
+          "type": "arc",
+          "origin": [
+            163,
+            -12.4641016
+          ],
+          "radius": 2,
+          "startAngle": 419.9999998915838,
+          "endAngle": 480.0000001084161
+        },
+        {
+          "type": "arc",
+          "origin": [
+            165,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 239.9999998915838,
+          "endAngle": 270
+        },
+        {
+          "type": "line",
+          "origin": [
+            165,
+            -11
+          ],
+          "end": [
+            183,
+            -11
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            183,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 270,
+          "endAngle": 360
+        },
+        {
+          "type": "line",
+          "origin": [
+            185,
+            -9
+          ],
+          "end": [
+            185,
+            9
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            183,
+            9
+          ],
+          "radius": 2,
+          "startAngle": 0,
+          "endAngle": 75.52248764860194
+        },
+        {
+          "type": "arc",
+          "origin": [
+            184,
+            12.8729833
+          ],
+          "radius": 2,
+          "startAngle": 180,
+          "endAngle": 255.52248764860195
+        },
+        {
+          "type": "line",
+          "origin": [
+            182,
+            12.8729833
+          ],
+          "end": [
+            182,
+            104
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            180,
+            104
+          ],
+          "radius": 2,
+          "startAngle": 0,
+          "endAngle": 90
+        },
+        {
+          "type": "line",
+          "origin": [
+            -9,
+            106
+          ],
+          "end": [
+            180,
+            106
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            -9,
+            104
+          ],
+          "radius": 2,
+          "startAngle": 90,
+          "endAngle": 180
+        },
+        {
+          "type": "line",
+          "origin": [
+            -11,
+            -9
+          ],
+          "end": [
+            -11,
+            104
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            -9,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 180,
+          "endAngle": 270
+        }
+      ],
+      "svg": "<svg width=\"196mm\" height=\"117mm\" viewBox=\"0 0 196 117\" xmlns=\"http://www.w3.org/2000/svg\"><g id=\"svgGroup\" stroke-linecap=\"round\" fill-rule=\"evenodd\" font-size=\"9pt\" stroke=\"#000\" stroke-width=\"0.25mm\" fill=\"none\" style=\"stroke:#000;stroke-width:0.25mm;fill:none\"><path d=\"M 2 117 L 172 117 A 2 2 0 0 0 173 116.732 A 2 2 0 0 1 175 116.732 A 2 2 0 0 0 176 117 L 194 117 A 2 2 0 0 0 196 115 L 196 97 A 2 2 0 0 0 194.5 95.064 A 2 2 0 0 1 193 93.127 L 193 2 A 2 2 0 0 0 191 0 L 2 0 A 2 2 0 0 0 0 2 L 0 115 A 2 2 0 0 0 2 117 Z\" vector-effect=\"non-scaling-stroke\"/></g></svg>",
+      "dxf": "0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n4\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLTYPE\n0\nLTYPE\n72\n65\n70\n64\n2\nCONTINUOUS\n3\n______\n73\n0\n40\n0\n0\nENDTAB\n0\nTABLE\n2\nLAYER\n0\nENDTAB\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n10\n-9\n20\n-11\n11\n161\n21\n-11\n0\nARC\n8\n0\n10\n161\n20\n-9\n40\n2\n50\n270\n51\n300.0000001\n0\nARC\n8\n0\n10\n163\n20\n-12.4641016\n40\n2\n50\n419.9999999\n51\n480.0000001\n0\nARC\n8\n0\n10\n165\n20\n-9\n40\n2\n50\n239.9999999\n51\n270\n0\nLINE\n8\n0\n10\n165\n20\n-11\n11\n183\n21\n-11\n0\nARC\n8\n0\n10\n183\n20\n-9\n40\n2\n50\n270\n51\n360\n0\nLINE\n8\n0\n10\n185\n20\n-9\n11\n185\n21\n9\n0\nARC\n8\n0\n10\n183\n20\n9\n40\n2\n50\n0\n51\n75.5224876\n0\nARC\n8\n0\n10\n184\n20\n12.8729833\n40\n2\n50\n180\n51\n255.5224876\n0\nLINE\n8\n0\n10\n182\n20\n12.8729833\n11\n182\n21\n104\n0\nARC\n8\n0\n10\n180\n20\n104\n40\n2\n50\n0\n51\n90\n0\nLINE\n8\n0\n10\n-9\n20\n106\n11\n180\n21\n106\n0\nARC\n8\n0\n10\n-9\n20\n104\n40\n2\n50\n90\n51\n180\n0\nLINE\n8\n0\n10\n-11\n20\n-9\n11\n-11\n21\n104\n0\nARC\n8\n0\n10\n-9\n20\n-9\n40\n2\n50\n180\n51\n270\n0\nENDSEC\n0\nEOF"
+    }
+  },
+  "after": {
+    "ms": 5250.344461000001,
+    "calls": [
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 240,
+        "ms": 1774.165035
+      },
+      {
+        "distance": 1,
+        "inside": false,
+        "paths": 240,
+        "ms": 1705.1471220000003
+      },
+      {
+        "distance": 1,
+        "inside": false,
+        "paths": 95,
+        "ms": 285.423401
+      },
+      {
+        "distance": 2,
+        "inside": true,
+        "paths": 92,
+        "ms": 273.4242940000004
+      },
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 61,
+        "ms": 183.8050920000005
+      },
+      {
+        "distance": 2,
+        "inside": false,
+        "paths": 14,
+        "ms": 11.481784000001426
+      },
+      {
+        "distance": 2,
+        "inside": true,
+        "paths": 13,
+        "ms": 11.448795000000246
+      }
+    ],
+    "contour": {
+      "paths": [
+        {
+          "type": "line",
+          "origin": [
+            -9,
+            -11
+          ],
+          "end": [
+            161,
+            -11
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            161,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 270,
+          "endAngle": 300.0000001084161
+        },
+        {
+          "type": "arc",
+          "origin": [
+            163,
+            -12.4641016
+          ],
+          "radius": 2,
+          "startAngle": 419.9999998915838,
+          "endAngle": 480.0000001084161
+        },
+        {
+          "type": "arc",
+          "origin": [
+            165,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 239.9999998915838,
+          "endAngle": 270
+        },
+        {
+          "type": "line",
+          "origin": [
+            165,
+            -11
+          ],
+          "end": [
+            183,
+            -11
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            183,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 270,
+          "endAngle": 360
+        },
+        {
+          "type": "line",
+          "origin": [
+            185,
+            -9
+          ],
+          "end": [
+            185,
+            9
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            183,
+            9
+          ],
+          "radius": 2,
+          "startAngle": 0,
+          "endAngle": 75.52248764860194
+        },
+        {
+          "type": "arc",
+          "origin": [
+            184,
+            12.8729833
+          ],
+          "radius": 2,
+          "startAngle": 180,
+          "endAngle": 255.52248764860195
+        },
+        {
+          "type": "line",
+          "origin": [
+            182,
+            12.8729833
+          ],
+          "end": [
+            182,
+            104
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            180,
+            104
+          ],
+          "radius": 2,
+          "startAngle": 0,
+          "endAngle": 90
+        },
+        {
+          "type": "line",
+          "origin": [
+            -9,
+            106
+          ],
+          "end": [
+            180,
+            106
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            -9,
+            104
+          ],
+          "radius": 2,
+          "startAngle": 90,
+          "endAngle": 180
+        },
+        {
+          "type": "line",
+          "origin": [
+            -11,
+            -9
+          ],
+          "end": [
+            -11,
+            104
+          ]
+        },
+        {
+          "type": "arc",
+          "origin": [
+            -9,
+            -9
+          ],
+          "radius": 2,
+          "startAngle": 180,
+          "endAngle": 270
+        }
+      ],
+      "svg": "<svg width=\"196mm\" height=\"117mm\" viewBox=\"0 0 196 117\" xmlns=\"http://www.w3.org/2000/svg\"><g id=\"svgGroup\" stroke-linecap=\"round\" fill-rule=\"evenodd\" font-size=\"9pt\" stroke=\"#000\" stroke-width=\"0.25mm\" fill=\"none\" style=\"stroke:#000;stroke-width:0.25mm;fill:none\"><path d=\"M 2 117 L 172 117 A 2 2 0 0 0 173 116.732 A 2 2 0 0 1 175 116.732 A 2 2 0 0 0 176 117 L 194 117 A 2 2 0 0 0 196 115 L 196 97 A 2 2 0 0 0 194.5 95.064 A 2 2 0 0 1 193 93.127 L 193 2 A 2 2 0 0 0 191 0 L 2 0 A 2 2 0 0 0 0 2 L 0 115 A 2 2 0 0 0 2 117 Z\" vector-effect=\"non-scaling-stroke\"/></g></svg>",
+      "dxf": "0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n4\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLTYPE\n0\nLTYPE\n72\n65\n70\n64\n2\nCONTINUOUS\n3\n______\n73\n0\n40\n0\n0\nENDTAB\n0\nTABLE\n2\nLAYER\n0\nENDTAB\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n10\n-9\n20\n-11\n11\n161\n21\n-11\n0\nARC\n8\n0\n10\n161\n20\n-9\n40\n2\n50\n270\n51\n300.0000001\n0\nARC\n8\n0\n10\n163\n20\n-12.4641016\n40\n2\n50\n419.9999999\n51\n480.0000001\n0\nARC\n8\n0\n10\n165\n20\n-9\n40\n2\n50\n239.9999999\n51\n270\n0\nLINE\n8\n0\n10\n165\n20\n-11\n11\n183\n21\n-11\n0\nARC\n8\n0\n10\n183\n20\n-9\n40\n2\n50\n270\n51\n360\n0\nLINE\n8\n0\n10\n185\n20\n-9\n11\n185\n21\n9\n0\nARC\n8\n0\n10\n183\n20\n9\n40\n2\n50\n0\n51\n75.5224876\n0\nARC\n8\n0\n10\n184\n20\n12.8729833\n40\n2\n50\n180\n51\n255.5224876\n0\nLINE\n8\n0\n10\n182\n20\n12.8729833\n11\n182\n21\n104\n0\nARC\n8\n0\n10\n180\n20\n104\n40\n2\n50\n0\n51\n90\n0\nLINE\n8\n0\n10\n-9\n20\n106\n11\n180\n21\n106\n0\nARC\n8\n0\n10\n-9\n20\n104\n40\n2\n50\n90\n51\n180\n0\nLINE\n8\n0\n10\n-11\n20\n-9\n11\n-11\n21\n104\n0\nARC\n8\n0\n10\n-9\n20\n-9\n40\n2\n50\n180\n51\n270\n0\nENDSEC\n0\nEOF"
+    }
+  }
+}
