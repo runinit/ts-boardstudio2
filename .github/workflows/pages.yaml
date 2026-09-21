@@ -25,7 +25,7 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: VITE_PUBLIC_URL=/boardstudio/ pnpm run build
+      - run: VITE_PUBLIC_URL=/ts-boardstudio2/ pnpm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist
