@@ -1,0 +1,11 @@
+2026-09-20T21:21:52-04:00
+64bfc2e84dc871b191d237fbd3d759f67fc05a76
+ M app/e2e/studio-performance.spec.ts
+ M app/src/utils/studioSource.ts
+ M app/src/utils/studioSourceBatch.test.ts
+?? .omo/evidence/performance-responsiveness-refactor/
+?? .omo/plans/
+source_diff_restoration_exit=0
+564d47e7a2cf245f972f461287c1d723e589ea2db76f6a4c51642bafd92c3daf  app/src/utils/studioSource.ts
+564d47e7a2cf245f972f461287c1d723e589ea2db76f6a4c51642bafd92c3daf  .omo/evidence/performance-responsiveness-refactor/task-6-debug/candidate-studioSource.txt
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

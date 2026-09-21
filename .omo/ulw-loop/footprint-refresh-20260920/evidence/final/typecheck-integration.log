@@ -1,0 +1,2 @@
+$ pnpm --dir app typecheck
+$ tsc --noEmit

@@ -1,0 +1,13 @@
+✔ drilled diode SMD pads require reversible mode and preserve both nets when enabled (144.268183ms)
+✔ six generic pads have six independent defaults and permit explicit sharing (37.000167ms)
+✔ SSD1306 ground width follows the GND jumper, including inverted jumper positions (57.847266ms)
+✔ Gateron rejects overlapping reversible hotswap drills (29.870165ms)
+✔ Gateron custom reversible solder copper rotates with its drilled anchors (47.862463ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 322.891512

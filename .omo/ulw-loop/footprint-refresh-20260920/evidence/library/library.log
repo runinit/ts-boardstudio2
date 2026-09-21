@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/molecules/FootprintLibrary.test.tsx (2 tests) 793ms
+   ✓ loads attached library models automatically into the canvas and editor 509ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  15:13:50
+   Duration  2.16s (transform 262ms, setup 70ms, collect 514ms, tests 793ms, environment 544ms, prepare 59ms)
+

@@ -1,0 +1,21 @@
+[
+  {
+    "scenario": "responsive",
+    "route": "http://127.0.0.1:4184/boardstudio/",
+    "keys": 20,
+    "baselineHelper": true,
+    "codeButtons": 0,
+    "failureReproduced": true,
+    "error": "locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Code', exact: true })\u001b[22m\n"
+  },
+  {
+    "scenario": "settings",
+    "route": "http://127.0.0.1:4184/boardstudio/",
+    "keys": 20,
+    "baselineHelper": true,
+    "offlineAppTextCount": 0,
+    "dialogText": "Settings\nClose settings\n\nLayout updates automatically. Generate builds 3D outputs.\n\nPRIVACY\nSend Usage Metrics\nHelp improve Board Studio by sharing anonymous usage statistics.\nAdvanced libraries",
+    "failureReproduced": true,
+    "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })\n"
+  }
+]

@@ -1,0 +1,1002 @@
+{
+  "commit": "64bfc2e84dc871b191d237fbd3d759f67fc05a76",
+  "tree": "bfa1fde848b9d8501a5fd19285133afc05d28e20",
+  "count": 54,
+  "valid": true,
+  "captures": [
+    {
+      "name": "invalid-pcb_thickness",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 0,
+        "drills": 0,
+        "polygons": 0
+      },
+      "file": "invalid-pcb_thickness.png",
+      "sha256": "e983d7f31372268e35c9e395512364edf27aa8c0042ca6ff28281be5410124a5",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:28.970Z"
+    },
+    {
+      "name": "invalid-hotswap_3dmodel_xyz_scale",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 0,
+        "drills": 0,
+        "polygons": 0
+      },
+      "file": "invalid-hotswap_3dmodel_xyz_scale.png",
+      "sha256": "2d742b197e9d7d73abd726d64f111774cb30e58b6c5cf58b32b400303e2004b8",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:29.904Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-F-single-1280.png",
+      "sha256": "e0ee7063926157de1ab723ef28ee90a3471c122b620514ed74b96cec6c046263",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:31.483Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-F-single-768.png",
+      "sha256": "69749e065e4528c0e18081920beab5b0f1c889fb2921c6220a7f8bc9cb596928",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:31.750Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-F-single-375.png",
+      "sha256": "33c5d228a4e17ed0e5becc3b605d583128423c27f50f7a5657fc46990be73bdb",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:31.864Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-B-single-1280.png",
+      "sha256": "1173964abbbea5ffde628e0c4fd26767ecc531754fe265b4763c031e6faba7f8",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:33.147Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-B-single-768.png",
+      "sha256": "8ce1691dd54394a182396c30f5ac6cf303c9049bbabf99e8eefbf3f0eeba43d5",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:33.349Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 3,
+        "drills": 6,
+        "polygons": 3
+      },
+      "file": "switch_choc_v1_v2-B-single-375.png",
+      "sha256": "90f9040a4e18f30019f1ee0fc73671723137ca12d502b2cc4b81f45cf7b3608d",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:33.459Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-F-reversible-1280.png",
+      "sha256": "44a8db41eeeba294a499ec4a3124ae35fc186996d7306ebbc0c9eca4cf65858f",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:35.661Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-F-reversible-768.png",
+      "sha256": "2adc31a487e9f72a654acba9c0441cf06afcb2604ef5461138467f7e016c8caa",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:35.756Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-F-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-F-reversible-375.png",
+      "sha256": "84c9fe4e2e68627c81e2063ad3078a4ab279f6b5968dd1ed89e6cc3db1508226",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:35.829Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-B-reversible-1280.png",
+      "sha256": "d4e24cc590770a00fdde5f9c73db0cb33df3ffbe09a3dd02fd6e521acc472563",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:36.949Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-B-reversible-768.png",
+      "sha256": "dff38738930cd622acb6bb9bde895ab5e1a0008137fc334ed1091a1576a423fd",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:37.043Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-B-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 4,
+        "drills": 8,
+        "polygons": 4
+      },
+      "file": "switch_choc_v1_v2-B-reversible-375.png",
+      "sha256": "84efe00a05274ed1f742d88c400cb6db786c9086de2fad01b4d90e3885add141",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:37.114Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-3d",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "switch_choc_v1_v2-3d.png",
+      "sha256": "114d0e6e92c1ec43b84f3c058366f64cfbc9c8521c83fee580f0f20641bb7bf1",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:38.358Z"
+    },
+    {
+      "name": "notice-collapsed-3d",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "notice-collapsed-3d.png",
+      "sha256": "58b94a3091571c2f36195dbda8576aea201042cef8ca374d4ef2fd3ccc78128f",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:38.578Z"
+    },
+    {
+      "name": "notice-expanded-3d",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "notice-expanded-3d.png",
+      "sha256": "419d6226041b16b541ef41a5bc5e6de90446473154dac7f7990556f26a55f64d",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:38.857Z"
+    },
+    {
+      "name": "switch_choc_v1_v2-3d-thickness2",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "switch_choc_v1_v2-3d-thickness2.png",
+      "sha256": "5621747362aa17cd283a821e50a135e1b5db4ff07b518e1c330d88b5e5c12433",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:40.597Z"
+    },
+    {
+      "name": "switch_mx-F-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-single-1280.png",
+      "sha256": "ecec3e4006e92b4e5f31c7a2488b15a1d0fd47743a9798248949a059d0392ba6",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:42.787Z"
+    },
+    {
+      "name": "switch_mx-F-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-single-768.png",
+      "sha256": "772e85f029534d8df2ff217639c6f438efb8ce9813509e3d03e2af8368f9977e",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:42.965Z"
+    },
+    {
+      "name": "switch_mx-F-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-single-375.png",
+      "sha256": "0e846856db635c3645077375bf894ff3cb774d4cb380bb86647df54b437e5087",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:43.035Z"
+    },
+    {
+      "name": "switch_mx-B-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-single-1280.png",
+      "sha256": "e5633e2544faa9778a0923d66bfe766b39d63dbb114b5de07329e465efbbf689",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:44.205Z"
+    },
+    {
+      "name": "switch_mx-B-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-single-768.png",
+      "sha256": "a09816443b01a2dc504f909b0d2c2e17789d03458db545c6f3143a084096943c",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:44.305Z"
+    },
+    {
+      "name": "switch_mx-B-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 5,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-single-375.png",
+      "sha256": "85e9ef89d58db5f3f7d457de4d3e074efd14e8b4c8d2e5d48b85d97905f79fdc",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:44.381Z"
+    },
+    {
+      "name": "switch_mx-F-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-reversible-1280.png",
+      "sha256": "eb4b08e25dfe09e54a6cf80e2c89c9672c3a636867dc6fb2db0f1172df144cb1",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:46.465Z"
+    },
+    {
+      "name": "switch_mx-F-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-reversible-768.png",
+      "sha256": "278016504f7f662add76677f02491fa827d79aef61ba86a12c0569cff5012a22",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:46.576Z"
+    },
+    {
+      "name": "switch_mx-F-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-F-reversible-375.png",
+      "sha256": "d5c55cf53db64b5aafbfc3372f70cd89ff38a07ea7edfedc49468663fce4ecd3",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:46.647Z"
+    },
+    {
+      "name": "switch_mx-B-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-reversible-1280.png",
+      "sha256": "89c8d9e9bbf5fc4e4e295d6ef311e28acfbd08f6819bcaee054ee6e51bbd72ce",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:47.776Z"
+    },
+    {
+      "name": "switch_mx-B-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-reversible-768.png",
+      "sha256": "5b33a9b47ec4ba2f60fdea1e0b23c4bc9fd85e9d67d0735ca79c15466e6f6f3b",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:47.877Z"
+    },
+    {
+      "name": "switch_mx-B-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 7,
+        "polygons": 2
+      },
+      "file": "switch_mx-B-reversible-375.png",
+      "sha256": "701d53bb8e4658736f3a3defbdafbb97cf3497f049a8fabf625c576476eb5c3f",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:47.946Z"
+    },
+    {
+      "name": "switch_mx-3d",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "switch_mx-3d.png",
+      "sha256": "d8cfddbd2830f18d0fe4f58886fd332df65f14a4c3a66b99654f27dc4813e240",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:50.332Z"
+    },
+    {
+      "name": "switch_mx-3d-thickness2",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "switch_mx-3d-thickness2.png",
+      "sha256": "ee40281cd6eb4aacc38e2625239d0fbebaf6e253d7a5add801e86c674b676929",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:53.341Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-F-single-1280.png",
+      "sha256": "a1ff1da8d2c6a9425268c169adf1d1224d39fa6b6d50f3dfca2c6af99c40ffe8",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:55.630Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-F-single-768.png",
+      "sha256": "2575985f39857f0d3229cb4842ad205b2ea2dbfe17c2b5e5c7cf8e4cc0c082b3",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:55.774Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-F-single-375.png",
+      "sha256": "ba79d9f8d15e2676d2a4b9b5cf9d5eeee2c815581c3cdf58b3664a544e17fef6",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:55.849Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-single-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-B-single-1280.png",
+      "sha256": "da60724224a94d69e766de2bb8d613f8c5a6be9134d74c4f8da3227413afe23f",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:56.997Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-single-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-B-single-768.png",
+      "sha256": "c2bd0a2f9e21217fdd1a6bd426ffd5b7e7f3c219df0f1882cf15c4ee81f8fc31",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:57.092Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-single-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 24,
+        "drills": 24,
+        "polygons": 24
+      },
+      "file": "mcu_nice_nano-B-single-375.png",
+      "sha256": "0b40f4965f9b320fa9858207374c2296629cdb7019ea6bd3dc6f9b8f1145034b",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:57.164Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-F-reversible-1280.png",
+      "sha256": "6eff31e03e6a47c865e35900c11e6a3442887447cc2f9876b308ebbecbe784ae",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:59.314Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-F-reversible-768.png",
+      "sha256": "8f1bffddf9bc362944bae9e0f8446b9677ccac317a1f6e2d10e6fafe6b956713",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:59.427Z"
+    },
+    {
+      "name": "mcu_nice_nano-F-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-F-reversible-375.png",
+      "sha256": "0459072bf30f760202682df7e1b1a28265f7d791b1cc4414ffc23c2813d3957e",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:08:59.519Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-reversible-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-B-reversible-1280.png",
+      "sha256": "c8a67424cb214c6e46d70b3e51ba51ad24d41e20a6a14accd1022f48f756dd6a",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:00.764Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-reversible-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-B-reversible-768.png",
+      "sha256": "f4ec048dc96ad455044590944878f48e88e6a23e04dd7cd78f08f36ce0255971",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:00.881Z"
+    },
+    {
+      "name": "mcu_nice_nano-B-reversible-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 96,
+        "drills": 48,
+        "polygons": 144
+      },
+      "file": "mcu_nice_nano-B-reversible-375.png",
+      "sha256": "f26f23a066bcecb9b282d93c703e8d9ce1eb9d71c4c5a050b1d385cbbed11631",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:00.968Z"
+    },
+    {
+      "name": "mcu_nice_nano-3d",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "mcu_nice_nano-3d.png",
+      "sha256": "6dc39b816488d608537235d5b164a02ef83fc80f47f262625d14dbca42f0390a",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:02.341Z"
+    },
+    {
+      "name": "mcu_nice_nano-3d-reverse-mount",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "drills": 0
+      },
+      "file": "mcu_nice_nano-3d-reverse-mount.png",
+      "sha256": "ad21d47f0ba5195fc01e2685f4574dc9d460d590202406034daade3ecd16ef50",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:04.361Z"
+    },
+    {
+      "name": "gateron-custom-solder-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 7,
+        "drills": 5,
+        "polygons": 9
+      },
+      "file": "gateron-custom-solder-1280.png",
+      "sha256": "e1625c36fec80949c655d3fc6ef0130e84d2fd236e2bc0e630a8d304a5d6f1f9",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:08.579Z"
+    },
+    {
+      "name": "gateron-custom-solder-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 7,
+        "drills": 5,
+        "polygons": 9
+      },
+      "file": "gateron-custom-solder-768.png",
+      "sha256": "0101652732fc18448a7e77c91569b8f448beff927251350ecec6e47334db544e",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:08.706Z"
+    },
+    {
+      "name": "gateron-custom-solder-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 7,
+        "drills": 5,
+        "polygons": 9
+      },
+      "file": "gateron-custom-solder-375.png",
+      "sha256": "b598a64a75f0da55002839d550cdae00491286168eb0020493f4489d3192b8e9",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:08.779Z"
+    },
+    {
+      "name": "diode-invalid-1280",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 0,
+        "drills": 0,
+        "polygons": 0
+      },
+      "file": "diode-invalid-1280.png",
+      "sha256": "b355a36c6c5880df63bce3b3f6586ef2a9539fed123306792edceceb6f063866",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:11.007Z"
+    },
+    {
+      "name": "diode-invalid-768",
+      "width": 768,
+      "height": 900,
+      "state": {
+        "width": 768,
+        "bodyWidth": 768,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 0,
+        "drills": 0,
+        "polygons": 0
+      },
+      "file": "diode-invalid-768.png",
+      "sha256": "2c8d9492d148ae5734ff5cdcb3a0c174c81a2fff371c36262c3e31688f997dab",
+      "png": true,
+      "actualWidth": 768,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:11.205Z"
+    },
+    {
+      "name": "diode-invalid-375",
+      "width": 375,
+      "height": 900,
+      "state": {
+        "width": 375,
+        "bodyWidth": 375,
+        "svgLabel": "Footprint pads and geometry, front copper",
+        "pads": 0,
+        "drills": 0,
+        "polygons": 0
+      },
+      "file": "diode-invalid-375.png",
+      "sha256": "915e319dd161053981569307b3df9976ea5f4e4c3a25746e94be4bebf60ab580",
+      "png": true,
+      "actualWidth": 375,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:11.441Z"
+    },
+    {
+      "name": "diode-recovered",
+      "width": 1280,
+      "height": 900,
+      "state": {
+        "width": 1280,
+        "bodyWidth": 1280,
+        "svgLabel": "Footprint pads and geometry, back copper",
+        "pads": 2,
+        "drills": 2,
+        "polygons": 2
+      },
+      "file": "diode-recovered.png",
+      "sha256": "9607884bb41f72988b55f7532eceaafc718e9c27a1aeac1bf8cfaa9c4bc59b0a",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:12.558Z"
+    },
+    {
+      "name": "mcu-nice-nano-3d-bare-copper",
+      "width": 1280,
+      "height": 900,
+      "file": "mcu-nice-nano-3d-bare-copper.png",
+      "sha256": "db08dd85e36e9a944a3b014053471efa06a5be2c1c66c43fa814f78204cbcf9e",
+      "png": true,
+      "actualWidth": 1280,
+      "actualHeight": 900,
+      "modified": "2026-09-20T20:09:44.557Z"
+    }
+  ]
+}

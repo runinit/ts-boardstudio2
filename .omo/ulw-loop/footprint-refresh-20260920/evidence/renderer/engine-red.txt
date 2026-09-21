@@ -1,0 +1,45 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Footprint preview geometry
+    1) exposes custom jumper copper and oval drill geometry independently
+    2) converts adjacent board copper into the selected footprint local frame
+    3) reports unsupported pad primitives and board-only zones without a fake footprint
+
+
+  0 passing (9ms)
+  3 failing
+
+  1) Footprint preview geometry
+       exposes custom jumper copper and oval drill geometry independently:
+     AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- 'rect'
+
+      at Context.<anonymous> (test/unit/footprint_preview.js:12:16)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  2) Footprint preview geometry
+       converts adjacent board copper into the selected footprint local frame:
+     TypeError: Cannot read properties of undefined (reading '0')
+      at Context.<anonymous> (test/unit/footprint_preview.js:19:39)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  3) Footprint preview geometry
+       reports unsupported pad primitives and board-only zones without a fake footprint:
+     AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ undefined
+- [
+-   'gr_curve'
+- ]
+
+      at Context.<anonymous> (test/unit/footprint_preview.js:27:16)
+      at process.processImmediate (node:internal/timers:504:21)
+
+
+
+[ELIFECYCLE] Test failed. See above for more details.

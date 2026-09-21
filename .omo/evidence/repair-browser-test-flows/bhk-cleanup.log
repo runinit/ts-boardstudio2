@@ -1,0 +1,7 @@
+Cleanup command: `lsof -iTCP:4184 -sTCP:LISTEN -nP`; `ps -eo pid=,args= | rg '[p]laywright|[v]ite|[c]hromium.*--headless'`
+Observed output:
+```
+PORT 4184
+BROWSER_OR_PREVIEW_PROCESSES
+```
+Result: port 4184 was free and no Playwright, Vite, or headless Chromium process remained.

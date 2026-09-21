@@ -1,0 +1,15 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Footprint refresh engine boundaries
+    ✔ keeps F&B shorthand literal while evaluating finite numeric expressions
+    ✔ rejects nonfinite and malformed explicit numeric values
+    ✔ reports unresolved net metadata and preserves intentionally empty nets
+    ✔ includes blank copper pads and preserves shared original net groups
+    ✔ keeps unrelated blank copper pads separate and maps shared numbered pads together
+    ✔ retains native backend rejection of unknown numeric net IDs (72ms)
+    ✔ exports imported copper pads to distinct native nets without stale IDs
+
+
+  7 passing (105ms)
+

@@ -1,0 +1,15 @@
+✔ stages verified modular sources and preserves native files (3.24976ms)
+✔ rejects unlisted files before changing output (1.012622ms)
+✔ rejects modified files before changing output (0.917388ms)
+✔ stages a linked generator without changing its source (3.678674ms)
+✔ builds outside the workspace using the resolved Rollup executable (48.982887ms)
+✔ stages quoted namespaces and unquoted builtins without evaluating modules (2.537064ms)
+✔ stages every existing registered builtin and namespaced footprint (13.571466ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.891284

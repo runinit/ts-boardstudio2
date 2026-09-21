@@ -1,0 +1,50 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/keyAssembly.test.ts (1 test) 3ms
+ ✓ src/utils/assemblyNets.test.ts (7 tests) 478ms
+ ❯ src/utils/applyAssembly.test.ts (6 tests | 1 failed) 2162ms
+   ✓ changes selected keys without changing their layout or neighbours 520ms
+   ✓ keeps owned components in a mirrored source cluster 605ms
+   ✓ preserves explicit switch placement until replacement is requested 659ms
+   × embeds component definitions when applying to a project without them 269ms
+     → layout.objects.fingers_c1_r2_diode.part: Missing part definition
+ ✓ src/utils/assemblyRegression.test.ts (26 tests) 14873ms
+   ✓ can grow the matrix after default onboarding 531ms
+   ✓ preserves the LED chain when changing a key assembly placement 846ms
+   ✓ preserves manually assigned switch nets when moving its assembly 343ms
+   ✓ updates linked mirrored bindings and adds new right-board keys 389ms
+   ✓ keeps new mirrored keys and assembly offsets valid in native PCB and body geometry 938ms
+   ✓ keeps a managed LED chain connected when reopening setup after layout edits 415ms
+   ✓ reproduces resized 7x5 geometry and the automatic outline with a separate 2x2 matrix 7845ms
+   ✓ generates PCB files after populating an empty single board 394ms
+   ✓ generates PCB files after populating an empty mirrored board 930ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/applyAssembly.test.ts > embeds component definitions when applying to a project without them
+DesignError: layout.objects.fingers_c1_r2_diode.part: Missing part definition
+ ❯ Object.fail ../engine/src/designs/geometry.js:21:50
+ ❯ ../engine/src/native/layout.js:177:28
+    175|             if (!KINDS.includes(spec.kind)) { g.fail(path,'Unknown obj…
+    176|             const part=spec.part ? config.parts?.[spec.part] : {}
+    177|             if (!part) { g.fail(`${path}.part`, 'Missing part definiti…
+       |                            ^
+    178|             if (spec.kind==='anchor' && (spec.part || spec.envelopes |…
+    179|                 g.fail(path,'Reference anchors cannot own physical env…
+ ❯ guarded ../engine/src/native/layout.js:61:22
+ ❯ object ../engine/src/native/layout.js:174:16
+ ❯ Module.resolve ../engine/src/native/layout.js:292:50
+ ❯ Module.effectiveElectrical src/utils/assemblyElectrical.ts:26:24
+ ❯ Module.syncControllerNets src/utils/assemblyNets.ts:43:21
+ ❯ Module.applyAssembly src/utils/applyAssembly.ts:315:10
+ ❯ src/utils/applyAssembly.test.ts:59:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 39 passed (40)
+   Start at  15:08:46
+   Duration  17.44s (transform 677ms, setup 364ms, collect 3.27s, tests 17.52s, environment 3.66s, prepare 272ms)
+

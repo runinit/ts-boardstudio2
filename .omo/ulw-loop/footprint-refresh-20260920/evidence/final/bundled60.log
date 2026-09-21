@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/footprintBundled.test.ts (60 tests) 578ms
+
+ Test Files  1 passed (1)
+      Tests  60 passed (60)
+   Start at  15:35:29
+   Duration  2.17s (transform 243ms, setup 71ms, collect 754ms, tests 578ms, environment 547ms, prepare 59ms)
+

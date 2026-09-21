@@ -1,0 +1,140 @@
+$ pnpm --dir engine build && pnpm --dir app build
+$ pnpm run build:schema && rollup -c
+$ node scripts/build-schema.js
+
+src/ergogen.js → dist/ergogen.js...
+(!) Circular dependencies
+src/utils.js -> src/assert.js -> src/utils.js
+src/utils.js -> src/assert.js -> src/point.js -> src/utils.js
+created dist/ergogen.js in 1.8s
+$ pnpm run build-ergogen && pnpm run generate-previews
+$ ./patch/patch_ergogen.sh
+{"ceoloide":24,"infusedKim":15}
+
+src/ergogen.js → dist/ergogen.js...
+(!) Circular dependencies
+src/utils.js -> src/assert.js -> src/utils.js
+src/utils.js -> src/assert.js -> src/point.js -> src/utils.js
+created dist/ergogen.js in 2.1s
+$ ts-node --project scripts/tsconfig.json scripts/generate-previews.js
+Generating preview for Starter...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/starter.svg
+Generating preview for Column layout...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/column_layout.svg
+Generating preview for Irregular thumbs...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/irregular_thumbs.svg
+Generating preview for Split layout...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/split_layout.svg
+Generating preview for Physical stack...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/physical_stack.svg
+Generating preview for Imported PCB...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/imported_pcb.svg
+Generating preview for BHK...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/bhk.svg
+Generating preview for Constrained layout...
+  -> Saved to /home/chris/projects/ts-boardstudio2/app/public/images/previews/constrained_layout.svg
+Generated previews:
+a._dux.svg
+absolem.svg
+alpha.svg
+atreus.svg
+bhk.svg
+column_layout.svg
+constrained_layout.svg
+corney_island.svg
+curly-45.svg
+imported_pcb.svg
+irregular_thumbs.svg
+physical_stack.svg
+plank.svg
+reviung41.svg
+split_layout.svg
+starter.svg
+sweep-like.svg
+tiny20.svg
+wubbo.svg
+$ vite build
+vite v5.4.21 building for production...
+<script src="/boardstudio/dependencies/maker.js"> in "/index.html" can't be bundled without type="module" attribute
+<script src="/boardstudio/dependencies/bezier.js"> in "/index.html" can't be bundled without type="module" attribute
+<script src="/boardstudio/dependencies/hull.js"> in "/index.html" can't be bundled without type="module" attribute
+<script src="/boardstudio/dependencies/kle.js"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+
+new URL("./",import.meta.url) doesn't exist at build time, it will remain unchanged to be resolved at runtime. If this is intended, you can use the /* @vite-ignore */ comment to suppress this warning.
+[plugin:vite:resolve] [plugin vite:resolve] Module "module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@salusoft89+planegcs@1.2.0/node_modules/@salusoft89/planegcs/dist/planegcs_dist/planegcs.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin:vite:resolve] [plugin vite:resolve] Module "node:module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/replicad-opencascadejs@1.1.0/node_modules/replicad-opencascadejs/dist/replicad_single.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin:vite:resolve] [plugin vite:resolve] Module "node:module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/replicad-opencascadejs@1.1.0/node_modules/replicad-opencascadejs/dist/replicad_single.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin:vite:resolve] [plugin vite:resolve] Module "node:module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/replicad-opencascadejs@1.1.0/node_modules/replicad-opencascadejs/dist/replicad_single.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin:vite:resolve] [plugin vite:resolve] Module "module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/@salusoft89+planegcs@1.2.0/node_modules/@salusoft89/planegcs/dist/planegcs_dist/planegcs.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js (66:24): Use of eval in "../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+[plugin:vite:resolve] [plugin vite:resolve] Module "node:module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/replicad-opencascadejs@1.1.0/node_modules/replicad-opencascadejs/dist/replicad_single.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js (66:24): Use of eval in "../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+[plugin:vite:resolve] [plugin vite:resolve] Module "node:module" has been externalized for browser compatibility, imported by "/home/chris/projects/ts-boardstudio2/node_modules/.pnpm/replicad-opencascadejs@1.1.0/node_modules/replicad-opencascadejs/dist/replicad_single.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 5944 modules transformed.
+../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js (66:24): Use of eval in "../node_modules/.pnpm/makerjs@0.18.1/node_modules/makerjs/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/chris/projects/ts-boardstudio2/app/src/utils/caseAssets.ts is dynamically imported by /home/chris/projects/ts-boardstudio2/app/src/utils/footprintService.ts but also statically imported by /home/chris/projects/ts-boardstudio2/app/src/context/ConfigContext.tsx, /home/chris/projects/ts-boardstudio2/app/src/molecules/CaseComponents.tsx, /home/chris/projects/ts-boardstudio2/app/src/molecules/CaseWizard.tsx, /home/chris/projects/ts-boardstudio2/app/src/molecules/FootprintLibrary.tsx, /home/chris/projects/ts-boardstudio2/app/src/molecules/FootprintModelMesh.tsx, /home/chris/projects/ts-boardstudio2/app/src/molecules/ModelEditor.tsx, /home/chris/projects/ts-boardstudio2/app/src/utils/cachedModelPreview.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/componentModels.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/ergogenBundleLoader.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/footprintService.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/modelPreview.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/modelSources.ts, /home/chris/projects/ts-boardstudio2/app/src/utils/zip.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/chris/projects/ts-boardstudio2/app/src/molecules/DesignView.tsx is dynamically imported by /home/chris/projects/ts-boardstudio2/app/src/molecules/BoardStudio.tsx but also statically imported by /home/chris/projects/ts-boardstudio2/app/src/molecules/DesignWorkspace.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                                                             1.82 kB │ gzip:   0.74 kB
+dist/assets/nunito-latin-700-normal-Dort48En.woff2                         16.23 kB
+dist/assets/nunito-latin-400-normal-r8SDr6Up.woff2                         16.32 kB
+dist/assets/nunito-latin-600-normal-Br8yIETf.woff2                         16.56 kB
+dist/assets/nunito-latin-700-normal-OcDqTBcA.woff                          19.99 kB
+dist/assets/nunito-latin-400-normal-DKg4f3fz.woff                          20.33 kB
+dist/assets/nunito-latin-600-normal-Cd0eNu1l.woff                          20.49 kB
+dist/assets/roboto-latin-400-normal-D27F5sTu.woff                          21.06 kB
+dist/assets/roboto-latin-500-normal-fsTFPL3E.woff                          21.17 kB
+dist/assets/roboto-latin-700-normal-YuyVweIx.woff                          21.22 kB
+dist/assets/roboto-latin-400-normal-BqEyEoaF.woff2                         21.88 kB
+dist/assets/roboto-latin-500-normal-7RbcRiD8.woff2                         22.20 kB
+dist/assets/roboto-latin-700-normal-BZpUvMxY.woff2                         22.24 kB
+dist/assets/index-Dw_uqEpo.js                                              57.17 kB
+dist/assets/index-BiP-YRN0.js                                              57.17 kB
+dist/assets/replicad_single-BKKiLS-b.js                                    60.20 kB
+dist/assets/replicad_single-DOgGvsyU.js                                    60.20 kB
+dist/assets/replicad_single-C6KmGDXh.js                                    60.22 kB
+dist/assets/jscad.worker-BVgkQPxZ.js                                      294.75 kB
+dist/assets/material-symbols-outlined-latin-400-normal-Dunlt1EY.woff2     321.39 kB
+dist/assets/material-symbols-outlined-latin-400-normal-BkxxhYGd.woff      377.18 kB
+dist/assets/model.worker-CZ2UtJ9y.js                                      406.30 kB
+dist/assets/planegcs-r8EUavAY.wasm                                        508.14 kB
+dist/assets/footprint.worker-CyrFDdBN.js                                2,886.79 kB
+dist/assets/ergogen.worker-Dw3Ruc65.js                                  3,909.58 kB
+dist/assets/replicad_single-B_1cTsn_.wasm                              22,980.27 kB
+dist/assets/index-DQYfQHCM.css                                              1.77 kB │ gzip:   0.38 kB
+dist/assets/PcbPreview-B-4I5ert.js                                          1.63 kB │ gzip:   0.86 kB
+dist/assets/StlPreview-JUf8ZfDy.js                                         13.08 kB │ gzip:   5.34 kB
+dist/assets/FootprintLibrary-DISBBDl_.js                                   22.71 kB │ gzip:   7.58 kB
+dist/assets/replicad_single-73Mqc8OU.js                                    60.31 kB │ gzip:  22.75 kB
+dist/assets/replicad-z_ocCytR.js                                          295.70 kB │ gzip:  89.18 kB
+dist/assets/math-CCywmkuP.js                                            1,055.60 kB │ gzip: 269.02 kB
+dist/assets/index-B1_dF1uo.js                                           4,203.91 kB │ gzip: 933.90 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 44.25s
+
+PWA v0.21.2
+Building src/service-worker.ts service worker ("es" format)...
+vite v5.4.21 building for production...
+transforming...
+✓ 104 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/service-worker.mjs  33.33 kB │ gzip: 10.50 kB
+✓ built in 191ms
+
+PWA v0.21.2
+mode      injectManifest
+format:   es
+precache  66 entries (34848.47 KiB)
+files generated
+  dist/service-worker.js

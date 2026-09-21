@@ -1,0 +1,10 @@
+  File: app/dist/index.html
+  Size: 1817      	Blocks: 8          IO Block: 4096   regular file
+Device: 0,40	Inode: 610757      Links: 1
+Access: (0664/-rw-rw-r--)  Uid: ( 1000/   chris)   Gid: ( 1000/   chris)
+Access: 2026-09-20 15:47:04.779540735 -0400
+Modify: 2026-09-20 15:47:03.508494576 -0400
+Change: 2026-09-20 15:47:03.508494576 -0400
+ Birth: 2026-09-20 15:47:03.506494504 -0400
+f1ee02a66ad8030f717b6190ebc02ad819a0743040ca56bc2d4ea060ea019626  app/dist/index.html
+026d16b9011f716f1a89e57e844998f58cb83686a0e88344da5c79cafe7d6e2c  app/dist/dependencies/ergogen.js

@@ -1,0 +1,19 @@
+2026-09-20T20:55:46-04:00
+command=pnpm --dir app exec playwright test e2e/studio-performance.spec.ts --workers=1 --retries=0 --timeout=1800000 --output=../.omo/evidence/performance-responsiveness-refactor/baseline-final-run --trace=on --reporter=list 
+[2m[WebServer] [22m(node:2277244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2277256) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2277314) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2277314) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/studio-performance.spec.ts:24:5 › measures real keyboard editing response and source correctness (11.8m)
+
+  Slow test file: [chromium] › e2e/studio-performance.spec.ts (11.8m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 passed (12.2m)
+2026-09-20T21:07:58-04:00

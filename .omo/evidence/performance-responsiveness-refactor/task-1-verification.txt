@@ -1,0 +1,15 @@
+raw_records= 50 console_page_errors= []
+missing_final_action=add-key-4
+warmup fixture_sha256= e2bb88e1cf3cd9796ff235e13d3be87e6df1f4e3f637d867fc920fa0c886213a
+baseline fixture_sha256= e2bb88e1cf3cd9796ff235e13d3be87e6df1f4e3f637d867fc920fa0c886213a
+nudge n= 5 settled_median_ms= 9768.699999928474 settled_p95_ms= 10290.400000095367 long_task_count= 12
+drag n= 5 settled_median_ms= 9756.600000023842 settled_p95_ms= 10248.299999952316 long_task_count= 10
+add-columns n= 5 settled_median_ms= 16852.200000047684 settled_p95_ms= 24115.200000047684 long_task_count= 5
+remove-columns n= 5 settled_median_ms= 9549.700000047684 settled_p95_ms= 9581.900000095367 long_task_count= 5
+add-rows n= 5 settled_median_ms= 18800.0 settled_p95_ms= 18898.0 long_task_count= 5
+remove-rows n= 5 settled_median_ms= 9397.899999976158 settled_p95_ms= 9465.0 long_task_count= 5
+remove-key n= 5 settled_median_ms= 12912.399999976158 settled_p95_ms= 12956.599999904633 long_task_count= 5
+add-key n= 4 settled_median_ms= 13511.849999964237 settled_p95_ms= 13566.0 long_task_count= 4
+retained_trace= .omo/evidence/performance-responsiveness-refactor/baseline-run/studio-performance-measure-1f861-onse-and-source-correctness-chromium/trace.zip bytes= 230742053
+retained_trace= .omo/evidence/performance-responsiveness-refactor/invalid-run-artifacts/studio-performance-measure-1f861-onse-and-source-correctness-chromium/trace.zip bytes= 9905679
+retained_trace= .omo/evidence/performance-responsiveness-refactor/warmup-run/studio-performance-measure-1f861-onse-and-source-correctness-chromium/trace.zip bytes= 83716225

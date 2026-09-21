@@ -1,0 +1,18 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/hooks/useBundledPreviews.test.ts (3 tests) 132ms
+ ✓ src/molecules/FootprintParameters.test.tsx (1 test) 283ms
+ ✓ src/utils/footprintService.test.ts (4 tests) 135ms
+ ✓ src/utils/footprintEngine.test.ts (2 tests) 165ms
+ ✓ src/molecules/FootprintLibrary.test.tsx (2 tests) 1414ms
+   ✓ loads attached library models automatically into the canvas and editor 881ms
+   ✓ regenerates model bindings, preserves undo defaults, and rejects obsolete previews 530ms
+ ✓ src/utils/footprintBundled.test.ts (42 tests) 709ms
+
+ Test Files  6 passed (6)
+      Tests  54 passed (54)
+   Start at  15:16:57
+   Duration  4.23s (transform 766ms, setup 422ms, collect 3.37s, tests 2.84s, environment 4.41s, prepare 416ms)
+

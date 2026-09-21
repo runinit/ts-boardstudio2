@@ -1,0 +1,31 @@
+{
+  "revision": "b031159eb74aaa7eef2b026fd85d35bc05ff2095",
+  "finalNode": "24.14.0",
+  "finalPnpm": "11.26.0",
+  "bundle": "app/public/dependencies/kicanvas.js",
+  "sha256": "cbf7a578f3c825c1838f6d29274d79ce06c72208a34476e86b526cbf68ef92c2",
+  "bytes": 479431,
+  "checkouts": [
+    {
+      "log": "red.txt",
+      "path": "/tmp/tmp.MpBLjmuqIN/source",
+      "exists": false
+    },
+    {
+      "log": "patch-header-error.txt",
+      "path": "/tmp/tmp.ldIoF1y4bE/source",
+      "exists": false
+    },
+    {
+      "log": "green.txt",
+      "path": "/tmp/tmp.NNAzmTKwdu/source",
+      "exists": false
+    },
+    {
+      "log": "green-pnpm11.txt",
+      "path": "/tmp/tmp.jNBgToILe8/source",
+      "exists": false
+    }
+  ],
+  "browserQA": "Deferred to root integrated app build"
+}

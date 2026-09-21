@@ -1,0 +1,93 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Footprint refresh engine boundaries
+    1) keeps F&B shorthand literal while evaluating finite numeric expressions
+    2) rejects nonfinite and malformed explicit numeric values
+    3) reports unresolved net metadata and preserves intentionally empty nets
+    4) includes blank copper pads and preserves shared original net groups
+    5) exports imported copper pads to distinct native nets without stale IDs
+
+
+  0 passing (89ms)
+  5 failing
+
+  1) Footprint refresh engine boundaries
+       keeps F&B shorthand literal while evaluating finite numeric expressions:
+     AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+NaN !== 'F&B'
+
+      at Context.<anonymous> (test/unit/footprint_refresh.js:35:16)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  2) Footprint refresh engine boundaries
+       rejects nonfinite and malformed explicit numeric values:
+     AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at Context.<anonymous> (test/unit/footprint_refresh.js:42:20)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  3) Footprint refresh engine boundaries
+       reports unresolved net metadata and preserves intentionally empty nets:
+     AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at Context.<anonymous> (test/unit/footprint_refresh.js:47:20)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  4) Footprint refresh engine boundaries
+       includes blank copper pads and preserves shared original net groups:
+
+      AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    false,
++   true,
++   true,
+    false,
+-   false,
+-   false,
+    true,
+    true
+  ]
+
+      + expected - actual
+
+       [
+         false
+      -  true
+      -  true
+         false
+      +  false
+      +  false
+         true
+         true
+       ]
+      
+      at Context.<anonymous> (test/unit/footprint_refresh.js:54:16)
+      at process.processImmediate (node:internal/timers:504:21)
+
+  5) Footprint refresh engine boundaries
+       exports imported copper pads to distinct native nets without stale IDs:
+     Error: PCB board, footprint/outline 1: unresolved net 41
+      at normalize (src/templates/kicad10.js:29:19)
+      at /home/chris/projects/ts-boardstudio2/engine/src/templates/kicad10.js:67:31
+      at Array.map (<anonymous>)
+      at normalize (src/templates/kicad10.js:66:52)
+      at /home/chris/projects/ts-boardstudio2/engine/src/templates/kicad10.js:67:31
+      at Array.map (<anonymous>)
+      at normalize (src/templates/kicad10.js:66:52)
+      at /home/chris/projects/ts-boardstudio2/engine/src/templates/kicad10.js:77:71
+      at Array.map (<anonymous>)
+      at /home/chris/projects/ts-boardstudio2/engine/src/templates/kicad10.js:77:47
+      at Array.flatMap (<anonymous>)
+      at Object.body (src/templates/kicad10.js:75:35)
+      at Object.compile (src/native/pcbs.js:52:31)
+      at Object.boardSources (src/ergogen.js:75:66)
+      at exports.parse (src/designs/index.js:322:57)
+      at compile (src/ergogen.js:70:42)
+      at async Object.process (src/ergogen.js:137:22)
+      at async Context.<anonymous> (test/unit/footprint_refresh.js:61:25)
+
+
+
+[ELIFECYCLE] Test failed. See above for more details.

@@ -1,0 +1,102 @@
+[2m[WebServer] [22m(node:2197723) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2197735) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 13 tests using 1 worker
+
+(node:2197759) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2197759) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/icons.spec.ts:4:5 › hosts fonts locally, including the PCB viewer (1.4s)
+  ✓   2 [chromium] › e2e/icons.spec.ts:21:5 › renders icons when the browser cannot use web fonts (1.5s)
+  ✓   3 [chromium] › e2e/icons.spec.ts:44:5 › renders menu icons with external fonts blocked (2.5s)
+  ✓   4 [chromium] › e2e/icons.spec.ts:87:5 › loads the bundled icon font offline (6.1s)
+  ✘   5 [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML (31.6s)
+(node:2198163) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2198163) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 [chromium] › e2e/routing.spec.ts:5:5 › opens native Board Studio on a fresh root route (1.6s)
+  ✓   7 [chromium] › e2e/routing.spec.ts:11:5 › opens native Board Studio directly at /new (1.6s)
+  ✓   8 [chromium] › e2e/routing.spec.ts:17:5 › restores a saved native project at the root route (1.4s)
+  ✓   9 [chromium] › e2e/routing.spec.ts:39:5 › creates a second project while retaining the first (3.2s)
+  ✓  10 [chromium] › e2e/routing.spec.ts:60:5 › keeps legacy points sources in the legacy editor (1.4s)
+  ✓  11 [chromium] › e2e/routing.spec.ts:68:5 › loads examples from /import into native Studio (1.6s)
+  ✘  12 [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings (8.3s)
+(node:2198585) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2198585) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [chromium] › e2e/studio-settings-and-svg.spec.ts:22:5 › uploads an SVG outline and generates its output (3.1s)
+
+
+  1) [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML ────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Code', exact: true })[22m
+
+
+       at utils/studio.ts:9
+
+       7 |   await expect(studio(page)).toBeVisible();
+       8 |   if (!(await page.getByLabel('Project YAML', { exact: true }).count())) {
+    >  9 |     await page.getByRole('button', { name: 'Code', exact: true }).click();
+         |                                                                   ^
+      10 |   }
+      11 |   await expect(page.getByLabel('Project YAML', { exact: true })).toBeVisible();
+      12 |   await page.waitForFunction(
+        at openCode (/home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/utils/studio.ts:9:67)
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/responsive.spec.ts:18:3
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/consumers/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/consumers/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/consumers/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })[22m
+
+
+      12 |   await expect(
+      13 |     settings.getByText('Offline App', { exact: true })
+    > 14 |   ).toBeVisible();
+         |     ^
+      15 |   await expect(
+      16 |     settings.locator(
+      17 |       '[data-testid="pwa-unavailable-button"], [data-testid="pwa-install-button"], [data-testid="pwa-installed-button"]'
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/studio-settings-and-svg.spec.ts:14:5
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/consumers/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/consumers/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/consumers/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML ─────
+    [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings
+  11 passed (1.2m)

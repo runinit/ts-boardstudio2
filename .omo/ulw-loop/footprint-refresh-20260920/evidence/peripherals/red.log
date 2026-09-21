@@ -1,0 +1,103 @@
+✖ drilled diode SMD pads require reversible mode and preserve both nets when enabled (95.900105ms)
+✖ six generic pads have six independent defaults and permit explicit sharing (14.73147ms)
+✖ SSD1306 ground width follows the GND jumper, including inverted jumper positions (31.24839ms)
+✖ Gateron rejects overlapping reversible hotswap drills (10.386315ms)
+✖ Gateron custom reversible solder copper rotates with its drilled anchors (13.760682ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 659.646587
+
+✖ failing tests:
+
+test at footprints/scripts/refreshPeripherals.test.mjs:26:1
+✖ drilled diode SMD pads require reversible mode and preserve both nets when enabled (95.900105ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshPeripherals.test.mjs:28:5)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /include_thru_hole_smd_pads requires reversible/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at footprints/scripts/refreshPeripherals.test.mjs:43:1
+✖ six generic pads have six independent defaults and permit explicit sharing (14.73147ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + Set(5) {
+  - Set(6) {
+      'PAD_1',
+      'PAD_2',
+      'PAD_3',
+      'PAD_4',
+      'PAD_5',
+  -   'PAD_6'
+    }
+  
+      at TestContext.<anonymous> (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshPeripherals.test.mjs:47:12)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Set(5) { 'PAD_1', 'PAD_2', 'PAD_3', 'PAD_4', 'PAD_5' },
+    expected: Set(6) { 'PAD_1', 'PAD_2', 'PAD_3', 'PAD_4', 'PAD_5', 'PAD_6' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at footprints/scripts/refreshPeripherals.test.mjs:53:1
+✖ SSD1306 ground width follows the GND jumper, including inverted jumper positions (31.24839ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0.21 !== 0.61
+  
+      at TestContext.<anonymous> (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshPeripherals.test.mjs:67:14)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0.21,
+    expected: 0.61,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at footprints/scripts/refreshPeripherals.test.mjs:72:1
+✖ Gateron rejects overlapping reversible hotswap drills (10.386315ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshPeripherals.test.mjs:74:5)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /reversible hotswap.*overlapping.*drills/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at footprints/scripts/refreshPeripherals.test.mjs:84:1
+✖ Gateron custom reversible solder copper rotates with its drilled anchors (13.760682ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 37
+  
+      at TestContext.<anonymous> (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshPeripherals.test.mjs:93:14)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 37,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,27 @@
+$ mocha -r test/helpers/register test/index.js
+
+
+  Footprint refresh engine boundaries
+    ✔ keeps F&B shorthand literal while evaluating finite numeric expressions
+    ✔ rejects nonfinite and malformed explicit numeric values
+    ✔ reports unresolved net metadata and preserves intentionally empty nets
+    ✔ includes blank copper pads and preserves shared original net groups
+    ✔ keeps unrelated blank copper pads separate and maps shared numbered pads together
+    ✔ retains native backend rejection of unknown numeric net IDs (71ms)
+    1) roundtrips saved mappings for blank copper groups through native export
+    ✔ exports imported copper pads to distinct native nets without stale IDs
+
+
+  7 passing (105ms)
+  1 failing
+
+  1) Footprint refresh engine boundaries
+       roundtrips saved mappings for blank copper groups through native export:
+     Error: Invalid net parameter: pad_net_2
+      at Object.convert (src/footprint-tools.js:180:93)
+      at Context.<anonymous> (test/unit/footprint_refresh.js:74:30)
+      at process.processImmediate (node:internal/timers:504:21)
+
+
+
+[ELIFECYCLE] Test failed. See above for more details.

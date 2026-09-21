@@ -1,0 +1,17 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/footprintPadGeometry.test.ts (4 tests) 8ms
+ ✓ src/utils/footprintGeometry.test.ts (4 tests) 5ms
+ ✓ src/molecules/FootprintPadPlan.test.tsx (2 tests) 122ms
+stderr | src/molecules/FootprintCanvas.test.tsx
+WARNING: Multiple instances of Three.js being imported.
+
+ ✓ src/molecules/FootprintCanvas.test.tsx (1 test) 128ms
+
+ Test Files  4 passed (4)
+      Tests  11 passed (11)
+   Start at  15:57:49
+   Duration  1.75s (transform 286ms, setup 242ms, collect 1.13s, tests 263ms, environment 2.52s, prepare 241ms)
+

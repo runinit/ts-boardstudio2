@@ -1,0 +1,6 @@
+mcu_nice_nano.js: distinct-net chain ownership, allocation offsets, rotations and jumper variants passed
+mcu_supermini_nrf52840.js: distinct-net chain ownership, allocation offsets, rotations and jumper variants passed
+vendor/infused-kim/nice_nano_pretty.js: distinct-net chain ownership, allocation offsets, rotations and jumper variants passed
+mcu_nice_nano.js: native engine output retains explicit signal/local track nets
+mcu_supermini_nrf52840.js: native engine output retains explicit signal/local track nets
+vendor/infused-kim/nice_nano_pretty.js: native engine output retains explicit signal/local track nets

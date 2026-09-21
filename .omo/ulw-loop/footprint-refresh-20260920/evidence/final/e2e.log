@@ -1,0 +1,159 @@
+$ pnpm --dir app test:e2e --workers=1 --reporter=list
+$ playwright test --workers=1 --reporter=list
+[2m[WebServer] [22m(node:2140156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2140181) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 195 tests using 1 worker
+
+(node:2140208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2140208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘    1 [chromium] › e2e/app.spec.ts:4:5 › creates a matrix draft and previews its PCB (30.1s)
+(node:2140742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2140742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘    2 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px (7.0s)
+(node:2140966) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2140966) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘    3 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px (6.6s)
+(node:2141142) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2141142) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    4 [chromium] › e2e/bhk.spec.ts:9:5 › loads the BHK example and regenerates it offline (18.1s)
+  ✓    5 [chromium] › e2e/bundled-model-export.spec.ts:28:5 › blocks export for an incompatible trackpoint extension (1.9s)
+  ✓    6 [chromium] › e2e/bundled-model-export.spec.ts:60:5 › invalidates and restores export after a model compatibility edit (5.4s)
+  ✓    7 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a koktoh/Choc_V2_Red.step default model without manual import (3.4s)
+  ✓    8 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step default model without manual import (3.7s)
+  ✓    9 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Choc_V1_Keycap_MBK_Black_1u.step default model without manual import (2.9s)
+  ✓   10 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a gdek/KS33.stp default model without manual import (3.8s)
+  ✓   11 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/PinSocket_2x12_W15.24mm_Vertical.step default model without manual import (6.2s)
+  ✓   12 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/PinSocket_1x05_P2.54mm_Vertical.step default model without manual import (2.2s)
+  ✓   13 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a tsuki/nrf52840.step default model without manual import (2.1s)
+  ✓   14 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Switch_Reset.step default model without manual import (2.3s)
+  ✓   15 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kiswitch/SW_Cherry_MX_PCB.stp default model without manual import (4.4s)
+  ✓   16 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Choc_V1_Switch.step default model without manual import (3.2s)
+  ✓   17 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Nice_Nano_V2.step default model without manual import (2.8s)
+  ✓   18 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/Panasonic_EVQPUL_EVQPUC.step default model without manual import (2.1s)
+  ✓   19 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a foostan/OLED-Module-with-Pins.step default model without manual import (2.7s)
+  ✓   20 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a keebio/SK6812MINI-E v1.step default model without manual import (2.2s)
+  ✓   21 [chromium] › e2e/debug.spec.ts:4:5 › minimal test: page loads and has welcome text (1.0s)
+  ✓   22 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default trackpoint model (8.1s)
+  ✘   23 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default trackpoint assembly (7.6s)
+
+
+  1) [chromium] › e2e/app.spec.ts:4:5 › creates a matrix draft and previews its PCB ────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'New native design', exact: true })[22m
+
+
+       at utils/studio.ts:76
+
+      74 |   await page
+      75 |     .getByRole('button', { name: 'New native design', exact: true })
+    > 76 |     .click();
+         |      ^
+      77 |   await page.getByRole('button', { name: 'Apply setup', exact: true }).click();
+      78 |   await expect(studio(page)).toBeVisible();
+      79 | }
+        at createDraft (/home/chris/projects/ts-boardstudio2/app/e2e/utils/studio.ts:76:6)
+        at /home/chris/projects/ts-boardstudio2/app/e2e/app.spec.ts:6:20
+
+    Error Context: test-results/app-creates-a-matrix-draft-and-previews-its-PCB-chromium/error-context.md
+
+  2) [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px ────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Add key in column 7' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Add key in column 7' })[22m
+
+
+      37 |     await expect(
+      38 |       page.getByRole('button', { name: 'Add key in column 7' })
+    > 39 |     ).toBeVisible();
+         |       ^
+      40 |     await page.getByLabel('Relative x', { exact: true }).fill('1');
+      41 |     await page
+      42 |       .getByRole('button', { name: 'Apply relative adjustment' })
+        at /home/chris/projects/ts-boardstudio2/app/e2e/bhk-matrix.spec.ts:39:7
+
+    Error Context: test-results/bhk-matrix-edits-BHK-rows-and-columns-at-1440px-chromium/error-context.md
+
+  3) [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px ─────────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Add key in column 7' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Add key in column 7' })[22m
+
+
+      37 |     await expect(
+      38 |       page.getByRole('button', { name: 'Add key in column 7' })
+    > 39 |     ).toBeVisible();
+         |       ^
+      40 |     await page.getByLabel('Relative x', { exact: true }).fill('1');
+      41 |     await page
+      42 |       .getByRole('button', { name: 'Apply relative adjustment' })
+        at /home/chris/projects/ts-boardstudio2/app/e2e/bhk-matrix.spec.ts:39:7
+
+    Error Context: test-results/bhk-matrix-edits-BHK-rows-and-columns-at-390px-chromium/error-context.md
+
+  4) [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default trackpoint assembly 
+
+    Test was interrupted.
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('region', { name: 'Case designer' }).getByRole('status').filter({ hasText: /Current geometry/ })
+    Expected: visible
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 180000ms[22m
+    [2m  - waiting for getByRole('region', { name: 'Case designer' }).getByRole('status').filter({ hasText: /Current geometry/ })[22m
+
+
+      230 |     await expect(
+      231 |       designer.getByRole('status').filter({ hasText: /Current geometry/ })
+    > 232 |     ).toBeVisible({ timeout: WORKER_TIMEOUT_MS });
+          |       ^
+      233 |     await designer
+      234 |       .getByRole('button', { name: 'exploded', exact: true })
+      235 |       .click();
+        at /home/chris/projects/ts-boardstudio2/app/e2e/default-model-assembly.spec.ts:232:7
+
+    Error Context: test-results/default-model-assembly-ren-2bb1c-default-trackpoint-assembly-chromium/error-context.md
+
+  3 failed
+    [chromium] › e2e/app.spec.ts:4:5 › creates a matrix draft and previews its PCB ─────────────────
+    [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px ─────────────────
+    [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px ──────────────────
+  1 interrupted
+    [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default trackpoint assembly 
+  172 did not run
+  19 passed (2.3m)
+[ELIFECYCLE] Command failed with exit code 130.
+[ELIFECYCLE] Command failed with exit code 130.

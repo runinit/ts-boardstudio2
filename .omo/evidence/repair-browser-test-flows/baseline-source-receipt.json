@@ -1,0 +1,62 @@
+[
+  {
+    "file": "app/e2e/footprint-library.spec.ts",
+    "baseline": "57513452a5c12f479afccac3e3f3f5feb08b1c65",
+    "current": "57513452a5c12f479afccac3e3f3f5feb08b1c65",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/layout-units.spec.ts",
+    "baseline": "f3bf88397cefeafa22ff829a0dea5b26631050b4",
+    "current": "f3bf88397cefeafa22ff829a0dea5b26631050b4",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/native-layout.spec.ts",
+    "baseline": "4f7d2cb7b052c4e4aca4f96568d9b4f0d9fe60d7",
+    "current": "4f7d2cb7b052c4e4aca4f96568d9b4f0d9fe60d7",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/responsive.spec.ts",
+    "baseline": "9a69412c88dd5b70ca1ee993c0ebb87bfe6301dc",
+    "current": "9a69412c88dd5b70ca1ee993c0ebb87bfe6301dc",
+    "callsChangedHelper": true
+  },
+  {
+    "file": "app/e2e/settings-consolidation.spec.ts",
+    "baseline": "59b99f410c719f6e2b22f2cb8eac7e6f8939fe72",
+    "current": "59b99f410c719f6e2b22f2cb8eac7e6f8939fe72",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/studio-continuous.spec.ts",
+    "baseline": "d2b28425aaa1602d29b4c0d44435cc247241425f",
+    "current": "d2b28425aaa1602d29b4c0d44435cc247241425f",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/studio-settings-and-svg.spec.ts",
+    "baseline": "9a33f4303cfff4c1d5e1303cac9476666bb34c2a",
+    "current": "9a33f4303cfff4c1d5e1303cac9476666bb34c2a",
+    "callsChangedHelper": true
+  },
+  {
+    "file": "app/e2e/studio-workflow.spec.ts",
+    "baseline": "55c531349e094682613de5b9a626277b5bb3f8ec",
+    "current": "55c531349e094682613de5b9a626277b5bb3f8ec",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/workbench.spec.ts",
+    "baseline": "9b505eb7a432323f911b1d7ba4b83375e66dd348",
+    "current": "9b505eb7a432323f911b1d7ba4b83375e66dd348",
+    "callsChangedHelper": false
+  },
+  {
+    "file": "app/e2e/github-loading.spec.ts",
+    "baseline": "ae09e9c4682fb9b48331cdb4b9dbc478f0e69576",
+    "current": "ae09e9c4682fb9b48331cdb4b9dbc478f0e69576",
+    "callsChangedHelper": false
+  }
+]

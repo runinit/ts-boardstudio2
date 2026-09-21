@@ -1,0 +1,12 @@
+drag samples= 5
+inputToVisibleMs median= 31.800000071525574 p95= 32.39999997615814
+inputToPersistedMs median= 170.5 p95= 174.19999992847443
+settledMs median= 9756.600000023842 p95= 10248.299999952316
+add-columns samples= 5
+inputToVisibleMs median= 6097.200000047684 p95= 13042.5
+inputToPersistedMs median= 6096.800000071526 p95= 13042.100000023842
+settledMs median= 16852.200000047684 p95= 24115.200000047684
+add-rows samples= 5
+inputToVisibleMs median= 7051.399999976158 p95= 7060.799999952316
+inputToPersistedMs median= 7051.0 p95= 7060.399999976158
+settledMs median= 18800.0 p95= 18898.0

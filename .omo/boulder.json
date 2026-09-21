@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "active_work_id": "performance-responsiveness-refactor",
+  "works": {
+    "repair-browser-test-flows": {
+      "work_id": "repair-browser-test-flows",
+      "active_plan": ".omo/plans/repair-browser-test-flows.md",
+      "plan_name": "repair-browser-test-flows",
+      "session_ids": [
+        "codex:01a0bda7-b2c3-70e2-8e71-873bb2925e12"
+      ],
+      "status": "completed",
+      "worktree_path": "/home/chris/projects/ts-boardstudio2-browser-test-flows"
+    },
+    "performance-responsiveness-refactor": {
+      "work_id": "performance-responsiveness-refactor",
+      "active_plan": ".omo/plans/performance-responsiveness-refactor.md",
+      "plan_name": "performance-responsiveness-refactor",
+      "session_ids": [
+        "codex:01a0bda7-b2c3-70e2-8e71-873bb2925e12"
+      ],
+      "status": "completed",
+      "worktree_path": "/home/chris/projects/ts-boardstudio2-performance-refactor"
+    }
+  }
+}

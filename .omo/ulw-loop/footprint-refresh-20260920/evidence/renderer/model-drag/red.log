@@ -1,0 +1,50 @@
+[1A[2K[2m[WebServer] [22m(node:2159541) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:2159553) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:2159576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:2159576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding
+[1A[2K  1) [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    Expected: not [32m[8.89, 16.5, -8.2][39m
+
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      321 |   await page.mouse.up();
+      322 |   await inset.screenshot({ path: 'test-results/inset-after-drag.png' });
+    > 323 |   await expect
+          |   ^
+      324 |     .poll(
+      325 |       async () =>
+      326 |         parse(await readSource(page)).layout.objects.mcu.models[0].offset
+        at /home/chris/projects/ts-boardstudio2/app/e2e/footprint-library.spec.ts:323:3
+
+    Error Context: ../.omo/ulw-loop/footprint-refresh-20260920/evidence/renderer/model-drag/red/footprint-library-assigns--71080--exports-the-object-binding-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/ulw-loop/footprint-refresh-20260920/evidence/renderer/model-drag/red/footprint-library-assigns--71080--exports-the-object-binding-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/ulw-loop/footprint-refresh-20260920/evidence/renderer/model-drag/red/footprint-library-assigns--71080--exports-the-object-binding-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding 

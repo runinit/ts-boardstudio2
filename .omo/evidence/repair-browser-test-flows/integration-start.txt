@@ -1,0 +1,164 @@
+2026-09-20T17:04:18-04:00
+v24.14.0
+11.26.0
+6a130dcf655dee60414e1f43fe76134d84ea20e3
+fix/browser-test-flows
+diff --git a/app/e2e/app.spec.ts b/app/e2e/app.spec.ts
+index edf752e..7fb2db6 100644
+--- a/app/e2e/app.spec.ts
++++ b/app/e2e/app.spec.ts
+@@ -1,14 +1,39 @@
+ import { test, expect } from '@playwright/test';
++import { isMap, parseDocument } from 'yaml';
+ import { createDraft, openCode, readSource } from './utils/studio';
+
+ test('creates a matrix draft and previews its PCB', async ({ page }) => {
+   await page.goto('./new');
+   await createDraft(page);
+-  await page.getByRole('button', { name: 'Add matrix', exact: true }).click();
+-  await page.getByLabel('New item name').fill('fingers');
+-  await page.getByLabel('New matrix columns').fill('5');
+-  await page.getByLabel('New matrix rows').fill('4');
+-  await page.getByRole('button', { name: 'Create', exact: true }).click();
++  await expect
++    .poll(async () => parseDocument(await readSource(page)).toJS())
++    .toMatchObject({
++      schema: 'ergogen/v1',
++      layout: {
++        clusters: {
++          fingers: {
++            arrangement: {
++              type: 'columns',
++              columns: ['c1', 'c2', 'c3', 'c4', 'c5'],
++              rows: ['r1', 'r2', 'r3', 'r4'],
++            },
++          },
++        },
++      },
++    });
++  await expect
++    .poll(async () => {
++      const objects = parseDocument(await readSource(page)).getIn([
++        'layout',
++        'objects',
++      ]);
++      return isMap(objects)
++        ? objects.items.filter(({ key }) =>
++            /^fingers_c\d+_r\d+$/.test(String(key))
++          ).length
++        : 0;
++    })
++    .toBe(20);
+   await expect(
+     page.getByRole('group', { name: 'Interactive board layout' })
+   ).toBeVisible();
+@@ -27,4 +52,5 @@ test('creates a matrix draft and previews its PCB', async ({ page }) => {
+   });
+   await expect(page.getByText(/PCB preview unavailable/)).toHaveCount(0);
+   await expect(page.locator('kicanvas-source')).toBeHidden();
++  await page.screenshot({ path: test.info().outputPath('native-pcb.png') });
+ });
+diff --git a/app/e2e/bhk-matrix.spec.ts b/app/e2e/bhk-matrix.spec.ts
+index 9531b8f..3e0ed11 100644
+--- a/app/e2e/bhk-matrix.spec.ts
++++ b/app/e2e/bhk-matrix.spec.ts
+@@ -24,6 +24,14 @@ for (const viewport of [
+     await page
+       .getByRole('button', { name: 'Select matrix_c4_r4', exact: true })
+       .click();
++    const snapping = page.getByRole('toolbar', { name: 'Snapping' });
++    await snapping
++      .getByRole('button', { name: 'Snapping settings', exact: true })
++      .click();
++    await snapping.getByLabel('Custom snap increment').fill('1');
++    await snapping
++      .getByRole('button', { name: 'Snapping settings', exact: true })
++      .click();
+     if (
+       await page.getByRole('button', { name: 'Inspector', exact: true }).count()
+     ) {
+@@ -34,20 +42,41 @@ for (const viewport of [
+     await expect(
+       page.getByRole('heading', { name: 'Row 2', exact: true })
+     ).toBeVisible();
+-    await expect(
+-      page.getByRole('button', { name: 'Add key in column 7' })
+-    ).toBeVisible();
+-    await page.getByLabel('Relative x', { exact: true }).fill('1');
++    const inspector = page.getByRole('complementary', {
++      name: 'Design inspector',
++    });
++    const rowKeysSummary = inspector
++      .locator('summary')
++      .filter({ hasText: /^Row keys$/ });
++    const rowKeys = rowKeysSummary.locator('..');
++    await rowKeysSummary.click();
++    await expect(rowKeys).toHaveJSProperty('open', true);
++    const addKey = rowKeys.getByRole('button', {
++      name: 'Add key in column 7',
++      exact: true,
++    });
++    await expect(addKey).toBeVisible();
++    await expect(addKey).toBeEnabled();
++    const movedRowKeys = [
++      'matrix_c1_r4',
++      'matrix_c2_r4',
++      'matrix_c3_r4',
++      'matrix_c4_r4',
++      'matrix_c5_r4',
++      'matrix_c6_r4',
++    ];
+     await page
+-      .getByRole('button', { name: 'Apply relative adjustment' })
+-      .click();
++      .getByRole('button', { name: 'Select matrix_c1_r4', exact: true })
++      .focus();
++    await page
++      .getByRole('button', { name: 'Select matrix_c1_r4', exact: true })
++      .press('ArrowRight');
+     await expect
+-      .poll(
+-        async () =>
+-          parse(await readSource(page)).layout.objects.matrix_c1_r4.placement
+-            ?.override?.at?.[0]
+-      )
+-      .toBe(1);
++      .poll(async () => {
++        const objects = parse(await readSource(page)).layout.objects;
++        return movedRowKeys.map((id) => objects[id].placement?.override?.at);
++      })
++      .toEqual(movedRowKeys.map(() => [1, 0, 0]));
+     const after = parse(await readSource(page));
+     for (const [id, item] of Object.entries(before.layout.objects)) {
+       expect(after.layout.objects[id].properties).toEqual(
+@@ -56,7 +85,7 @@ for (const viewport of [
+     }
+     expect(after.layout.objects.matrix_c7_r4).toBeUndefined();
+     expect(after.layout.objects.matrix_c1_r3.placement).toBeUndefined();
+-    await page.getByRole('button', { name: 'Add key in column 7' }).click();
++    await addKey.click();
+     await expect
+       .poll(
+         async () =>
+diff --git a/app/e2e/utils/studio.ts b/app/e2e/utils/studio.ts
+index 9cd2069..4a9216d 100644
+--- a/app/e2e/utils/studio.ts
++++ b/app/e2e/utils/studio.ts
+@@ -71,11 +71,11 @@ export async function openLibrary(page: Page) {
+ }
+
+ export async function createDraft(page: Page) {
+-  await page
+-    .getByRole('button', { name: 'New native design', exact: true })
+-    .click();
+-  await page.getByRole('button', { name: 'Apply setup', exact: true }).click();
++  await expect(page).toHaveURL('./');
+   await expect(studio(page)).toBeVisible();
++  await expect(
++    page.getByRole('button', { name: /^Select fingers_c\d+_r\d+$/ })
++  ).toHaveCount(20);
+ }
+
+ export async function openInspector(page: Page) {
+c54faa3c0529095f2948e7828276bb2a747928df2a1f461c10be74eac6c7c59a  app/dist/index.html
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

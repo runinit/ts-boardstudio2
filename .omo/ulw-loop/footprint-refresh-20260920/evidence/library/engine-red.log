@@ -1,0 +1,41 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/footprintEngine.test.ts (2 tests | 1 failed) 96ms
+   × keeps structured defaults and persists geometry defaults with placement override precedence 12ms
+     → expected { type: 'object', value: '' } to deeply equal { type: 'array', value: [ 1, 2 ] }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/footprintEngine.test.ts > keeps structured defaults and persists geometry defaults with placement override precedence
+AssertionError: expected { type: 'object', value: '' } to deeply equal { type: 'array', value: [ 1, 2 ] }
+
+- Expected
++ Received
+
+  Object {
+-   "type": "array",
+-   "value": Array [
+-     1,
+-     2,
+-   ],
++   "type": "object",
++   "value": "",
+  }
+
+ ❯ src/utils/footprintEngine.test.ts:22:38
+     20|   const entry = { ...createEntry('Settings', source, 'ergogen'), param…
+     21|   const prepared = await prepareEntry(entry);
+     22|   expect(prepared.parameters.offset).toEqual({ type: 'array', value: […
+       |                                      ^
+     23|   expect(prepared.parameters.metadata).toEqual({ type: 'object', value…
+     24|   expect(prepared.info.pads).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  15:06:12
+   Duration  1.74s (transform 119ms, setup 87ms, collect 568ms, tests 96ms, environment 770ms, prepare 68ms)
+

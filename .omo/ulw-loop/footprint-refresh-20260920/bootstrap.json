@@ -1,0 +1,186 @@
+{
+  "ok": true,
+  "plan": {
+    "version": 1,
+    "evidenceLayoutVersion": 2,
+    "createdAt": "2026-09-20T19:01:18.926Z",
+    "updatedAt": "2026-09-20T19:01:18.926Z",
+    "briefPath": ".omo/ulw-loop/footprint-refresh-20260920/brief.md",
+    "goalsPath": ".omo/ulw-loop/footprint-refresh-20260920/goals.json",
+    "ledgerPath": ".omo/ulw-loop/footprint-refresh-20260920/ledger.jsonl",
+    "codexGoalMode": "aggregate",
+    "goals": [
+      {
+        "id": "G001-use-latest-source-github-footprints",
+        "title": "Use latest source GitHub footprints as reference; fix all issues iden...",
+        "objective": "Use latest source GitHub footprints as reference; fix all issues identified during research; make the footprint library display actual geometry for side, reversible and supported parameter values; expose those parameters for GUI preview.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "happy path for: Use latest source GitHub footprints as reference; fix all issues identified d...",
+            "userModel": "happy",
+            "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 1.",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C002",
+            "scenario": "edge case (boundary/empty/malformed)",
+            "userModel": "edge",
+            "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Use latest source GitHub footprints as reference; fix all issues identified d....",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C003",
+            "scenario": "regression: adjacent surface still works",
+            "userModel": "regression",
+            "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Use latest source GitHub footprints as reference; fix all issues identified d....",
+            "essential": false,
+            "capturedEvidence": null,
+            "status": "pending"
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T19:01:18.926Z",
+        "updatedAt": "2026-09-20T19:01:18.926Z"
+      },
+      {
+        "id": "G002-preserve-namespaces-storage-identiti",
+        "title": "Preserve namespaces, storage identities, licenses and BHK independenc...",
+        "objective": "Preserve namespaces, storage identities, licenses and BHK independence. Do not import the entire external catalogue. Distinguish proven generator defects from unresolved physical manufacturing claims. Implement and validate software corrections, document any physically unverified limits. Commit verified increments; no publishing or deployment.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "happy path for: Preserve namespaces, storage identities, licenses and BHK independence. Do no...",
+            "userModel": "happy",
+            "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 2.",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C002",
+            "scenario": "edge case (boundary/empty/malformed)",
+            "userModel": "edge",
+            "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Preserve namespaces, storage identities, licenses and BHK independence. Do no....",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C003",
+            "scenario": "regression: adjacent surface still works",
+            "userModel": "regression",
+            "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Preserve namespaces, storage identities, licenses and BHK independence. Do no....",
+            "essential": false,
+            "capturedEvidence": null,
+            "status": "pending"
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T19:01:18.926Z",
+        "updatedAt": "2026-09-20T19:01:18.926Z"
+      },
+      {
+        "id": "G003-heavy-delivery-footprint-source-engi",
+        "title": "HEAVY delivery: footprint source, engine parameter handling, worker g...",
+        "objective": "HEAVY delivery: footprint source, engine parameter handling, worker generation and React preview integration span domains.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "happy path for: HEAVY delivery: footprint source, engine parameter handling, worker generatio...",
+            "userModel": "happy",
+            "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 3.",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C002",
+            "scenario": "edge case (boundary/empty/malformed)",
+            "userModel": "edge",
+            "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: HEAVY delivery: footprint source, engine parameter handling, worker generatio....",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C003",
+            "scenario": "regression: adjacent surface still works",
+            "userModel": "regression",
+            "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: HEAVY delivery: footprint source, engine parameter handling, worker generatio....",
+            "essential": false,
+            "capturedEvidence": null,
+            "status": "pending"
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T19:01:18.926Z",
+        "updatedAt": "2026-09-20T19:01:18.926Z"
+      },
+      {
+        "id": "G004-discovery-in-progress-latest-upstrea",
+        "title": "Discovery in progress: latest upstream comparison, exhaustive researc...",
+        "objective": "Discovery in progress: latest upstream comparison, exhaustive research issue reconciliation, current preview/parameter data flow. No production edits before failing-first evidence.",
+        "status": "pending",
+        "successCriteria": [
+          {
+            "id": "C001",
+            "scenario": "happy path for: Discovery in progress: latest upstream comparison, exhaustive research issue...",
+            "userModel": "happy",
+            "expectedEvidence": "Replace via revise_criterion with observable happy-path proof for goal 4.",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C002",
+            "scenario": "edge case (boundary/empty/malformed)",
+            "userModel": "edge",
+            "expectedEvidence": "Replace via revise_criterion with boundary or malformed-input proof for: Discovery in progress: latest upstream comparison, exhaustive research issue....",
+            "essential": true,
+            "capturedEvidence": null,
+            "status": "pending"
+          },
+          {
+            "id": "C003",
+            "scenario": "regression: adjacent surface still works",
+            "userModel": "regression",
+            "expectedEvidence": "Replace via revise_criterion with regression proof for neighboring behavior after: Discovery in progress: latest upstream comparison, exhaustive research issue....",
+            "essential": false,
+            "capturedEvidence": null,
+            "status": "pending"
+          }
+        ],
+        "attempt": 0,
+        "createdAt": "2026-09-20T19:01:18.926Z",
+        "updatedAt": "2026-09-20T19:01:18.926Z"
+      }
+    ],
+    "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/footprint-refresh-20260920/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/footprint-refresh-20260920/ledger.jsonl as the audit trail."
+  },
+  "summary": {
+    "total": 4,
+    "pending": 4,
+    "in_progress": 0,
+    "complete": 0,
+    "failed": 0,
+    "blocked": 0,
+    "review_blocked": 0,
+    "needs_user_decision": 0,
+    "superseded": 0,
+    "criteria": {
+      "total": 12,
+      "pass": 0,
+      "pending": 12,
+      "fail": 0,
+      "blocked": 0
+    }
+  }
+}

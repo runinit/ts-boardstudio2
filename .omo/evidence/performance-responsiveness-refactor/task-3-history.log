@@ -1,0 +1,375 @@
+2026-09-20T20:46:54-04:00
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2-performance-refactor/app
+
+ ✓ src/utils/projectHistory.test.ts > shares source history across code and visual commands
+ ✓ src/utils/projectHistory.test.ts > keeps an invalid source draft recoverable and resets between projects
+ ✓ src/utils/projectHistory.test.ts > amends only the originating revision without an extra undo step
+ ✓ src/utils/projectHistory.test.ts > rejects amendments after undo, reset, and newer edits
+stdout | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > uses the native project title when creating an unnamed project
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > does not generate solids for native thumbnails during storage migration
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+ ✓ src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+ ✓ src/context/ConfigContext.test.tsx > uses the native project title when creating an unnamed project
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > leaves native generation to the workspace on load, import and settings close
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > does not generate solids for native thumbnails during storage migration
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter and update the config
+[useConfigLoader] Loading from URL parameter: https://github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+[GitHub] Starting fetch from URL: https://github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 0,
+  outlinesCount: 0,
+  configPath: 'config.yaml',
+  rateLimitWarning: undefined
+}
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter without protocol and update the config
+[useConfigLoader] Loading from URL parameter: github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+[GitHub] Starting fetch from URL: github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 0,
+  outlinesCount: 0,
+  configPath: 'config.yaml',
+  rateLimitWarning: undefined
+}
+
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter and update the config
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should load footprints from github url parameter and merge them
+[useConfigLoader] Loading from URL parameter: https://github.com/ceoloide/test-repo
+[GitHub] Starting fetch from URL: https://github.com/ceoloide/test-repo
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Loaded footprint: test_footprint
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 1,
+  outlinesCount: 0,
+  configPath: '',
+  rateLimitWarning: undefined
+}
+
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter without protocol and update the config
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > should load footprints from github url parameter and merge them
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > STL Conversion > should batch convert JSCAD to STL when stlPreview is true
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should inhibit auto-generation when showSettings is true
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should terminate the old worker, create a new one, and trigger generation when showSettings transitions from true to false
+Settings panel closed. Restarting Ergogen worker to clear stale custom libraries...
+Ergogen worker terminated.
+Initializing fresh Ergogen worker...
+Ergogen worker initialized.
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should terminate the old worker, create a new one, and trigger generation when showSettings transitions from true to false
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should switch between configurations and update values correctly without cross-contamination
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should switch between configurations and update values correctly without cross-contamination
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should not allow renaming a configuration to an existing name and should set error
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should not allow renaming a configuration to an existing name and should set error
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should convert a preview configuration into a saved configuration when savePreviewConfig is called
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should convert a preview configuration into a saved configuration when savePreviewConfig is called
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should backup deleted configurations in ergogen:deleted-config and prune them correctly
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should backup deleted configurations in ergogen:deleted-config and prune them correctly
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should upgrade version 1 to version 2 on load and trigger background generation for configurations missing preview SVG
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+Triggering background preview generation for: V1 Config
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should upgrade version 1 to version 2 on load and trigger background generation for configurations missing preview SVG
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should process background generation worker success message and update previewSvg in local storage without triggering STL conversion
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > realtime config input functions > should retrieve and update the realtime config input value
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should debounce tracking by 5 seconds and only send the latest event
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should correctly chain lineages across multiple distinct generations
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should ignore duplicate compilation results with identical layout geometries
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should reset lineage when a config lifecycle action (like selectConfig) is triggered
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should set deprecationWarning when a PCB uses kicad5 template and ceoloide footprint
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should NOT set deprecationWarning when a PCB uses kicad8 template and ceoloide footprint
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > publishes a design only after every STL part succeeds
+--- JSCAD worker error: Invalid tray mesh
+
+stderr | src/context/ConfigContext.test.tsx > clears a previous generation error when creating another project
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > STL Conversion > should discard stale STL results from old config versions
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should inhibit auto-generation when showSettings is true
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should terminate the old worker, create a new one, and trigger generation when showSettings transitions from true to false
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should switch between configurations and update values correctly without cross-contamination
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should not allow renaming a configuration to an existing name and should set error
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should convert a preview configuration into a saved configuration when savePreviewConfig is called
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should backup deleted configurations in ergogen:deleted-config and prune them correctly
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should upgrade version 1 to version 2 on load and trigger background generation for configurations missing preview SVG
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should process background generation worker success message and update previewSvg in local storage without triggering STL conversion
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should save formatted previewSvg to the active configuration when user-initiated generation completes successfully
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > realtime config input functions > should retrieve and update the realtime config input value
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > generation injection filtering based on feature flags > should filter out outlines and templates from the worker payload when feature flags are disabled
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should debounce tracking by 5 seconds and only send the latest event
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should correctly chain lineages across multiple distinct generations
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should ignore duplicate compilation results with identical layout geometries
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should reset lineage when a config lifecycle action (like selectConfig) is triggered
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should flush pending events immediately on unmount
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should set deprecationWarning when a PCB uses kicad5 template and ceoloide footprint
+ ✓ src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should NOT set deprecationWarning when a PCB uses kicad8 template and ceoloide footprint
+ ✓ src/context/ConfigContext.test.tsx > Design generation revisions > keeps library updates from starting a full build while the CAD workspace is open
+ ✓ src/context/ConfigContext.test.tsx > Design generation revisions > keeps the newest preview when workers finish out of order
+ ✓ src/context/ConfigContext.test.tsx > accepts a current result after the editor saves its debounced value
+ ✓ src/context/ConfigContext.test.tsx > publishes a design only after every STL part succeeds
+ ✓ src/context/ConfigContext.test.tsx > adopts the case result without rebuilding the same captured draft
+ ✓ src/context/ConfigContext.test.tsx > clears a previous generation error when creating another project
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c1 column
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c2 column
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c3 column
+ ✓ src/utils/resizeSpacing.test.ts > restores spacing after repeated grow and shrink 841ms
+ ✓ src/utils/resizeSpacing.test.ts > clears objects resizing including taller keys
+ ✓ src/utils/resizeSpacing.test.ts > clears objects resizing including taller keys
+ ✓ src/utils/resizeSpacing.test.ts > clears clusters resizing including taller keys 421ms
+ ✓ src/utils/resizeSpacing.test.ts > preserves authored offset expressions across grow and shrink 634ms
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit left alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit center alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit right alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > respects locked downstream columns and records an export blocker
+ ✓ src/utils/resizeSpacing.test.ts > retains splay, stagger and expressions in rotated matrices 360ms
+ ✓ src/utils/resizeSpacing.test.ts > keeps mirrors and attached electronics in their native relationships 435ms
+ ✓ src/utils/resizeSpacing.test.ts > keeps edited generated compensation as authored placement
+ ✓ src/utils/resizeSpacing.test.ts > keeps constrained spacing unchanged and records the conflict
+ ✓ src/utils/resizeSpacing.test.ts > rejects an anchor shift that moves a locked attachment atomically
+ ✓ src/utils/resizeSpacing.test.ts > saves size and spacing in a single undoable edit
+ ✓ src/utils/resizeSpacing.test.ts > retains generated spacing when a downstream key is locked after growth 318ms
+ ✓ src/utils/resizeSpacing.test.ts > reports a resized outside anchor driven by an authored constraint
+ ✓ src/utils/resizeSpacing.test.ts > leaves external keys in place and reports blocked clearance
+
+ Test Files  3 passed (3)
+      Tests  58 passed (58)
+   Start at  20:46:55
+   Duration  7.28s (transform 525ms, setup 200ms, collect 1.84s, tests 5.81s, environment 1.83s, prepare 185ms)
+
+2026-09-20T20:47:02-04:00

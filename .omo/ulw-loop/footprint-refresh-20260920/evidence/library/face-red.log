@@ -1,0 +1,1080 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/molecules/FootprintLibrary.test.tsx (2 tests | 1 failed) 877ms
+   ✓ loads attached library models automatically into the canvas and editor 531ms
+   × regenerates model bindings, preserves undo defaults, and rejects obsolete previews 345ms
+     → Unable to find an accessible element with the role "button" and name "View front"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Footprint library catalog":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Footprint library catalog"[39m
+    [33mclass[39m=[32m"sc-hKgHXU gMRggF"[39m
+  [36m/>[39m
+
+  Name "Footprint inspector":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Footprint inspector"[39m
+    [33mclass[39m=[32m"sc-hKgHXU gcodFt"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Footprint library":
+  [36m<h2 />[39m
+
+  Name "Your footprints (0)":
+  [36m<h3 />[39m
+
+  Name "Bundled & project (1)":
+  [36m<h3 />[39m
+
+  Name "ceoloide/mcu_nice_nano":
+  [36m<h2 />[39m
+
+  --------------------------------------------------
+  searchbox:
+
+  Name "Search footprints":
+  [36m<input[39m
+    [33mtype[39m=[32m"search"[39m
+    [33mvalue[39m=[32m"mcu_nice_nano"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  [36m<details />[39m
+
+  Name "Footprint settings":
+  [36m<fieldset />[39m
+
+  Name "Position (mm)":
+  [36m<fieldset />[39m
+
+  Name "Rotation (°)":
+  [36m<fieldset />[39m
+
+  Name "Scale":
+  [36m<fieldset />[39m
+
+  Name "":
+  [36m<details />[39m
+
+  Name "":
+  [36m<details />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Import KiCad footprint":
+  [36m<button />[39m
+
+  Name "Import folder":
+  [36m<button />[39m
+
+  Name "ceoloide/mcu_nice_nano · Bundled":
+  [36m<button[39m
+    [33maria-label[39m=[32m"ceoloide/mcu_nice_nano · Bundled"[39m
+    [33maria-pressed[39m=[32m"true"[39m
+    [33mtitle[39m=[32m"ceoloide/mcu_nice_nano"[39m
+  [36m/>[39m
+
+  Name "3D":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "2D":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Move":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Rotate":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Scale":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "View back":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Save footprint":
+  [36m<button[39m
+    [33mdata-primary[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Undo footprint edit":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Undo footprint edit"[39m
+  [36m/>[39m
+
+  Name "3D models":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Pads & nets":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Add models":
+  [36m<button />[39m
+
+  Name "Replace":
+  [36m<button />[39m
+
+  Name "Remove":
+  [36m<button />[39m
+
+  Name "Import from URL":
+  [36m<button[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Export footprint ZIP":
+  [36m<button />[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"sc-iBPUmU kaVGhX"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "side":
+  [36m<select[39m
+    [33maria-label[39m=[32m"side"[39m
+  [36m/>[39m
+
+  Name "Active model":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Active model"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "F":
+  [36m<option />[39m
+
+  Name "B":
+  [36m<option />[39m
+
+  Name "1. Back.step":
+  [36m<option[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Model offset X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset X"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model offset Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset Y"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model offset Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset Z"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"8.5"[39m
+  [36m/>[39m
+
+  Name "Model rotate X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate X"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model rotate Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate Y"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model rotate Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate Z"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model scale X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale X"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  Name "Model scale Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale Y"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  Name "Model scale Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale Z"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Model source URL":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model source URL"[39m
+    [33mplaceholder[39m=[32m"${KICAD10_3DMODEL_DIR}/… or https://…"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Library name":
+  [36m<input[39m
+    [33mvalue[39m=[32m"ceoloide/mcu_nice_nano"[39m
+  [36m/>[39m
+
+  Name "Footprint module source":
+  [36m<textarea[39m
+    [33maria-label[39m=[32m"Footprint module source"[39m
+    [33mrows[39m=[32m"10"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Official KiCad libraries":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://www.kicad.org/libraries/download/"[39m
+    [33mrel[39m=[32m"noreferrer"[39m
+    [33mtarget[39m=[32m"_blank"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  status:
+
+  Name "":
+  [36m<p[39m
+    [33mrole[39m=[32m"status"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"sc-dlfnOL dhjERW"[39m
+    [36m>[39m
+      [36m<aside[39m
+        [33maria-label[39m=[32m"Footprint library catalog"[39m
+        [33mclass[39m=[32m"sc-hKgHXU gMRggF"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+        [36m>[39m
+          [0mClose catalog[0m
+        [36m</button>[39m
+        [36m<h2>[39m
+          [0mFootprint library[0m
+        [36m</h2>[39m
+        [36m<label>[39m
+          [0mSearch footprints[0m
+          [36m<input[39m
+            [33mtype[39m=[32m"search"[39m
+            [33mvalue[39m=[32m"mcu_nice_nano"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<details>[39m
+          [36m<summary>[39m
+            [0mImport footprints[0m
+          [36m</summary>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"import-actions"[39m
+          [36m>[39m
+            [36m<button>[39m
+              [0mImport KiCad footprint[0m
+            [36m</button>[39m
+            [0m [0m
+            [36m<button>[39m
+              [0mImport folder[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</details>[39m
+        [36m<input[39m
+          [33maccept[39m=[32m".kicad_mod,.js,.zip"[39m
+          [33maria-label[39m=[32m"Import footprint files"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mmultiple[39m=[32m""[39m
+          [33mtype[39m=[32m"file"[39m
+        [36m/>[39m
+        [36m<input[39m
+          [33maria-label[39m=[32m"Import .pretty folder"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mmultiple[39m=[32m""[39m
+          [33mtype[39m=[32m"file"[39m
+          [33mwebkitdirectory[39m=[32m""[39m
+        [36m/>[39m
+        [36m<h3>[39m
+          [0mYour footprints ([0m
+          [0m0[0m
+          [0m)[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-jSgsbC fWiRXk"[39m
+        [36m/>[39m
+        [36m<h3>[39m
+          [0mBundled & project ([0m
+          [0m1[0m
+          [0m)[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-jSgsbC fWiRXk"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"ceoloide/mcu_nice_nano · Bundled"[39m
+            [33maria-pressed[39m=[32m"true"[39m
+            [33mtitle[39m=[32m"ceoloide/mcu_nice_nano"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [36m<span>[39m
+                [0mmcu_nice_nano[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0mBundled[0m
+                [0m ·[0m
+                [0m [0m
+                [0mceoloide[0m
+              [36m</small>[39m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</aside>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"sc-iBPUmU kaVGhX"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-fubEtJ dQMYUF"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mCatalog[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mInspector[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"true"[39m
+          [36m>[39m
+            [0m3D[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0m2D[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"true"[39m
+          [36m>[39m
+            [0mMove[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mRotate[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mScale[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mView [0m
+            [0mback[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Canvas models"[39m
+        [36m>[39m
+          [0m${KIPRJMOD}/models/boardstudio/infused-kim/Back.step[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Magnified model alignment"[39m
+          [33mclass[39m=[32m"sc-pGbXd dUJhJq"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Canvas models"[39m
+          [36m>[39m
+            [0m${KIPRJMOD}/models/boardstudio/infused-kim/Back.step[0m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</main>[39m
+      [36m<aside[39m
+        [33maria-label[39m=[32m"Footprint inspector"[39m
+        [33mclass[39m=[32m"sc-hKgHXU gcodFt"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-gKscir QjkSy"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mClose inspector[0m
+          [36m</button>[39m
+          [36m<h2>[39m
+            [0mceoloide/mcu_nice_nano[0m
+          [36m</h2>[39m
+          [36m<p>[39m
+            [0mUnsaved changes[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"save-actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mdata-primary[39m=[32m"true"[39m
+            [36m>[39m
+              [0mSave footprint[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Undo footprint edit"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-undo2 lucide-undo-2"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M9 14 4 9l5-5"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 9h10.5a5.5 5.5 0 ...
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/molecules/FootprintLibrary.test.tsx > regenerates model bindings, preserves undo defaults, and rejects obsolete previews
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "View front"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Footprint library catalog":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Footprint library catalog"[39m
+    [33mclass[39m=[32m"sc-hKgHXU gMRggF"[39m
+  [36m/>[39m
+
+  Name "Footprint inspector":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Footprint inspector"[39m
+    [33mclass[39m=[32m"sc-hKgHXU gcodFt"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Footprint library":
+  [36m<h2 />[39m
+
+  Name "Your footprints (0)":
+  [36m<h3 />[39m
+
+  Name "Bundled & project (1)":
+  [36m<h3 />[39m
+
+  Name "ceoloide/mcu_nice_nano":
+  [36m<h2 />[39m
+
+  --------------------------------------------------
+  searchbox:
+
+  Name "Search footprints":
+  [36m<input[39m
+    [33mtype[39m=[32m"search"[39m
+    [33mvalue[39m=[32m"mcu_nice_nano"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  [36m<details />[39m
+
+  Name "Footprint settings":
+  [36m<fieldset />[39m
+
+  Name "Position (mm)":
+  [36m<fieldset />[39m
+
+  Name "Rotation (°)":
+  [36m<fieldset />[39m
+
+  Name "Scale":
+  [36m<fieldset />[39m
+
+  Name "":
+  [36m<details />[39m
+
+  Name "":
+  [36m<details />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Import KiCad footprint":
+  [36m<button />[39m
+
+  Name "Import folder":
+  [36m<button />[39m
+
+  Name "ceoloide/mcu_nice_nano · Bundled":
+  [36m<button[39m
+    [33maria-label[39m=[32m"ceoloide/mcu_nice_nano · Bundled"[39m
+    [33maria-pressed[39m=[32m"true"[39m
+    [33mtitle[39m=[32m"ceoloide/mcu_nice_nano"[39m
+  [36m/>[39m
+
+  Name "3D":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "2D":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Move":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Rotate":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Scale":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "View back":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Save footprint":
+  [36m<button[39m
+    [33mdata-primary[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Undo footprint edit":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Undo footprint edit"[39m
+  [36m/>[39m
+
+  Name "3D models":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"true"[39m
+  [36m/>[39m
+
+  Name "Pads & nets":
+  [36m<button[39m
+    [33maria-pressed[39m=[32m"false"[39m
+  [36m/>[39m
+
+  Name "Add models":
+  [36m<button />[39m
+
+  Name "Replace":
+  [36m<button />[39m
+
+  Name "Remove":
+  [36m<button />[39m
+
+  Name "Import from URL":
+  [36m<button[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Export footprint ZIP":
+  [36m<button />[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"sc-iBPUmU kaVGhX"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p />[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "side":
+  [36m<select[39m
+    [33maria-label[39m=[32m"side"[39m
+  [36m/>[39m
+
+  Name "Active model":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Active model"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "F":
+  [36m<option />[39m
+
+  Name "B":
+  [36m<option />[39m
+
+  Name "1. Back.step":
+  [36m<option[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Model offset X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset X"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model offset Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset Y"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model offset Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model offset Z"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"8.5"[39m
+  [36m/>[39m
+
+  Name "Model rotate X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate X"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model rotate Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate Y"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model rotate Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model rotate Z"[39m
+    [33mstep[39m=[32m"1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "Model scale X":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale X"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  Name "Model scale Y":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale Y"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  Name "Model scale Z":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model scale Z"[39m
+    [33mmin[39m=[32m"0.001"[39m
+    [33mstep[39m=[32m"0.1"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Model source URL":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Model source URL"[39m
+    [33mplaceholder[39m=[32m"${KICAD10_3DMODEL_DIR}/… or https://…"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Library name":
+  [36m<input[39m
+    [33mvalue[39m=[32m"ceoloide/mcu_nice_nano"[39m
+  [36m/>[39m
+
+  Name "Footprint module source":
+  [36m<textarea[39m
+    [33maria-label[39m=[32m"Footprint module source"[39m
+    [33mrows[39m=[32m"10"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Official KiCad libraries":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://www.kicad.org/libraries/download/"[39m
+    [33mrel[39m=[32m"noreferrer"[39m
+    [33mtarget[39m=[32m"_blank"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  status:
+
+  Name "":
+  [36m<p[39m
+    [33mrole[39m=[32m"status"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"sc-dlfnOL dhjERW"[39m
+    [36m>[39m
+      [36m<aside[39m
+        [33maria-label[39m=[32m"Footprint library catalog"[39m
+        [33mclass[39m=[32m"sc-hKgHXU gMRggF"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+        [36m>[39m
+          [0mClose catalog[0m
+        [36m</button>[39m
+        [36m<h2>[39m
+          [0mFootprint library[0m
+        [36m</h2>[39m
+        [36m<label>[39m
+          [0mSearch footprints[0m
+          [36m<input[39m
+            [33mtype[39m=[32m"search"[39m
+            [33mvalue[39m=[32m"mcu_nice_nano"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<details>[39m
+          [36m<summary>[39m
+            [0mImport footprints[0m
+          [36m</summary>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"import-actions"[39m
+          [36m>[39m
+            [36m<button>[39m
+              [0mImport KiCad footprint[0m
+            [36m</button>[39m
+            [0m [0m
+            [36m<button>[39m
+              [0mImport folder[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</details>[39m
+        [36m<input[39m
+          [33maccept[39m=[32m".kicad_mod,.js,.zip"[39m
+          [33maria-label[39m=[32m"Import footprint files"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mmultiple[39m=[32m""[39m
+          [33mtype[39m=[32m"file"[39m
+        [36m/>[39m
+        [36m<input[39m
+          [33maria-label[39m=[32m"Import .pretty folder"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mmultiple[39m=[32m""[39m
+          [33mtype[39m=[32m"file"[39m
+          [33mwebkitdirectory[39m=[32m""[39m
+        [36m/>[39m
+        [36m<h3>[39m
+          [0mYour footprints ([0m
+          [0m0[0m
+          [0m)[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-jSgsbC fWiRXk"[39m
+        [36m/>[39m
+        [36m<h3>[39m
+          [0mBundled & project ([0m
+          [0m1[0m
+          [0m)[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-jSgsbC fWiRXk"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"ceoloide/mcu_nice_nano · Bundled"[39m
+            [33maria-pressed[39m=[32m"true"[39m
+            [33mtitle[39m=[32m"ceoloide/mcu_nice_nano"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [36m<span>[39m
+                [0mmcu_nice_nano[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0mBundled[0m
+                [0m ·[0m
+                [0m [0m
+                [0mceoloide[0m
+              [36m</small>[39m
+            [36m</span>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</aside>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"sc-iBPUmU kaVGhX"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-fubEtJ dQMYUF"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mCatalog[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mInspector[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"true"[39m
+          [36m>[39m
+            [0m3D[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0m2D[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"true"[39m
+          [36m>[39m
+            [0mMove[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mRotate[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mScale[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+          [36m>[39m
+            [0mView [0m
+            [0mback[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Canvas models"[39m
+        [36m>[39m
+          [0m${KIPRJMOD}/models/boardstudio/infused-kim/Back.step[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Magnified model alignment"[39m
+          [33mclass[39m=[32m"sc-pGbXd dUJhJq"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Canvas models"[39m
+          [36m>[39m
+            [0m${KIPRJMOD}/models/boardstudio/infused-kim/Back.step[0m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</main>[39m
+      [36m<aside[39m
+        [33maria-label[39m=[32m"Footprint inspector"[39m
+        [33mclass[39m=[32m"sc-hKgHXU gcodFt"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"sc-gKscir QjkSy"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"sc-eCsseJ jfAMvy"[39m
+          [36m>[39m
+            [0mClose inspector[0m
+          [36m</button>[39m
+          [36m<h2>[39m
+            [0mceoloide/mcu_nice_nano[0m
+          [36m</h2>[39m
+          [36m<p>[39m
+            [0mUnsaved changes[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"save-actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mdata-primary[39m=[32m"true"[39m
+            [36m>[39m
+              [0mSave footprint[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Undo footprint edit"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-undo2 lucide-undo-2"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M9 14 4 9l5-5"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M4 9h10.5a5.5 5.5 0 ...
+ ❯ Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/molecules/FootprintLibrary.test.tsx:172:17
+    170|   expect(pending[3].params.side).toBe('B');
+    171|   await finish(3, 'Back');
+    172|   expect(screen.getByRole('button', { name: 'View front' })).toBeInThe…
+       |                 ^
+    173|   fireEvent.click(screen.getByRole('button', { name: 'View front' }));
+    174|   expect(screen.getByRole('button', { name: 'View back' })).toBeInTheD…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  15:20:45
+   Duration  2.33s (transform 265ms, setup 71ms, collect 519ms, tests 877ms, environment 580ms, prepare 63ms)
+

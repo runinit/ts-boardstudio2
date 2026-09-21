@@ -1,0 +1,182 @@
+[
+  {
+    "name": "switch_choc_v1_v2-1280-preview",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_choc_v1_v2-1280-settings",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_choc_v1_v2-768-preview",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_choc_v1_v2-768-settings",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_choc_v1_v2-375-preview",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_choc_v1_v2-375-settings",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-1280-preview",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-1280-settings",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-768-preview",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-768-settings",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-375-preview",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  },
+  {
+    "name": "switch_mx-375-settings",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-1280-preview",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-1280-settings",
+    "png": true,
+    "width": 1280,
+    "height": 900,
+    "expected": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-768-preview",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-768-settings",
+    "png": true,
+    "width": 768,
+    "height": 900,
+    "expected": {
+      "width": 768,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-375-preview",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  },
+  {
+    "name": "mcu_nice_nano-375-settings",
+    "png": true,
+    "width": 375,
+    "height": 900,
+    "expected": {
+      "width": 375,
+      "height": 900
+    }
+  }
+]

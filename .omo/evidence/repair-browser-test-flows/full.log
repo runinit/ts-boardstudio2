@@ -1,0 +1,994 @@
+[2m[WebServer] [22m(node:2198850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2198862) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 193 tests using 2 workers
+
+(node:2198885) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2198886) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2198886) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2198885) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    1 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px (6.7s)
+  ✓    2 [chromium] › e2e/app.spec.ts:5:5 › creates a matrix draft and previews its PCB (6.9s)
+  ✓    3 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px (5.2s)
+  ✓    5 [chromium] › e2e/bundled-model-export.spec.ts:28:5 › blocks export for an incompatible trackpoint extension (2.8s)
+  ✓    6 [chromium] › e2e/bundled-model-export.spec.ts:60:5 › invalidates and restores export after a model compatibility edit (6.8s)
+  ✓    7 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a koktoh/Choc_V2_Red.step default model without manual import (4.7s)
+  ✓    4 [chromium] › e2e/bhk.spec.ts:9:5 › loads the BHK example and regenerates it offline (25.2s)
+  ✓    8 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step default model without manual import (5.9s)
+  ✓    9 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Choc_V1_Keycap_MBK_Black_1u.step default model without manual import (3.9s)
+  ✓   10 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a gdek/KS33.stp default model without manual import (6.2s)
+  ✓   11 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/PinSocket_2x12_W15.24mm_Vertical.step default model without manual import (6.3s)
+  ✓   12 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/PinSocket_1x05_P2.54mm_Vertical.step default model without manual import (4.4s)
+  ✓   13 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a tsuki/nrf52840.step default model without manual import (4.0s)
+  ✓   14 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Switch_Reset.step default model without manual import (4.2s)
+  ✓   16 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Choc_V1_Switch.step default model without manual import (5.7s)
+  ✓   15 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kiswitch/SW_Cherry_MX_PCB.stp default model without manual import (7.4s)
+  ✓   17 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a infused-kim/Nice_Nano_V2.step default model without manual import (3.8s)
+  ✓   18 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a kicad/Panasonic_EVQPUL_EVQPUC.step default model without manual import (4.2s)
+  ✓   19 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a foostan/OLED-Module-with-Pins.step default model without manual import (3.6s)
+  ✓   21 [chromium] › e2e/debug.spec.ts:4:5 › minimal test: page loads and has welcome text (1.9s)
+  ✓   20 [chromium] › e2e/bundled-model-export.spec.ts:256:7 › exports a keebio/SK6812MINI-E v1.step default model without manual import (4.4s)
+  ✓   22 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default trackpoint model (14.8s)
+  ✓   23 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default trackpoint assembly (17.3s)
+  ✓   24 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default Choc-solder model (14.4s)
+  ✓   25 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default Choc-solder assembly (18.8s)
+  ✓   26 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default KS33 model (10.7s)
+  ✓   27 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default KS33 assembly (15.2s)
+  ✓   28 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default infused-nano model (15.8s)
+  ✓   30 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default infused-niceview model (9.7s)
+  ✓   29 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default infused-nano assembly (17.8s)
+  ✓   31 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default infused-niceview assembly (9.8s)
+  ✓   32 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default niceview model (9.4s)
+  ✓   33 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default niceview assembly (13.3s)
+  ✓   34 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default reset model (9.6s)
+  ✓   36 [chromium] › e2e/default-model-assembly.spec.ts:136:7 › builds a native assembly from the default Supermini model (10.2s)
+  ✓   35 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default reset assembly (11.5s)
+  ✓   37 [chromium] › e2e/default-model-assembly.spec.ts:216:7 › renders the default Supermini assembly (11.0s)
+  ✓   38 [chromium] › e2e/designs.spec.ts:116:1 › edits YAML through undo/redo and retains the preview on a broken reference (10.5s)
+  ✓   40 [chromium] › e2e/designs.spec.ts:197:1 › renders assembled and exploded STL parts (6.6s)
+  ✓   39 [chromium] › e2e/designs.spec.ts:169:1 › constrained dragging preserves formulas and hard dimensions (8.3s)
+  ✓   42 [chromium] › e2e/enclosures.spec.ts:133:5 › reopens a gasket enclosure offline without touching production storage (19.1s)
+  ✓   41 [chromium] › e2e/enclosures.spec.ts:67:5 › autosaves gasket case edits, restores them with undo and exports solids (22.5s)
+  ✓   44 [chromium] › e2e/enclosures.spec.ts:206:5 › keeps the native BHK boundary and limits switch selections to typed keys (9.9s)
+  ✓   43 [chromium] › e2e/enclosures.spec.ts:181:5 › uses the supplier CNC preset with explicit corner relief (18.5s)
+  ✓   45 [chromium] › e2e/enclosures.spec.ts:231:5 › inspects a native gasket case in every 3D view and selects a gasket in 3D (12.5s)
+  ✓   47 [chromium] › e2e/ergogen.spec.ts:19:5 › loads the physical stack source and export controls (4.6s)
+  ✓   48 [chromium] › e2e/ergogen.spec.ts:35:5 › downloads the physical stack board outline (4.9s)
+  ✓   49 [chromium] › e2e/ergogen.spec.ts:48:5 › renders the physical stack KiCad PCB (4.9s)
+  ✓   50 [chromium] › e2e/ergogen.spec.ts:60:5 › generates distinct physical stack STL parts and previews them (14.2s)
+  ✓   46 [chromium] › e2e/enclosures.spec.ts:281:5 › generates BHK CNC relief from the process controls (1.2m)
+  ✓   51 [chromium] › e2e/footprint-library.spec.ts:71:5 › imports a KiCad bundle, aligns models, links placements, and exports a portable project (1.6m)
+  ✓   53 [chromium] › e2e/gasket-plan.spec.ts:11:7 › edits BHK gaskets with pan and zoom at 1280px (50.8s)
+  ✘   52 [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding (3.1m)
+(node:2203513) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2203513) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+  ✓   55 [chromium] › e2e/github-loading.spec.ts:10:7 › GitHub Loading › should load config and footprints from ceoloide/mr_useful (2.8s)
+  -   56 [chromium] › e2e/github-loading.spec.ts:83:8 › GitHub Loading › should load config with URL parameter and footprints
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+  ✓   57 [chromium] › e2e/github-loading.spec.ts:151:7 › GitHub Loading › should accumulate footprints from sequential loads and reset conflict dialog (4.8s)
+  ✓   54 [chromium] › e2e/gasket-plan.spec.ts:11:7 › edits BHK gaskets with pan and zoom at 412px (1.5m)
+  ✓   59 [chromium] › e2e/guided-case.spec.ts:102:5 › edits contacts with the keyboard and preserves manual ownership during redistribution (8.0s)
+  ✓   58 [chromium] › e2e/guided-case.spec.ts:21:5 › plans gasket mounting before solids and only generates explicitly (18.8s)
+  ✓   60 [chromium] › e2e/guided-case.spec.ts:155:5 › exports a middle frame and rejects an outdated result (19.9s)
+  ✓   61 [chromium] › e2e/guided-case.spec.ts:204:5 › imports an STL for a PCB component and packages its KiCad model association (16.8s)
+  ✓   62 [chromium] › e2e/guided-case.spec.ts:292:5 › drags a gasket without generating and can undo the move (6.8s)
+  ✓   63 [chromium] › e2e/guided-case.spec.ts:328:5 › redistributes a requested contact count without generating solids (6.6s)
+  ✓   65 [chromium] › e2e/icons.spec.ts:4:5 › hosts fonts locally, including the PCB viewer (2.1s)
+  ✓   66 [chromium] › e2e/icons.spec.ts:21:5 › renders icons when the browser cannot use web fonts (2.0s)
+  ✓   64 [chromium] › e2e/guided-case.spec.ts:351:5 › generates with optional missing component envelopes and groups review (11.4s)
+  ✓   67 [chromium] › e2e/icons.spec.ts:44:5 › renders menu icons with external fonts blocked (3.3s)
+  ✓   69 [chromium] › e2e/inspector-preview.spec.ts:11:7 › Inspector preview retains draft, focus and scroll at 320px (3.3s)
+  ✓   68 [chromium] › e2e/icons.spec.ts:87:5 › loads the bundled icon font offline (6.5s)
+  ✓   70 [chromium] › e2e/inspector-preview.spec.ts:11:7 › Inspector preview retains draft, focus and scroll at 390px (4.2s)
+  ✓   71 [chromium] › e2e/inspector-preview.spec.ts:11:7 › Inspector preview retains draft, focus and scroll at 844px (3.9s)
+  ✓   72 [chromium] › e2e/inspector-resize.spec.ts:16:7 › manual inspector and batched resizing at 1440px (12.7s)
+  ✓   73 [chromium] › e2e/inspector-resize.spec.ts:16:7 › manual inspector and batched resizing at 390px (12.7s)
+  ✓   74 [chromium] › e2e/inspector-style.spec.ts:14:9 › Column Inspector keeps its palette and key actions usable at 1440px (3.3s)
+  ✓   75 [chromium] › e2e/inspector-style.spec.ts:14:9 › Column Inspector keeps its palette and key actions usable at 390px (3.4s)
+  ✓   76 [chromium] › e2e/inspector-style.spec.ts:14:9 › Row Inspector keeps its palette and key actions usable at 1440px (3.6s)
+  ✓   77 [chromium] › e2e/inspector-style.spec.ts:14:9 › Row Inspector keeps its palette and key actions usable at 390px (3.3s)
+  ✓   79 [chromium] › e2e/kicad10.spec.ts:75:5 › viewer reports unavailable WebGL (2.0s)
+  ✓   78 [chromium] › e2e/kicad10.spec.ts:12:5 › viewer reports malformed input then loads a native board (3.1s)
+  ✓   80 [chromium] › e2e/layout-redesign.spec.ts:10:5 › stages expressions and keycap dimensions without losing the canvas (5.5s)
+  ✓   81 [chromium] › e2e/layout-redesign.spec.ts:67:5 › selects a distance target on the canvas and preserves its position (5.4s)
+  ✓   82 [chromium] › e2e/layout-redesign.spec.ts:128:5 › keeps the narrow snapping menu above camera controls (1.9s)
+  ✘   84 [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 320px (7.8s)
+(node:2204568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2204568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   85 [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 390px (8.5s)
+(node:2204768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2204768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   86 [chromium] › e2e/layout-units.spec.ts:192:5 › snaps a component to a column center and optionally keeps the alignment (7.9s)
+(node:2204940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2204940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   87 [chromium] › e2e/layout-units.spec.ts:258:5 › exports fitting material separately from an interfering layer (7.9s)
+(node:2205092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2205092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   83 [chromium] › e2e/layout-units.spec.ts:14:5 › sets up an empty board, edits stagger, inserts and aligns an encoder (2.0m)
+(node:2205529) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2205529) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   89 [chromium] › e2e/model-worker.spec.ts:18:5 › imports real WRL, STEP, and STP models in the worker (17.4s)
+  ✓   90 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/foostan/OLED-Module-with-Pins.step (4.9s)
+  ✓   91 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/gdek/KS33.stp (5.1s)
+  ✓   92 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Choc_V1_Hotswap.step (4.8s)
+  ✓   93 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Choc_V1_Keycap_MBK_Black_1u.step (4.1s)
+  ✓   94 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Choc_V1_Keycap_MBK_Red_1u.step (3.9s)
+  ✘   88 [chromium] › e2e/layout-units.spec.ts:327:5 › shows named material layers and gap fit in setup (2.0m)
+(node:2205976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   95 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Choc_V1_Keycap_MBK_White_1u.step (3.9s)
+(node:2205976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   96 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Diode_1N4148W.step (3.4s)
+  ✓   97 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Choc_V1_Switch.step (6.5s)
+  ✓   98 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Molex_Ezmate_Pico_Cable_2pin.step (4.9s)
+  ✓   99 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Molex_Ezmate_Pico_Cable_5pin.step (4.9s)
+  ✓  100 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Molex_Ezmate_Pico_Socket_2pin.step (4.7s)
+  ✓  101 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Molex_Ezmate_Pico_Socket_5pin.step (4.6s)
+  ✓  102 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Nice_Nano_V2.step (6.5s)
+  ✓  103 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Nice_View.step (4.5s)
+  ✓  104 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinHeader_2.54mm_1x-4.step (3.6s)
+  ✓  105 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinHeader_2.54mm_1x-5.step (3.7s)
+  ✓  106 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinHeader_2.54mm_2x-12.step (4.7s)
+  ✓  107 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinSocket_2.54mm_5mm_1x-4.step (4.3s)
+  ✓  108 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinSocket_2.54mm_5mm_1x-5.step (3.8s)
+  ✓  109 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/PinSocket_2.54mm_5mm_2x-12.step (5.0s)
+  ✓  110 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/SMD_0805_Capacitor.step (3.7s)
+  ✓  111 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/SMD_0805_Resistor.step (3.4s)
+  ✓  112 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Switch_Power.step (3.9s)
+  ✓  113 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/Switch_Reset.step (5.0s)
+  ✓  114 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Cap_Green_T430.step (6.0s)
+  ✓  115 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Cap_Red_T460S.step (6.5s)
+  ✓  116 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md0.0_pcb1.6.step (5.4s)
+  ✓  117 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md0.5_pcb1.6.step (5.4s)
+  ✓  118 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md1.0_pcb1.6.step (5.1s)
+  ✓  119 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Extension_Red_T460S_h10.5_md2.0_pcb1.6.step (6.0s)
+  ✓  120 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Keycap_MBK_Black_stagger_2.375_large.step (19.2s)
+  ✓  121 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Keycap_MBK_Black_stagger_2.375_small.step (18.4s)
+  ✓  122 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step (4.9s)
+  ✓  123 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Red_T460S_screw_mount_z_offset_+0.0_pcb_-2.0.step (5.8s)
+  ✓  124 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/infused-kim/trackpoint/TP_Red_T460S_screw_mount_z_offset_-2.0_pcb_+0.0.step (6.6s)
+  ✓  125 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/keebio/PJ-320A.step (4.3s)
+  ✓  126 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/keebio/SK6812MINI-E v1.step (3.9s)
+  ✓  127 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal.step (3.9s)
+  ✓  128 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/Panasonic_EVQPUJ_EVQPUA.step (4.0s)
+  ✓  129 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/Panasonic_EVQPUL_EVQPUC.step (4.3s)
+  ✓  130 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/PinSocket_1x05_P2.54mm_Vertical.step (4.2s)
+  ✓  131 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/PinSocket_1x12_P2.54mm_Vertical.step (4.2s)
+  ✓  132 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kicad/PinSocket_2x12_W15.24mm_Vertical.step (5.2s)
+  ✓  134 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Cherry_MX_PCB.stp.stl (5.7s)
+  ✓  133 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Cherry_MX_PCB.stp (10.9s)
+  ✓  135 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Hotswap_Kailh_Choc_V1.stp (4.9s)
+  ✓  136 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Hotswap_Kailh_Choc_V1.stp.stl (2.8s)
+  ✓  138 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Hotswap_Kailh_MX.stp.stl (3.0s)
+  ✓  137 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Hotswap_Kailh_MX.stp (8.6s)
+  ✓  139 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Kailh_Choc_V1.stp (6.8s)
+  ✓  140 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/kiswitch/SW_Kailh_Choc_V1.stp.stl (2.8s)
+  ✓  142 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/koktoh/Choc_V2_Red.wrl (7.4s)
+  ✓  141 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/koktoh/Choc_V2_Red.step (10.5s)
+  ✓  143 [chromium] › e2e/model-worker.spec.ts:221:7 › imports bundled boardstudio/tsuki/nrf52840.step (3.8s)
+  ✘  145 [chromium] › e2e/native-layout.spec.ts:157:5 › shows independent floor and PCB layers in side view and generates their assembly (9.1s)
+(node:2207704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2207704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  146 [chromium] › e2e/native-layout.spec.ts:208:5 › preserves a legacy source while rejecting generation (2.1s)
+  ✓  147 [chromium] › e2e/native-layout.spec.ts:222:5 › moves an alias from its existing offset and restores the alias with undo (3.4s)
+  ✘  144 [chromium] › e2e/native-layout.spec.ts:76:5 › edits local key overrides, preserves arrangements, and enforces locks (2.0m)
+(node:2208491) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2208491) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  149 [chromium] › e2e/native-layout.spec.ts:291:5 › cancels, confirms and undoes removal of an edited column (3.0s)
+  ✓  150 [chromium] › e2e/native-layout.spec.ts:325:5 › repairs a published setup draft on a narrow screen without touching custom nets (3.3s)
+  ✓  151 [chromium] › e2e/native-regressions.spec.ts:70:5 › retains height blockers after cached mounting changes (3.2s)
+  ✘  148 [chromium] › e2e/native-layout.spec.ts:252:5 › grows an onboarding matrix and adds an owned thumb assembly (2.1m)
+(node:2208676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2208676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  152 [chromium] › e2e/native-regressions.spec.ts:122:5 › generates imported PCB with a native battery and shell opening (9.7s)
+  ✓  154 [chromium] › e2e/offline.spec.ts:30:5 › ignores a stale dependency cache after upgrading (7.3s)
+  ✓  153 [chromium] › e2e/offline.spec.ts:3:5 › reloads the application offline under the deployment path (8.6s)
+  ✓  155 [chromium] › e2e/offline.spec.ts:122:5 › opens the PCB viewer for the first time offline (10.7s)
+  ✓  156 [chromium] › e2e/outline-recovery.spec.ts:39:5 › creates, moves, and rebuilds a matrix outline as one undoable edit (14.8s)
+  ✓  157 [chromium] › e2e/outline-recovery.spec.ts:95:5 › repairs an imported legacy component region only on request and undoes exactly (5.3s)
+  ✓  159 [chromium] › e2e/routing.spec.ts:5:5 › opens native Board Studio on a fresh root route (2.2s)
+  ✓  160 [chromium] › e2e/routing.spec.ts:11:5 › opens native Board Studio directly at /new (2.2s)
+  ✓  161 [chromium] › e2e/routing.spec.ts:17:5 › restores a saved native project at the root route (1.5s)
+  ✓  162 [chromium] › e2e/routing.spec.ts:39:5 › creates a second project while retaining the first (3.3s)
+  ✓  163 [chromium] › e2e/routing.spec.ts:60:5 › keeps legacy points sources in the legacy editor (1.4s)
+  ✓  164 [chromium] › e2e/routing.spec.ts:68:5 › loads examples from /import into native Studio (1.6s)
+  ✘  158 [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML (30.9s)
+(node:2209273) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2209273) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  166 [chromium] › e2e/settings-consolidation.spec.ts:72:5 › edits column and key assembly scopes and resets a key to inheritance (7.1s)
+  ✘  167 [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop (9.5s)
+(node:2209496) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2209496) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  168 [chromium] › e2e/settings-consolidation.spec.ts:213:5 › shares mechanical stack editing between Case and Design setup (6.8s)
+  ✘  165 [chromium] › e2e/settings-consolidation.spec.ts:33:5 › keeps one matrix spacing editor and preserves defaults through a rename (2.0m)
+(node:2210003) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2210003) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  169 [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 320px (2.0m)
+(node:2210247) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2210247) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  171 [chromium] › e2e/snapping-disclosure.spec.ts:12:7 › snapping folds below its tool and fits at 1440px (3.1s)
+  ✓  172 [chromium] › e2e/snapping-disclosure.spec.ts:12:7 › snapping folds below its tool and fits at 390px (2.4s)
+  ✓  173 [chromium] › e2e/snapping-disclosure.spec.ts:12:7 › snapping folds below its tool and fits at 320px (2.3s)
+  ✓  174 [chromium] › e2e/snapping-disclosure.spec.ts:12:7 › snapping folds below its tool and fits at 844px (2.3s)
+  ✓  175 [chromium] › e2e/studio-continuous.spec.ts:98:5 › persists rapid moves through delayed analysis, undo and reload (6.9s)
+  ✘  176 [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates (18.2s)
+(node:2210618) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2210618) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  177 [chromium] › e2e/studio-continuous.spec.ts:290:5 › freezes exact contours across reload and rebuilds while remaining frozen (9.7s)
+  ✘  170 [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 390px (2.0m)
+(node:2210975) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2210975) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  179 [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings (8.4s)
+(node:2211061) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2211061) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  180 [chromium] › e2e/studio-settings-and-svg.spec.ts:22:5 › uploads an SVG outline and generates its output (3.7s)
+  ✓  178 [chromium] › e2e/studio-performance.spec.ts:24:5 › measures real keyboard editing response and source correctness (1.1m)
+  ✓  182 [chromium] › e2e/studio-workflow.spec.ts:86:5 › retains generated case outputs across Code, library and Export (12.2s)
+  ✓  183 [chromium] › e2e/workbench-layout.spec.ts:12:7 › keeps outline controls clear of canvas tools at 1440px (3.6s)
+  ✓  184 [chromium] › e2e/workbench-layout.spec.ts:12:7 › keeps outline controls clear of canvas tools at 390px (4.3s)
+  ✓  185 [chromium] › e2e/workbench-layout.spec.ts:12:7 › keeps outline controls clear of canvas tools at 320px (4.3s)
+  ✓  186 [chromium] › e2e/workbench-layout.spec.ts:12:7 › keeps outline controls clear of canvas tools at 844px (4.4s)
+  ✓  187 [chromium] › e2e/workbench-status.spec.ts:7:7 › explains current layout and blocked downloads at 1440px (3.9s)
+  ✓  188 [chromium] › e2e/workbench-status.spec.ts:7:7 › explains current layout and blocked downloads at 320px (3.8s)
+  ✓  189 [chromium] › e2e/workbench.spec.ts:6:5 › keeps mobile library actions out of the desktop editor (2.0s)
+  ✓  190 [chromium] › e2e/workbench.spec.ts:29:5 › retains an edited bundled part when browsing other parts (3.2s)
+  ✓  191 [chromium] › e2e/workbench.spec.ts:60:5 › retains the part editor draft when returning from board editing (3.5s)
+  ✘  192 [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 320px (8.7s)
+(node:2211777) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2211777) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  193 [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 390px (9.3s)
+  ✘  181 [chromium] › e2e/studio-workflow.spec.ts:15:5 › keeps navigation, selection and camera through Settings without editing source (2.0m)
+
+
+  1) [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding
+
+    TimeoutError: page.waitForEvent: Timeout 15000ms exceeded while waiting for event "download"
+    =========================== logs ===========================
+    waiting for event "download"
+    ============================================================
+
+      363 |     .getByRole('checkbox', { name: /I reviewed dimensions/ })
+      364 |     .check();
+    > 365 |   const download = page.waitForEvent('download');
+          |                         ^
+      366 |   await exportView
+      367 |     .getByRole('button', { name: 'Download case ZIP', exact: true })
+      368 |     .click();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/footprint-library.spec.ts:365:25
+
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('region', { name: 'Board Studio' }).getByRole('main').getByRole('button', { name: 'Download case ZIP', exact: true })[22m
+    [2m    - locator resolved to <button>Download case ZIP</button>[22m
+    [2m  - attempting click action[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is visible, enabled and stable[22m
+    [2m    - scrolling into view if needed[22m
+    [2m    - done scrolling[22m
+    [2m    - performing click action[22m
+
+
+      366 |   await exportView
+      367 |     .getByRole('button', { name: 'Download case ZIP', exact: true })
+    > 368 |     .click();
+          |      ^
+      369 |   await (await download).saveAs('test-results/cad-bhk-project.zip');
+      370 |   const zip = await JSZip.loadAsync(
+      371 |     readFileSync('test-results/cad-bhk-project.zip')
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/footprint-library.spec.ts:368:6
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/footprint-library-assigns--71080--exports-the-object-binding-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/footprint-library-assigns--71080--exports-the-object-binding-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/footprint-library-assigns--71080--exports-the-object-binding-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/layout-units.spec.ts:14:5 › sets up an empty board, edits stagger, inserts and aligns an encoder
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'New native design', exact: true })[22m
+
+
+      21 |   await page
+      22 |     .getByRole('button', { name: 'New native design', exact: true })
+    > 23 |     .click();
+         |      ^
+      24 |   await expect(
+      25 |     page.getByRole('region', { name: 'Design setup panel' })
+      26 |   ).toBeVisible();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:23:6
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-sets-up-an-em-beea6-serts-and-aligns-an-encoder-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-sets-up-an-em-beea6-serts-and-aligns-an-encoder-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-sets-up-an-em-beea6-serts-and-aligns-an-encoder-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 320px ──────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('region', { name: 'Design setup panel' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('region', { name: 'Design setup panel' })[22m
+
+
+      152 |     await expect(
+      153 |       page.getByRole('region', { name: 'Design setup panel' })
+    > 154 |     ).toBeVisible();
+          |       ^
+      155 |     await expect(
+      156 |       page.getByRole('status').filter({ hasText: 'Layout resolved' })
+      157 |     ).toBeVisible();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:154:7
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-320px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-320px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-320px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 390px ──────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('region', { name: 'Design setup panel' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('region', { name: 'Design setup panel' })[22m
+
+
+      152 |     await expect(
+      153 |       page.getByRole('region', { name: 'Design setup panel' })
+    > 154 |     ).toBeVisible();
+          |       ^
+      155 |     await expect(
+      156 |       page.getByRole('status').filter({ hasText: 'Layout resolved' })
+      157 |     ).toBeVisible();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:154:7
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-390px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-390px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-keeps-setup-and-the-layout-usable-at-390px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › e2e/layout-units.spec.ts:192:5 › snaps a component to a column center and optionally keeps the alignment
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('status').filter({ hasText: 'Layout resolved' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('status').filter({ hasText: 'Layout resolved' })[22m
+
+
+      215 |   await expect(
+      216 |     page.getByRole('status').filter({ hasText: 'Layout resolved' })
+    > 217 |   ).toBeVisible();
+          |     ^
+      218 |   await openExport(page);
+      219 |   await expect(
+      220 |     page.getByRole('button', { name: 'main · KiCad PCB' })
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:217:5
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-snaps-a-compo-601ea-ionally-keeps-the-alignment-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-snaps-a-compo-601ea-ionally-keeps-the-alignment-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-snaps-a-compo-601ea-ionally-keeps-the-alignment-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › e2e/layout-units.spec.ts:258:5 › exports fitting material separately from an interfering layer
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('status').filter({ hasText: 'Layout resolved' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('status').filter({ hasText: 'Layout resolved' })[22m
+
+
+      290 |   await expect(
+      291 |     page.getByRole('status').filter({ hasText: 'Layout resolved' })
+    > 292 |   ).toBeVisible();
+          |     ^
+      293 |   await openExport(page);
+      294 |   const foam = page.getByRole('button', { name: 'Download Plate foam DXF' });
+      295 |   await expect(foam).toBeEnabled({ timeout: 60000 });
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:292:5
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-exports-fitti-3d81a-y-from-an-interfering-layer-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-exports-fitti-3d81a-y-from-an-interfering-layer-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-exports-fitti-3d81a-y-from-an-interfering-layer-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › e2e/layout-units.spec.ts:327:5 › shows named material layers and gap fit in setup
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('tab', { name: 'Stackup', exact: true })[22m
+
+
+      361 |   await page.setViewportSize({ width: 1440, height: 1000 });
+      362 |   await page.goto('./');
+    > 363 |   await page.getByRole('tab', { name: 'Stackup', exact: true }).click();
+          |                                                                 ^
+      364 |   await expect(
+      365 |     page.getByRole('button', {
+      366 |       name: /Silicone sheet · silicone · 1 mm · Fits gap/,
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/layout-units.spec.ts:363:65
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/layout-units-shows-named-m-d5458-layers-and-gap-fit-in-setup-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/layout-units-shows-named-m-d5458-layers-and-gap-fit-in-setup-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/layout-units-shows-named-m-d5458-layers-and-gap-fit-in-setup-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › e2e/native-layout.spec.ts:76:5 › edits local key overrides, preserves arrangements, and enforces locks
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.check: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel('Locked', { exact: true })[22m
+    [2m    - locator resolved to <input type="checkbox" aria-label="Locked"/>[22m
+    [2m  - attempting click action[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    223 × waiting for element to be visible, enabled and stable[22m
+    [2m        - element is not visible[22m
+    [2m      - retrying click action[22m
+    [2m        - waiting 500ms[22m
+
+
+       98 |   );
+       99 |   await expect(page.getByLabel('Locked', { exact: true })).toBeEnabled();
+    > 100 |   await page.getByLabel('Locked', { exact: true }).check();
+          |                                                    ^
+      101 |   await expect(page.getByLabel('X', { exact: true })).toBeDisabled();
+      102 |   await page.screenshot({
+      103 |     path: test.info().outputPath('native-layout-top.png'),
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/native-layout.spec.ts:100:52
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/native-layout-edits-local--b489a-ngements-and-enforces-locks-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/native-layout-edits-local--b489a-ngements-and-enforces-locks-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/native-layout-edits-local--b489a-ngements-and-enforces-locks-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium] › e2e/native-layout.spec.ts:157:5 › shows independent floor and PCB layers in side view and generates their assembly
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('= 2.5 mm', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('= 2.5 mm', { exact: true })[22m
+
+
+      167 |     'floor'
+      168 |   );
+    > 169 |   await expect(page.getByText('= 2.5 mm', { exact: true })).toBeVisible();
+          |                                                             ^
+      170 |   await page
+      171 |     .getByRole('button', { name: 'Select screen', exact: true })
+      172 |     .press('Enter');
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/native-layout.spec.ts:169:61
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/native-layout-shows-indepe-9a193-nd-generates-their-assembly-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/native-layout-shows-indepe-9a193-nd-generates-their-assembly-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/native-layout-shows-indepe-9a193-nd-generates-their-assembly-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium] › e2e/native-layout.spec.ts:252:5 › grows an onboarding matrix and adds an owned thumb assembly
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('status').filter({ hasText: /Layout resolved/ })
+    Expected: visible
+    Timeout: 120000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 120000ms[22m
+    [2m  - waiting for getByRole('status').filter({ hasText: /Layout resolved/ })[22m
+
+
+      284 |   await expect(
+      285 |     page.getByRole('status').filter({ hasText: /Layout resolved/ })
+    > 286 |   ).toBeVisible({ timeout: TIMEOUT });
+          |     ^
+      287 |   await page.screenshot({
+      288 |     path: test.info().outputPath('onboarding-growth.png'),
+      289 |   });
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/native-layout.spec.ts:286:5
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/native-layout-grows-an-onb-55208-dds-an-owned-thumb-assembly-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/native-layout-grows-an-onb-55208-dds-an-owned-thumb-assembly-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/native-layout-grows-an-onb-55208-dds-an-owned-thumb-assembly-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML ───
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Code', exact: true })[22m
+
+
+       at utils/studio.ts:9
+
+       7 |   await expect(studio(page)).toBeVisible();
+       8 |   if (!(await page.getByLabel('Project YAML', { exact: true }).count())) {
+    >  9 |     await page.getByRole('button', { name: 'Code', exact: true }).click();
+         |                                                                   ^
+      10 |   }
+      11 |   await expect(page.getByLabel('Project YAML', { exact: true })).toBeVisible();
+      12 |   await page.waitForFunction(
+        at openCode (/home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/utils/studio.ts:9:67)
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/responsive.spec.ts:18:3
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/responsive-opens-the-shared-mobile-inspector-and-opens-YAML-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [chromium] › e2e/settings-consolidation.spec.ts:33:5 › keeps one matrix spacing editor and preserves defaults through a rename
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.scrollIntoViewIfNeeded: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - attempting scroll into view action[22m
+    [2m    2 × waiting for element to be stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying scroll into view action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying scroll into view action[22m
+    [2m      - waiting 100ms[22m
+    [2m    222 × waiting for element to be stable[22m
+    [2m        - element is not visible[22m
+    [2m      - retrying scroll into view action[22m
+    [2m        - waiting 500ms[22m
+
+
+      56 |   await page
+      57 |     .getByLabel('Column spacing', { exact: true })
+    > 58 |     .scrollIntoViewIfNeeded();
+         |      ^
+      59 |   await page.screenshot({ path: capture('desktop-matrix') });
+      60 |   await page.getByRole('button', { name: 'Design setup', exact: true }).click();
+      61 |   await expect(page.getByLabel('Horizontal pitch')).toHaveValue('18');
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/settings-consolidation.spec.ts:58:6
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-e8a62-s-defaults-through-a-rename-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-e8a62-s-defaults-through-a-rename-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-e8a62-s-defaults-through-a-rename-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeEnabled[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Keep relationship · Edge offset/ })
+    Expected: enabled
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeEnabled" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Keep relationship · Edge offset/ })[22m
+    [2m    3 × locator resolved to <button disabled>…</button>[22m
+    [2m      - unexpected value "disabled"[22m
+
+
+      186 |     name: /Keep relationship · Edge offset/,
+      187 |   });
+    > 188 |   await expect(keep).toBeEnabled();
+          |                      ^
+      189 |   expect(
+      190 |     parse(await readSource(page)).layout.objects.follower.placement.ref
+      191 |   ).toBeUndefined();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/settings-consolidation.spec.ts:188:22
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-ret-6b4b5-only-after-the-snapped-drop-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 320px
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Design setup', exact: true })[22m
+
+
+      280 |     await page
+      281 |       .getByRole('button', { name: 'Design setup', exact: true })
+    > 282 |       .click();
+          |        ^
+      283 |     await page.getByRole('tab', { name: 'Key assembly', exact: true }).click();
+      284 |     await expect(
+      285 |       page
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/settings-consolidation.spec.ts:282:8
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-57d6c-ed-controls-usable-at-320px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-57d6c-ed-controls-usable-at-320px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-57d6c-ed-controls-usable-at-320px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 390px
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Design setup', exact: true })[22m
+
+
+      280 |     await page
+      281 |       .getByRole('button', { name: 'Design setup', exact: true })
+    > 282 |       .click();
+          |        ^
+      283 |     await page.getByRole('tab', { name: 'Key assembly', exact: true }).click();
+      284 |     await expect(
+      285 |       page
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/settings-consolidation.spec.ts:282:8
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-766cd-ed-controls-usable-at-390px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-766cd-ed-controls-usable-at-390px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/settings-consolidation-kee-766cd-ed-controls-usable-at-390px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')[22m
+
+
+      24 | async function visibleOutline(page: Page) {
+      25 |   // Horizontal SVG segments have zero-height bounds; inspect their enclosing drawing.
+    > 26 |   await expect(outline(page)).toBeVisible();
+         |                               ^
+      27 |   await expect(outline(page).locator('polyline').first()).toHaveAttribute(
+      28 |     'points',
+      29 |     /[-\d.]+,[-\d.]+/
+        at visibleOutline (/home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/studio-continuous.spec.ts:26:31)
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/studio-continuous.spec.ts:278:9
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('dialog', { name: 'Project settings' }).getByText('Offline App', { exact: true })[22m
+
+
+      12 |   await expect(
+      13 |     settings.getByText('Offline App', { exact: true })
+    > 14 |   ).toBeVisible();
+         |     ^
+      15 |   await expect(
+      16 |     settings.locator(
+      17 |       '[data-testid="pwa-unavailable-button"], [data-testid="pwa-install-button"], [data-testid="pwa-installed-button"]'
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/studio-settings-and-svg.spec.ts:14:5
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/studio-settings-and-svg-sh-ba963--control-in-native-Settings-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [chromium] › e2e/studio-workflow.spec.ts:15:5 › keeps navigation, selection and camera through Settings without editing source
+
+    [31mTest timeout of 120000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 120000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Settings', exact: true })[22m
+
+
+      72 |   ).toBeVisible();
+      73 |   await page.screenshot({ path: test.info().outputPath('export-narrow.png') });
+    > 74 |   await page.getByRole('button', { name: 'Settings', exact: true }).click();
+         |                                                                     ^
+      75 |   await expect(
+      76 |     settings.getByRole('button', { name: 'Close settings' })
+      77 |   ).toBeInViewport();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/studio-workflow.spec.ts:74:69
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/studio-workflow-keeps-navi-91434-ings-without-editing-source-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/studio-workflow-keeps-navi-91434-ings-without-editing-source-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/studio-workflow-keeps-navi-91434-ings-without-editing-source-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  19) [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 320px ──────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeInViewport[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Code', exact: true })
+    Expected: in viewport
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeInViewport" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Code', exact: true })[22m
+
+
+      131 |       await expect(
+      132 |         page.getByRole('button', { name, exact: true })
+    > 133 |       ).toBeInViewport();
+          |         ^
+      134 |     }
+      135 |   });
+      136 | }
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/workbench.spec.ts:133:9
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-320px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-320px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-320px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20) [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 390px ──────────────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeInViewport[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Code', exact: true })
+    Expected: in viewport
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeInViewport" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Code', exact: true })[22m
+
+
+      131 |       await expect(
+      132 |         page.getByRole('button', { name, exact: true })
+    > 133 |       ).toBeInViewport();
+          |         ^
+      134 |     }
+      135 |   });
+      136 | }
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/workbench.spec.ts:133:9
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-390px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-390px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/full/workbench-uses-complete-mobile-drawers-at-390px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20 failed
+    [chromium] › e2e/footprint-library.spec.ts:244:5 › assigns a model to a native BHK controller and exports the object binding
+    [chromium] › e2e/layout-units.spec.ts:14:5 › sets up an empty board, edits stagger, inserts and aligns an encoder
+    [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 320px ───────
+    [chromium] › e2e/layout-units.spec.ts:145:7 › keeps setup and the layout usable at 390px ───────
+    [chromium] › e2e/layout-units.spec.ts:192:5 › snaps a component to a column center and optionally keeps the alignment
+    [chromium] › e2e/layout-units.spec.ts:258:5 › exports fitting material separately from an interfering layer
+    [chromium] › e2e/layout-units.spec.ts:327:5 › shows named material layers and gap fit in setup ─
+    [chromium] › e2e/native-layout.spec.ts:76:5 › edits local key overrides, preserves arrangements, and enforces locks
+    [chromium] › e2e/native-layout.spec.ts:157:5 › shows independent floor and PCB layers in side view and generates their assembly
+    [chromium] › e2e/native-layout.spec.ts:252:5 › grows an onboarding matrix and adds an owned thumb assembly
+    [chromium] › e2e/responsive.spec.ts:4:5 › opens the shared mobile inspector and opens YAML ─────
+    [chromium] › e2e/settings-consolidation.spec.ts:33:5 › keeps one matrix spacing editor and preserves defaults through a rename
+    [chromium] › e2e/settings-consolidation.spec.ts:133:5 › retains an edge relationship only after the snapped drop
+    [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 320px
+    [chromium] › e2e/settings-consolidation.spec.ts:255:7 › keeps consolidated controls usable at 390px
+    [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates
+    [chromium] › e2e/studio-settings-and-svg.spec.ts:5:5 › shows the Offline App control in native Settings
+    [chromium] › e2e/studio-workflow.spec.ts:15:5 › keeps navigation, selection and camera through Settings without editing source
+    [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 320px ────────────────
+    [chromium] › e2e/workbench.spec.ts:87:7 › uses complete mobile drawers at 390px ────────────────
+  1 skipped
+  172 passed (24.2m)

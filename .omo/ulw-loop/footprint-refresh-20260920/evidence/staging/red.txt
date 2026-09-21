@@ -1,0 +1,37 @@
+✖ stages quoted namespaces and unquoted builtins without evaluating modules (3.482292ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.576415
+
+✖ failing tests:
+
+test at app/scripts/tests/stage-footprints.test.cjs:8:1
+✖ stages quoted namespaces and unquoted builtins without evaluating modules (3.482292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      'bhkfp/cap_0603': 'throw new Error("must not evaluate footprint source");',
+      'ceoloide/switch_mx': 'throw new Error("must not evaluate footprint source");',
+      'infused-kimo/isde': 'throw new Error("must not evaluate footprint source");',
+  -   alps: 'throw new Error("must not evaluate footprint source");',
+  -   promicro: 'throw new Error("must not evaluate footprint source");'
+    }
+  
+      at TestContext.<anonymous> (/home/chris/projects/ts-boardstudio2/app/scripts/tests/stage-footprints.test.cjs:28:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { 'ceoloide/switch_mx': 'throw new Error("must not evaluate footprint source");', 'bhkfp/cap_0603': 'throw new Error("must not evaluate footprint source");', 'infused-kimo/isde': 'throw new Error("must not evaluate footprint source");' },
+    expected: { alps: 'throw new Error("must not evaluate footprint source");', promicro: 'throw new Error("must not evaluate footprint source");', 'ceoloide/switch_mx': 'throw new Error("must not evaluate footprint source");', 'bhkfp/cap_0603': 'throw new Error("must not evaluate footprint source");', 'infused-kimo/isde': 'throw new Error("must not evaluate footprint source");' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

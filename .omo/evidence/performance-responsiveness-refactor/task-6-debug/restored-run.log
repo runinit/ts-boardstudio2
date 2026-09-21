@@ -1,0 +1,50 @@
+[2m[WebServer] [22m(node:2291091) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2291103) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2291126) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2291126) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates (18.9s)
+
+
+  1) [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('group', { name: 'Interactive board layout' }).locator(':scope > g[transform="scale(1,-1)"][pointer-events="none"]')[22m
+
+
+      24 | async function visibleOutline(page: Page) {
+      25 |   // Horizontal SVG segments have zero-height bounds; inspect their enclosing drawing.
+    > 26 |   await expect(outline(page)).toBeVisible();
+         |                               ^
+      27 |   await expect(outline(page).locator('polyline').first()).toHaveAttribute(
+      28 |     'points',
+      29 |     /[-\d.]+,[-\d.]+/
+        at visibleOutline (/home/chris/projects/ts-boardstudio2-performance-refactor/app/e2e/studio-continuous.spec.ts:26:31)
+        at /home/chris/projects/ts-boardstudio2-performance-refactor/app/e2e/studio-continuous.spec.ts:278:9
+
+    Error Context: ../.omo/evidence/performance-responsiveness-refactor/task-6-debug/restored-run/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/performance-responsiveness-refactor/task-6-debug/restored-run/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/performance-responsiveness-refactor/task-6-debug/restored-run/studio-continuous-keeps-dr-02a59-ugh-delayed-outline-updates-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e/studio-continuous.spec.ts:164:5 › keeps drags, nudges and inspector edits through delayed outline updates 

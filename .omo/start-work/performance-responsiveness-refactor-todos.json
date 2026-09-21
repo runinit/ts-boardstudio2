@@ -1,0 +1,5 @@
+{
+  "wave1": {"status":"completed","tasks":{"1":"completed","2":"completed","3":"completed"}},
+  "wave2": {"status":"completed","tasks":{"4":"completed","5":"completed","6":"completed"}},
+  "final": {"status":"completed","tasks":{"F1":"completed","F2":"completed","F3":"completed","F4":"completed"}}
+}

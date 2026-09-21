@@ -1,0 +1,6 @@
+Sun Sep 20 20:51:18 UTC 2026
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+2190840 /usr/bin/bash -lc { date -u; ss -ltnp 'sport = :4184'; pgrep -af '/home/chris/projects/ts-boardstudio2-browser-test-flows.*(playwright|vite preview)' || true; find .omo/evidence/repair-browser-test-flows/native-green -type f -printf '%p %s bytes\n'; cat .omo/evidence/repair-browser-test-flows/native-green.exit; } > .omo/evidence/repair-browser-test-flows/native-cleanup.log cat .omo/evidence/repair-browser-test-flows/native-source-receipt.log cat .omo/evidence/repair-browser-test-flows/native-cleanup.log
+.omo/evidence/repair-browser-test-flows/native-green/app-creates-a-matrix-draft-and-previews-its-PCB-chromium/native-pcb.png 48100 bytes
+.omo/evidence/repair-browser-test-flows/native-green/.last-run.json 45 bytes
+0

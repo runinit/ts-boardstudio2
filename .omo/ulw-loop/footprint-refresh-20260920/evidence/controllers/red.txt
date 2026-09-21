@@ -1,0 +1,19 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: track owns its connected pad net
+
+NaN !== 13
+
+    at inspect (file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshControllers.test.mjs:39:41)
+    at file:///home/chris/projects/ts-boardstudio2/footprints/scripts/refreshControllers.test.mjs:58:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: NaN,
+  expected: 13,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.14.0

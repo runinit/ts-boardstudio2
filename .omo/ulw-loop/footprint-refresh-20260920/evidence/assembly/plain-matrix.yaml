@@ -1,0 +1,64 @@
+schema: ergogen/v1
+layout:
+  objects: {fingers_c1_r1: { kind: key, label: fingers_c1_r1, part: mx, pcb: main, cluster: fingers, cell: [ c1, r1 ], envelopes: { keycap: { size: [ 18, 18 ] } }, footprints: { switch: { params: { to: "{{name}}_switch" } }, studio_diode: { what: diode, placement: { at: [ 0, -5, 0 ] }, params: { from: "{{name}}_switch", to: "{{row_net}}" } } } }, fingers_c2_r1: { kind: key, label: fingers_c2_r1, part: mx, pcb: main, cluster: fingers, cell: [ c2, r1 ], envelopes: { keycap: { size: [ 18, 18 ] } }, footprints: { switch: { params: { to: "{{name}}_switch" } }, studio_diode: { what: diode, placement: { at: [ 0, -5, 0 ] }, params: { from: "{{name}}_switch", to: "{{row_net}}" } } } }, mcu: { models: [], kind: component, pcb: main, layer: main_top, placement: { at: [ 0, 0, 0 ] }, envelopes: { pcb: { size: [ 18, 34 ] }, body: { size: [ 18, 34 ], height: [ 0, 5 ] } }, footprints: { main: { what: promicro, params: { orientation: up, P0: fingers_c1, P1: fingers_r1, P2: fingers_c2 }, placement: { rotate: 90 } } }, label: Pro Micro ATmega32U4, properties: { role: controller, required_nets: [], controller: promicro } }}
+  clusters:
+    fingers:
+      label: fingers
+      arrangement:
+        type: columns
+        columns:
+          [ c1, c2 ]
+        rows:
+          [ r1 ]
+        pitch:
+          - pitch
+          - pitch
+  layers:
+    main_top:
+      surface: pcb.main.top
+designs:
+  regions:
+    board:
+      shape:
+        size:
+          - 120
+          - 80
+  profiles:
+    board:
+      from: regions.board
+pcbs:
+  main:
+    profile: profiles.board
+units:
+  pitch: 19
+parts:
+  mx:
+    revision: "1"
+    envelopes:
+      pcb:
+        size:
+          - 18
+          - 18
+      plate:
+        size:
+          - 14
+          - 14
+      keycap:
+        size:
+          - 18
+          - 18
+    footprints:
+      switch:
+        what: mx
+        params:
+          from: "{{column_net}}"
+          to: "{{row_net}}"
+meta:
+  studio:
+    electronics:
+      fingers_c1_r1:
+        diode:
+          switch: null
+      fingers_c2_r1:
+        diode:
+          switch: null

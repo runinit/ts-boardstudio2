@@ -1,0 +1,9 @@
+2026-09-20T20:48:41-04:00
+64bfc2e84dc871b191d237fbd3d759f67fc05a76
+ M app/e2e/studio-performance.spec.ts
+ M app/src/utils/studioSource.ts
+ M app/src/utils/studioSourceBatch.test.ts
+?? .omo/evidence/performance-responsiveness-refactor/
+?? .omo/plans/
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+Verifier launched only completed Vitest processes; no browser/server was launched or terminated. Existing baseline-run ownership and implementation edits remain with their owner.

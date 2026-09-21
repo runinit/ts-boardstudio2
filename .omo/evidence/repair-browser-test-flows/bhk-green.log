@@ -1,0 +1,78 @@
+[2m[WebServer] [22m(node:2191257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2191269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:2191311) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2191311) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px (1.5m)
+(node:2191916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2191916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px (1.5m)
+
+
+  1) [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px ────────────────
+
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 90000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel('Relative x', { exact: true })[22m
+
+
+      50 |     await expect(addKey).toBeVisible();
+      51 |     await expect(addKey).toBeEnabled();
+    > 52 |     await page.getByLabel('Relative x', { exact: true }).fill('1');
+         |                                                          ^
+      53 |     await page
+      54 |       .getByRole('button', { name: 'Apply relative adjustment' })
+      55 |       .click();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/bhk-matrix.spec.ts:52:58
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-1440px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-1440px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-1440px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px ─────────────────
+
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 90000ms exceeded.
+    Call log:
+    [2m  - waiting for getByLabel('Relative x', { exact: true })[22m
+
+
+      50 |     await expect(addKey).toBeVisible();
+      51 |     await expect(addKey).toBeEnabled();
+    > 52 |     await page.getByLabel('Relative x', { exact: true }).fill('1');
+         |                                                          ^
+      53 |     await page
+      54 |       .getByRole('button', { name: 'Apply relative adjustment' })
+      55 |       .click();
+        at /home/chris/projects/ts-boardstudio2-browser-test-flows/app/e2e/bhk-matrix.spec.ts:52:58
+
+    Error Context: ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-390px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-390px-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../.omo/evidence/repair-browser-test-flows/bhk-green/bhk-matrix-edits-BHK-rows-and-columns-at-390px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 1440px ─────────────────
+    [chromium] › e2e/bhk-matrix.spec.ts:9:7 › edits BHK rows and columns at 390px ──────────────────

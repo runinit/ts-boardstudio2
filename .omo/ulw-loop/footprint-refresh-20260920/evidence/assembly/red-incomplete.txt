@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/assemblyNets.test.ts (8 tests | 1 failed) 404ms
+   × reports unavailable matrix resolution while editing an incomplete part definition 20ms
+     → layout.objects.fingers_c1_r1.part: Missing part definition
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/assemblyNets.test.ts > reports unavailable matrix resolution while editing an incomplete part definition
+DesignError: layout.objects.fingers_c1_r1.part: Missing part definition
+ ❯ Object.fail ../engine/src/designs/geometry.js:21:50
+ ❯ ../engine/src/native/layout.js:177:28
+    175|             if (!KINDS.includes(spec.kind)) { g.fail(path,'Unknown obj…
+    176|             const part=spec.part ? config.parts?.[spec.part] : {}
+    177|             if (!part) { g.fail(`${path}.part`, 'Missing part definiti…
+       |                            ^
+    178|             if (spec.kind==='anchor' && (spec.part || spec.envelopes |…
+    179|                 g.fail(path,'Reference anchors cannot own physical env…
+ ❯ guarded ../engine/src/native/layout.js:61:22
+ ❯ object ../engine/src/native/layout.js:174:16
+ ❯ Module.resolve ../engine/src/native/layout.js:292:50
+ ❯ Module.effectiveElectrical src/utils/assemblyElectrical.ts:26:24
+ ❯ Module.syncControllerNets src/utils/assemblyNets.ts:43:21
+ ❯ src/utils/assemblyNets.test.ts:71:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  15:09:29
+   Duration  2.16s (transform 202ms, setup 88ms, collect 603ms, tests 404ms, environment 828ms, prepare 74ms)
+

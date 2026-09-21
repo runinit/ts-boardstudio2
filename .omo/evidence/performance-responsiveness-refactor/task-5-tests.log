@@ -1,0 +1,436 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2-performance-refactor/app
+
+stdout | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > uses the native project title when creating an unnamed project
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > does not generate solids for native thumbnails during storage migration
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter and update the config
+[useConfigLoader] Loading from URL parameter: https://github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+[GitHub] Starting fetch from URL: https://github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 0,
+  outlinesCount: 0,
+  configPath: 'config.yaml',
+  rateLimitWarning: undefined
+}
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should fetch config from github url parameter without protocol and update the config
+[useConfigLoader] Loading from URL parameter: github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+[GitHub] Starting fetch from URL: github.com/ceoloide/corney-island/blob/main/ergogen/config.yaml
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 0,
+  outlinesCount: 0,
+  configPath: 'config.yaml',
+  rateLimitWarning: undefined
+}
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > should load footprints from github url parameter and merge them
+[useConfigLoader] Loading from URL parameter: https://github.com/ceoloide/test-repo
+[GitHub] Starting fetch from URL: https://github.com/ceoloide/test-repo
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Loaded footprint: test_footprint
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub Rate Limit] Limit: unknown, Remaining: unknown, Used: unknown, Reset: unknown
+[GitHub] Checking for .gitmodules file
+[useConfigLoader] Fetch result: {
+  configLength: 10,
+  footprintsCount: 1,
+  outlinesCount: 0,
+  configPath: '',
+  rateLimitWarning: undefined
+}
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should inhibit auto-generation when showSettings is true
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should terminate the old worker, create a new one, and trigger generation when showSettings transitions from true to false
+Settings panel closed. Restarting Ergogen worker to clear stale custom libraries...
+Ergogen worker terminated.
+Initializing fresh Ergogen worker...
+Ergogen worker initialized.
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > Settings Panel Interaction > should terminate the old worker, create a new one, and trigger generation when showSettings transitions from true to false
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should switch between configurations and update values correctly without cross-contamination
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should switch between configurations and update values correctly without cross-contamination
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should not allow renaming a configuration to an existing name and should set error
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should not allow renaming a configuration to an existing name and should set error
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should convert a preview configuration into a saved configuration when savePreviewConfig is called
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should convert a preview configuration into a saved configuration when savePreviewConfig is called
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should backup deleted configurations in ergogen:deleted-config and prune them correctly
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should backup deleted configurations in ergogen:deleted-config and prune them correctly
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should upgrade version 1 to version 2 on load and trigger background generation for configurations missing preview SVG
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+Triggering background preview generation for: V1 Config
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should upgrade version 1 to version 2 on load and trigger background generation for configurations missing preview SVG
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > multi-configuration management actions > should process background generation worker success message and update previewSvg in local storage without triggering STL conversion
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > realtime config input functions > should retrieve and update the realtime config input value
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should debounce tracking by 5 seconds and only send the latest event
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should correctly chain lineages across multiple distinct generations
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should ignore duplicate compilation results with identical layout geometries
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stderr | src/context/ConfigContext.test.tsx > ConfigContextProvider > GA4 Keyboard Generation Tracking & Debouncing > should reset lineage when a config lifecycle action (like selectConfig) is triggered
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should set deprecationWarning when a PCB uses kicad5 template and ceoloide footprint
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stdout | src/context/ConfigContext.test.tsx > ConfigContextProvider > KiCad 5 deprecation warning detection > should NOT set deprecationWarning when a PCB uses kicad8 template and ceoloide footprint
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > publishes a design only after every STL part succeeds
+--- JSCAD worker error: Invalid tray mesh
+
+stderr | src/context/ConfigContext.test.tsx > clears a previous generation error when creating another project
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+ ✓ src/context/ConfigContext.test.tsx (33 tests) 182ms
+stderr | src/molecules/StudioCanvas.test.tsx > keeps the viewport stable while selecting a column to move
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > starts an object move in Select mode without changing tools
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > keeps the camera fixed when a dropped object changes the layout bounds
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > commits keyboard nudges while analysis is stale
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > draws each accepted draft pose while background analysis is pending
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+    at Draft (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.test.tsx:210:53)
+
+stderr | src/molecules/StudioCanvas.test.tsx > opens selection controls after a click without opening them during pointer movement
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > preserves the chosen scope when selection changes outside the canvas
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > flushes the final pointer delta on release before its animation frame
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+stderr | src/molecules/StudioCanvas.test.tsx > selects the physical row from the canvas row tool
+Warning: An update to StudioCanvas inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at StudioCanvas (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/molecules/StudioCanvas.tsx:35:3)
+
+ ✓ src/molecules/StudioCanvas.test.tsx (9 tests) 1042ms
+   ✓ keeps the viewport stable while selecting a column to move 362ms
+
+ Test Files  2 passed (2)
+      Tests  42 passed (42)
+   Start at  20:52:10
+   Duration  5.03s (transform 616ms, setup 129ms, collect 2.00s, tests 1.22s, environment 1.25s, prepare 133ms)
+

@@ -1,0 +1,75 @@
+diff --git a/app/e2e/app.spec.ts b/app/e2e/app.spec.ts
+index edf752e..7fb2db6 100644
+--- a/app/e2e/app.spec.ts
++++ b/app/e2e/app.spec.ts
+@@ -1,14 +1,39 @@
+ import { test, expect } from '@playwright/test';
++import { isMap, parseDocument } from 'yaml';
+ import { createDraft, openCode, readSource } from './utils/studio';
+
+ test('creates a matrix draft and previews its PCB', async ({ page }) => {
+   await page.goto('./new');
+   await createDraft(page);
+-  await page.getByRole('button', { name: 'Add matrix', exact: true }).click();
+-  await page.getByLabel('New item name').fill('fingers');
+-  await page.getByLabel('New matrix columns').fill('5');
+-  await page.getByLabel('New matrix rows').fill('4');
+-  await page.getByRole('button', { name: 'Create', exact: true }).click();
++  await expect
++    .poll(async () => parseDocument(await readSource(page)).toJS())
++    .toMatchObject({
++      schema: 'ergogen/v1',
++      layout: {
++        clusters: {
++          fingers: {
++            arrangement: {
++              type: 'columns',
++              columns: ['c1', 'c2', 'c3', 'c4', 'c5'],
++              rows: ['r1', 'r2', 'r3', 'r4'],
++            },
++          },
++        },
++      },
++    });
++  await expect
++    .poll(async () => {
++      const objects = parseDocument(await readSource(page)).getIn([
++        'layout',
++        'objects',
++      ]);
++      return isMap(objects)
++        ? objects.items.filter(({ key }) =>
++            /^fingers_c\d+_r\d+$/.test(String(key))
++          ).length
++        : 0;
++    })
++    .toBe(20);
+   await expect(
+     page.getByRole('group', { name: 'Interactive board layout' })
+   ).toBeVisible();
+@@ -27,4 +52,5 @@ test('creates a matrix draft and previews its PCB', async ({ page }) => {
+   });
+   await expect(page.getByText(/PCB preview unavailable/)).toHaveCount(0);
+   await expect(page.locator('kicanvas-source')).toBeHidden();
++  await page.screenshot({ path: test.info().outputPath('native-pcb.png') });
+ });
+diff --git a/app/e2e/utils/studio.ts b/app/e2e/utils/studio.ts
+index 9cd2069..4a9216d 100644
+--- a/app/e2e/utils/studio.ts
++++ b/app/e2e/utils/studio.ts
+@@ -71,11 +71,11 @@ export async function openLibrary(page: Page) {
+ }
+
+ export async function createDraft(page: Page) {
+-  await page
+-    .getByRole('button', { name: 'New native design', exact: true })
+-    .click();
+-  await page.getByRole('button', { name: 'Apply setup', exact: true }).click();
++  await expect(page).toHaveURL('./');
+   await expect(studio(page)).toBeVisible();
++  await expect(
++    page.getByRole('button', { name: /^Select fingers_c\d+_r\d+$/ })
++  ).toHaveCount(20);
+ }
+
+ export async function openInspector(page: Page) {

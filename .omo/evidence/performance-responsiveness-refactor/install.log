@@ -1,0 +1,25 @@
+Scope: all 4 workspace projects
+✓ Lockfile passes supply-chain policies (verified 8h ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +985
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /home/chris/.local/share/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 985, reused 980, downloaded 0, added 306
+Progress: resolved 985, reused 980, downloaded 0, added 985, done
+
+app postinstall$ pnpm run build-ergogen
+app postinstall: $ ./patch/patch_ergogen.sh
+app postinstall: {"ceoloide":24,"infusedKim":15}
+app postinstall: src/ergogen.js → dist/ergogen.js...
+app postinstall: (!) Circular dependencies
+app postinstall: src/utils.js -> src/assert.js -> src/utils.js
+app postinstall: src/utils.js -> src/assert.js -> src/point.js -> src/utils.js
+app postinstall: created dist/ergogen.js in 2s
+app postinstall: Done
+app prepare$ husky
+app prepare: .git can't be found
+app prepare: Done
+Done in 6s using pnpm v11.26.0

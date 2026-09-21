@@ -1,0 +1,41 @@
+[2m[WebServer] [22m(node:2080506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2080522) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2080617) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2080617) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/footprint-parameters.spec.ts:7:5 › regenerates footprint settings and reopens saved defaults (7.8s)
+
+
+  1) [chromium] › e2e/footprint-parameters.spec.ts:7:5 › regenerates footprint settings and reopens saved defaults 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('region', { name: 'Board Studio' }).getByRole('group', { name: 'Footprint settings' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('region', { name: 'Board Studio' }).getByRole('group', { name: 'Footprint settings' })[22m
+
+
+      16 |   await dialog.getByRole('button', { name: 'Prepare selected', exact: true }).click();
+      17 |   await dialog.getByRole('button', { name: 'Review Settings.js', exact: true }).click();
+    > 18 |   await expect(dialog.getByRole('group', { name: 'Footprint settings' })).toBeVisible();
+         |                                                                           ^
+      19 |   await dialog.getByRole('combobox', { name: 'side', exact: true }).selectOption('B');
+      20 |   await dialog.getByRole('checkbox', { name: 'reversible', exact: true }).check();
+      21 |   await dialog.getByRole('spinbutton', { name: 'width', exact: true }).fill('3');
+        at /home/chris/projects/ts-boardstudio2/app/e2e/footprint-parameters.spec.ts:18:75
+
+    Error Context: test-results/footprint-parameters-regen-e2077--and-reopens-saved-defaults-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/footprint-parameters.spec.ts:7:5 › regenerates footprint settings and reopens saved defaults 

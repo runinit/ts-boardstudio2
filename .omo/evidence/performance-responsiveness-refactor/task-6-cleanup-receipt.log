@@ -1,0 +1,11 @@
+Task 6 validation cleanup receipt
+SHA: 64bfc2e84dc871b191d237fbd3d759f67fc05a76
+Worktree: /home/chris/projects/ts-boardstudio2-performance-refactor
+Focused browser lane port: 4185 (released)
+Focused browser lane vite/playwright processes: none after exit 1
+Port 4184: parent benchmark preview released after exit 0; no listener remains
+Tracked source files after validation:
+  app/e2e/studio-performance.spec.ts
+  app/src/utils/studioSource.ts
+  app/src/utils/studioSourceBatch.test.ts
+No source/test files edited by this validation lane.

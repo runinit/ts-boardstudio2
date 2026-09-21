@@ -1,0 +1,193 @@
+{
+  "runtime": "v24.14.0",
+  "authored": {
+    "column_net": "extra_c1",
+    "row_net": "extra_row",
+    "assembly_template": "Default key assembly"
+  },
+  "effective": {
+    "column_net": "extra_c1",
+    "row_net": "extra_row",
+    "assembly_template": "Default key assembly"
+  },
+  "contacts": [
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "1",
+      "type": "thru_hole",
+      "net": "extra_c1"
+    },
+    {
+      "number": "2",
+      "type": "thru_hole",
+      "net": "extra_switch"
+    }
+  ],
+  "mcu": [
+    {
+      "number": "1",
+      "type": "thru_hole",
+      "net": "RAW"
+    },
+    {
+      "number": "2",
+      "type": "thru_hole",
+      "net": "GND"
+    },
+    {
+      "number": "3",
+      "type": "thru_hole",
+      "net": "RST"
+    },
+    {
+      "number": "4",
+      "type": "thru_hole",
+      "net": "VCC"
+    },
+    {
+      "number": "5",
+      "type": "thru_hole",
+      "net": "P21"
+    },
+    {
+      "number": "6",
+      "type": "thru_hole",
+      "net": "P20"
+    },
+    {
+      "number": "7",
+      "type": "thru_hole",
+      "net": "P19"
+    },
+    {
+      "number": "8",
+      "type": "thru_hole",
+      "net": "P18"
+    },
+    {
+      "number": "9",
+      "type": "thru_hole",
+      "net": "P15"
+    },
+    {
+      "number": "10",
+      "type": "thru_hole",
+      "net": "P14"
+    },
+    {
+      "number": "11",
+      "type": "thru_hole",
+      "net": "P16"
+    },
+    {
+      "number": "12",
+      "type": "thru_hole",
+      "net": "P10"
+    },
+    {
+      "number": "13",
+      "type": "thru_hole",
+      "net": "C2"
+    },
+    {
+      "number": "14",
+      "type": "thru_hole",
+      "net": "C1"
+    },
+    {
+      "number": "15",
+      "type": "thru_hole",
+      "net": "GND"
+    },
+    {
+      "number": "16",
+      "type": "thru_hole",
+      "net": "GND"
+    },
+    {
+      "number": "17",
+      "type": "thru_hole",
+      "net": "C3"
+    },
+    {
+      "number": "18",
+      "type": "thru_hole",
+      "net": "R1"
+    },
+    {
+      "number": "19",
+      "type": "thru_hole",
+      "net": "R2"
+    },
+    {
+      "number": "20",
+      "type": "thru_hole",
+      "net": "extra_c1"
+    },
+    {
+      "number": "21",
+      "type": "thru_hole",
+      "net": "extra_row"
+    },
+    {
+      "number": "22",
+      "type": "thru_hole",
+      "net": "P7"
+    },
+    {
+      "number": "23",
+      "type": "thru_hole",
+      "net": "P8"
+    },
+    {
+      "number": "24",
+      "type": "thru_hole",
+      "net": "P9"
+    }
+  ],
+  "nativeImplicit": {
+    "column_net": "free_column",
+    "row_net": "free_row"
+  },
+  "freeContacts": [
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "",
+      "type": "np_thru_hole",
+      "net": ""
+    },
+    {
+      "number": "1",
+      "type": "thru_hole",
+      "net": "free_column"
+    },
+    {
+      "number": "2",
+      "type": "thru_hole",
+      "net": "free_row"
+    }
+  ]
+}

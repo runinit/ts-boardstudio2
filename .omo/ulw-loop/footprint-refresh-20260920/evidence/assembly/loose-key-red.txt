@@ -1,0 +1,44 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/studioSourceBatch.test.ts (9 tests | 1 failed | 8 skipped) 144ms
+   × creates one loose key with native owned electronics without intermediate field edits 143ms
+     → expected { kind: 'key', label: 'extra', …(7) } to match object { kind: 'key', …(3) }
+(9 matching properties omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/studioSourceBatch.test.ts > creates one loose key with native owned electronics without intermediate field edits
+AssertionError: expected { kind: 'key', label: 'extra', …(7) } to match object { kind: 'key', …(3) }
+(9 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+    "kind": "key",
+    "part": "assembly_mx_solder",
+    "pcb": "main",
+    "properties": Object {
+-     "column_net": "extra_c1",
++     "column_net": "extra_column",
+      "row_net": "extra_row",
+    },
+  }
+
+ ❯ src/utils/studioSourceBatch.test.ts:202:25
+    200| 
+    201|   // Then: its part, independent net identity and owned diode are comp…
+    202|   expect(objects.extra).toMatchObject({
+       |                         ^
+    203|     kind: 'key',
+    204|     part: 'assembly_mx_solder',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+   Start at  15:35:40
+   Duration  1.56s (transform 198ms, setup 70ms, collect 576ms, tests 144ms, environment 542ms, prepare 58ms)
+

@@ -1,0 +1,2 @@
+e2e/utils/studio.ts(95,45): error TS2353: Object literal may only specify known properties, and 'selector' does not exist in type '{ exact?: boolean | undefined; }'.
+scoped_tsc_exit=2

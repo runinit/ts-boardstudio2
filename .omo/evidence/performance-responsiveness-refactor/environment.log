@@ -1,0 +1,14 @@
+captured_at=2026-09-20T20:06:45-04:00
+node=v24.14.0
+node_path=/home/chris/.nvm/versions/node/v24.14.0/bin/node
+pnpm=11.26.0
+playwright=Version 1.59.1
+sha=64bfc2e84dc871b191d237fbd3d759f67fc05a76
+ports=
+dist_freshness=
+2026-09-20T20:06:10.0549994500 2200 app/dist/ergogen.png
+2026-09-20T20:06:10.0549994500 7406 app/dist/favicon.ico
+2026-09-20T20:06:10.0669998530 67 app/dist/robots.txt
+2026-09-20T20:06:10.0669998530 780 app/dist/manifest.json
+2026-09-20T20:06:11.5710503910 1817 app/dist/index.html
+2026-09-20T20:06:12.9200957200 38360 app/dist/service-worker.js

@@ -1,0 +1,12 @@
+F3 final surface cleanup receipt
+SHA: bfaafb4b1aca4fe849d1effdef0872dc6b91672d
+Worktree: /home/chris/projects/ts-boardstudio2-performance-refactor
+QA action: read-only review of retained browser, screenshot, benchmark, and debug artifacts
+Product/test edits by this lane: none
+Candidate source snapshot: 30f533f8fccb16c17354b3011c7cd89a4d86abcfc326481094a34400ee5099bf
+Focused browser lane: exact-SHA fresh run exit 1 because delayed-outline scenario failed; 14 other tests passed
+Delayed-outline classification: reproduced on candidate, baseline, and restored runs; pre-existing disconnected-boundary fixture issue
+Port 4184: no listener at cleanup
+Port 4185: no listener at cleanup
+Owned Vite/Playwright processes: none at cleanup
+Parent-owned working-tree changes: preserved untouched

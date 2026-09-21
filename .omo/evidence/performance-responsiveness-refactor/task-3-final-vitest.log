@@ -1,0 +1,87 @@
+2026-09-20T21:29:04-04:00
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2-performance-refactor/app
+
+ ✓ src/utils/layoutSource.test.ts > Native layout transactions > stores local movement without replacing the driven position
+ ✓ src/utils/layoutSource.test.ts > Native layout transactions > rejects edits to locked objects
+ ✓ src/utils/layoutSource.test.ts > Native layout transactions > keeps fixed axes across cumulative moves
+ ✓ src/utils/layoutSource.test.ts > stores a mirrored member edit in that cluster and respects the source cluster lock
+ ✓ src/utils/layoutSource.test.ts > materializes only the moved alias instance
+ ✓ src/utils/layoutSource.test.ts > adds movement to an aliased override without changing its source or siblings
+ ✓ src/utils/layoutSource.test.ts > retains formulas and locks inherited through an alias
+ ✓ src/utils/layoutSource.test.ts > resizes solver freedoms on an alias without changing its source
+ ✓ src/utils/layoutSource.test.ts > keeps inspector coordinate and rotation targets fixed
+ ✓ src/utils/layoutSource.test.ts > updates a model list while preserving untouched model text
+ ✓ src/utils/studioMove.test.ts > moves a key and its selected owned component once in world axes
+ ✓ src/utils/studioMove.test.ts > snaps the nearby outside component edge with a 2 mm gap
+ ✓ src/utils/studioMove.test.ts > attaches with the current offset and follows a later parent move
+ ✓ src/utils/studioMove.test.ts > rejects a placement cycle and locked selection atomically
+ ✓ src/utils/studioMove.test.ts > preserves orientation when attaching to a rotated target
+ ✓ src/utils/studioMove.test.ts > does not snap across different physical boards or distant edges
+ ✓ src/utils/studioMove.test.ts > snaps rotated edges rather than an axis-aligned bounding box
+ ✓ src/utils/studioMove.test.ts > refuses a flush-edge snap that would crowd another neighbour
+ ✓ src/utils/studioMove.test.ts > starts a fixed movement from the visible solved placement
+ ✓ src/utils/projectHistory.test.ts > shares source history across code and visual commands
+ ✓ src/utils/projectHistory.test.ts > keeps an invalid source draft recoverable and resets between projects
+ ✓ src/utils/projectHistory.test.ts > amends only the originating revision without an extra undo step
+ ✓ src/utils/projectHistory.test.ts > rejects amendments after undo, reset, and newer edits
+ ✓ src/utils/studioSourceBatch.test.ts > adds a row with native electronics without reparsing for every default field 326ms
+ ✓ src/utils/studioSourceBatch.test.ts > reserves owned component identities before adding another named cell
+ ✓ src/utils/studioSourceBatch.test.ts > initializes legacy key electronics in one insertion per new key
+ ✓ src/utils/studioSourceBatch.test.ts > removes one row and its owned electronics with one source deletion pass
+ ✓ src/utils/studioSourceBatch.test.ts > keeps an edited owned diode behind the resize review boundary
+ ✓ src/utils/studioSourceBatch.test.ts > matches ordinary assembly application when compiling a batch of new keys
+ ✓ src/utils/studioSourceBatch.test.ts > creates one loose key with native owned electronics without intermediate field edits
+ ✓ src/utils/studioSourceBatch.test.ts > keeps different column recipes when a row creates multiple assembly groups
+ ✓ src/utils/studioSourceBatch.test.ts > rejects batch removal when an owned component is locked
+ ✓ src/utils/sourceSnapshot.test.ts > keeps cached reads isolated from callers and resolves aliases
+ ✓ src/utils/sourceSnapshot.test.ts > invalidates on source changes and rejects malformed YAML
+ ✓ src/utils/studioSource.test.ts > creates parametric keys and retains identities and unrelated source
+ ✓ src/utils/studioSource.test.ts > blocks deleting a referenced object and edits collections locally
+ ✓ src/utils/studioSource.test.ts > duplicates a selected key without changing its part or original nets
+ ✓ src/utils/studioSource.test.ts > retains footprint providers when duplicating and gives keys new net identities
+ ✓ src/utils/studioSource.test.ts > creates an outline selection that includes future keys
+ ✓ src/utils/studioSource.test.ts > leaves component envelopes open when creating automatic outlines
+ ✓ src/utils/studioSource.test.ts > allocates new footprint references when duplicating a BHK-style key
+ ✓ src/utils/studioSource.test.ts > grows a matrix without restoring deliberately deleted keys
+ ✓ src/utils/studioSource.test.ts > mounts a new matrix on its PCB top surface 610ms
+ ✓ src/utils/studioSource.test.ts > mounts new thumb clusters and loose keys on the existing PCB layer 650ms
+ ✓ src/utils/studioSource.test.ts > deletes a cluster and its own members together 595ms
+ ✓ src/utils/studioSource.test.ts > protects outside references when deleting a cluster
+ ✓ src/utils/studioSource.test.ts > rebuilds the current outline without leaving an invalid old boundary
+ ✓ src/utils/studioSource.test.ts > preserves an explicit hole policy while rebuilding
+ ✓ src/utils/studioSource.test.ts > retains layout, bridges, clearance, and corners while rebuilding
+ ✓ src/utils/studioSource.test.ts > reuses generated regions so old component closing is removed on rebuild
+ ✓ src/utils/studioSource.test.ts > respects a profile hole policy when its boundary has no policy
+ ✓ src/utils/studioSource.test.ts > removes generated bridges with a deleted cluster but protects manual links
+ ✓ src/utils/studioSource.test.ts > preserves shared automatic regions during rebuild
+ ✓ src/utils/studioSource.test.ts > preserves custom selectors when rebuilding an outline
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c1 column 351ms
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c2 column 313ms
+ ✓ src/utils/resizeSpacing.test.ts > makes room for a 1.5u c3 column
+ ✓ src/utils/resizeSpacing.test.ts > restores spacing after repeated grow and shrink 904ms
+ ✓ src/utils/resizeSpacing.test.ts > clears objects resizing including taller keys
+ ✓ src/utils/resizeSpacing.test.ts > clears objects resizing including taller keys
+ ✓ src/utils/resizeSpacing.test.ts > clears clusters resizing including taller keys 426ms
+ ✓ src/utils/resizeSpacing.test.ts > preserves authored offset expressions across grow and shrink 647ms
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit left alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit center alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > preserves explicit right alignment while clearing neighbours
+ ✓ src/utils/resizeSpacing.test.ts > respects locked downstream columns and records an export blocker
+ ✓ src/utils/resizeSpacing.test.ts > retains splay, stagger and expressions in rotated matrices 358ms
+ ✓ src/utils/resizeSpacing.test.ts > keeps mirrors and attached electronics in their native relationships 424ms
+ ✓ src/utils/resizeSpacing.test.ts > keeps edited generated compensation as authored placement
+ ✓ src/utils/resizeSpacing.test.ts > keeps constrained spacing unchanged and records the conflict
+ ✓ src/utils/resizeSpacing.test.ts > rejects an anchor shift that moves a locked attachment atomically
+ ✓ src/utils/resizeSpacing.test.ts > saves size and spacing in a single undoable edit
+ ✓ src/utils/resizeSpacing.test.ts > retains generated spacing when a downstream key is locked after growth 311ms
+ ✓ src/utils/resizeSpacing.test.ts > reports a resized outside anchor driven by an authored constraint
+ ✓ src/utils/resizeSpacing.test.ts > leaves external keys in place and reports blocked clearance
+
+ Test Files  7 passed (7)
+      Tests  75 passed (75)
+   Start at  21:29:05
+   Duration  7.87s (transform 558ms, setup 492ms, collect 3.65s, tests 10.59s, environment 5.12s, prepare 557ms)
+
+2026-09-20T21:29:13-04:00

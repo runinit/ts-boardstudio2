@@ -1,0 +1,40 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/assemblyElectrical.test.ts (2 tests | 1 failed) 13ms
+   × keeps inherited rotation when an instance overrides only footprint translation 11ms
+     → expected { at: [ 2, 3, +0 ] } to deeply equal { at: [ 2, 3, +0 ], rotate: 25 }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/assemblyElectrical.test.ts > keeps inherited rotation when an instance overrides only footprint translation
+AssertionError: expected { at: [ 2, 3, +0 ] } to deeply equal { at: [ 2, 3, +0 ], rotate: 25 }
+
+- Expected
++ Received
+
+  Object {
+    "at": Array [
+      2,
+      3,
+      0,
+    ],
+-   "rotate": 25,
+  }
+
+ ❯ src/utils/assemblyElectrical.test.ts:11:29
+      9|   };
+     10|   const binding = inheritedBinding(data, { part: 'key', footprints: { …
+     11|   expect(binding.placement).toEqual({ at: [2, 3, 0], rotate: 25 });
+       |                             ^
+     12| });
+     13| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  15:12:49
+   Duration  2.26s (transform 337ms, setup 95ms, collect 986ms, tests 13ms, environment 731ms, prepare 78ms)
+

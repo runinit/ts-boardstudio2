@@ -1,0 +1,5 @@
+schema: ergogen/v1
+layout:
+  objects: {}
+pcbs:
+  main: {}

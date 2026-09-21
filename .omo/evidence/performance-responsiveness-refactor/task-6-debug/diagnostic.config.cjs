@@ -1,0 +1,2 @@
+const { defineConfig } = require("/home/chris/projects/ts-boardstudio2-performance-refactor/app/node_modules/@playwright/test");
+module.exports=defineConfig({testDir:__dirname,testMatch:'diagnostic.spec.ts',retries:0,workers:1,use:{baseURL:'http://127.0.0.1:4184/boardstudio/',trace:'retain-on-failure'},webServer:{command:'pnpm --dir app exec vite preview --host 127.0.0.1 --port 4184 --strictPort',cwd:"/home/chris/projects/ts-boardstudio2-performance-refactor",url:'http://127.0.0.1:4184/boardstudio/',reuseExistingServer:false}});

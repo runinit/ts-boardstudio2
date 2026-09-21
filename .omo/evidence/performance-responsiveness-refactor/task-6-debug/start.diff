@@ -1,0 +1,57 @@
+diff --git a/app/e2e/studio-performance.spec.ts b/app/e2e/studio-performance.spec.ts
+index 6cea71e..9ed598e 100644
+--- a/app/e2e/studio-performance.spec.ts
++++ b/app/e2e/studio-performance.spec.ts
+@@ -27,7 +27,7 @@ test('measures real keyboard editing response and source correctness', async ({
+   const initial = process.env.PERF_SOURCE
+     ? await readFile(process.env.PERF_SOURCE, 'utf8')
+     : performanceFixture(columns, rows);
+-  test.setTimeout(600000);
++  test.setTimeout(Number(process.env.PERF_TIMEOUT_MS || 600000));
+   page.setDefaultTimeout(15000);
+   await mkdir(output, { recursive: true });
+   await writeFile(resolve(output, 'initial-source.yaml'), initial);
+diff --git a/app/src/utils/studioSource.ts b/app/src/utils/studioSource.ts
+index 4d5ad60..018fd15 100644
+--- a/app/src/utils/studioSource.ts
++++ b/app/src/utils/studioSource.ts
+@@ -11,6 +11,7 @@ import { sourceDocument, sourceValue } from './sourceSnapshot';
+ import { removeSourceValues } from './removeSourceValues';
+ import {
+   appendFields,
++  editMappingFields,
+   editField as setValue,
+   SourcePath,
+ } from './designSource';
+@@ -723,16 +724,8 @@ export function resizeCluster(
+     ? removeObjects(source, 'objects', removed)
+     : source;
+   if (!arc) {
+-    result = setValue(
+-      result,
+-      ['layout', 'clusters', id, 'arrangement', 'columns'],
+-      columns
+-    );
+-    result = setValue(
+-      result,
+-      ['layout', 'clusters', id, 'arrangement', 'rows'],
+-      rows
+-    );
++    const arrangementPath = ['layout', 'clusters', id, 'arrangement'];
++    result = editMappingFields(result, arrangementPath, { columns, rows });
+   }
+   const added: string[] = [];
+   const additions: Record<string, StudioItem> = {};
+diff --git a/app/src/utils/studioSourceBatch.test.ts b/app/src/utils/studioSourceBatch.test.ts
+index 4089662..c7c1a18 100644
+--- a/app/src/utils/studioSourceBatch.test.ts
++++ b/app/src/utils/studioSourceBatch.test.ts
+@@ -52,7 +52,7 @@ it('adds a row with native electronics without reparsing for every default field
+   expect(objects.fingers_c3_r3_diode).toMatchObject({
+     properties: { owner: 'fingers_c3_r3', role: 'diode' },
+   });
+-  expect(parseCount).toBeLessThanOrEqual(10);
++  expect(parseCount).toBeLessThanOrEqual(9);
+ });
+ 
+ it('reserves owned component identities before adding another named cell', () => {

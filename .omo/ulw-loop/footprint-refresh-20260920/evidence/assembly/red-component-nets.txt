@@ -1,0 +1,37 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/assemblyElectrical.test.ts (3 tests | 1 failed) 21ms
+   × retains declared matrix nets on a non-key component 19ms
+     → expected [] to deeply equal [ 'AUX_COL', 'AUX_ROW' ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/assemblyElectrical.test.ts > retains declared matrix nets on a non-key component
+AssertionError: expected [] to deeply equal [ 'AUX_COL', 'AUX_ROW' ]
+
+- Expected
++ Received
+
+- Array [
+-   "AUX_COL",
+-   "AUX_ROW",
+- ]
++ Array []
+
+ ❯ src/utils/assemblyElectrical.test.ts:59:47
+     57|   const { effectiveElectrical, matrixElectrical } = await import('./as…
+     58|   const objects = effectiveElectrical('schema: ergogen/v1\nlayout:\n  …
+     59|   expect([...matrixElectrical(objects).nets]).toEqual(['AUX_COL', 'AUX…
+       |                                               ^
+     60| });
+     61| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  15:16:01
+   Duration  1.43s (transform 184ms, setup 70ms, collect 573ms, tests 21ms, environment 546ms, prepare 60ms)
+

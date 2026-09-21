@@ -1,0 +1,38 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2-performance-refactor/app
+
+stdout | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Version 1 or legacy configuration detected on load. Triggering background preview generation for all configs missing a preview SVG...
+
+stderr | src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+Warning: An update to ConfigContextProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ConfigContextProvider (/home/chris/projects/ts-boardstudio2-performance-refactor/app/src/context/ConfigContext.tsx:244:3)
+
+ ✓ src/context/ConfigContext.test.tsx > edits and undoes a design without a mounted code editor
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 32 skipped (33)
+   Start at  20:47:45
+   Duration  1.85s (transform 398ms, setup 71ms, collect 1.00s, tests 30ms, environment 553ms, prepare 59ms)
+

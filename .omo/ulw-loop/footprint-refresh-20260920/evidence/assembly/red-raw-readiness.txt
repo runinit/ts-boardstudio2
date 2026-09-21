@@ -1,0 +1,37 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+stderr | src/molecules/BoardStudio.test.tsx
+WARNING: Multiple instances of Three.js being imported.
+
+ ❯ src/molecules/BoardStudio.test.tsx (29 tests | 1 failed | 26 skipped) 1338ms
+   ✓ raw matrix wiring readiness > sets PCB readiness from the current resolved junction conflict=false 841ms
+   × raw matrix wiring readiness > sets PCB readiness from the current resolved junction conflict=true 261ms
+     → expect(element).toBeDisabled()
+
+Received element is not disabled:
+  <button />
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/molecules/BoardStudio.test.tsx > raw matrix wiring readiness > sets PCB readiness from the current resolved junction conflict=true
+Error: expect(element).toBeDisabled()
+
+Received element is not disabled:
+  <button />
+ ❯ src/molecules/BoardStudio.test.tsx:588:26
+    586|       const download = screen.getByRole('button', { name: 'Download PC…
+    587|       if (conflict) {
+    588|         expect(download).toBeDisabled();
+       |                          ^
+    589|         fireEvent.click(screen.getByRole('button', { name: /Review .*b…
+    590|         expect(screen.getByRole('region', { name: 'Project findings' }…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed | 26 skipped (29)
+   Start at  15:18:31
+   Duration  4.58s (transform 1.00s, setup 73ms, collect 2.33s, tests 1.34s, environment 576ms, prepare 62ms)
+

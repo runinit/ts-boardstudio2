@@ -1,0 +1,5 @@
+$ tsc --noEmit
+src/molecules/FootprintCanvas.tsx(207,169): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/utils/assemblyElectrical.test.ts(59,14): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/utils/boardExportReadiness.ts(29,14): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+[ELIFECYCLE] Command failed with exit code 2.

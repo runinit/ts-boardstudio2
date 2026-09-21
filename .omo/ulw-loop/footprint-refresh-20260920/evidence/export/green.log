@@ -1,0 +1,17 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ✓ src/utils/zip.test.ts (9 tests) 22ms
+stderr | src/utils/zip.export.test.ts > keeps per-project compilation errors and continues exporting valid projects
+Failed to compile config Broken: Error: Unknown footprint selected
+    at Object.worker.onmessage (/home/chris/projects/ts-boardstudio2/app/src/utils/zip.ts:217:16)
+    at /home/chris/projects/ts-boardstudio2/app/src/utils/zip.export.test.ts:20:24
+
+ ✓ src/utils/zip.export.test.ts (24 tests) 149ms
+
+ Test Files  2 passed (2)
+      Tests  33 passed (33)
+   Start at  15:20:43
+   Duration  1.75s (transform 412ms, setup 140ms, collect 1.40s, tests 171ms, environment 1.13s, prepare 119ms)
+

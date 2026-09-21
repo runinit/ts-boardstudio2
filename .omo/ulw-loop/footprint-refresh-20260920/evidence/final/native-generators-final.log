@@ -1,0 +1,19 @@
+{
+  "footprints": {
+    "missing": [],
+    "changed": []
+  },
+  "models": {
+    "missing": [],
+    "changed": []
+  },
+  "invalidKeys": [],
+  "unlisted": {
+    "ceoloide": [],
+    "infused-kim": [],
+    "models": []
+  },
+  "invalidCandidates": [],
+  "mappingsUnverified": true,
+  "nonphysical": 9
+}

@@ -1,0 +1,52 @@
+{
+  "event": "load",
+  "node": "v24.14.0",
+  "bundlePath": "/home/chris/projects/ts-boardstudio2/app/dist/dependencies/kicanvas.js",
+  "bundleSha256": "cbf7a578f3c825c1838f6d29274d79ce06c72208a34476e86b526cbf68ef92c2",
+  "sourceSha256": "3aee182c98c64886e4cff343c96fe920772885d8bab732fe42b51282ed85ca84",
+  "sourceUnchanged": true,
+  "parsed": [
+    {
+      "number": "1",
+      "net": "signal_0",
+      "lookupMatches": true
+    },
+    {
+      "number": "2",
+      "net": "signal_1",
+      "lookupMatches": true
+    },
+    {
+      "number": "0",
+      "net": "signal_2",
+      "lookupMatches": true
+    },
+    {
+      "number": "01",
+      "net": "signal_3",
+      "lookupMatches": true
+    },
+    {
+      "number": "A1",
+      "net": "signal_4",
+      "lookupMatches": true
+    },
+    {
+      "number": "",
+      "net": "signal_5",
+      "lookupMatches": true
+    },
+    {
+      "number": "3",
+      "net": "signal_6",
+      "lookupMatches": true
+    }
+  ],
+  "issues": [
+    {
+      "type": "response",
+      "url": "http://127.0.0.1:43183/$$:0:$$",
+      "status": 404
+    }
+  ]
+}

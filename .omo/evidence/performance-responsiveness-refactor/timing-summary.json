@@ -1,0 +1,1382 @@
+{
+  "schema": 1,
+  "source": ".omo/evidence/performance-responsiveness-refactor/baseline/timings.json",
+  "testedSha": "64bfc2e84dc871b191d237fbd3d759f67fc05a76",
+  "fixture": {
+    "columns": 10,
+    "rows": 6,
+    "keys": 60,
+    "native": true,
+    "led": true
+  },
+  "expectedActionRecords": 51,
+  "capturedActionRecords": 50,
+  "missingRecords": [
+    "add-key-4"
+  ],
+  "testErrors": [],
+  "groups": {
+    "nudge": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 107.10000002384186,
+        "p95Ms": 114.10000002384186,
+        "minMs": 104.10000002384186,
+        "maxMs": 114.10000002384186
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 106.80000007152557,
+        "p95Ms": 113.79999995231628,
+        "minMs": 103.69999992847443,
+        "maxMs": 113.79999995231628
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 435.3000000715256,
+        "p95Ms": 566.8999999761581,
+        "minMs": 429.60000002384186,
+        "maxMs": 566.8999999761581
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 9768.699999928474,
+        "p95Ms": 10290.400000095367,
+        "minMs": 9496.399999976158,
+        "maxMs": 10290.400000095367
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 7561.399999976158,
+        "p95Ms": 7951.800000071526,
+        "minMs": 7441,
+        "maxMs": 7951.800000071526
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 9356,
+        "p95Ms": 9696.300000071526,
+        "minMs": 9193.899999976158,
+        "maxMs": 9696.300000071526
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 6910.299999952316,
+        "p95Ms": 7286.200000047684,
+        "minMs": 6826.399999976158,
+        "maxMs": 7286.200000047684
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 8737.799999952316,
+        "p95Ms": 9030.700000047684,
+        "minMs": 8579.299999952316,
+        "maxMs": 9030.700000047684
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 12,
+        "maxDurationMs": 446,
+        "totalDurationMs": 2999
+      }
+    },
+    "frozen-rebuild": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 1,
+        "medianMs": 8333.5,
+        "p95Ms": 8333.5,
+        "minMs": 8333.5,
+        "maxMs": 8333.5
+      },
+      "publishedSuccessMs": {
+        "n": 1,
+        "medianMs": 10403.199999928474,
+        "p95Ms": 10403.199999928474,
+        "minMs": 10403.199999928474,
+        "maxMs": 10403.199999928474
+      },
+      "requestToOutlineMs": {
+        "n": 1,
+        "medianMs": 8119.200000047684,
+        "p95Ms": 8119.200000047684,
+        "minMs": 8119.200000047684,
+        "maxMs": 8119.200000047684
+      },
+      "requestToSuccessMs": {
+        "n": 1,
+        "medianMs": 10188.899999976158,
+        "p95Ms": 10188.899999976158,
+        "minMs": 10188.899999976158,
+        "maxMs": 10188.899999976158
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "drag": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 31.800000071525574,
+        "p95Ms": 32.39999997615814,
+        "minMs": 27.5,
+        "maxMs": 32.39999997615814
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 170.5,
+        "p95Ms": 174.19999992847443,
+        "minMs": 167.29999995231628,
+        "maxMs": 174.19999992847443
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 517.7000000476837,
+        "p95Ms": 592.3999999761581,
+        "minMs": 483.39999997615814,
+        "maxMs": 592.3999999761581
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 9756.600000023842,
+        "p95Ms": 10248.299999952316,
+        "minMs": 9703,
+        "maxMs": 10248.299999952316
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 7555,
+        "p95Ms": 8064.699999928474,
+        "minMs": 7523.300000071526,
+        "maxMs": 8064.699999928474
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 9534.899999976158,
+        "p95Ms": 10036.5,
+        "minMs": 9490.399999976158,
+        "maxMs": 10036.5
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 6849.600000023842,
+        "p95Ms": 7352.700000047684,
+        "minMs": 6813.5,
+        "maxMs": 7352.700000047684
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 8829.5,
+        "p95Ms": 9314.300000071526,
+        "minMs": 8780.299999952316,
+        "maxMs": 9314.300000071526
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 10,
+        "maxDurationMs": 412,
+        "totalDurationMs": 2261
+      }
+    },
+    "add-columns": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 6097.200000047684,
+        "p95Ms": 13042.5,
+        "minMs": 5951.800000071526,
+        "maxMs": 13042.5
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 6096.800000071526,
+        "p95Ms": 13042.100000023842,
+        "minMs": 5951.5,
+        "maxMs": 13042.100000023842
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 6097.100000023842,
+        "p95Ms": 13042.399999976158,
+        "minMs": 5951.600000023842,
+        "maxMs": 13042.399999976158
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 16852.200000047684,
+        "p95Ms": 24115.200000047684,
+        "minMs": 16556.300000071526,
+        "maxMs": 24115.200000047684
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 14405.100000023842,
+        "p95Ms": 21651.899999976158,
+        "minMs": 14164.899999976158,
+        "maxMs": 21651.899999976158
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 16601,
+        "p95Ms": 23873.700000047684,
+        "minMs": 16300.899999976158,
+        "maxMs": 23873.700000047684
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 8108.399999976158,
+        "p95Ms": 8434.199999928474,
+        "minMs": 8037.899999976158,
+        "maxMs": 8434.199999928474
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 10304.299999952316,
+        "p95Ms": 10656,
+        "minMs": 10173.899999976158,
+        "maxMs": 10656
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 5,
+        "maxDurationMs": 13040,
+        "totalDurationMs": 37236
+      }
+    },
+    "remove-columns-0-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4238.299999952316,
+        "p95Ms": 4238.299999952316,
+        "minMs": 4238.299999952316,
+        "maxMs": 4238.299999952316
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-columns": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 337.3000000715256,
+        "p95Ms": 368.8000000715256,
+        "minMs": 331.7999999523163,
+        "maxMs": 368.8000000715256
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 336.90000009536743,
+        "p95Ms": 368.5,
+        "minMs": 331.5,
+        "maxMs": 368.5
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 337.10000002384186,
+        "p95Ms": 368.7000000476837,
+        "minMs": 331.59999990463257,
+        "maxMs": 368.7000000476837
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 9549.700000047684,
+        "p95Ms": 9581.900000095367,
+        "minMs": 9449.600000023842,
+        "maxMs": 9581.900000095367
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 7296.599999904633,
+        "p95Ms": 7330.900000095367,
+        "minMs": 7254.600000023842,
+        "maxMs": 7330.900000095367
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 9309.5,
+        "p95Ms": 9343.400000095367,
+        "minMs": 9238.399999976158,
+        "maxMs": 9343.400000095367
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 6784,
+        "p95Ms": 6800.100000023842,
+        "minMs": 6728.700000047684,
+        "maxMs": 6800.100000023842
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 8790.599999904633,
+        "p95Ms": 8828.300000071526,
+        "minMs": 8712.5,
+        "maxMs": 8828.300000071526
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 5,
+        "maxDurationMs": 367,
+        "totalDurationMs": 1715
+      }
+    },
+    "remove-columns-1-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4245.699999928474,
+        "p95Ms": 4245.699999928474,
+        "minMs": 4245.699999928474,
+        "maxMs": 4245.699999928474
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-columns-2-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4234.399999976158,
+        "p95Ms": 4234.399999976158,
+        "minMs": 4234.399999976158,
+        "maxMs": 4234.399999976158
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-columns-3-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4395.299999952316,
+        "p95Ms": 4395.299999952316,
+        "minMs": 4395.299999952316,
+        "maxMs": 4395.299999952316
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-columns-4-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4214.600000023842,
+        "p95Ms": 4214.600000023842,
+        "minMs": 4214.600000023842,
+        "maxMs": 4214.600000023842
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "add-rows": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 7051.399999976158,
+        "p95Ms": 7060.799999952316,
+        "minMs": 7018.199999928474,
+        "maxMs": 7060.799999952316
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 7051,
+        "p95Ms": 7060.399999976158,
+        "minMs": 7017.799999952316,
+        "maxMs": 7060.399999976158
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 7051.299999952316,
+        "p95Ms": 7060.600000023842,
+        "minMs": 7018.100000023842,
+        "maxMs": 7060.600000023842
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 18800,
+        "p95Ms": 18898,
+        "minMs": 18769.300000071526,
+        "maxMs": 18898
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 16205.699999928474,
+        "p95Ms": 16324.800000071526,
+        "minMs": 16172.300000071526,
+        "maxMs": 16324.800000071526
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 18515.699999928474,
+        "p95Ms": 18637,
+        "minMs": 18480,
+        "maxMs": 18637
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 8978.399999976158,
+        "p95Ms": 9089.900000095367,
+        "minMs": 8942.300000071526,
+        "maxMs": 9089.900000095367
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 11311.399999976158,
+        "p95Ms": 11402.100000023842,
+        "minMs": 11244.300000071526,
+        "maxMs": 11402.100000023842
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 5,
+        "maxDurationMs": 7058,
+        "totalDurationMs": 35204
+      }
+    },
+    "remove-rows-0-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4239.899999976158,
+        "p95Ms": 4239.899999976158,
+        "minMs": 4239.899999976158,
+        "maxMs": 4239.899999976158
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-rows": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 341,
+        "p95Ms": 347.2999999523163,
+        "minMs": 338.6999999284744,
+        "maxMs": 347.2999999523163
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 340.7000000476837,
+        "p95Ms": 346.89999997615814,
+        "minMs": 338.2999999523163,
+        "maxMs": 346.89999997615814
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 340.90000009536743,
+        "p95Ms": 347.10000002384186,
+        "minMs": 338.5,
+        "maxMs": 347.10000002384186
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 9397.899999976158,
+        "p95Ms": 9465,
+        "minMs": 9349.899999976158,
+        "maxMs": 9465
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 7211.699999928474,
+        "p95Ms": 7270.5,
+        "minMs": 7175.599999904633,
+        "maxMs": 7270.5
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 9187.799999952316,
+        "p95Ms": 9245.300000071526,
+        "minMs": 9144.199999928474,
+        "maxMs": 9245.300000071526
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 6686.399999976158,
+        "p95Ms": 6751.599999904633,
+        "minMs": 6657.299999952316,
+        "maxMs": 6751.599999904633
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 8662.5,
+        "p95Ms": 8726.399999976158,
+        "minMs": 8625.899999976158,
+        "maxMs": 8726.399999976158
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 5,
+        "maxDurationMs": 344,
+        "totalDurationMs": 1698
+      }
+    },
+    "remove-rows-1-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4240,
+        "p95Ms": 4240,
+        "minMs": 4240,
+        "maxMs": 4240
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-rows-2-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4235.600000023842,
+        "p95Ms": 4235.600000023842,
+        "minMs": 4235.600000023842,
+        "maxMs": 4235.600000023842
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-rows-3-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4216.400000095367,
+        "p95Ms": 4216.400000095367,
+        "minMs": 4216.400000095367,
+        "maxMs": 4216.400000095367
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-rows-4-preparation": {
+      "inputToVisibleMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "inputToPersistedMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "committedPolygonMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "settledMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "outlineStageMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "publishedSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToOutlineMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "requestToSuccessMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "tabToDialogMs": {
+        "n": 1,
+        "medianMs": 4238.700000047684,
+        "p95Ms": 4238.700000047684,
+        "minMs": 4238.700000047684,
+        "maxMs": 4238.700000047684
+      },
+      "longTasks": {
+        "actionCount": 1,
+        "totalCount": 0,
+        "maxDurationMs": 0,
+        "totalDurationMs": 0
+      }
+    },
+    "remove-key": {
+      "inputToVisibleMs": {
+        "n": 5,
+        "medianMs": 3998.6999999284744,
+        "p95Ms": 4099.099999904633,
+        "minMs": 3958.2999999523163,
+        "maxMs": 4099.099999904633
+      },
+      "inputToPersistedMs": {
+        "n": 5,
+        "medianMs": 3998.399999976158,
+        "p95Ms": 4098.699999928474,
+        "minMs": 3957.899999976158,
+        "maxMs": 4098.699999928474
+      },
+      "committedPolygonMs": {
+        "n": 5,
+        "medianMs": 3998.5,
+        "p95Ms": 4099,
+        "minMs": 3958.0999999046326,
+        "maxMs": 4099
+      },
+      "settledMs": {
+        "n": 5,
+        "medianMs": 12912.399999976158,
+        "p95Ms": 12956.599999904633,
+        "minMs": 12809.599999904633,
+        "maxMs": 12956.599999904633
+      },
+      "outlineStageMs": {
+        "n": 5,
+        "medianMs": 10793.199999928474,
+        "p95Ms": 10833.899999976158,
+        "minMs": 10732.899999976158,
+        "maxMs": 10833.899999976158
+      },
+      "publishedSuccessMs": {
+        "n": 5,
+        "medianMs": 12738.399999976158,
+        "p95Ms": 12781.399999976158,
+        "minMs": 12690.600000023842,
+        "maxMs": 12781.399999976158
+      },
+      "requestToOutlineMs": {
+        "n": 5,
+        "medianMs": 6593.5,
+        "p95Ms": 6617.699999928474,
+        "minMs": 6557.100000023842,
+        "maxMs": 6617.699999928474
+      },
+      "requestToSuccessMs": {
+        "n": 5,
+        "medianMs": 8548.600000023842,
+        "p95Ms": 8562.899999976158,
+        "minMs": 8504.600000023842,
+        "maxMs": 8562.899999976158
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 5,
+        "totalCount": 5,
+        "maxDurationMs": 4097,
+        "totalDurationMs": 20084
+      }
+    },
+    "add-key": {
+      "inputToVisibleMs": {
+        "n": 4,
+        "medianMs": 4354.400000095367,
+        "p95Ms": 4399.199999928474,
+        "minMs": 4301.599999904633,
+        "maxMs": 4399.199999928474
+      },
+      "inputToPersistedMs": {
+        "n": 4,
+        "medianMs": 4354,
+        "p95Ms": 4398.899999976158,
+        "minMs": 4301.399999976158,
+        "maxMs": 4398.899999976158
+      },
+      "committedPolygonMs": {
+        "n": 4,
+        "medianMs": 4354.200000047684,
+        "p95Ms": 4399,
+        "minMs": 4301.5,
+        "maxMs": 4399
+      },
+      "settledMs": {
+        "n": 4,
+        "medianMs": 13506.099999904633,
+        "p95Ms": 13566,
+        "minMs": 13410.599999904633,
+        "maxMs": 13566
+      },
+      "outlineStageMs": {
+        "n": 4,
+        "medianMs": 11289.899999976158,
+        "p95Ms": 11386,
+        "minMs": 11216.5,
+        "maxMs": 11386
+      },
+      "publishedSuccessMs": {
+        "n": 4,
+        "medianMs": 13288.699999928474,
+        "p95Ms": 13353.699999928474,
+        "minMs": 13210.099999904633,
+        "maxMs": 13353.699999928474
+      },
+      "requestToOutlineMs": {
+        "n": 4,
+        "medianMs": 6748.600000023842,
+        "p95Ms": 6816.899999976158,
+        "minMs": 6738.600000023842,
+        "maxMs": 6816.899999976158
+      },
+      "requestToSuccessMs": {
+        "n": 4,
+        "medianMs": 8747.399999976158,
+        "p95Ms": 8792.600000023842,
+        "minMs": 8732.199999928474,
+        "maxMs": 8792.600000023842
+      },
+      "tabToDialogMs": {
+        "n": 0,
+        "medianMs": null,
+        "p95Ms": null,
+        "minMs": null,
+        "maxMs": null
+      },
+      "longTasks": {
+        "actionCount": 4,
+        "totalCount": 4,
+        "maxDurationMs": 4397,
+        "totalDurationMs": 17412
+      }
+    }
+  },
+  "allMeasuredActions": {
+    "actionCount": 39,
+    "longTasks": {
+      "totalCount": 51,
+      "maxDurationMs": 13040,
+      "totalDurationMs": 118609
+    }
+  },
+  "classification": {
+    "status": "incomplete_timeout",
+    "cause": "Existing e2e/studio-performance.spec.ts hard-codes test.setTimeout(600000); PERF_REPEATS=5 exceeded 10 minutes before add-key-4/history/reload assertions.",
+    "productAssertionFailure": false
+  }
+}

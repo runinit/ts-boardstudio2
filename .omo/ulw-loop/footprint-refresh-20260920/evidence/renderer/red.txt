@@ -1,0 +1,308 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/chris/projects/ts-boardstudio2/app
+
+ ❯ src/utils/footprintGeometry.test.ts (3 tests | 1 failed) 13ms
+   × keeps custom jumper polygons instead of replacing their area with the anchor 9ms
+     → expected [ [ 0.1, 0.1 ], [ 0.1, 0.1 ], …(66) ] to deep equally contain [ 0.5, +0 ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/footprintGeometry.test.ts > keeps custom jumper polygons instead of replacing their area with the anchor
+AssertionError: expected [ [ 0.1, 0.1 ], [ 0.1, 0.1 ], …(66) ] to deep equally contain [ 0.5, +0 ]
+
+- Expected
++ Received
+
+  Array [
+-   0.5,
+-   0,
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     -0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
++   Array [
++     0.1,
++     -0.1,
++   ],
+  ]
+
+ ❯ src/utils/footprintGeometry.test.ts:89:19
+     87|   const outline = padOutline(jumper);
+     88|   // Then: the actual arrow extends beyond the tiny KiCad anchor.
+     89|   expect(outline).toContainEqual([0.5, 0]);
+       |                   ^
+     90|   expect(outline).toContainEqual([-0.5, 0.625]);
+     91| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  15:09:57
+   Duration  957ms (transform 64ms, setup 75ms, collect 37ms, tests 13ms, environment 589ms, prepare 67ms)
+

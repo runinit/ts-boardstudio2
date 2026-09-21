@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "evidenceLayoutVersion": 2,
+  "createdAt": "2026-09-20T19:01:18.926Z",
+  "updatedAt": "2026-09-20T20:20:53.266Z",
+  "briefPath": ".omo/ulw-loop/footprint-refresh-20260920/brief.md",
+  "goalsPath": ".omo/ulw-loop/footprint-refresh-20260920/goals.json",
+  "ledgerPath": ".omo/ulw-loop/footprint-refresh-20260920/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-use-latest-source-github-footprints",
+      "title": "Correct footprint generators using current upstream references",
+      "objective": "Correct footprint generators using current upstream references",
+      "status": "complete",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "node footprints/scripts/refreshSwitches.test.mjs and refreshControllers.test.mjs: all distinct-net geometry assertions pass",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: footprints-final.log; ../../upstream-reference.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:04.866Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "node footprints/scripts/refreshPeripherals.test.mjs: invalid variants reject and valid pad/width variants pass",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: footprints-final.log; ../browser-final/FINAL.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:04.971Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "pnpm test:footprints: source integrity, models and existing controls pass",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": false,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: footprints-final.log; ../integration/inventory-review.json | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.178Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-09-20T19:01:18.926Z",
+      "updatedAt": "2026-09-20T20:20:40.624Z",
+      "steeringEvidence": ".omo/ulw-loop/footprint-refresh-20260920/PLAN.md",
+      "steeringRationale": "Ground generic brief paragraphs into executable ownership and acceptance domains without changing original request.",
+      "startedAt": "2026-09-20T19:59:40.781Z",
+      "completedAt": "2026-09-20T20:20:40.624Z",
+      "evidence": "G001-use-latest-source-github-footprints implementation completed and validation tests/build/review passed for scoped footprint refresh. .omo/ulw-loop/footprint-refresh-20260920/goals.json and ledger.jsonl contain12pass criteria; evidence/final/DELIVERY.md and final/reviews/gate-review.md approve SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 treebfa1fde848b9d8501a5fd19285133afc05d28e20. Actual registered objective maps to preserved brief; completed task-scoped snapshot reconciles same user work. FullE2E baseline limits retained."
+    },
+    {
+      "id": "G002-preserve-namespaces-storage-identiti",
+      "title": "Correct engine and assembly electrical boundaries",
+      "objective": "Correct engine and assembly electrical boundaries",
+      "status": "complete",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "npm_config_what=footprint_refresh pnpm --dir engine test: F/B/F&B and remapped blank copper pads generate correct output",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: engine-final.log | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.334Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Focused app assembly tests: setup-less matrix MCU nets, custom diode junction, inherited binding and nonpin collision assertions pass",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: electrical-final.log; e2e-final.log | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.439Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Native generated PCB evidence: no unresolved template silently becomes empty net; authored wiring disagreements reported",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": false,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: engine-final.log; e2e-final.log; e2e-final-results/raw-wiring-blocked.png | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.541Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-09-20T19:01:18.926Z",
+      "updatedAt": "2026-09-20T20:20:40.734Z",
+      "steeringEvidence": ".omo/ulw-loop/footprint-refresh-20260920/PLAN.md",
+      "steeringRationale": "Ground generic brief paragraphs into executable ownership and acceptance domains without changing original request.",
+      "startedAt": "2026-09-20T20:20:40.629Z",
+      "completedAt": "2026-09-20T20:20:40.734Z",
+      "evidence": "G002-preserve-namespaces-storage-identiti implementation completed and validation tests/build/review passed for scoped footprint refresh. .omo/ulw-loop/footprint-refresh-20260920/goals.json and ledger.jsonl contain12pass criteria; evidence/final/DELIVERY.md and final/reviews/gate-review.md approve SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 treebfa1fde848b9d8501a5fd19285133afc05d28e20. Actual registered objective maps to preserved brief; completed task-scoped snapshot reconciles same user work. FullE2E baseline limits retained."
+    },
+    {
+      "id": "G003-heavy-delivery-footprint-source-engi",
+      "title": "Expose and preserve real footprint parameter previews",
+      "objective": "Expose and preserve real footprint parameter previews",
+      "status": "complete",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "pnpm --dir app exec playwright test e2e/footprint-parameters.spec.ts: side/reversible and model-affecting options alter actual preview",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: e2e-final.log; ../browser-final/FINAL.md; reviews/manual-qa.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.644Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Browser invalid JSON/number/unsupported variant scenario: explicit error, no stale successful geometry or enabled save",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: ../browser-final/FINAL.md; ../browser-final/controls-contact-sheet.png; reviews/manual-qa.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.745Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Browser save/browse/reopen/export: selected defaults persist and placement overrides win; imports and models regressions pass",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": false,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: e2e-final.log; electrical-final.log; reviews/manual-qa.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.859Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-09-20T19:01:18.926Z",
+      "updatedAt": "2026-09-20T20:20:40.842Z",
+      "steeringEvidence": ".omo/ulw-loop/footprint-refresh-20260920/PLAN.md",
+      "steeringRationale": "Ground generic brief paragraphs into executable ownership and acceptance domains without changing original request.",
+      "startedAt": "2026-09-20T20:20:40.738Z",
+      "completedAt": "2026-09-20T20:20:40.842Z",
+      "evidence": "G003-heavy-delivery-footprint-source-engi implementation completed and validation tests/build/review passed for scoped footprint refresh. .omo/ulw-loop/footprint-refresh-20260920/goals.json and ledger.jsonl contain12pass criteria; evidence/final/DELIVERY.md and final/reviews/gate-review.md approve SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 treebfa1fde848b9d8501a5fd19285133afc05d28e20. Actual registered objective maps to preserved brief; completed task-scoped snapshot reconciles same user work. FullE2E baseline limits retained."
+    },
+    {
+      "id": "G004-discovery-in-progress-latest-upstrea",
+      "title": "Verify viewer and integrated refresh",
+      "objective": "Verify viewer and integrated refresh",
+      "status": "complete",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "Pinned KiCanvas fixture and browser numeric pad test: quoted and unquoted numeric pad identifiers preserved",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: ../kicanvas/browser-current/receipt.json; ../kicanvas/browser-current/viewer.png | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:05.964Z"
+        },
+        {
+          "id": "C002",
+          "scenario": "Required integration checks are run: engine, footprint, release, precommit and build pass; all refresh browser scenarios pass, and unrelated baseline browser failures are identified with source evidence without claiming the entire suite passed; original upstream hashes are preserved",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": true,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: precommit-notice.log; build-notice.log; footprints-final.log; check.log; e2e-final.log; e2e-triage.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:06.068Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Frozen SHA independent code review, manual QA and gate review approve with fresh responsive screenshots and cleanup receipts",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/ with RED/GREEN transcripts and native/browser artifacts for this scenario",
+          "essential": false,
+          "capturedEvidence": ".omo/ulw-loop/footprint-refresh-20260920/evidence/final/: reviews/code-review.md; reviews/manual-qa.md; reviews/gate-review.md | @tree:bfa1fde848b9d8501a5fd19285133afc05d28e20 | SHA64bfc2e84dc871b191d237fbd3d759f67fc05a76 | Root read/replayed proof and inspected actual GUI; cleanup: evidence/final/cleanup.txt, reviews/manual-qa.md, browser-final/FINAL.md, kicanvas/browser-current/receipt.json; all QA contexts/ports closed. Full E2E baseline limitations preserved.",
+          "status": "pass",
+          "capturedAt": "2026-09-20T20:20:06.169Z"
+        }
+      ],
+      "attempt": 1,
+      "createdAt": "2026-09-20T19:01:18.926Z",
+      "updatedAt": "2026-09-20T20:20:53.266Z",
+      "steeringEvidence": ".omo/ulw-loop/footprint-refresh-20260920/PLAN.md",
+      "steeringRationale": "Ground generic brief paragraphs into executable ownership and acceptance domains without changing original request.",
+      "startedAt": "2026-09-20T20:20:40.846Z",
+      "completedAt": "2026-09-20T20:20:53.266Z",
+      "evidence": "G004-discovery-in-progress-latest-upstrea implementation completed and validation tests/build/review passed. .omo/ulw-loop/footprint-refresh-20260920/goals.json and ledger.jsonl record12PASS criteria and3approved independent lanes at64bfc2e84dc871b191d237fbd3d759f67fc05a76/treebfa1fde848b9d8501a5fd19285133afc05d28e20. All QA resources closed. Full E2E baseline limits retained in DELIVERY.md."
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/footprint-refresh-20260920/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/footprint-refresh-20260920/ledger.jsonl as the audit trail.",
+  "aggregateCompletion": {
+    "status": "complete",
+    "completedAt": "2026-09-20T20:20:53.266Z",
+    "evidence": "G004-discovery-in-progress-latest-upstrea implementation completed and validation tests/build/review passed. .omo/ulw-loop/footprint-refresh-20260920/goals.json and ledger.jsonl record12PASS criteria and3approved independent lanes at64bfc2e84dc871b191d237fbd3d759f67fc05a76/treebfa1fde848b9d8501a5fd19285133afc05d28e20. All QA resources closed. Full E2E baseline limits retained in DELIVERY.md.",
+    "codexGoal": {
+      "goal": {
+        "threadId": "01a0bf80-95d7-76e0-b274-f65de30b6e3b",
+        "objective": "Refresh footprints using the latest source GitHub footprints as reference; fix all issues identified during research; ensure the footprint library displays the correct footprint for side, reversible, and all supported parameter settings; expose those parameters in the footprint library for GUI preview.",
+        "status": "complete",
+        "tokensUsed": 4123131,
+        "timeUsedSeconds": 4841,
+        "createdAt": 1789930784,
+        "updatedAt": 1789935626
+      },
+      "remainingTokens": null,
+      "completionBudgetReport": null
+    }
+  }
+}
