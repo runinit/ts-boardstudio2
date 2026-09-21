@@ -1,50 +1,55 @@
 # Engine Guidelines
 
-## Source Map
+## OVERVIEW
 
-- `src/ergogen.js` is the public CommonJS entry; `src/cli.js` implements the
-  `ergogen` executable. Keep their native configuration behavior aligned.
-- `src/native/` owns document parsing, layout resolution, physical frames,
-  constraints, and PCB compilation. Public declarations start at
-  `src/native/index.d.ts`; draft declarations live in `src/native/draft.d.ts`.
-- `src/designs/` owns regions, boundaries, sketches, profiles, assemblies,
-  enclosure analysis, and solid generation. Start with `src/designs/index.js`.
-- `docs/architecture.md` describes ownership and contracts; update it alongside
-  contract, ownership, or dependency changes. `docs/examples/native/` contains
-  native document examples; feature guides include `docs/designs.md` and
-  `docs/enclosures.md`.
+Native keyboard compiler and CLI; distinct package boundary, score 12.
 
-## Native Contract and Generated Files
+## WHERE TO LOOK
 
-Public input declares `schema: ergogen/v1`; package versions do not choose
-configuration semantics. Keep historical preprocessing outside the public API.
-The engine owns physical classification and geometry; renderers consume resolved
-results. Preserve authored values and stable object, footprint, and net identities.
+| Task | Location | Notes |
+| --- | --- | --- |
+| Public API | `src/ergogen.js` | `process`, `solveLayout`, `resolveLayout`, `inject`, `footprints`, `version` |
+| CLI behavior | `src/cli.js` | Keep accepted native inputs aligned with the library |
+| Native compiler | `src/native/AGENTS.md` | Parsing, frames, solver, schema, PCB compilation |
+| Mechanical design | `src/designs/AGENTS.md` | Feature graph, analysis, assemblies, solids |
+| Footprint emission | `src/footprints/`, `src/pcbs.js` | Registry, parameter parsing, emitter adapter |
+| KiCad serialization | `src/templates/` | KiCad 5/8/10 templates and quoted-atom handling |
+| Contract documentation | `docs/architecture.md` | Update with ownership, contract, or dependency changes |
+| Runnable native examples | `docs/examples/native/` | Feature guides: `docs/designs.md`, `docs/enclosures.md` |
+| Tests and fixtures | `test/index.js`, `test/unit/`, `test/fixtures/` | Mocha loader, behavior specs, reference data |
 
-Edit `src/native/schema.js` for schema changes, then run
-`pnpm --dir engine build:schema` from the repository root. This invokes
-`scripts/build-schema.js` to regenerate both `src/native/ergogen-v1.schema.json`
-and the standalone AJV validator `src/native/validate.js`. Do not hand-edit these
-outputs. Validation must not coerce, default, or remove authored values; update
-public declarations and native tests when the contract changes.
+## CONVENTIONS
 
-## Focused Validation
+- Public input declares `schema: ergogen/v1`; package versions do not select
+  configuration semantics. Historical preprocessing stays outside the public API.
+- The engine owns physical classification and geometry. Renderers consume resolved
+  results rather than infer object kinds from names, tags, or footprint filenames.
+- Preserve authored values and stable object, footprint, and net identities.
+- Public declarations live in `src/native/index.d.ts`; `draft.d.ts` re-exports
+  the synchronous layout resolver. Keep declarations aligned with the entry API.
+- `solveLayout` resolves constraints without PCB/case compilation; `process`
+  compiles outputs. `resolveLayout` is the synchronous nominal-layout surface.
 
-Run commands below from the repository root:
+## COMMANDS
 
-- `pnpm --dir engine test` runs the Mocha loader with shared Chai/Sinon setup.
-- `npm_config_what=native,native_cli pnpm --dir engine test` selects unit files by
-  basename. Comma-separated selectors also accept fixture categories such as
-  `points` or fixture prefixes such as `points/default`.
+Run from the repository root:
+
+- `pnpm --dir engine test` runs Mocha with shared Chai/Sinon setup.
+- `npm_config_what=native,native_cli pnpm --dir engine test` selects unit files
+  by basename, not glob. Comma-separated selectors also accept fixture categories
+  such as `points` or fixture prefixes such as `points/default`.
 - `pnpm --dir engine build` regenerates the schema and builds Rollup outputs.
 
-`test/unit/native*.js` exercises the supported API and CLI directly.
-`test/helpers/adapter-engine.js` supports retained historical backend fixtures;
-it is not a supported legacy API. Historical CLI snapshots are archival;
-`test/unit/native_cli.js` defines current CLI coverage.
+## ANTI-PATTERNS
 
-Keep `npm_config_dump` unset during validation. Any nonempty value makes the
-fixture loader overwrite existing `___*` references instead of comparing them
-(including the string `false`). Use it only for intentional fixture regeneration,
-restrict selectors, and inspect every changed reference. It does nothing for unit
-tests; when references do not exist, it lists candidate output paths.
+- `test/helpers/adapter-engine.js` is retained historical fixture support, not a
+  supported legacy API. Native API tests import `src/ergogen` directly.
+- Historical `test/cli/` snapshots are archival; current CLI coverage lives in
+  `test/unit/native_cli.js`.
+- Keep `npm_config_dump` unset during validation. Any nonempty value, including
+  `false`, overwrites existing `___*` fixture references instead of comparing them.
+  Use it only for intentional regeneration, restrict selectors, and inspect all
+  changed references. It does nothing for unit tests; absent references cause it
+  to list candidate output paths rather than create a baseline.
+- Do not substitute `meta/schema.json`, the historical schema, for the native
+  contract. Schema source and regeneration rules are in `src/native/AGENTS.md`.

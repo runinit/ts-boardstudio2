@@ -1,2 +1,0 @@
-git diff HEAD -- app/src/App.tsx app/src/molecules/BoardStudio.tsx app/src/molecules/RowInspector.tsx app/src/molecules/InspectorSection.tsx app/src/molecules/StudioInspector.tsx app/src/molecules/StudioStyles.tsx app/src/molecules/ProjectMenu.tsx
-(empty diff)

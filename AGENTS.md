@@ -1,71 +1,110 @@
-# Repository Guidelines
+# PROJECT KNOWLEDGE BASE
 
-## Project Structure & Module Organization
+**Generated:** 2026-09-21
+**Commit:** 380650b
+**Branch:** main
 
-Board Studio is one Git repository and pnpm workspace:
+## OVERVIEW
 
-- `app/src/`: React/TypeScript workbench, components, utilities, and workers.
-  Static assets live in `app/public/`; browser patches live in `app/patch/`.
-- `engine/src/`: Ergogen generator; fixtures and tests live in `engine/test/`.
-- `footprints/`: footprint sources, manifests, models, and vendor attribution;
-  verification scripts live in `footprints/scripts/`.
-- `docs/integration.md`: integration history and provenance.
+Board Studio is a React/TypeScript keyboard-design workbench, an Ergogen generator,
+and a footprint collection in one Git repository and pnpm workspace.
+
+## STRUCTURE
+
+```text
+ts-boardstudio2/
+|-- app/          # Browser workbench, worker protocols and browser staging
+|-- engine/       # Private @runinit/ergogen package; CommonJS runtime and Rollup bundles
+|-- footprints/   # Generators, model manifests and mixed-license vendor assets
+`-- docs/         # Integration history and provenance
+```
 
 Read the nearest child `AGENTS.md` for package-specific contracts and checks.
 
-## Code Map
+## WHERE TO LOOK
 
-| Entry | Location | Responsibility |
+| Task | Location | Notes |
 | --- | --- | --- |
-| `App` | `app/src/App.tsx` | Shared-project loading and context composition |
-| `ConfigContextProvider` | `app/src/context/ConfigContext.tsx` | Project state and generation lifecycle |
-| `solveLayout`, `process` | `engine/src/ergogen.js` | Layout solving and output compilation |
-| `bindDefaults` | `footprints/src/defaultModels.mjs` | Model defaults in staged footprints |
+| Browser startup and workspace | `app/src/index.tsx`, `app/src/Ergogen.tsx` | Bootstrap and workspace surface |
+| Editing and generation | `app/src/molecules/BoardStudio.tsx`, `app/src/hooks/useStudio.ts` | Drafts and revision-filtered background work |
+| Generation stages | `app/src/utils/studioPipeline.ts`, `app/src/workers/` | Solve once; reuse layout and check supersession |
+| Browser engine staging | `app/patch/` | Temporary engine copy; generated browser dependencies |
+| Native input and PCB semantics | `engine/src/native/` | Schema, physical frames, placement and constraints |
+| Mechanical output | `engine/src/designs/` | Geometry features, assemblies and CAD |
+| Model defaults and provenance | `footprints/manifest/`, `footprints/vendor/` | Manifest-owned mappings and vendor-specific terms |
+| Integration history | `docs/integration.md` | Consolidation provenance |
+| Engine ownership changes | `engine/docs/architecture.md` | Contract and dependency documentation |
 
-Map grounded in codegraph and source inspection; TypeScript LSP unavailable.
+## CODE MAP
 
-## Build, Test, and Development Commands
+| Symbol | Type | Location | Refs | Role |
+| --- | --- | --- | --- | --- |
+| `App` | Component | `app/src/App.tsx` | Unmeasured | Shared-project loading and context composition |
+| `ConfigContextProvider` | Provider | `app/src/context/ConfigContext.tsx` | Unmeasured | Project state and generation lifecycle |
+| `resolveLayout` | Function | `engine/src/ergogen.js` | Unmeasured | Synchronous nominal layout |
+| `solveLayout` | Function | `engine/src/ergogen.js` | Unmeasured | Asynchronous constraint solving |
+| `process` | Function | `engine/src/ergogen.js` | Unmeasured | Layout and output compilation |
+| `bindDefaults` | Function | `footprints/src/defaultModels.mjs` | Unmeasured | Apply manifest defaults during app staging |
 
-Use Node.js 24+ and pnpm 11.26.0. Run commands from the repository root:
+Map consolidated from subtree digests and the previous root guide. Digest authors
+confirmed working JS/TS LSP symbols; reliable cross-workspace counts are not supplied here.
 
-- `pnpm install --frozen-lockfile`: install workspace dependencies.
-- `pnpm dev`: start the workbench at `http://localhost:3000/boardstudio/`.
-- `pnpm build`: build the engine and app.
-- `pnpm test`: run engine, footprint, and app unit tests.
-- `pnpm test:release`: run release-script tests.
-- `pnpm test:e2e`: test the built app; run `pnpm build` first. Install Chromium with
-  `pnpm --dir app exec playwright install chromium`.
-- `pnpm precommit`: format, lint, typecheck, and run footprint/app unit tests;
-  required before implementation commits. Formatting and linting can modify files.
-- `pnpm check`: run integration gates, including builds and browser tests;
-  required for integration changes.
+## CONVENTIONS
 
-## Coding Style & Naming Conventions
+- Use Node.js 24+ and pnpm 11.26.0; run workspace commands from the root.
+- Preserve engine CommonJS and local formatting alongside app TypeScript.
+- App Prettier uses two spaces, semicolons, single quotes and ES5 trailing commas;
+  React components use PascalCase, utilities/hooks camelCase.
+- ESLint, markdownlint and Knip provide additional repository checks.
+- `schema: ergogen/v1` selects input semantics, not the package version.
+- For bug fixes, observe a failing regression before implementing the fix.
 
-Follow surrounding module conventions. App Prettier uses two-space indentation,
-semicolons, single quotes, and ES5 trailing commas. ESLint, markdownlint, and
-Knip provide additional checks. Use PascalCase for React components and camelCase
-for utilities/hooks. Preserve the engine's existing CommonJS and local formatting.
+## ANTI-PATTERNS (THIS PROJECT)
 
-## Testing Guidelines
+- Do not overwrite unrelated edits, source APIs, project storage identifiers,
+  stable object/footprint/net identities, footprint namespaces or attribution.
+- Do not mutate installed engine source or depend on sibling checkouts:
+  browser patches use a temporary engine copy and workspace `node_modules`.
+- Do not hand-edit generated schema/validator artifacts, `.generated/` catalogs
+  or `app/public/dependencies/` bundles.
+- Never validate engine tests with `npm_config_dump` set: even `false` overwrites references.
+- Do not treat source snapshots or passing model checks as fabrication readiness.
+- Do not apply blanket MIT terms to vendor assets; BHK remains independent.
+- Repository consolidation does not authorize deployment or package publication.
 
-For bug fixes, write a regression, observe failure, then implement the fix.
-App tests use Vitest/jsdom and Testing Library (`*.test.ts`/`*.test.tsx` beside
-sources); Playwright specs live in `app/e2e/*.spec.ts`. Engine tests use
-Mocha/Chai; footprint checks use Node scripts. On Node 26, set
-`NODE_OPTIONS=--no-experimental-webstorage` for jsdom tests.
+## UNIQUE STYLES
 
-## Commit & Pull Request Guidelines
+- Root `footprints/*.js` provide `ceoloide/`; Infused-Kim generators stay independent.
+- `footprints/manifest/default-models.json` owns model mappings; explicit filenames
+  and transforms win. `sources.json` tracks current hashes, `patches.json` original hashes.
+- App drafts remain synchronous while background generation filters stale revisions.
+- Use short, imperative commit subjects, such as `Keep canvas edits live during analysis`.
+  PRs describe behavior, link relevant issues, report checks and include UI screenshots.
 
-Use short, imperative commit subjects matching history, such as
-`Keep canvas edits live during analysis`. Describe behavior changes, link relevant
-issues, report validation, and include screenshots for UI changes in PRs.
-Source snapshots are provenance, not passing validation.
+## COMMANDS
 
-## Repository Safeguards
+```bash
+pnpm install --frozen-lockfile
+pnpm dev                          # http://localhost:3000/boardstudio/
+pnpm build                        # Engine and app
+pnpm test                         # Engine, footprints and app unit tests
+pnpm test:footprints               # Inventory, defaults, models and electrical checks
+pnpm test:release                  # Release-script regressions
+pnpm --dir app exec playwright install chromium
+pnpm test:e2e                     # Requires pnpm build first
+pnpm precommit                    # Required before implementation commits; can modify files
+pnpm check                        # Required for integration changes; includes build/browser gates
+pnpm --dir engine build:schema     # Regenerate schema and standalone AJV validator
+```
 
-Preserve unrelated edits, source APIs, project storage identifiers, footprint
-namespaces, licenses, and attribution. BHK remains independent. Browser patches
-must use a temporary engine copy and workspace `node_modules`; never mutate the
-installed engine or depend on sibling checkouts. Repository consolidation does
-not authorize deployment or package publication.
+## NOTES
+
+- App unit tests use Vitest/jsdom and Testing Library beside sources; Playwright
+  specs live in `app/e2e/`. Engine uses Mocha/Chai; footprints use Node scripts.
+- On Node 26, set `NODE_OPTIONS=--no-experimental-webstorage` for jsdom tests.
+- Playwright uses built-app Vite preview, strict ports, no server reuse and zero retries.
+- `pnpm precommit` formats, lints, typechecks and runs footprint/app unit tests.
+- Historical engine fixture adapters and archived CLI snapshots are not current API coverage.
+- `footprints/BOARDSTUDIO.md` records evidence limits; reset/encoder default models
+  await user-provided files, with further sourcing/model creation paused.
+- This root update uses existing guidance and subtree digests, not a fresh source audit.

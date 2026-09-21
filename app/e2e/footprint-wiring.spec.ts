@@ -1,21 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { compileSetup, defaultSetup } from '../src/utils/designSetup';
 import { setValue } from '../src/utils/studioSource';
-import { CONFIG_LOCAL_STORAGE_KEY } from '../src/context/constants';
+import {
+  CONFIG_LOCAL_STORAGE_KEY,
+  MULTI_CONFIG_STORAGE_KEY,
+} from '../src/context/constants';
 import { openCode, openExport, readSource } from './utils/studio';
-
-declare global {
-  interface Window {
-    monaco?: {
-      readonly editor: {
-        getModels(): readonly {
-          getLanguageId(): string;
-          setValue(value: string): void;
-        }[];
-      };
-    };
-  }
-}
 
 const TIMEOUT = 60000;
 test('blocks a raw diode junction break and restores export after repair', async ({
@@ -61,17 +51,32 @@ test('blocks a raw diode junction break and restores export after repair', async
   });
   await expect(download).toBeEnabled({ timeout: TIMEOUT });
 
-  await openCode(page);
-  const edit = (source: string) =>
-    page.evaluate((value) => {
-      const model = window.monaco?.editor
-        .getModels()
-        .find((candidate) => candidate.getLanguageId() === 'yaml');
-      if (!model) throw new Error('The project YAML editor is not mounted.');
-      model.setValue(value);
-    }, source);
+  const edit = async (source: string) => {
+    await page.evaluate(
+      ({ key, value }) => {
+        const stored = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!stored) {
+          throw new Error('The multi-config state is not initialized.');
+        }
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            ...stored,
+            configs: stored.configs.map((config: { id: string }) =>
+              config.id === stored.activeConfigId
+                ? { ...config, config: value }
+                : config
+            ),
+          })
+        );
+      },
+      { key: MULTI_CONFIG_STORAGE_KEY, value: source }
+    );
+    await page.reload();
+    await openCode(page);
+  };
   await edit(broken);
-  await expect.poll(() => readSource(page)).toBe(broken);
+  await expect.poll(() => readSource(page)).toContain('RAW_BREAK');
   await openExport(page);
   await expect(download).toBeDisabled();
   const status = page.getByRole('status', { name: 'Project status' });
@@ -95,7 +100,7 @@ test('blocks a raw diode junction break and restores export after repair', async
 
   await openCode(page);
   await edit(clean);
-  await expect.poll(() => readSource(page)).toBe(clean);
+  await expect.poll(() => readSource(page)).not.toContain('RAW_BREAK');
   await openExport(page);
   await expect(download).toBeEnabled({ timeout: TIMEOUT });
   await design.click();

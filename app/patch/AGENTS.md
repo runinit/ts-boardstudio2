@@ -4,8 +4,9 @@
 
 This directory builds browser bundles and stages verified footprint assets.
 Run commands below from the repository root; app and root guides also apply.
+Existing integration boundary retained despite a conservative score below 8.
 
-## Pipeline Ownership
+## Where to Look
 
 | File                    | Responsibility                                         |
 | ----------------------- | ------------------------------------------------------ |
@@ -21,7 +22,6 @@ Run commands below from the repository root; app and root guides also apply.
 - Validate source/model hashes before changing footprint staging outputs.
 - Keep native engine footprint files when staging additional providers.
 - Preserve registry aliases, including the compatibility name `infused-kimo/isde`.
-- Rebuild generated bundles through scripts; do not hand-edit their output.
 - KiCanvas uses its own pinned revision, patch, fixture, and committed lockfile.
   Its bundle is replaced only after the fixture and build succeed.
 - Review `kicanvas/README.md` when changing the upstream pin or compatibility patch.
@@ -36,3 +36,8 @@ Run commands below from the repository root; app and root guides also apply.
 Release tests must continue to prove that source trees remain unchanged and bad
 manifest hashes fail before asset output mutation. KiCanvas viewer compatibility
 must not rewrite the downloadable board source.
+
+## Anti-Patterns
+
+- Do not validate hashes after writing destination assets.
+- Do not replace the KiCanvas bundle before its pinned fixture/build succeeds.

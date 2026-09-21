@@ -18,5 +18,10 @@
     "typecheck": "pnpm --dir app typecheck",
     "precommit": "pnpm --dir app precommit",
     "check": "pnpm run test:engine && pnpm run test:footprints && pnpm run test:release && pnpm run precommit && pnpm run build && pnpm run test:e2e"
-  }
+  },
+  "workspaces": [
+    "app",
+    "engine",
+    "footprints"
+  ]
 }

@@ -1,3 +1,0 @@
-# wave-2-geometry_alternatives
-
-git ls-remote verified Clipper2 f9c5eb6e14a59f6f5d65fbfb3564519a561cf4fd and clipper2-ts bf6e0303217bdffcbe2f03ab7f6218194df8e7e4. TS port exports boolean+offset+PolyTree; Boost license; Number safe integer bound2^53 with some BigInt intermediate math. Arcs tessellated, integer scaling required. No measured local speed. Sources https://github.com/countertype/clipper2-ts/blob/bf6e0303217bdffcbe2f03ab7f6218194df8e7e4/{README.md,package.json,src/index.ts,src/Offset.ts}. EXPAND full kernel migration benchmark: unresolved engineering project, not evidence-backed recommendation to replace current kernel.

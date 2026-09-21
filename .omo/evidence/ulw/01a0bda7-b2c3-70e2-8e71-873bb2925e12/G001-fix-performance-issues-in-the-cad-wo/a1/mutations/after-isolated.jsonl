@@ -1,8 +1,0 @@
-{"keysBefore":39,"operation":"move-key","elapsed":217,"calls":2,"bytes":150949,"keysAfter":39}
-{"keysBefore":39,"operation":"add-column","elapsed":457,"calls":8,"bytes":615488,"keysAfter":42}
-{"keysBefore":39,"operation":"remove-column","elapsed":334,"calls":6,"bytes":429994,"keysAfter":36}
-{"keysBefore":39,"operation":"add-row","elapsed":506,"calls":8,"bytes":654749,"keysAfter":52}
-{"keysBefore":39,"operation":"remove-row","elapsed":280,"calls":6,"bytes":356156,"keysAfter":26}
-{"keysBefore":39,"operation":"add-key","elapsed":325,"calls":6,"bytes":457229,"keysAfter":40}
-{"keysBefore":39,"operation":"remove-key","elapsed":131,"calls":3,"bytes":222588,"keysAfter":38}
-{"fixture":"browser60","operation":"add-row","elapsed":99.66339200000039,"calls":2,"bytes":53257}

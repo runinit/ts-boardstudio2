@@ -1,3 +1,0 @@
-desktop root scrollWidth=1440 clientWidth=1440 horizontalOverflow=false
-mobile root scrollWidth=390 clientWidth=390 horizontalOverflow=false
-mobile table[0] clientWidth=338 scrollWidth=524 overflow-x=auto (contained horizontal table scroll)

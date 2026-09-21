@@ -1,3 +1,0 @@
-mobile root scrollWidth=390 clientWidth=390 horizontalOverflow=false
-mobile figure-scroll count=3 clientWidth=338 scrollWidth=708 imageWidth=700 overflow-x=auto aria=Scrollable figure
-mobile table-scroll clientWidth=338 scrollWidth=1834 overflow-x=auto aria=Scrollable data table

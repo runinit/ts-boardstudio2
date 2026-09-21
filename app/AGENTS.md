@@ -3,6 +3,16 @@
 ## Overview
 
 React workbench; root instructions cover workspace commands and shared safeguards.
+Package boundary retained: score 13; browser runtime, assets, and release tooling.
+
+## Structure
+
+- `src/`: application runtime; atoms, molecules, utilities, and workers have guides.
+- `e2e/`: built-app browser checks and their own guide.
+- `patch/`: browser bundle and footprint staging; see its guide.
+- `scripts/`: preview generation, release-policy tests, and QA tools.
+- `public/`: served models, licenses, and dependency bundles.
+- `docs/`: validation records and archived examples, not runtime entries.
 
 ## Where to Look
 
@@ -13,6 +23,8 @@ React workbench; root instructions cover workspace commands and shared safeguard
 | Project state and generation lifecycle  | `src/context/ConfigContext.tsx`                      |
 | Live editing and request queues         | `src/hooks/useStudio.ts`, `src/utils/studioQueue.ts` |
 | Worker protocols                        | `src/workers/` and its guide                         |
+| Source transformations and export      | `src/utils/` and its guide                           |
+| Preview atoms and shared controls      | `src/atoms/` and its guide                           |
 | Theme tokens                            | `src/theme/theme.ts`                                 |
 | Staged engine and footprint assets      | `patch/` and its guide                               |
 | Architecture notes                      | `DEVELOPMENT.md`                                     |
@@ -31,13 +43,17 @@ React workbench; root instructions cover workspace commands and shared safeguard
 
 - Focused unit tests: `pnpm --dir app exec vitest run src/utils/studioQueue.test.ts`.
 - Arrange/Act/Assert tests use `src/setupTests.tsx`; mock heavy CAD work.
-- Browser specs live in `e2e/`; shared studio interactions live in
-  `e2e/utils/studio.ts`. Playwright starts its own preview server.
-- Set `PLAYWRIGHT_PORT` for port conflicts; it does not reuse an existing server.
+- Browser configuration is in `playwright.config.ts`; see `e2e/AGENTS.md`.
 - `postinstall` stages Ergogen; `prestart`/`prebuild` also regenerate previews.
 - Generated catalogs live in `.generated/`; bundles in `public/dependencies/`.
   Change their source scripts or patches, then regenerate.
 - Release-script regressions live in `scripts/tests/*.test.cjs`.
+
+## Anti-Patterns
+
+- Do not edit generated catalogs or browser bundles to change source behavior.
+- Do not treat archived examples or screenshots as executable validation.
+- Do not move browser-only APIs into modules imported by workers.
 
 ## Documentation and Change Boundaries
 

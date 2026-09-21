@@ -1,7 +1,0 @@
-{
-  "ok": false,
-  "error": {
-    "code": "ulw_loop_codex_snapshot_mismatch",
-    "message": "Codex goal status mismatch: expected complete, got active. Codex goal is not complete; call update_goal({status: \"complete\"}) only after the objective is actually complete, then pass the fresh get_goal JSON."
-  }
-}

@@ -1,7 +1,0 @@
-flowchart TB
- A["Pinned upstream source + declared local patches"] --> B["Ergogen parameters: nets, side, mounting, reversibility"]
- B --> C["Emitted pads, holes, copper layers and local tracks"]
- C --> D["Board Studio native serialization"]
- D --> E["Distinct-net checks: contacts, metadata and geometry"]
- E --> F["KiCad roundtrip / DRC and selected physical assembly"]
- F --> G["Qualified variant with explicit limitations"]

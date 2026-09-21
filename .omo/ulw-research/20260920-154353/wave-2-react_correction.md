@@ -1,2 +1,0 @@
-# F: citation correction
-Worker explicitly retracted fabricated RFC SHA. Correct file-history SHA verified by read-only clone: dd61503420de363abfeb0e4cffeee7b6d241b13e. https://github.com/reactjs/rfcs/blob/dd61503420de363abfeb0e4cffeee7b6d241b13e/text/0214-use-sync-external-store.md. React project docs/WG/RFC are one provenance family. Snapshot caching is API semantics, not local speed evidence. EXPAND root API/transform ownership routed B.

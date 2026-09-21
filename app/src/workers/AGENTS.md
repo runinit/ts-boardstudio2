@@ -4,6 +4,7 @@
 
 Workers isolate generation, CAD conversion, and footprint/model processing.
 Protocol changes must account for the consumers outside this directory.
+Existing protocol boundary retained despite a conservative score below 8.
 
 ## Where to Look
 
@@ -43,3 +44,8 @@ pnpm --dir app exec vitest run src/workers src/utils/studioQueue.test.ts src/hoo
 
 Keep regressions for stale replies, supersession, layout reuse, and converter
 failures; a successful single worker request does not exercise queue behavior.
+
+## Anti-Patterns
+
+- Do not publish a stale stage after a newer studio revision supersedes it.
+- Do not solve the same layout independently for each pipeline stage.
