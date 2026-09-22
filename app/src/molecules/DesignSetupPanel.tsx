@@ -110,7 +110,7 @@ export default function DesignSetupPanel({
       setSampleRequest(false);
     }
   }, [sampleRequest, generateSample]);
-  const loadAssets = async () => {
+  const loadAssets = useCallback(async () => {
     const entries = await Promise.all(
       setupModels(draft).map(loadComponentModel)
     );
@@ -118,12 +118,25 @@ export default function DesignSetupPanel({
       string,
       string
     >;
-  };
+  }, [draft.family, draft.mounting]);
+  const modelKey = JSON.stringify([draft.family, draft.mounting]);
+  const assetPromise = useRef<{
+    key: string;
+    promise: Promise<Record<string, string>>;
+  }>();
+  useEffect(() => {
+    const promise = loadAssets();
+    assetPromise.current = { key: modelKey, promise };
+    void promise.catch((reason) => setError(String(reason)));
+  }, [loadAssets, modelKey]);
   const apply = async () => {
     setBusy(true);
     setError('');
     try {
-      const assets = await loadAssets();
+      const assets =
+        assetPromise.current?.key === modelKey
+          ? await assetPromise.current.promise
+          : await loadAssets();
       onApply(
         mergeSetupDraft(
           base.current,

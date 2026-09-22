@@ -5,13 +5,17 @@ import { assemblyParts, compileKey } from './keyAssembly';
 import { keyNets, syncControllerNets } from './assemblyNets';
 import { syncAssemblyMirrors } from './assemblyMirrors';
 import { syncLedChains } from './assemblyWiring';
-import { editMappingFields, type SourcePath } from './designSource';
+import {
+  editFields,
+  editMappingFields,
+  type SourceEdit,
+  type SourcePath,
+} from './designSource';
 import {
   getValue,
   readStudio,
   removeObject,
   removeValue,
-  setValue,
 } from './studioSource';
 export function applyAssembly(
   source: string,
@@ -60,8 +64,12 @@ export function applyAssembly(
     string,
     { path: SourcePath; values: Record<string, unknown> }
   >();
+  const writes = new Map<string, SourceEdit>();
   const write = (input: string, path: SourcePath, value: unknown) => {
-    if (!deferred) return setValue(input, path, value);
+    if (!deferred) {
+      writes.set(JSON.stringify(path), { path, value });
+      return input;
+    }
     const parent = path.slice(0, -1);
     const signature = JSON.stringify(parent);
     const group = edits.get(signature) || { path: parent, values: {} };
@@ -102,7 +110,7 @@ export function applyAssembly(
       cluster: item.cluster,
       cell: item.cell,
       index: item.index,
-      ...keyNets(source, id),
+      ...keyNets(source, id, data),
     });
     const compiled = recipe[id];
     const footprints = compiled.footprints as Record<
@@ -160,7 +168,7 @@ export function applyAssembly(
     ]) as Record<string, unknown>[] | undefined;
     const baselineModels = previous
       ? compileKey({ ...setup, ...previous.options, template: previous }, id, {
-          ...keyNets(source, id),
+          ...keyNets(source, id, data),
         })[id].models
       : undefined;
     if (
@@ -321,8 +329,12 @@ export function applyAssembly(
       });
     }
   }
-  for (const group of Array.from(edits.values())) {
-    result = editMappingFields(result, group.path, group.values);
+  if (deferred) {
+    for (const group of Array.from(edits.values())) {
+      result = editMappingFields(result, group.path, group.values);
+    }
+  } else if (writes.size) {
+    result = editFields(result, Array.from(writes.values()));
   }
   return syncControllerNets(
     syncAssemblySupport(

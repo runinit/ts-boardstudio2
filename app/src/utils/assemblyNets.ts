@@ -6,9 +6,12 @@ import {
 } from './assemblyElectrical';
 import { getValue, readStudio, setValue } from './studioSource';
 
-export function keyNets(source: string, id: string) {
-  const data = readStudio(source),
-    item = data.layout.objects![id];
+export function keyNets(
+  source: string,
+  id: string,
+  data: ReturnType<typeof readStudio> = readStudio(source)
+) {
+  const item = data.layout.objects![id];
   const prefix = item.pcb && item.pcb !== 'main' ? `${item.pcb}_` : '';
   const managed = !!getValue(source, ['meta', 'studio', 'setup']);
   const standard = item.cluster === `${prefix}fingers` && managed;

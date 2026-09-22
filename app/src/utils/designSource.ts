@@ -3,6 +3,7 @@ import type { YAMLMap } from 'yaml';
 import { sourceDocument } from './sourceSnapshot';
 
 export type SourcePath = (string | number)[];
+export type SourceEdit = { path: SourcePath; value: unknown };
 export const DESIGN_EDIT_EVENT = 'ergogen-design-edit';
 export interface DesignEditEvent {
   before: string;
@@ -111,6 +112,54 @@ export function editDesign(
     addition = { [path[index]]: addition };
   }
   return appendMapping(source, parent, addition);
+}
+
+export function editFields(source: string, changes: SourceEdit[]): string {
+  if (!changes.length) {
+    return source;
+  }
+  const unique = new Map(
+    changes.map((change) => [JSON.stringify(change.path), change])
+  );
+  const doc = document(source);
+  const additions: SourceEdit[] = [];
+  const replacements: { start: number; end: number; text: string }[] = [];
+  for (const change of Array.from(unique.values())) {
+    const node = doc.getIn(change.path, true);
+    if (node === undefined) {
+      additions.push(change);
+      continue;
+    }
+    if (!isNode(node) || !node.range) {
+      throw new Error('This field has no editable source range.');
+    }
+    replacements.push({
+      start: node.range[0],
+      end: node.range[1],
+      text: renderValue(source, node.range[1], isScalar(node), change.value),
+    });
+  }
+  if (additions.length) {
+    let appended = source;
+    for (const addition of additions) {
+      appended = editField(appended, addition.path, addition.value);
+    }
+    return editFields(
+      appended,
+      Array.from(unique.values()).filter(
+        (change) => !additions.includes(change)
+      )
+    );
+  }
+  replacements.sort((a, b) => a.start - b.start);
+  let cursor = 0;
+  const pieces: string[] = [];
+  for (const replacement of replacements) {
+    pieces.push(source.slice(cursor, replacement.start), replacement.text);
+    cursor = replacement.end;
+  }
+  pieces.push(source.slice(cursor));
+  return pieces.join('');
 }
 
 function appendMapping(

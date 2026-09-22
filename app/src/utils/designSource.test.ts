@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parse } from 'yaml';
-import { editDesign, movePoint } from './designSource';
+import { editDesign, editFields, movePoint } from './designSource';
 
 describe('Design source edits', () => {
   it('changes a scalar without disturbing formulas, comments, or formatting', () => {
@@ -20,6 +20,17 @@ describe('Design source edits', () => {
     );
     expect(changed).toContain('$extends: defaults\n      where: true # keep\n');
     expect(changed).toContain('      close: 2\npoints: {}');
+  });
+  it('updates multiple source fields while retaining unrelated comments', () => {
+    const source =
+      '# header\nunits:\n  u: 19 # horizontal\n  v: u # vertical\nlayout: {} # keep\n';
+    const changed = editFields(source, [
+      { path: ['units', 'u'], value: 18 },
+      { path: ['units', 'v'], value: 'u - 1' },
+    ]);
+    expect(changed).toBe(
+      '# header\nunits:\n  u: 18 # horizontal\n  v: u - 1 # vertical\nlayout: {} # keep\n'
+    );
   });
   it('preserves coordinate formulas when dragging and rejects stale references', () => {
     const source =

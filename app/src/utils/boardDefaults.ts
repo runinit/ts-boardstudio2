@@ -2,7 +2,8 @@ import { stringify } from 'yaml';
 import { defaultSetup, type DesignSetup } from './designSetup';
 import { assemblyParts } from './keyAssembly';
 import { applyScopeAssembly, scopeAssembly } from './assemblyScope';
-import { getValue, setValue } from './studioSource';
+import { editFields } from './designSource';
+import { getValue } from './studioSource';
 import { syncBoardTopology } from './boardTopology';
 import {
   ensurePitchUnits,
@@ -124,8 +125,10 @@ export function applyBoardDefaults(source: string, setup: DesignSetup): string {
         JSON.stringify(previous.pitchExpressions));
   if (pitchChanged) {
     const pitch = setupPitch(setup, pitchUnits(source));
-    next = setValue(next, ['units', 'u'], pitch[0]);
-    next = setValue(next, ['units', 'v'], pitch[1]);
+    next = editFields(next, [
+      { path: ['units', 'u'], value: pitch[0] },
+      { path: ['units', 'v'], value: pitch[1] },
+    ]);
   }
   const assemblyChanged = [
     'family',
@@ -146,21 +149,30 @@ export function applyBoardDefaults(source: string, setup: DesignSetup): string {
     setup.keycap &&
     JSON.stringify(setup.keycap) !== JSON.stringify(previous.keycap)
   ) {
-    next = setValue(
-      next,
-      ['parts', 'key', 'envelopes', 'keycap', 'size'],
-      setup.keycap
-    );
+    next = editFields(next, [
+      {
+        path: ['parts', 'key', 'envelopes', 'keycap', 'size'],
+        value: setup.keycap,
+      },
+    ]);
   }
-  next = setValue(next, ['meta', 'studio', 'openSetup'], false);
-  next = setValue(next, ['meta', 'name'], setup.name);
-  next = setValue(next, ['meta', 'studio', 'setup'], setup);
-  next = setValue(next, ['meta', 'studio', 'setupRevision'], BOARD_REVISION);
   const defaults = (getValue(next, ['meta', 'studio', 'defaults']) ||
     {}) as object;
-  next = setValue(next, ['meta', 'studio', 'defaults'], {
-    ...defaults,
-    ...(pitchChanged ? { pitch: ['u', 'v'] } : {}),
-  });
+  next = editFields(next, [
+    { path: ['meta', 'studio', 'openSetup'], value: false },
+    { path: ['meta', 'name'], value: setup.name },
+    { path: ['meta', 'studio', 'setup'], value: setup },
+    {
+      path: ['meta', 'studio', 'setupRevision'],
+      value: BOARD_REVISION,
+    },
+    {
+      path: ['meta', 'studio', 'defaults'],
+      value: {
+        ...defaults,
+        ...(pitchChanged ? { pitch: ['u', 'v'] } : {}),
+      },
+    },
+  ]);
   return syncBoardTopology(next);
 }
