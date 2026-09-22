@@ -119,10 +119,10 @@ test('selects a distance target on the canvas and preserves its position', async
   await page
     .getByRole('button', { name: 'Snapping settings', exact: true })
     .click();
-  await page.getByRole('checkbox', { name: 'Footprint origins' }).check();
+  await page.getByRole('button', { name: 'Footprint origins' }).click();
   await expect(
-    page.getByRole('checkbox', { name: 'Center guides' })
-  ).toBeChecked();
+    page.getByRole('button', { name: 'Center guides' })
+  ).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('keeps the narrow snapping menu above camera controls', async ({

@@ -139,6 +139,7 @@ export default function NewDesignWorkspace({
   onDraft,
   scopeControls,
   applyLabel,
+  previewExpanded = false,
 }: {
   onCreate: (
     source: string,
@@ -152,6 +153,7 @@ export default function NewDesignWorkspace({
   mode?: 'design' | 'assembly';
   scopeControls?: ReactNode;
   applyLabel?: string;
+  previewExpanded?: boolean;
 }) {
   const [setup, setSetup] = useState(() =>
     initial ? structuredClone(initial) : defaultSetup()
@@ -165,7 +167,7 @@ export default function NewDesignWorkspace({
   const [selected, setSelected] = useState<Role>('switch');
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(previewExpanded);
   const [info, setInfo] = useState<Partial<Record<Role, FootprintInfo>>>({});
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<[number, number]>([0, 0]);
@@ -423,7 +425,7 @@ export default function NewDesignWorkspace({
         }
       }}
     >
-      {(!embedded || !onDraft) && (
+      {(!embedded || !onDraft || mode === 'assembly') && (
         <header>
           <h1>
             {mode === 'assembly'

@@ -20,14 +20,14 @@ const Dock = styled.div`
   gap: ${theme.spacing.xs};
   padding: ${theme.spacing.xs};
   border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.studio.toolRadius};
+  border-radius: ${theme.cad.fieldRadius};
   background: ${theme.colors.backgroundLight};
   box-shadow: ${theme.studio.toolShadow};
   button {
     padding: ${theme.spacing.sm};
     min-width: ${theme.studio.touchSize};
     border: 0;
-    border-radius: ${theme.studio.toolRadius};
+    border-radius: ${theme.cad.fieldRadius};
     background: transparent;
   }
   button:hover {

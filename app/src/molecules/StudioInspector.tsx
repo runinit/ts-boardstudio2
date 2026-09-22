@@ -1,7 +1,9 @@
 import type { LayoutReport } from 'ergogen/src/native';
 import { useState } from 'react';
 import { Copy, Trash2, Plus } from 'lucide-react';
+import styled from 'styled-components';
 import { StudioActions, StudioField } from './StudioStyles';
+import { theme } from '../theme/theme';
 import type { StudioSelection } from './StudioCanvas';
 import {
   StudioDoc,
@@ -41,6 +43,18 @@ type Props = {
   select: (value: StudioSelection) => void;
 };
 const dimensions = ['X', 'Y', 'Z'];
+const PlacementRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: ${theme.spacing.xs};
+  margin-bottom: ${theme.spacing.sm};
+  > * {
+    min-width: 0;
+  }
+  @media (max-width: ${theme.studio.breakpoint}) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
 export default function StudioInspector({
   source,
   data,
@@ -739,25 +753,27 @@ export default function StudioInspector({
         </>
       )}
       <h3>Placement</h3>
-      {dimensions.map((label, index) =>
-        field(
-          label,
+      <PlacementRow>
+        {dimensions.map((label, index) =>
+          field(
+            label,
+            section === 'objects' && item.kind === 'key'
+              ? ['placement', 'override', 'at', index]
+              : ['placement', 'at', index],
+            0,
+            {
+              actual: resolved?.position[index],
+            }
+          )
+        )}
+        {field(
+          'Rotation',
           section === 'objects' && item.kind === 'key'
-            ? ['placement', 'override', 'at', index]
-            : ['placement', 'at', index],
-          0,
-          {
-            actual: resolved?.position[index],
-          }
-        )
-      )}
-      {field(
-        'Rotation',
-        section === 'objects' && item.kind === 'key'
-          ? ['placement', 'override', 'rotate']
-          : ['placement', 'rotate'],
-        0
-      )}
+            ? ['placement', 'override', 'rotate']
+            : ['placement', 'rotate'],
+          0
+        )}
+      </PlacementRow>
       <InspectorSection name="Advanced placement">
         {reference('Relative to', ['placement', 'ref'])}
         {reference(

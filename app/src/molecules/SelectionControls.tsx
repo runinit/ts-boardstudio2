@@ -35,13 +35,15 @@ const RelativeFields = styled.div`
     width: 100%;
   }
 `;
-const AdjustmentGroup = styled.fieldset`
+const AdjustmentGroup = styled.fieldset<{ $compact?: boolean }>`
   border: 0;
-  border-top: 1px solid ${theme.colors.border};
-  padding: ${theme.spacing.md} 0 0;
-  margin: ${theme.spacing.lg} 0 0;
+  border-top: ${({ $compact }) =>
+    $compact ? '0' : `1px solid ${theme.colors.border}`};
+  padding: ${({ $compact }) => ($compact ? 0 : theme.spacing.md)} 0 0;
+  margin: ${({ $compact }) => ($compact ? 0 : theme.spacing.lg)} 0 0;
   legend {
     padding-right: ${theme.spacing.sm};
+    ${({ $compact }) => ($compact ? 'font-size: 12px;' : '')}
   }
 `;
 type Props = {
@@ -49,12 +51,14 @@ type Props = {
   selection: StudioSelection;
   report?: LayoutReport;
   edit: (change: (source: string) => string) => void;
+  compact?: boolean;
 };
 export default function SelectionControls({
   source,
   selection,
   report,
   edit,
+  compact = false,
 }: Props) {
   const [adjustment, setAdjustment] = useState(0);
   const [adjustError, setAdjustError] = useState('');
@@ -88,7 +92,7 @@ export default function SelectionControls({
     return other.some((value, index) => value !== size[index]);
   });
   return (
-    <AdjustmentGroup disabled={locked}>
+    <AdjustmentGroup $compact={compact} disabled={locked}>
       <legend>Selection adjustments</legend>
       {!!keys.length && (
         <>

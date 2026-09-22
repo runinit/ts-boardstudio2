@@ -76,10 +76,8 @@ test('retains the part editor draft when returning from board editing', async ({
   });
   await offset.fill('4');
   await offset.blur();
-  await page
-    .getByRole('button', { name: 'Back to design', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Part library', exact: true }).click();
+  await page.getByRole('button', { name: 'Design', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(offset).toHaveValue('4');
 });
 
@@ -120,6 +118,7 @@ for (const width of [320, 390]) {
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth)
     ).toBe(width);
+    await page.getByRole('button', { name: 'Project actions' }).click();
     for (const name of [
       'Projects',
       'Undo project edit',

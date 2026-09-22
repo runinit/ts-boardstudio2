@@ -123,7 +123,10 @@ for (const viewport of [
         panel.evaluate((element) => element.scrollWidth - element.clientWidth)
       )
       .toBe(0);
-    await panel.getByRole('checkbox', { name: 'Footprint origins' }).check();
+    await tools.getByRole('button', { name: 'Footprint origins' }).click();
+    await tools
+      .getByRole('button', { name: 'More snapping settings' })
+      .click();
     const custom = panel.getByLabel('Custom snap increment');
     await custom.fill('1.5');
     await custom.press('Escape');
@@ -132,10 +135,13 @@ for (const viewport of [
     await snapping.click();
     await expect(snapping).toHaveAttribute('aria-pressed', 'false');
     await arrow.click();
+    await tools
+      .getByRole('button', { name: 'More snapping settings' })
+      .click();
     await expect(panel.getByLabel('Custom snap increment')).toHaveValue('1.5');
     await expect(
-      panel.getByRole('checkbox', { name: 'Footprint origins' })
-    ).toBeChecked();
+      tools.getByRole('button', { name: 'Footprint origins' })
+    ).toHaveAttribute('aria-pressed', 'true');
     await expect(
       panel.getByRole('button', { name: 'Snap increment 0.25u' })
     ).toBeDisabled();

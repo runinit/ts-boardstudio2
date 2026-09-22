@@ -23,7 +23,10 @@ it('keeps increments, guides and edge gap in an inline snapping accordion', () =
     screen.queryByRole('button', { name: 'Snap increment 0.25u' })
   ).not.toBeInTheDocument();
   fireEvent.click(disclosure);
-  fireEvent.click(screen.getByRole('checkbox', { name: 'Center guides' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Center guides' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'More snapping settings' })
+  );
   fireEvent.change(screen.getByLabelText('Snap edge gap'), {
     target: { value: '3' },
   });
@@ -32,14 +35,18 @@ it('keeps increments, guides and edge gap in an inline snapping accordion', () =
     screen.getByRole('button', { name: 'Snap increment 0.25u' })
   ).toBeDisabled();
   fireEvent.click(screen.getByRole('button', { name: 'Snapping' }));
-  expect(
-    screen.getByRole('checkbox', { name: 'Center guides' })
-  ).not.toBeChecked();
+  expect(screen.getByRole('button', { name: 'Center guides' })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  );
   expect(screen.getByLabelText('Snap edge gap')).toHaveValue(3);
   fireEvent.keyDown(screen.getByLabelText('Snap edge gap'), { key: 'Escape' });
   expect(disclosure).toHaveFocus();
   expect(disclosure).toHaveAttribute('aria-expanded', 'false');
   fireEvent.click(disclosure);
+  fireEvent.click(
+    screen.getByRole('button', { name: 'More snapping settings' })
+  );
   expect(screen.getByLabelText('Snap edge gap')).toHaveValue(3);
   fireEvent.pointerDown(document.body);
   expect(disclosure).toHaveAttribute('aria-expanded', 'true');

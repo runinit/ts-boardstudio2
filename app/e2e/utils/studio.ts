@@ -63,9 +63,8 @@ export async function openExport(page: Page) {
 export async function openLibrary(page: Page) {
   await studio(page)
     .getByRole('navigation', { name: 'Design workflow' })
-    .getByRole('button', { name: 'Design', exact: true })
+    .getByRole('button', { name: 'Library', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Part library', exact: true }).click();
   await expect(page.getByLabel('Import footprint files')).toBeAttached();
   return studio(page);
 }

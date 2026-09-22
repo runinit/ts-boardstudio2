@@ -209,6 +209,46 @@ The footer distinguishes current layout positions from generated 3D previews. Re
 
 Keep gap fit, cutting profile checks, and export readiness as separate labels and states. A named layer may fit the mechanical gap while its cutting outline is unresolved or its export is unavailable. Show the layer name and material in section and narrow-screen status rows.
 
+## Design workflow revision
+
+- The Design stage keeps the canvas dominant, but a selection exposes a compact
+  contextual action popover for common edits: placement, rotation, size, delete,
+  duplicate, and add key/row/column shortcuts. The popover is a tonal graphite
+  surface with one blue primary action; it never becomes a second full inspector.
+- Placement values in the Inspector use one compact row for position axes and
+  rotation. The row sits immediately below the selection heading; advanced
+  constraints remain behind a disclosure.
+- Snapping is represented by icon-labelled controls in the canvas dock. The
+  first interaction exposes the essential snap modes inline; detailed options
+  remain behind a secondary disclosure.
+- The stage strip owns the first-class Part Library tab between Case and Export.
+  Header actions are reserved for project-level actions and settings; duplicate
+  key-assembly entry points are removed.
+- Part Library sections are independently collapsible. Bundled/project
+  footprints, custom footprints, and key assemblies remain visibly distinct.
+  Key assemblies use the same preview surface as footprints, with a basic 1x1
+  PCB silhouette and a restrained per-part color swatch.
+
+## Reference extraction: assembly library and canvas dock
+
+The supplied assembly-library reference confirms the visual direction rather
+than introducing a new palette:
+
+- Keep the graphite field, 1px rules, Roboto labels, and workbench blue
+  selection wash already defined above.
+- Use a 5px field radius for the canvas tool dock and its icon buttons. The
+  dock is a compact rectangular control group, not a tall capsule or floating
+  pill. Separate tool groups with tonal spacing and a quiet rule.
+- The Library stage uses a fixed 260px catalog rail and a flexible editor
+  surface. Assembly rows are compact, full-width buttons with a selected
+  blue-gray wash, a one-line title, and a muted family/mounting subtitle.
+- The selected assembly gets the main work area: a large 320px assembly editor
+  preview above the placement controls. The catalog keeps a smaller preview
+  and color swatches as orientation, while the center is the editing surface.
+- Preview colors are semantic tokens: PCB outline blue, key blue-gray,
+  component brass, and accent blue for optional RGB LEDs. They are controls,
+  not decorative gradients.
+
 ## Do's and Don'ts
 
 - Do keep the canvas dominant and open the Inspector only when requested.
@@ -219,7 +259,11 @@ Keep gap fit, cutting profile checks, and export readiness as separate labels an
 - Do respect `prefers-reduced-motion`.
 - Do wrap long key names while keeping removal controls reachable.
 - Do separate matrix actions from selection adjustments.
+- Do expose frequent selection edits where the selection happens.
+- Do keep library categories collapsible and preserve their open state while
+  browsing.
 - Don't replace the canvas when selection changes.
 - Don't turn every surface into a floating card or add shadows to ordinary panels.
 - Don't merge bundled and custom ownership into one catalog.
 - Don't crowd narrow layouts with simultaneous inspectors.
+- Don't retain duplicate header actions for the same setup workflow.

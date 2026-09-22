@@ -1,4 +1,12 @@
-import { ChevronDown, Magnet, X } from 'lucide-react';
+import {
+  ChevronDown,
+  CircleDot,
+  Crosshair,
+  Grid2X2,
+  Magnet,
+  ScanLine,
+  X,
+} from 'lucide-react';
 import {
   useId,
   useLayoutEffect,
@@ -29,6 +37,26 @@ const Tool = styled.div`
     .snap-disclosure svg {
       transition: none;
     }
+  }
+`;
+const QuickGuides = styled.div`
+  display: grid;
+  gap: 1px;
+  width: ${theme.studio.touchSize};
+  button {
+    min-height: ${theme.studio.touchSize};
+    padding: ${theme.spacing.xs};
+    border: 0;
+    border-radius: ${theme.cad.fieldRadius};
+    background: ${theme.colors.backgroundLight};
+  }
+  button[aria-pressed='true'] {
+    color: ${theme.colors.accent};
+    background: ${theme.studio.selected};
+  }
+  @container canvas (height < ${theme.studio.shortRailHeight}) {
+    display: flex;
+    width: auto;
   }
 `;
 // Keep the content mounted so opening and closing both reveal real rail height.
@@ -129,6 +157,7 @@ export default function SnapControls({
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const slide = useRef<HTMLDivElement | null>(null);
   const panel = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -167,6 +196,7 @@ export default function SnapControls({
   }, [open, viewport]);
   const close = () => {
     setOpen(false);
+    setAdvancedOpen(false);
     trigger.current?.focus({ preventScroll: true });
   };
   return (
@@ -189,6 +219,27 @@ export default function SnapControls({
       >
         <Magnet size={18} />
       </button>
+      <QuickGuides aria-label="Snap guides">
+        {(
+          [
+            ['grid', Grid2X2, 'Increment grid'],
+            ['centers', Crosshair, 'Center guides'],
+            ['origins', CircleDot, 'Footprint origins'],
+            ['edges', ScanLine, 'Edge guides'],
+          ] as const
+        ).map(([kind, Icon, label]) => (
+          <button
+            key={kind}
+            aria-label={label}
+            title={label}
+            aria-pressed={!!options[kind]}
+            disabled={!enabled}
+            onClick={() => onChange({ ...options, [kind]: !options[kind] })}
+          >
+            <Icon size={16} />
+          </button>
+        ))}
+      </QuickGuides>
       <button
         ref={trigger}
         className="snap-disclosure"
@@ -217,6 +268,16 @@ export default function SnapControls({
           >
             <header>
               <strong>Snapping</strong>
+              <button
+                aria-label={
+                  advancedOpen
+                    ? 'Show essential snapping controls'
+                    : 'More snapping settings'
+                }
+                onClick={() => setAdvancedOpen((value) => !value)}
+              >
+                {advancedOpen ? 'Quick' : 'More'}
+              </button>
               <button aria-label="Close snapping settings" onClick={close}>
                 <X size={16} />
               </button>
@@ -239,38 +300,9 @@ export default function SnapControls({
                 </button>
               ))}
             </div>
-            <div className="snap-guides">
-              {(['grid', 'centers', 'origins', 'edges'] as const).map(
-                (kind) => (
-                  <label key={kind}>
-                    <input
-                      aria-label={
-                        kind === 'centers'
-                          ? 'Center guides'
-                          : kind === 'origins'
-                            ? 'Footprint origins'
-                            : kind === 'grid'
-                              ? 'Increment grid'
-                              : 'Edge guides'
-                      }
-                      type="checkbox"
-                      checked={!!options[kind]}
-                      onChange={(event) =>
-                        onChange({ ...options, [kind]: event.target.checked })
-                      }
-                    />
-                    {kind === 'centers'
-                      ? 'Centers'
-                      : kind === 'origins'
-                        ? 'Origins'
-                        : kind === 'grid'
-                          ? 'Grid'
-                          : 'Edges'}
-                  </label>
-                )
-              )}
-            </div>
-            <label className="snap-field">
+            {advancedOpen && (
+              <>
+                <label className="snap-field">
               Increment · mm
               <input
                 aria-label="Custom snap increment"
@@ -286,8 +318,8 @@ export default function SnapControls({
                   }
                 }}
               />
-            </label>
-            <label className="snap-field">
+                </label>
+                <label className="snap-field">
               Edge gap · mm
               <input
                 aria-label="Snap edge gap"
@@ -302,8 +334,8 @@ export default function SnapControls({
                   }
                 }}
               />
-            </label>
-            <details>
+                </label>
+                <details>
               <summary>Alt bypasses snapping · Help</summary>
               <small>
                 Drop first, then choose Keep relationship to retain a center
@@ -312,7 +344,9 @@ export default function SnapControls({
               <small>
                 1u = {units.u} mm · 1v = {units.v} mm. Alt bypasses snapping.
               </small>
-            </details>
+                </details>
+              </>
+            )}
           </Panel>
         </div>
       </Slide>

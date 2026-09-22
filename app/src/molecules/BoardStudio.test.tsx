@@ -238,7 +238,7 @@ it('keeps an empty free cluster selectable and deletable', () => {
 
 it('opens the case from the footprint library preview action', async () => {
   render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Part library' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Library' }));
   fireEvent.click(
     await screen.findByRole('button', { name: 'Preview in case' })
   );
@@ -356,7 +356,7 @@ it('keeps cancellation available while Case is generating', () => {
 
 it('returns to the part library after closing Code', async () => {
   render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Part library' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Library' }));
   expect(
     await screen.findByRole('button', { name: 'Preview in case' })
   ).toBeVisible();

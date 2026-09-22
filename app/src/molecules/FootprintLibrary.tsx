@@ -34,8 +34,11 @@ import type {
 } from '../types/footprint';
 import ModelEditor from './ModelEditor';
 import FootprintCanvas from './FootprintCanvas';
+import InspectorSection from './InspectorSection';
 import { FootprintParameters } from './FootprintParameters';
 import type { FootprintParameters as ParameterDefinitions } from '../types/footprint';
+import NewDesignWorkspace from './NewDesignWorkspace';
+import { defaultSetup, type DesignSetup } from '../utils/designSetup';
 import bundled from '../../.generated/footprints.json';
 import { theme } from '../theme/theme';
 
@@ -52,6 +55,126 @@ const Layout = styled.div`
     overflow: auto;
   }
 `;
+const AssemblyCard = styled.div`
+  display: grid;
+  gap: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.md};
+  padding: ${theme.spacing.sm};
+  background: ${theme.workbench.fieldSurface};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.cad.fieldRadius};
+`;
+const AssemblyPreview = styled.div<{ $large?: boolean }>`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${theme.spacing.sm};
+  min-height: ${({ $large }) => ($large ? '280px' : '150px')};
+  align-items: center;
+  background: ${theme.colors.background};
+  border-radius: ${theme.cad.fieldRadius};
+  overflow: hidden;
+  svg {
+    width: 100%;
+    height: ${({ $large }) => ($large ? '260px' : '140px')};
+  }
+`;
+const ModelTile = styled.div`
+  position: relative;
+  min-height: 110px;
+  perspective: 360px;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    height: 58px;
+    border-radius: 4px;
+    background: ${theme.colors.backgroundLighter};
+    border: 1px solid ${theme.colors.border};
+    transform: rotateX(58deg) rotateZ(-12deg);
+  }
+  &::before {
+    top: 22px;
+    box-shadow: 14px 12px 0 ${theme.colors.border};
+  }
+  &::after {
+    top: 18px;
+    left: 31%;
+    right: 31%;
+    height: 40px;
+    background: ${theme.studio.key};
+    border-color: ${theme.colors.accent};
+    transform: rotateX(58deg) rotateZ(-12deg) translateZ(18px);
+  }
+`;
+const LargePreview = styled.div`
+  display: grid;
+  gap: ${theme.spacing.sm};
+  width: min(720px, 90%);
+  margin: auto;
+  h2,
+  p {
+    margin: 0;
+  }
+  p {
+    color: ${theme.colors.textDarker};
+  }
+  ${ModelTile} {
+    min-height: 220px;
+    &::before,
+    &::after {
+      height: 110px;
+    }
+    &::before {
+      top: 48px;
+    }
+    &::after {
+      top: 40px;
+    }
+  }
+`;
+type AssemblyColors = {
+  pcb: string;
+  switch: string;
+  diode: string;
+  led: string;
+};
+function KeyAssemblyArt({
+  colors,
+  large = false,
+}: {
+  colors: AssemblyColors;
+  large?: boolean;
+}) {
+  return (
+    <AssemblyPreview $large={large} aria-label="Key assembly preview">
+      <svg viewBox="0 0 160 120" role="img" aria-label="1x1 PCB">
+        <rect
+          x="12"
+          y="12"
+          width="136"
+          height="96"
+          rx="8"
+          fill={colors.pcb}
+          opacity="0.85"
+        />
+        <rect
+          x="45"
+          y="31"
+          width="70"
+          height="58"
+          rx="5"
+          fill={colors.switch}
+        />
+        <circle cx="30" cy="30" r="5" fill={colors.diode} />
+        <circle cx="130" cy="90" r="5" fill={colors.diode} />
+        <circle cx="130" cy="30" r="5" fill={colors.led} />
+      </svg>
+      <ModelTile aria-label="3D key assembly preview" />
+    </AssemblyPreview>
+  );
+}
 const Panel = styled.aside<{
   $drawer?: 'catalog' | 'inspector';
   $open?: boolean;
@@ -248,12 +371,58 @@ type Batch = ImportFile & {
 };
 type Props = {
   onPreview?: () => void;
+  onAssembly?: () => void;
+  onAssemblyApply?: (
+    setup: DesignSetup,
+    assets: Record<string, string>
+  ) => void;
   initialQuery?: string;
   source?: string;
   onSource?: (source: string) => void;
 };
+const ASSEMBLY_PRESETS = [
+  { id: 'mx', label: 'MX', family: 'mx', mounting: 'solder', led: false },
+  {
+    id: 'mx-hotswap',
+    label: 'MX hotswap',
+    family: 'mx',
+    mounting: 'hotswap',
+    led: false,
+  },
+  { id: 'mx-rgb', label: 'MX RGB', family: 'mx', mounting: 'solder', led: true },
+  {
+    id: 'mx-rgb-hotswap',
+    label: 'MX RGB hotswap',
+    family: 'mx',
+    mounting: 'hotswap',
+    led: true,
+  },
+  {
+    id: 'choc',
+    label: 'Choc',
+    family: 'choc_v1',
+    mounting: 'solder',
+    led: false,
+  },
+  {
+    id: 'choc-hotswap',
+    label: 'Choc hotswap',
+    family: 'choc_v1',
+    mounting: 'hotswap',
+    led: false,
+  },
+  {
+    id: 'choc-v2',
+    label: 'Choc v2',
+    family: 'choc_v2',
+    mounting: 'solder',
+    led: false,
+  },
+] as const;
 export default function FootprintLibrary({
   onPreview,
+  onAssembly,
+  onAssemblyApply,
   initialQuery = '',
   source,
   onSource,
@@ -287,6 +456,35 @@ export default function FootprintLibrary({
       ?.focus();
   }, [catalogOpen, inspectorOpen]);
   const [query, setQuery] = useState(initialQuery);
+  const [assemblyId, setAssemblyId] = useState('mx');
+  const [assemblyDraft, setAssemblyDraft] = useState<DesignSetup>(() => {
+    const preset = ASSEMBLY_PRESETS[0];
+    return {
+      ...defaultSetup(),
+      family: preset.family,
+      mounting: preset.mounting,
+      led: preset.led,
+    };
+  });
+  const selectAssembly = (preset: (typeof ASSEMBLY_PRESETS)[number]) => {
+    setAssemblyId(preset.id);
+    setAssemblyDraft({
+      ...defaultSetup(),
+      family: preset.family,
+      mounting: preset.mounting,
+      led: preset.led,
+      template: {
+        ...defaultSetup().template,
+        name: preset.label,
+      },
+    });
+  };
+  const [assemblyColors, setAssemblyColors] = useState({
+    pcb: theme.studio.outline,
+    switch: theme.studio.key,
+    diode: theme.studio.component,
+    led: theme.colors.accent,
+  });
   const [draft, setDraft] = useState<LibraryEntry>();
   // Resolve attached defaults for display without changing the saved draft.
   const previews = useBundledPreviews(draft?.models || [], draft?.assets || {});
@@ -788,50 +986,125 @@ export default function FootprintLibrary({
             </button>
           </details>
         )}
-        <h3>Your footprints ({entries.length})</h3>
-        <Catalog>
-          {entries
-            .filter((entry) =>
-              entry.name.toLowerCase().includes(query.toLowerCase())
-            )
-            .map((entry) => (
+        <InspectorSection name="Key assemblies" defaultOpen>
+          <AssemblyCard>
+            <strong>Standard key assemblies</strong>
+            <small>
+              Pick a footprint family, then edit its placement and wiring in
+              the pane.
+            </small>
+            <Catalog>
+              {ASSEMBLY_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  aria-pressed={assemblyId === preset.id}
+                  onClick={() => selectAssembly(preset)}
+                >
+                  <span>
+                    <span>{preset.label}</span>
+                    <small>
+                      {preset.family === 'mx' ? 'MX' : 'Choc'} ·{' '}
+                      {preset.mounting === 'hotswap' ? 'hot-swap' : 'solder'}
+                      {preset.led ? ' · RGB' : ''}
+                    </small>
+                  </span>
+                </button>
+              ))}
+            </Catalog>
+            <KeyAssemblyArt colors={assemblyColors} />
+            <label>
+              Part colors
+              <span style={{ display: 'grid', gap: theme.spacing.xs }}>
+                {(
+                  [
+                    ['pcb', 'PCB'],
+                    ['switch', 'Switch'],
+                    ['diode', 'Diode'],
+                    ['led', 'LED'],
+                  ] as const
+                ).map(([part, label]) => (
+                  <span
+                    key={part}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 44px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <small>{label}</small>
+                    <input
+                      aria-label={`${label} color`}
+                      type="color"
+                      value={assemblyColors[part]}
+                      onChange={(event) =>
+                        setAssemblyColors((current) => ({
+                          ...current,
+                          [part]: event.target.value,
+                        }))
+                      }
+                    />
+                  </span>
+                ))}
+              </span>
+            </label>
+            {onAssembly && (
+              <button data-primary="true" onClick={onAssembly}>
+                Edit assembly in Design
+              </button>
+            )}
+          </AssemblyCard>
+        </InspectorSection>
+        <InspectorSection name={`Your footprints (${entries.length})`} defaultOpen>
+          <Catalog>
+            {entries
+              .filter((entry) =>
+                entry.name.toLowerCase().includes(query.toLowerCase())
+              )
+              .map((entry) => (
+                <button
+                  key={entry.id}
+                  title={entry.name}
+                  aria-pressed={draft?.id === entry.id}
+                  onClick={() => open(entry)}
+                >
+                  <span>
+                    <span>{entry.name}</span>
+                    <small>Custom · revision {entry.revision}</small>
+                  </span>
+                </button>
+              ))}
+          </Catalog>
+        </InspectorSection>
+        <InspectorSection
+          name={`Bundled & project (${filtered.length})`}
+          defaultOpen
+        >
+          <Catalog>
+            {filtered.map((entry) => (
               <button
-                key={entry.id}
+                key={`${entry.kind}:${entry.name}`}
+                aria-label={`${entry.name} · ${entry.kind}`}
                 title={entry.name}
-                aria-pressed={draft?.id === entry.id}
-                onClick={() => open(entry)}
+                aria-pressed={
+                  !!draft &&
+                  draft.id ===
+                    sourceDrafts.current.get(`${entry.kind}:${entry.name}`)?.id
+                }
+                onClick={() =>
+                  openSource(entry.name, entry.source, entry.kind)
+                }
               >
                 <span>
-                  <span>{entry.name}</span>
-                  <small>Custom · revision {entry.revision}</small>
+                  <span>{entry.name.split('/').at(-1)}</span>
+                  <small>
+                    {entry.kind} ·{' '}
+                    {entry.name.split('/').slice(0, -1).join('/') || 'Ergogen'}
+                  </small>
                 </span>
               </button>
             ))}
-        </Catalog>
-        <h3>Bundled & project ({filtered.length})</h3>
-        <Catalog>
-          {filtered.map((entry) => (
-            <button
-              key={`${entry.kind}:${entry.name}`}
-              aria-label={`${entry.name} · ${entry.kind}`}
-              title={entry.name}
-              aria-pressed={
-                !!draft &&
-                draft.id ===
-                  sourceDrafts.current.get(`${entry.kind}:${entry.name}`)?.id
-              }
-              onClick={() => openSource(entry.name, entry.source, entry.kind)}
-            >
-              <span>
-                <span>{entry.name.split('/').at(-1)}</span>
-                <small>
-                  {entry.kind} ·{' '}
-                  {entry.name.split('/').slice(0, -1).join('/') || 'Ergogen'}
-                </small>
-              </span>
-            </button>
-          ))}
-        </Catalog>
+          </Catalog>
+        </InspectorSection>
       </Panel>
       <Center>
         <Toolbar>
@@ -907,22 +1180,25 @@ export default function FootprintLibrary({
             side={side}
           />
         ) : (
-          <Panel
-            as="div"
-            style={{
-              margin: 'auto',
-              maxWidth: '32rem',
-              border: 0,
-              background: 'transparent',
-            }}
-          >
-            <h2>Prepare a reusable footprint</h2>
-            <p>
-              Choose a bundled footprint to customize, or import a KiCad
-              footprint. Map its pads, align its models, then save it for every
-              linked project.
-            </p>
-          </Panel>
+          <LargePreview aria-label="Key assembly library preview">
+            <h2>
+              {ASSEMBLY_PRESETS.find((preset) => preset.id === assemblyId)
+                ?.label || 'Key assembly'}
+            </h2>
+            <NewDesignWorkspace
+              key={assemblyId}
+              embedded
+              mode="assembly"
+              previewExpanded
+              initial={assemblyDraft}
+              onDraft={setAssemblyDraft}
+              onCancel={() => {}}
+              onCreate={(_source, assets) =>
+                onAssemblyApply?.(assemblyDraft, assets)
+              }
+              applyLabel="Apply assembly"
+            />
+          </LargePreview>
         )}
         {currentInfo &&
           draft?.models.some((model) => modelPreview(model, previews.assets)) &&

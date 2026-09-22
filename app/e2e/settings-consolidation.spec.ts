@@ -151,8 +151,8 @@ test('retains an edge relationship only after the snapped drop', async ({
   await toolbar
     .getByRole('button', { name: 'Snapping settings', exact: true })
     .click();
-  await toolbar.getByRole('checkbox', { name: 'Center guides' }).uncheck();
-  await toolbar.getByRole('checkbox', { name: 'Increment grid' }).uncheck();
+  await toolbar.getByRole('button', { name: 'Center guides' }).click();
+  await toolbar.getByRole('button', { name: 'Increment grid' }).click();
   await expect(toolbar.getByLabel('Snap edge gap')).toHaveValue('2');
   await expect(
     page.getByRole('button', { name: 'Canvas options', exact: true })

@@ -191,9 +191,7 @@ test.describe('GitHub Loading', () => {
       })
     ).toBeVisible();
     await shoot('unspecworks-footprint-present');
-    await library
-      .getByRole('button', { name: 'Back to design', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Design', exact: true }).click();
 
     // Navigate back to welcome page
     const newConfigButton = page.getByRole('button', {
@@ -229,9 +227,7 @@ test.describe('GitHub Loading', () => {
         exact: true,
       })
     ).toBeVisible();
-    await library
-      .getByRole('button', { name: 'Back to design', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Design', exact: true }).click();
 
     // Reload an existing footprint to exercise conflict choices and reset.
     await page.route('**/mr_useful_footprints/**/logo_mr_useful.js', (route) =>

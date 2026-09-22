@@ -8,6 +8,7 @@ import { SnapProvider } from '../hooks/useSnapOptions';
 import { removeSelection, isDeleteShortcut } from '../utils/studioDelete';
 import { ResizeReview, type ResizeProposal } from '../utils/resizeReview';
 import { repairSetup } from '../utils/setupRepair';
+import { applyBoardDefaults } from '../utils/boardDefaults';
 import ResizeReviewDialog from './ResizeReviewDialog';
 import {
   lazy,
@@ -46,6 +47,7 @@ import {
   addObject,
   addOutline,
   nextId,
+  resizeCluster,
   setValue,
   StudioDoc,
 } from '../utils/studioSource';
@@ -80,10 +82,10 @@ import {
   type RelationPick,
 } from '../utils/layoutRelations';
 import { theme } from '../theme/theme';
-import { selectedKeys } from '../utils/studioSelection';
 import ClusterTree from './ClusterTree';
 import LayoutDefaults from './LayoutDefaults';
 import { placeNewItem } from '../utils/studioPlacement';
+import SelectionPopover from './SelectionPopover';
 import {
   StudioShell,
   StudioBar,
@@ -106,6 +108,7 @@ const stages = [
   ['design', 'Design', LayoutGrid],
   ['pcb', 'PCB', Cpu],
   ['case', 'Case', Box],
+  ['library', 'Library', Component],
   ['export', 'Export', Download],
 ] as const;
 type Stage = (typeof stages)[number][0];
@@ -137,6 +140,7 @@ export default function BoardStudio({
       Object.keys(data.layout.objects || {})[0] ||
       '',
   });
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [sections, setSections] = useState<Record<string, boolean>>({
     objects: true,
     selection: true,
@@ -150,11 +154,7 @@ export default function BoardStudio({
     'properties'
   );
   const codeReturn = useRef<'canvas' | 'library' | 'sketch'>('canvas');
-  const [libraryOpened, setLibraryOpened] = useState(false);
-  const openLibrary = () => {
-    setLibraryOpened(true);
-    setView('library');
-  };
+  const [libraryVisited, setLibraryVisited] = useState(false);
   const [side, setSide] = useState<'top' | 'side'>('top');
   const [pcbView, setPcbView] = useState<'outline' | 'pcb'>('outline');
   const assets = context?.projectAssets || EMPTY_ASSETS;
@@ -316,13 +316,17 @@ export default function BoardStudio({
   };
   const choose = (
     value: StudioSelection,
-    _panel: 'inspect' | 'keep' = 'inspect',
+    panel: 'inspect' | 'keep' = 'inspect',
     mode: SelectionMode = 'replace',
     order: StudioTarget[] = []
   ) => {
     setSelection((current) => selectTargets(current, value, mode, order));
     setPaneTab('properties');
     setReview(false);
+    setQuickActionsOpen(
+      ['objects', 'columns', 'rows', 'clusters'].includes(value.section) &&
+        targets(value).length > 0
+    );
   };
   const move = (
     target: StudioSelection,
@@ -344,11 +348,18 @@ export default function BoardStudio({
   };
   const changeStage = (next: Stage) => {
     setStage(next);
-    setView('canvas');
+    setView(next === 'library' ? 'library' : 'canvas');
+    if (next === 'library') {
+      setLibraryVisited(true);
+    }
+    setQuickActionsOpen(false);
     if (window.innerWidth <= parseInt(theme.studio.breakpoint)) {
       setSheet('');
     }
     setReview(false);
+    if (next !== 'library') {
+      setAssemblyOpen(false);
+    }
     if (next === 'pcb') {
       choose({
         section: 'outline',
@@ -477,6 +488,43 @@ export default function BoardStudio({
       setError(String(caught));
     } finally {
       setAddingBusy(false);
+    }
+  };
+  const addSelectionLine = (kind: 'key' | 'rows' | 'columns') => {
+    if (kind === 'key') {
+      setNewKind('key');
+      setAdding(true);
+      setSetupOpen(false);
+      setSheet('inspector');
+      setPaneTab('objects');
+      return;
+    }
+    const clusterId =
+      selection.section === 'clusters'
+        ? selection.id
+        : selection.cluster || '';
+    const arrangement = data.layout.clusters?.[clusterId]?.arrangement;
+    if (
+      !clusterId ||
+      !arrangement ||
+      !Array.isArray(arrangement.columns) ||
+      !Array.isArray(arrangement.rows)
+    ) {
+      setError('Select a key matrix before adding a row or column.');
+      return;
+    }
+    const names =
+      kind === 'columns' ? arrangement.columns : arrangement.rows;
+    const nextName = nextId(names, kind === 'columns' ? 'c' : 'r');
+    const nextSize =
+      kind === 'columns'
+        ? { columns: [...names, nextName], rows: arrangement.rows }
+        : { columns: arrangement.columns, rows: [...names, nextName] };
+    try {
+      edit((before) => resizeCluster(before, clusterId, nextSize, 'fill'));
+      setQuickActionsOpen(false);
+    } catch (caught) {
+      setError(String(caught));
     }
   };
   const selectedProfile =
@@ -745,7 +793,7 @@ export default function BoardStudio({
             onClose={() => context.setShowSettings(false)}
             onLibrary={() => {
               context.setShowSettings(false);
-              openLibrary();
+              changeStage('library');
             }}
           />
         )}
@@ -805,24 +853,6 @@ export default function BoardStudio({
               <Code2 size={18} />
               Code
             </button>
-            {!parsed.error &&
-              (selectedKeys(source, selection).length > 0 ||
-                (['clusters', 'columns'].includes(selection.section) &&
-                  !!data.layout.clusters?.[
-                    selection.cluster || selection.id
-                  ])) && (
-                <button
-                  onClick={() => {
-                    setAssemblyKeys(selectedKeys(source, selection));
-                    setAssemblyOpen(true);
-                    setSetupOpen(true);
-                    setSheet('inspector');
-                    setPaneTab('properties');
-                  }}
-                >
-                  Edit key assembly
-                </button>
-              )}
             {!parsed.error && (
               <button
                 onClick={() => {
@@ -872,15 +902,9 @@ export default function BoardStudio({
             >
               <Redo2 size={18} />
             </button>
-            {view !== 'library' && (
-              <>
-                {['design', 'pcb'].includes(stage) && inspectorButton}
-                <button onClick={openLibrary}>
-                  <Component size={16} />
-                  Part library
-                </button>
-              </>
-            )}
+            {view !== 'library' &&
+              ['design', 'pcb'].includes(stage) &&
+              inspectorButton}
           </div>
         </StageNav>
         {preview.error && (
@@ -911,19 +935,34 @@ export default function BoardStudio({
             </button>
           </StudioStatus>
         )}
-        {libraryOpened && (
+        {libraryVisited && (
           <StudioLibrary $active={view === 'library'}>
             <Suspense fallback={<p>Opening part library…</p>}>
               <StudioBar>
                 <h2>Part library</h2>
-                <button onClick={() => setView('canvas')}>
-                  Back to design
-                </button>
               </StudioBar>
               <FootprintLibrary
                 source={source}
                 onSource={(next) => edit(() => next)}
                 onPreview={() => changeStage('case')}
+                onAssemblyApply={(setup, assets) => {
+                  try {
+                    context.commitProject(
+                      { source: applyBoardDefaults(source, setup) },
+                      { assets }
+                    );
+                  } catch (caught) {
+                    setError(String(caught));
+                  }
+                }}
+                onAssembly={() => {
+                  changeStage('design');
+                  setAssemblyKeys([]);
+                  setAssemblyOpen(false);
+                  setSetupOpen(true);
+                  setSheet('inspector');
+                  setPaneTab('properties');
+                }}
               />
             </Suspense>
           </StudioLibrary>
@@ -1485,6 +1524,33 @@ export default function BoardStudio({
                 </StudioProperties>
               </StudioPane>
               <StudioMain>
+                {stage === 'design' &&
+                  view === 'canvas' &&
+                  quickActionsOpen &&
+                  ['objects', 'columns', 'rows', 'clusters'].includes(
+                    selection.section
+                  ) &&
+                  targets(selection).length > 0 && (
+                    <SelectionPopover
+                      source={source}
+                      selection={selection}
+                      report={report}
+                      edit={edit}
+                      onClose={() => setQuickActionsOpen(false)}
+                      onOpenInspector={() => {
+                        setQuickActionsOpen(false);
+                        setSheet('inspector');
+                        setPaneTab('properties');
+                      }}
+                      onDelete={() => {
+                        setQuickActionsOpen(false);
+                        deleteSelected();
+                      }}
+                      onAdd={(kind) => {
+                        addSelectionLine(kind);
+                      }}
+                    />
+                  )}
                 {stage === 'design' &&
                   view === 'canvas' &&
                   !Object.keys(data.layout.objects || {}).length && (
