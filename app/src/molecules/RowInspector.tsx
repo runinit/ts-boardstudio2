@@ -35,7 +35,7 @@ export default function RowInspector({
       <p>
         {cluster} · {row}. Changes affect every key in this row.
       </p>
-      <InspectorSection name="Row keys">
+      <InspectorSection name="Row keys" defaultOpen>
         <MatrixKeys aria-label="Row keys">
           {arrangement.columns?.map((column, index) => {
             const key = keys.find(

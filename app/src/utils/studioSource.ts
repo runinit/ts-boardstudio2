@@ -629,7 +629,8 @@ function removeObjects(
     // Membership and links inside a deleted subtree are removed in the same edit.
     if (
       removed.has(path.join('.')) ||
-      path.join('.') === 'meta.studio.outline'
+      path.join('.') === 'meta.studio.outline' ||
+      path.join('.').startsWith('meta.studio.resizeSpacing')
     ) {
       return;
     }

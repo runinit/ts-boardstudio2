@@ -12,8 +12,8 @@ module.exports = {
         trace_width: 0.25,
         via_size: 0.6,
         via_drill: 0.3,
-        from: { type: 'net', value: undefined },
-        to: { type: 'net', value: undefined }
+        from: { type: 'net', value: 'GND' },
+        to: { type: 'net', value: 'VCC' }
     },
     body: p => {
         

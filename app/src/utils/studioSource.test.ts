@@ -34,6 +34,21 @@ it('creates parametric keys and retains identities and unrelated source', () => 
     'pitch',
   ]);
 });
+
+it('ignores generated resize metadata when removing resized keys', () => {
+  const matrix = createMatrix(source, 2, 2);
+  const sourceWithResizePath = setValue(
+    matrix,
+    ['meta', 'studio', 'resizeSpacing', 'fingers', 'edits', 1, 'path'],
+    ['layout', 'objects', 'fingers_c1_r1']
+  );
+
+  expect(() =>
+    resizeCluster(sourceWithResizePath, 'fingers', {
+      rows: ['r2'],
+    })
+  ).not.toThrow(/Used by meta\.studio\.resizeSpacing/);
+});
 it('blocks deleting a referenced object and edits collections locally', () => {
   const added = addObject(source, 'mcu', 'component');
   const linked = addObject(added, 'screen', 'component');

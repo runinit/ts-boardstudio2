@@ -18,11 +18,13 @@ retained as a distinct workspace package and provenance boundary.
 | Intentional source corrections | `manifest/patches.json` | Original upstream hashes, URLs and reasons |
 | Coverage and placement evidence | `manifest/coverage.json`, `alignment.json` | Binding coverage is separate from checked geometry |
 | Electrical regression checks | `scripts/refresh*.test.mjs` | Raw/native pad nets, traces, rotations and rejection paths |
+| Python geometry helpers | `scripts/assembleNanoSockets.py`, `scripts/gateronDimensions.py` | Require system FreeCAD; provenance recorded in `manifest/kicad.json`, `manifest/gdek.json` |
 
 ## CONVENTIONS
 
 - Helpers and Node verification scripts use `.mjs`; footprint emitters retain
-  their existing CommonJS format and local style.
+  their existing CommonJS format and local style. The two Python helpers need
+  system FreeCAD and are geometry-assembly tooling, not package test steps.
 - `defaultModels(name)` returns a clone of the manifest entry; `bindDefaults`
   applies defaults during staging, not by rewriting upstream geometry.
 - Explicit filenames and XYZ transforms win, including empty filenames used

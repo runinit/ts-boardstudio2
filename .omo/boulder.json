@@ -2,6 +2,16 @@
   "schema_version": 2,
   "active_work_id": "performance-responsiveness-refactor",
   "works": {
+    "ergogen-pcb-parity": {
+      "work_id": "ergogen-pcb-parity",
+      "active_plan": ".omo/plans/ergogen-pcb-parity.md",
+      "plan_name": "ergogen-pcb-parity",
+      "session_ids": [
+        "senpi:01a0c47c-3668-7812-8b6b-d670475d0856"
+      ],
+      "status": "completed",
+      "worktree_path": "/home/chris/01_Projects/ts-boardstudio2-wt/ergogen-pcb-parity-wave1"
+    },
     "repair-browser-test-flows": {
       "work_id": "repair-browser-test-flows",
       "active_plan": ".omo/plans/repair-browser-test-flows.md",

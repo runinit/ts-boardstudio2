@@ -25,7 +25,12 @@ for (const viewport of [
       .getByRole('button', { name: 'Select matrix_c4_r4', exact: true })
       .click();
     if (
-      await page.getByRole('button', { name: 'Inspector', exact: true }).count()
+      (await page
+        .getByRole('button', { name: 'Close inspector', exact: true })
+        .count()) === 0 &&
+      (await page
+        .getByRole('button', { name: 'Inspector', exact: true })
+        .count()) > 0
     ) {
       await page
         .getByRole('button', { name: 'Inspector', exact: true })
@@ -99,7 +104,12 @@ for (const viewport of [
       .getByRole('button', { name: 'Select matrix_c3_r4', exact: true })
       .click();
     if (
-      await page.getByRole('button', { name: 'Inspector', exact: true }).count()
+      (await page
+        .getByRole('button', { name: 'Close inspector', exact: true })
+        .count()) === 0 &&
+      (await page
+        .getByRole('button', { name: 'Inspector', exact: true })
+        .count()) > 0
     ) {
       await page
         .getByRole('button', { name: 'Inspector', exact: true })

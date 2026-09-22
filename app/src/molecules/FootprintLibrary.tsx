@@ -1,7 +1,11 @@
 import { useBundledPreviews } from '../hooks/useBundledPreviews';
 import { modelPreview } from '../utils/cachedModelPreview';
 import { Undo2 } from 'lucide-react';
-import { footprintUses, linkFootprint } from '../utils/footprintLinks';
+import {
+  footprintUses,
+  linkFootprint,
+  saveFootprintSettings,
+} from '../utils/footprintLinks';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { saveAs } from 'file-saver';
@@ -571,24 +575,53 @@ export default function FootprintLibrary({
       const prepared = await prepareFootprint(draft, controller.signal, params);
       controller.signal.throwIfAborted();
       await saveAssets(draft.assets);
-      const saved = await saveFootprint({
-        ...draft,
-        module: prepared.module,
-        resolved: prepared.resolved,
-        mapping: prepared.mapping,
-      });
-      drafts.current.set(saved.id, saved);
-      setDraft(saved);
-      history.current = [];
-      histories.current.delete(saved.id);
-      const injection = entryInjection(saved);
-      context?.setInjectionInput((previous) => [
-        ...(previous || []).filter((row) => row[1] !== saved.alias),
-        injection,
-      ]);
-      setStatus(
-        `Saved revision ${saved.revision}. Linked projects use this revision.`
+      const projectUsesForEntry = projectUses.filter(
+        (use) => use.what === draft.name
       );
+      if (context && projectUsesForEntry.length) {
+        const next = projectUsesForEntry.reduce(
+          (currentSource, use) =>
+            saveFootprintSettings(currentSource, use, params),
+          projectSource
+        );
+        if (onSource) {
+          onSource(next);
+        } else {
+          context.updateRealtimeConfigInput(next);
+          context.setConfigInput(next);
+        }
+        setDraft((currentDraft) =>
+          currentDraft
+            ? {
+                ...currentDraft,
+                module: prepared.module,
+                mapping: prepared.mapping,
+              }
+            : currentDraft
+        );
+        history.current = [];
+        histories.current.delete(draft.id);
+        setStatus('Saved settings to the current project.');
+      } else {
+        const saved = await saveFootprint({
+          ...draft,
+          module: prepared.module,
+          resolved: prepared.resolved,
+          mapping: prepared.mapping,
+        });
+        drafts.current.set(saved.id, saved);
+        setDraft(saved);
+        history.current = [];
+        histories.current.delete(saved.id);
+        const injection = entryInjection(saved);
+        context?.setInjectionInput((previous) => [
+          ...(previous || []).filter((row) => row[1] !== saved.alias),
+          injection,
+        ]);
+        setStatus(
+          `Saved revision ${saved.revision}. Linked projects use this revision.`
+        );
+      }
     } catch (error) {
       if (!controller.signal.aborted) {
         setError(String(error));

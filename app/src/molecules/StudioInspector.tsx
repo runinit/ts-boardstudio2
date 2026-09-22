@@ -304,12 +304,20 @@ export default function StudioInspector({
   }
   if (section === 'rows') {
     return (
-      <RowInspector
-        data={data}
-        selection={selection}
-        edit={edit}
-        select={select}
-      />
+      <>
+        <RowInspector
+          data={data}
+          selection={selection}
+          edit={edit}
+          select={select}
+        />
+        <SelectionControls
+          source={source}
+          selection={selection}
+          report={report}
+          edit={edit}
+        />
+      </>
     );
   }
   if (section === 'parameters') {
@@ -646,9 +654,12 @@ export default function StudioInspector({
                 max="100"
                 disabled={locked}
                 defaultValue={item.arrangement![name]?.length || 1}
-                onBlur={(event) => {
+                onChange={(event) => {
                   const count = Number(event.target.value);
-                  // Keep the field on the saved size while a removal is reviewed.
+                  if (!Number.isInteger(count) || count < 1 || count > 100) {
+                    return;
+                  }
+                  // Apply valid edits immediately; review keeps destructive edits reversible.
                   setResizeAttempt((attempt) => attempt + 1);
                   edit((before) =>
                     resizeCluster(before, id, {

@@ -12,11 +12,11 @@ Native keyboard compiler and CLI; distinct package boundary, score 12.
 | CLI behavior | `src/cli.js` | Keep accepted native inputs aligned with the library |
 | Native compiler | `src/native/AGENTS.md` | Parsing, frames, solver, schema, PCB compilation |
 | Mechanical design | `src/designs/AGENTS.md` | Feature graph, analysis, assemblies, solids |
-| Footprint emission | `src/footprints/`, `src/pcbs.js` | Registry, parameter parsing, emitter adapter |
+| Footprint emission | `src/footprints/AGENTS.md` | Registry, emitters, `footprint-tools.js` adapter boundary |
 | KiCad serialization | `src/templates/` | KiCad 5/8/10 templates and quoted-atom handling |
 | Contract documentation | `docs/architecture.md` | Update with ownership, contract, or dependency changes |
 | Runnable native examples | `docs/examples/native/` | Feature guides: `docs/designs.md`, `docs/enclosures.md` |
-| Tests and fixtures | `test/index.js`, `test/unit/`, `test/fixtures/` | Mocha loader, behavior specs, reference data |
+| Tests and fixtures | `test/AGENTS.md` | Harness selectors, reference comparison, helpers, fixtures |
 
 ## CONVENTIONS
 

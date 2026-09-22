@@ -5,11 +5,13 @@ const openState = new Map<string, boolean>();
 export default function InspectorSection({
   name,
   children,
+  defaultOpen = false,
 }: {
   name: string;
   children: ReactNode;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(() => openState.get(name) ?? false);
+  const [open, setOpen] = useState(() => openState.get(name) ?? defaultOpen);
   return (
     <details
       open={open}

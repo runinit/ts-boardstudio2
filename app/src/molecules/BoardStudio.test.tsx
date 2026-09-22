@@ -254,7 +254,7 @@ it('reviews an edited column removal and preserves the source on Cancel', () => 
   render(<Harness initial={source} />);
   openInspector();
   fireEvent.click(screen.getByRole('button', { name: 'fingers 2 keys' }));
-  fireEvent.blur(screen.getByLabelText('Matrix columns'), {
+  fireEvent.change(screen.getByLabelText('Matrix columns'), {
     target: { value: '1' },
   });
   expect(
@@ -264,7 +264,7 @@ it('reviews an edited column removal and preserves the source on Cancel', () => 
   fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
   expect(current).toBe(source);
   expect(screen.getByLabelText('Matrix columns')).toHaveValue(2);
-  fireEvent.blur(screen.getByLabelText('Matrix columns'), {
+  fireEvent.change(screen.getByLabelText('Matrix columns'), {
     target: { value: '1' },
   });
   fireEvent.click(
@@ -276,6 +276,24 @@ it('reviews an edited column removal and preserves the source on Cancel', () => 
   expect(parse(current).layout.clusters.fingers.arrangement.columns).toEqual([
     'c1',
   ]);
+});
+
+it('applies an arrangement count while the field is edited', () => {
+  const source = setValue(
+    compileSetup({ ...defaultSetup(), columns: 2, rows: 1 }),
+    ['layout', 'objects', 'fingers_c2_r1', 'placement'],
+    { override: { at: [2, 0, 0] } }
+  );
+  render(<Harness initial={source} />);
+  openInspector();
+  fireEvent.click(screen.getByRole('button', { name: 'fingers 2 keys' }));
+  fireEvent.change(screen.getByLabelText('Matrix columns'), {
+    target: { value: '1' },
+  });
+
+  expect(
+    screen.getByRole('dialog', { name: 'Review matrix resize' })
+  ).toBeVisible();
 });
 
 it('deletes the selected column but leaves Delete in text fields alone', () => {

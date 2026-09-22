@@ -127,7 +127,7 @@ export default function ColumnInspector({
         Splay rotates the column about its first row. Individual key edits stay
         relative to the column.
       </p>
-      <InspectorSection name="Column keys">
+      <InspectorSection name="Column keys" defaultOpen>
         <MatrixKeys aria-label="Column keys">
           {arrangement.rows?.map((row, index) => {
             const key = Object.entries(data.layout.objects || {}).find(

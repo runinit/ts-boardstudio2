@@ -79,6 +79,8 @@ export default function StudioCanvas({
       ? selection.section
       : 'keys'
   );
+  const scopeRef = useRef(scope);
+  scopeRef.current = scope;
   const [snapping, setSnapping] = useState(true);
   const [snapOptions, setSnapOptions] = useSnapOptions();
   const [lastSnap, setLastSnap] = useState<
@@ -348,15 +350,15 @@ export default function StudioCanvas({
     const next: StudioSelection =
       tool === 'move' && (sameCluster || sameColumn || sameRow)
         ? selection
-        : scope === 'columns' && item.cell && item.cluster
+        : scopeRef.current === 'columns' && item.cell && item.cluster
           ? {
               section: 'columns',
               cluster: item.cluster,
               id: item.cell[0],
             }
-          : scope === 'clusters' && item.cluster
+          : scopeRef.current === 'clusters' && item.cluster
             ? { section: 'clusters', id: item.cluster }
-            : scope === 'rows' && item.cell && item.cluster
+            : scopeRef.current === 'rows' && item.cell && item.cluster
               ? { section: 'rows', cluster: item.cluster, id: item.cell[1] }
               : { section: 'objects', id: item.id };
     return next;
@@ -432,7 +434,10 @@ export default function StudioCanvas({
         tool={tool}
         setTool={setTool}
         scope={scope}
-        setScope={setScope}
+        setScope={(next) => {
+          scopeRef.current = next;
+          setScope(next);
+        }}
         side={side}
         setSide={onSide}
         reset={reset}

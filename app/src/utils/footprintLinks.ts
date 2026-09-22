@@ -1,4 +1,5 @@
 import { isMap, isScalar, parseDocument } from 'yaml';
+import { editMappingFields } from './designSource';
 
 type FootprintUse = { path: string[]; what: string };
 export function footprintUses(source: string): FootprintUse[] {
@@ -80,4 +81,23 @@ export function linkFootprint(
     JSON.stringify(alias) +
     source.slice(node.range[1])
   );
+}
+
+export function saveFootprintSettings(
+  source: string,
+  use: FootprintUse,
+  params: Record<string, unknown>
+) {
+  const doc = parseDocument(source);
+  if (doc.errors.length) {
+    throw new Error(
+      'Repair the project YAML before saving footprint settings.'
+    );
+  }
+  if (doc.getIn(use.path) !== use.what) {
+    throw new Error(
+      'This footprint declaration changed. Select it again before saving settings.'
+    );
+  }
+  return editMappingFields(source, use.path.slice(0, -1), { params });
 }

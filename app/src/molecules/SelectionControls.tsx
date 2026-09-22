@@ -174,7 +174,7 @@ export default function SelectionControls({
           </StudioField>
         </>
       )}
-      <InspectorSection name="Relative adjustments">
+      <InspectorSection name="Relative adjustments" defaultOpen>
         <form
           onSubmit={(event) => {
             event.preventDefault();
