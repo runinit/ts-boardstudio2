@@ -14,6 +14,7 @@ import SideNavigation from './molecules/SideNavigation';
 import {
   ConfigContextProvider,
   useConfigContext,
+  isNativeConfig,
 } from './context/ConfigContext';
 import { getConfigFromHash } from './utils/share';
 import ConflictResolutionDialog from './molecules/ConflictResolutionDialog';
@@ -673,12 +674,12 @@ const AppContent = ({
         <Routes>
           <Route
             path="/"
-            // Resume saved work or create a native draft directly.
+            // Show the landing page until the user explicitly chooses a board.
             element={
-              configInput ? (
+              configInput && isNativeConfig(configInput) ? (
                 <Ergogen onUpdate={onUpdate} pwaState={pwaState} />
               ) : (
-                <NewProject />
+                <Welcome />
               )
             }
           />

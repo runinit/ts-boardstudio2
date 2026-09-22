@@ -284,6 +284,9 @@ interface DeletedConfig extends SavedConfig {
 
 const STORAGE_KEY_DELETED = storageKey('ergogen:deleted-config');
 
+export const isNativeConfig = (config: string): boolean =>
+  /^\s*schema\s*:\s*ergogen\/v1(?:\s|$)/m.test(config);
+
 const saveToDeletedStorage = (config: SavedConfig) => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_DELETED);

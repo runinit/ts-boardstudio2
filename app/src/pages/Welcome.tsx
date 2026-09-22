@@ -396,6 +396,9 @@ const FallbackIconContainer = styled.div`
 const allExamples: ConfigOption[] = exampleOptions
   .flatMap((group) => group.options)
   .filter((ex) => ex.label !== 'Empty YAML configuration');
+const presetExamples = allExamples.filter((example) =>
+  ['BHK', 'Split layout'].includes(example.label)
+);
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -822,12 +825,38 @@ const Welcome = () => {
         />
       )}
       <WelcomeContainer>
-        <Header>Import project</Header>
+        <Header>Design a board</Header>
         <SubHeader>
-          A web-based interface for Ergogen, the ergonomic keyboard generator.
+          Design a keyboard board in the browser.
           <br />
-          Load a file, repository or example.
+          Start with a preset, resume a saved board, or import a project.
         </SubHeader>
+
+        <h2
+          style={{
+            textAlign: 'center',
+            marginBottom: '2rem',
+            fontSize: theme.fontSizes.h2,
+          }}
+        >
+          Start with a board
+        </h2>
+        <ExamplesGrid style={{ marginBottom: '3rem' }}>
+          {presetExamples.map((example) => (
+            <ExampleCard
+              key={example.label}
+              onClick={() => handleSelectExample(example.value)}
+              aria-label={`Start with ${example.label}`}
+              data-testid={`preset-${example.label.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <ExampleImage
+                src={`${process.env.PUBLIC_URL}/images/previews/${example.label.toLowerCase().replace(/[\s()]/g, '_')}.svg`}
+                alt={`${example.label} board preview`}
+              />
+              <ExampleName>{example.label}</ExampleName>
+            </ExampleCard>
+          ))}
+        </ExamplesGrid>
 
         <OptionsContainer>
           <OptionBox>
