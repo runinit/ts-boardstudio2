@@ -55,6 +55,97 @@ const Layout = styled.div`
     overflow: auto;
   }
 `;
+const LibrarySurface = styled.div`
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  background: ${theme.colors.canvasBase};
+  color: ${theme.colors.text};
+`;
+const StageHeader = styled.div`
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${theme.spacing.md};
+  padding: 0 ${theme.spacing.md};
+  background: ${theme.workbench.fieldSurface};
+  border-bottom: 1px solid ${theme.colors.border};
+  color: ${theme.colors.textDark};
+  font-size: ${theme.fontSizes.bodySmall};
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
+    min-height: 44px;
+    padding-inline: ${theme.spacing.sm};
+  }
+`;
+const StageTitle = styled.div`
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  strong {
+    overflow: hidden;
+    color: ${theme.colors.text};
+    font-family: ${theme.fonts.code};
+    font-size: ${theme.fontSizes.bodySmall};
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  span {
+    color: ${theme.colors.textDarker};
+    font-size: ${theme.fontSizes.bodySmall};
+  }
+`;
+const StageStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  color: ${theme.colors.accent};
+  font-family: ${theme.fonts.code};
+  font-size: ${theme.fontSizes.xs};
+  white-space: nowrap;
+  &::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+  }
+`;
+const FilterBar = styled.div`
+  display: flex;
+  gap: ${theme.spacing.xs};
+  margin-top: ${theme.spacing.sm};
+  overflow-x: auto;
+  padding-bottom: ${theme.spacing.xs};
+  button {
+    flex: 0 0 auto;
+    border: 1px solid ${theme.colors.border};
+    border-radius: ${theme.cad.fieldRadius};
+    background: ${theme.colors.backgroundLight};
+    color: ${theme.colors.textDark};
+    font-size: ${theme.fontSizes.xs};
+    white-space: nowrap;
+  }
+  button[aria-pressed='true'] {
+    border-color: ${theme.colors.accent};
+    background: ${theme.colors.accentDark};
+    color: ${theme.colors.white};
+  }
+`;
+const DrawerLabel = styled.div`
+  display: none;
+  @media (max-width: ${theme.studio.breakpoint}) {
+    display: block;
+    margin-bottom: ${theme.spacing.sm};
+    color: ${theme.colors.textDarker};
+    font-family: ${theme.fonts.code};
+    font-size: ${theme.fontSizes.xs};
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+`;
 const AssemblyCard = styled.div`
   display: grid;
   gap: ${theme.spacing.sm};
@@ -184,10 +275,6 @@ const Panel = styled.aside<{
       $drawer
         ? `display:${$open ? 'block' : 'none'}; position:absolute; top:0; bottom:0; ${$drawer === 'catalog' ? 'left' : 'right'}:0; width:min(86vw,${theme.cad.inspectorWidth}); z-index:${theme.cad.drawerLayer}; background:${theme.colors.background}; box-sizing:border-box;`
         : ''}
-  }
-
-  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
-    ${({ $drawer }) => ($drawer ? 'width:100%; border-inline:0;' : '')}
   }
 
   padding: ${theme.spacing.md};
@@ -456,6 +543,9 @@ export default function FootprintLibrary({
       ?.focus();
   }, [catalogOpen, inspectorOpen]);
   const [query, setQuery] = useState(initialQuery);
+  const [filter, setFilter] = useState<
+    'all' | 'mcu' | 'switches' | 'connectors' | 'passives'
+  >('all');
   const [assemblyId, setAssemblyId] = useState('mx');
   const [assemblyDraft, setAssemblyDraft] = useState<DesignSetup>(() => {
     const preset = ASSEMBLY_PRESETS[0];
@@ -643,9 +733,26 @@ export default function FootprintLibrary({
     ],
     [context?.injectionInput]
   );
-  const filtered = available.filter((entry) =>
-    entry.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = available.filter((entry) => {
+    const name = entry.name.toLowerCase();
+    const matchesQuery = name.includes(query.toLowerCase());
+    const matchesFilter =
+      filter === 'all' ||
+      (filter === 'mcu' && name.includes('mcu')) ||
+      (filter === 'switches' &&
+        (name.includes('switch') ||
+          name.includes('mx') ||
+          name.includes('choc'))) ||
+      (filter === 'connectors' &&
+        (name.includes('connector') ||
+          name.includes('promicro') ||
+          name.includes('nice_nano'))) ||
+      (filter === 'passives' &&
+        (name.includes('resistor') ||
+          name.includes('capacitor') ||
+          name.includes('diode')));
+    return matchesQuery && matchesFilter;
+  });
   const uses = draft
     ? linkedUses(
         (context?.configs || []).map((project) =>
@@ -855,9 +962,18 @@ export default function FootprintLibrary({
       ),
     });
   return (
-    <Layout
-      ref={layout}
-      onKeyDown={(event) => {
+    <LibrarySurface>
+      <StageHeader>
+        <StageTitle>
+          <span>Package:</span>
+          <strong>{draft?.name || 'Footprint library'}</strong>
+          {draft && <span>{draft.models.length} model bindings</span>}
+        </StageTitle>
+        <StageStatus>{draft ? 'Sync active' : 'Ready'}</StageStatus>
+      </StageHeader>
+      <Layout
+        ref={layout}
+        onKeyDown={(event) => {
         if (
           !(catalogOpen || inspectorOpen) ||
           !window.matchMedia(`(max-width: ${theme.studio.breakpoint})`).matches
@@ -890,8 +1006,8 @@ export default function FootprintLibrary({
           first?.focus();
         }
         event.stopPropagation();
-      }}
-    >
+        }}
+      >
       <Panel
         $drawer="catalog"
         $open={catalogOpen}
@@ -902,11 +1018,33 @@ export default function FootprintLibrary({
         <label>
           Search footprints
           <input
-            type="search"
+            type="text"
+            placeholder="Search footprints, tags..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
+        <FilterBar aria-label="Footprint type filters">
+          {(
+            [
+              ['all', 'All footprint types'],
+              ['mcu', 'IC/MCU'],
+              ['switches', 'Switches'],
+              ['connectors', 'Connectors'],
+              ['passives', 'Passives'],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={filter === value}
+              aria-label={label}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </FilterBar>
         <details>
           <summary>Import footprints</summary>
           <div className="import-actions">
@@ -1110,6 +1248,7 @@ export default function FootprintLibrary({
         <Toolbar>
           <MobileAction
             ref={catalogButton}
+            aria-label="Open footprint catalog"
             onClick={() => {
               setCatalogOpen(true);
               setInspectorOpen(false);
@@ -1119,6 +1258,7 @@ export default function FootprintLibrary({
           </MobileAction>
           <MobileAction
             ref={inspectorButton}
+            aria-label="Open footprint inspector"
             onClick={() => {
               setInspectorOpen(true);
               setCatalogOpen(false);
@@ -1180,7 +1320,7 @@ export default function FootprintLibrary({
             side={side}
           />
         ) : (
-          <LargePreview aria-label="Key assembly library preview">
+          <LargePreview role="region" aria-label="Footprint preview">
             <h2>
               {ASSEMBLY_PRESETS.find((preset) => preset.id === assemblyId)
                 ?.label || 'Key assembly'}
@@ -1223,6 +1363,27 @@ export default function FootprintLibrary({
         {!draft && (
           <MobileAction onClick={closeDrawer}>Close inspector</MobileAction>
         )}
+        <DrawerLabel>Inspector</DrawerLabel>
+        <Toolbar aria-label="Inspector tabs">
+          <button
+            aria-pressed={tab === 'model'}
+            onClick={() => {
+              setTab('model');
+              setView('3d');
+            }}
+          >
+            3D models
+          </button>
+          <button
+            aria-pressed={tab === 'pads'}
+            onClick={() => {
+              setTab('pads');
+              setView('2d');
+            }}
+          >
+            Pads & nets
+          </button>
+        </Toolbar>
         {draft && (
           <>
             <EditorHeader>
@@ -1274,26 +1435,6 @@ export default function FootprintLibrary({
                 edit({ ...draft, parameters: { ...params, [key]: value } })
               }
             />
-            <Toolbar>
-              <button
-                aria-pressed={tab === 'model'}
-                onClick={() => {
-                  setTab('model');
-                  setView('3d');
-                }}
-              >
-                3D models
-              </button>
-              <button
-                aria-pressed={tab === 'pads'}
-                onClick={() => {
-                  setTab('pads');
-                  setView('2d');
-                }}
-              >
-                Pads & nets
-              </button>
-            </Toolbar>
             {info && info.targets.length > 1 && (
               <label>
                 Emitted footprint target
@@ -1525,6 +1666,7 @@ export default function FootprintLibrary({
           <p role="alert">{error || storageError || previews.error}</p>
         )}
       </Panel>
-    </Layout>
+      </Layout>
+    </LibrarySurface>
   );
 }

@@ -102,7 +102,7 @@ export default function FootprintCanvas({
   const assetRevision = models.map((model) => model.asset).join(',');
   const revision = useMemo(() => [info, assetRevision], [info, assetRevision]);
   return (
-    <Surface aria-label="Footprint preview">
+    <Surface role="region" aria-label="Footprint preview">
       {info?.diagnostics.some(
         (diagnostic) =>
           diagnostic.code.includes('preview') ||
