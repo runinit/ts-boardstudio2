@@ -335,7 +335,7 @@ const Center = styled.main`
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
   > div[aria-label='Footprint preview'] {
     flex: 1;
   }

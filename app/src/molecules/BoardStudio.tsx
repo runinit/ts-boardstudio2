@@ -8,7 +8,10 @@ import { SnapProvider } from '../hooks/useSnapOptions';
 import { removeSelection, isDeleteShortcut } from '../utils/studioDelete';
 import { ResizeReview, type ResizeProposal } from '../utils/resizeReview';
 import { repairSetup } from '../utils/setupRepair';
-import { applyBoardDefaults } from '../utils/boardDefaults';
+import {
+  applyBoardDefaults,
+  preserveBoardTopology,
+} from '../utils/boardDefaults';
 import ResizeReviewDialog from './ResizeReviewDialog';
 import {
   lazy,
@@ -948,9 +951,15 @@ export default function BoardStudio({
                 onAssemblyApply={(setup, assets) => {
                   try {
                     context.commitProject(
-                      { source: applyBoardDefaults(source, setup) },
+                      {
+                        source: applyBoardDefaults(
+                          source,
+                          preserveBoardTopology(source, setup)
+                        ),
+                      },
                       { assets }
                     );
+                    changeStage('pcb');
                   } catch (caught) {
                     setError(String(caught));
                   }

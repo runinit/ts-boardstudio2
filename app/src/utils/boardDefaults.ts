@@ -3,7 +3,7 @@ import { defaultSetup, type DesignSetup } from './designSetup';
 import { assemblyParts } from './keyAssembly';
 import { applyScopeAssembly, scopeAssembly } from './assemblyScope';
 import { editFields } from './designSource';
-import { getValue } from './studioSource';
+import { getValue, readStudio } from './studioSource';
 import { syncBoardTopology } from './boardTopology';
 import {
   ensurePitchUnits,
@@ -110,6 +110,20 @@ export function setupFromSource(source: string): DesignSetup {
       'keycap',
       'size',
     ]) as DesignSetup['keycap'],
+  };
+}
+
+export function preserveBoardTopology(
+  source: string,
+  setup: DesignSetup
+): DesignSetup {
+  const saved = setupFromSource(source);
+  const hasMirrors = Object.values(
+    readStudio(source).layout.clusters || {}
+  ).some((cluster) => (cluster as { mirror?: unknown }).mirror);
+  return {
+    ...setup,
+    topology: hasMirrors ? 'mirrored' : saved.topology,
   };
 }
 

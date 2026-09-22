@@ -1,16 +1,18 @@
 import { defineConfig, loadEnv, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { DEPLOYMENT_PATH, resolvePublicBase } from './src/utils/publicBase';
 
 const preview = process.env.GITHUB_REPOSITORY === 'runinit/ergogen-gui-preview';
-const deploymentPath = '/boardstudio/';
 
 // We will use standard React plugin and PWA plugin in injectManifest mode
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const configuredBase =
-    env.VITE_PUBLIC_URL || env.PUBLIC_URL || deploymentPath;
-  const basePath = `${configuredBase.replace(/\/+$/, '')}/`;
+    mode === 'development'
+      ? DEPLOYMENT_PATH
+      : env.VITE_PUBLIC_URL || env.PUBLIC_URL;
+  const basePath = resolvePublicBase(mode, configuredBase);
   const deploymentChannel = preview ? 'preview' : 'production';
   const buildRevision = process.env.GITHUB_SHA || 'local';
 
@@ -82,7 +84,22 @@ export default defineConfig(({ mode }) => {
         env.VITE_FEATURE_OUTLINES || env.REACT_APP_FEATURE_OUTLINES || ''
       ),
     },
-    optimizeDeps: { include: ['ergogen/src/native/draft', 'ergogen/src/assert'] },
+    optimizeDeps: {
+      include: [
+        'ergogen',
+        'ergogen/src/anchor',
+        'ergogen/src/assert',
+        'ergogen/src/filter',
+        'ergogen/src/footprint-tools',
+        'ergogen/src/native',
+        'ergogen/src/native/draft',
+        'ergogen/src/native/layout',
+        'ergogen/src/operation',
+        'ergogen/src/point',
+        'ergogen/src/prepare',
+        'ergogen/src/utils',
+      ],
+    },
     server: {
       port: 3000,
       open: true,

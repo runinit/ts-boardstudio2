@@ -3,6 +3,7 @@ import { parse } from 'yaml';
 import {
   createBoard,
   applyBoardDefaults,
+  preserveBoardTopology,
   setupFromSource,
 } from './boardDefaults';
 import { defaultSetup, compileSetup } from './designSetup';
@@ -100,6 +101,13 @@ it('links matrices added after starting a mirrored board', () => {
   expect(
     Object.values(mirror.overrides).every((item: any) => item.pcb === 'right')
   ).toBe(true);
+});
+
+it('preserves an existing mirrored topology when applying an assembly', () => {
+  const source = createBoard({ ...defaultSetup(), topology: 'mirrored' });
+  expect(preserveBoardTopology(source, defaultSetup()).topology).toBe(
+    'mirrored'
+  );
 });
 
 it.each(['single', 'mirrored'] as const)(
