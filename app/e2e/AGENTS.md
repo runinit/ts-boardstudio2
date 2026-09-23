@@ -6,14 +6,14 @@ Built-app integration tests; score 9, separate from the jsdom unit-test runtime.
 
 ## Where to Look
 
-| Task | Location |
-| --- | --- |
-| Browser/server configuration | `../playwright.config.ts` |
-| Studio navigation and saved source | `utils/studio.ts` |
-| GitHub request fixtures | `utils/githubMocks.ts` |
-| Screenshot naming/output | `utils/screenshots.ts` |
-| Performance capture | `utils/studioPerformance*.ts` |
-| Import payloads | `fixtures/` |
+| Task                               | Location                      |
+| ---------------------------------- | ----------------------------- |
+| Browser/server configuration       | `../playwright.config.ts`     |
+| Studio navigation and saved source | `utils/studio.ts`             |
+| GitHub request fixtures            | `utils/githubMocks.ts`        |
+| Screenshot naming/output           | `utils/screenshots.ts`        |
+| Performance capture                | `utils/studioPerformance*.ts` |
+| Import payloads                    | `fixtures/`                   |
 
 ## Conventions
 

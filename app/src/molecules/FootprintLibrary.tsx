@@ -476,7 +476,13 @@ const ASSEMBLY_PRESETS = [
     mounting: 'hotswap',
     led: false,
   },
-  { id: 'mx-rgb', label: 'MX RGB', family: 'mx', mounting: 'solder', led: true },
+  {
+    id: 'mx-rgb',
+    label: 'MX RGB',
+    family: 'mx',
+    mounting: 'solder',
+    led: true,
+  },
   {
     id: 'mx-rgb-hotswap',
     label: 'MX RGB hotswap',
@@ -974,698 +980,708 @@ export default function FootprintLibrary({
       <Layout
         ref={layout}
         onKeyDown={(event) => {
-        if (
-          !(catalogOpen || inspectorOpen) ||
-          !window.matchMedia(`(max-width: ${theme.studio.breakpoint})`).matches
-        ) {
-          return;
-        }
-        if (event.key === 'Escape') {
+          if (
+            !(catalogOpen || inspectorOpen) ||
+            !window.matchMedia(`(max-width: ${theme.studio.breakpoint})`)
+              .matches
+          ) {
+            return;
+          }
+          if (event.key === 'Escape') {
+            event.stopPropagation();
+            closeDrawer();
+          }
+          if (event.key !== 'Tab') {
+            return;
+          }
+          const panel = catalogOpen
+            ? 'Footprint library catalog'
+            : 'Footprint inspector';
+          const controls = Array.from(
+            layout.current?.querySelectorAll<HTMLElement>(
+              `aside[aria-label="${panel}"] button:not(:disabled), aside[aria-label="${panel}"] input:not(:disabled), aside[aria-label="${panel}"] select:not(:disabled), aside[aria-label="${panel}"] textarea, aside[aria-label="${panel}"] a[href]`
+            ) || []
+          ).filter((item) => item.getClientRects().length);
+          const first = controls[0],
+            last = controls.at(-1);
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+          }
+          if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+          }
           event.stopPropagation();
-          closeDrawer();
-        }
-        if (event.key !== 'Tab') {
-          return;
-        }
-        const panel = catalogOpen
-          ? 'Footprint library catalog'
-          : 'Footprint inspector';
-        const controls = Array.from(
-          layout.current?.querySelectorAll<HTMLElement>(
-            `aside[aria-label="${panel}"] button:not(:disabled), aside[aria-label="${panel}"] input:not(:disabled), aside[aria-label="${panel}"] select:not(:disabled), aside[aria-label="${panel}"] textarea, aside[aria-label="${panel}"] a[href]`
-          ) || []
-        ).filter((item) => item.getClientRects().length);
-        const first = controls[0],
-          last = controls.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        }
-        if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-        event.stopPropagation();
         }}
       >
-      <Panel
-        $drawer="catalog"
-        $open={catalogOpen}
-        aria-label="Footprint library catalog"
-      >
-        <MobileAction onClick={closeDrawer}>Close catalog</MobileAction>
-        <h2>Footprint library</h2>
-        <label>
-          Search footprints
-          <input
-            type="text"
-            placeholder="Search footprints, tags..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-        <FilterBar aria-label="Footprint type filters">
-          {(
-            [
-              ['all', 'All footprint types'],
-              ['mcu', 'IC/MCU'],
-              ['switches', 'Switches'],
-              ['connectors', 'Connectors'],
-              ['passives', 'Passives'],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={filter === value}
-              aria-label={label}
-              onClick={() => setFilter(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </FilterBar>
-        <details>
-          <summary>Import footprints</summary>
-          <div className="import-actions">
-            <button onClick={() => fileInput.current?.click()}>
-              Import KiCad footprint
-            </button>{' '}
-            <button onClick={() => folderInput.current?.click()}>
-              Import folder
-            </button>
-          </div>
-        </details>
-        <input
-          hidden
-          ref={fileInput}
-          type="file"
-          multiple
-          accept=".kicad_mod,.js,.zip"
-          aria-label="Import footprint files"
-          onChange={(event) => {
-            void importFiles(Array.from(event.target.files || []));
-            event.target.value = '';
-          }}
-        />
-        <input
-          hidden
-          ref={folderInput}
-          type="file"
-          multiple
-          {...{ webkitdirectory: '' }}
-          aria-label="Import .pretty folder"
-          onChange={(event) => {
-            void importFiles(Array.from(event.target.files || []));
-            event.target.value = '';
-          }}
-        />
-        {!!batch.length && (
-          <details open={importsOpen}>
-            <summary
-              onClick={(event) => {
-                event.preventDefault();
-                setImportsOpen(!importsOpen);
-              }}
-            >
-              Import selection ({batch.length})
-            </summary>
-            {batch.map((item) => (
-              <div key={item.name}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={(event) =>
-                      setBatch((previous) =>
-                        previous.map((row) =>
-                          row.name === item.name
-                            ? { ...row, checked: event.target.checked }
-                            : row
-                        )
-                      )
-                    }
-                  />
-                  {item.name}
-                </label>
-                <small>{item.status}</small>
-                {item.draft && (
-                  <button onClick={() => open(item.draft!)}>
-                    Review {item.name}
-                  </button>
-                )}
-              </div>
+        <Panel
+          $drawer="catalog"
+          $open={catalogOpen}
+          aria-label="Footprint library catalog"
+        >
+          <MobileAction onClick={closeDrawer}>Close catalog</MobileAction>
+          <h2>Footprint library</h2>
+          <label>
+            Search footprints
+            <input
+              type="text"
+              placeholder="Search footprints, tags..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <FilterBar aria-label="Footprint type filters">
+            {(
+              [
+                ['all', 'All footprint types'],
+                ['mcu', 'IC/MCU'],
+                ['switches', 'Switches'],
+                ['connectors', 'Connectors'],
+                ['passives', 'Passives'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={filter === value}
+                aria-label={label}
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </button>
             ))}
-            <button
-              disabled={busy || !batch.some((item) => item.checked)}
-              onClick={() => void convertBatch()}
-            >
-              Prepare selected
-            </button>
+          </FilterBar>
+          <details>
+            <summary>Import footprints</summary>
+            <div className="import-actions">
+              <button onClick={() => fileInput.current?.click()}>
+                Import KiCad footprint
+              </button>{' '}
+              <button onClick={() => folderInput.current?.click()}>
+                Import folder
+              </button>
+            </div>
           </details>
-        )}
-        <InspectorSection name="Key assemblies" defaultOpen>
-          <AssemblyCard>
-            <strong>Standard key assemblies</strong>
-            <small>
-              Pick a footprint family, then edit its placement and wiring in
-              the pane.
-            </small>
+          <input
+            hidden
+            ref={fileInput}
+            type="file"
+            multiple
+            accept=".kicad_mod,.js,.zip"
+            aria-label="Import footprint files"
+            onChange={(event) => {
+              void importFiles(Array.from(event.target.files || []));
+              event.target.value = '';
+            }}
+          />
+          <input
+            hidden
+            ref={folderInput}
+            type="file"
+            multiple
+            {...{ webkitdirectory: '' }}
+            aria-label="Import .pretty folder"
+            onChange={(event) => {
+              void importFiles(Array.from(event.target.files || []));
+              event.target.value = '';
+            }}
+          />
+          {!!batch.length && (
+            <details open={importsOpen}>
+              <summary
+                onClick={(event) => {
+                  event.preventDefault();
+                  setImportsOpen(!importsOpen);
+                }}
+              >
+                Import selection ({batch.length})
+              </summary>
+              {batch.map((item) => (
+                <div key={item.name}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={(event) =>
+                        setBatch((previous) =>
+                          previous.map((row) =>
+                            row.name === item.name
+                              ? { ...row, checked: event.target.checked }
+                              : row
+                          )
+                        )
+                      }
+                    />
+                    {item.name}
+                  </label>
+                  <small>{item.status}</small>
+                  {item.draft && (
+                    <button onClick={() => open(item.draft!)}>
+                      Review {item.name}
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                disabled={busy || !batch.some((item) => item.checked)}
+                onClick={() => void convertBatch()}
+              >
+                Prepare selected
+              </button>
+            </details>
+          )}
+          <InspectorSection name="Key assemblies" defaultOpen>
+            <AssemblyCard>
+              <strong>Standard key assemblies</strong>
+              <small>
+                Pick a footprint family, then edit its placement and wiring in
+                the pane.
+              </small>
+              <Catalog>
+                {ASSEMBLY_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    aria-pressed={assemblyId === preset.id}
+                    onClick={() => selectAssembly(preset)}
+                  >
+                    <span>
+                      <span>{preset.label}</span>
+                      <small>
+                        {preset.family === 'mx' ? 'MX' : 'Choc'} ·{' '}
+                        {preset.mounting === 'hotswap' ? 'hot-swap' : 'solder'}
+                        {preset.led ? ' · RGB' : ''}
+                      </small>
+                    </span>
+                  </button>
+                ))}
+              </Catalog>
+              <KeyAssemblyArt colors={assemblyColors} />
+              <label>
+                Part colors
+                <span style={{ display: 'grid', gap: theme.spacing.xs }}>
+                  {(
+                    [
+                      ['pcb', 'PCB'],
+                      ['switch', 'Switch'],
+                      ['diode', 'Diode'],
+                      ['led', 'LED'],
+                    ] as const
+                  ).map(([part, label]) => (
+                    <span
+                      key={part}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 44px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <small>{label}</small>
+                      <input
+                        aria-label={`${label} color`}
+                        type="color"
+                        value={assemblyColors[part]}
+                        onChange={(event) =>
+                          setAssemblyColors((current) => ({
+                            ...current,
+                            [part]: event.target.value,
+                          }))
+                        }
+                      />
+                    </span>
+                  ))}
+                </span>
+              </label>
+              {onAssembly && (
+                <button data-primary="true" onClick={onAssembly}>
+                  Edit assembly in Design
+                </button>
+              )}
+            </AssemblyCard>
+          </InspectorSection>
+          <InspectorSection
+            name={`Your footprints (${entries.length})`}
+            defaultOpen
+          >
             <Catalog>
-              {ASSEMBLY_PRESETS.map((preset) => (
+              {entries
+                .filter((entry) =>
+                  entry.name.toLowerCase().includes(query.toLowerCase())
+                )
+                .map((entry) => (
+                  <button
+                    key={entry.id}
+                    title={entry.name}
+                    aria-pressed={draft?.id === entry.id}
+                    onClick={() => open(entry)}
+                  >
+                    <span>
+                      <span>{entry.name}</span>
+                      <small>Custom · revision {entry.revision}</small>
+                    </span>
+                  </button>
+                ))}
+            </Catalog>
+          </InspectorSection>
+          <InspectorSection
+            name={`Bundled & project (${filtered.length})`}
+            defaultOpen
+          >
+            <Catalog>
+              {filtered.map((entry) => (
                 <button
-                  key={preset.id}
-                  aria-pressed={assemblyId === preset.id}
-                  onClick={() => selectAssembly(preset)}
+                  key={`${entry.kind}:${entry.name}`}
+                  aria-label={`${entry.name} · ${entry.kind}`}
+                  title={entry.name}
+                  aria-pressed={
+                    !!draft &&
+                    draft.id ===
+                      sourceDrafts.current.get(`${entry.kind}:${entry.name}`)
+                        ?.id
+                  }
+                  onClick={() =>
+                    openSource(entry.name, entry.source, entry.kind)
+                  }
                 >
                   <span>
-                    <span>{preset.label}</span>
+                    <span>{entry.name.split('/').at(-1)}</span>
                     <small>
-                      {preset.family === 'mx' ? 'MX' : 'Choc'} ·{' '}
-                      {preset.mounting === 'hotswap' ? 'hot-swap' : 'solder'}
-                      {preset.led ? ' · RGB' : ''}
+                      {entry.kind} ·{' '}
+                      {entry.name.split('/').slice(0, -1).join('/') ||
+                        'Ergogen'}
                     </small>
                   </span>
                 </button>
               ))}
             </Catalog>
-            <KeyAssemblyArt colors={assemblyColors} />
-            <label>
-              Part colors
-              <span style={{ display: 'grid', gap: theme.spacing.xs }}>
-                {(
-                  [
-                    ['pcb', 'PCB'],
-                    ['switch', 'Switch'],
-                    ['diode', 'Diode'],
-                    ['led', 'LED'],
-                  ] as const
-                ).map(([part, label]) => (
-                  <span
-                    key={part}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 44px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <small>{label}</small>
-                    <input
-                      aria-label={`${label} color`}
-                      type="color"
-                      value={assemblyColors[part]}
-                      onChange={(event) =>
-                        setAssemblyColors((current) => ({
-                          ...current,
-                          [part]: event.target.value,
-                        }))
-                      }
-                    />
-                  </span>
-                ))}
-              </span>
-            </label>
-            {onAssembly && (
-              <button data-primary="true" onClick={onAssembly}>
-                Edit assembly in Design
-              </button>
-            )}
-          </AssemblyCard>
-        </InspectorSection>
-        <InspectorSection name={`Your footprints (${entries.length})`} defaultOpen>
-          <Catalog>
-            {entries
-              .filter((entry) =>
-                entry.name.toLowerCase().includes(query.toLowerCase())
-              )
-              .map((entry) => (
-                <button
-                  key={entry.id}
-                  title={entry.name}
-                  aria-pressed={draft?.id === entry.id}
-                  onClick={() => open(entry)}
-                >
-                  <span>
-                    <span>{entry.name}</span>
-                    <small>Custom · revision {entry.revision}</small>
-                  </span>
-                </button>
-              ))}
-          </Catalog>
-        </InspectorSection>
-        <InspectorSection
-          name={`Bundled & project (${filtered.length})`}
-          defaultOpen
-        >
-          <Catalog>
-            {filtered.map((entry) => (
+          </InspectorSection>
+        </Panel>
+        <Center>
+          <Toolbar>
+            <MobileAction
+              ref={catalogButton}
+              aria-label="Open footprint catalog"
+              onClick={() => {
+                setCatalogOpen(true);
+                setInspectorOpen(false);
+              }}
+            >
+              Catalog
+            </MobileAction>
+            <MobileAction
+              ref={inspectorButton}
+              aria-label="Open footprint inspector"
+              onClick={() => {
+                setInspectorOpen(true);
+                setCatalogOpen(false);
+              }}
+            >
+              Inspector
+            </MobileAction>
+            {(['3d', '2d'] as const).map((value) => (
               <button
-                key={`${entry.kind}:${entry.name}`}
-                aria-label={`${entry.name} · ${entry.kind}`}
-                title={entry.name}
-                aria-pressed={
-                  !!draft &&
-                  draft.id ===
-                    sourceDrafts.current.get(`${entry.kind}:${entry.name}`)?.id
-                }
-                onClick={() =>
-                  openSource(entry.name, entry.source, entry.kind)
-                }
+                key={value}
+                aria-pressed={view === value}
+                onClick={() => setView(value)}
               >
-                <span>
-                  <span>{entry.name.split('/').at(-1)}</span>
-                  <small>
-                    {entry.kind} ·{' '}
-                    {entry.name.split('/').slice(0, -1).join('/') || 'Ergogen'}
-                  </small>
-                </span>
+                {value.toUpperCase()}
               </button>
             ))}
-          </Catalog>
-        </InspectorSection>
-      </Panel>
-      <Center>
-        <Toolbar>
-          <MobileAction
-            ref={catalogButton}
-            aria-label="Open footprint catalog"
-            onClick={() => {
-              setCatalogOpen(true);
-              setInspectorOpen(false);
-            }}
-          >
-            Catalog
-          </MobileAction>
-          <MobileAction
-            ref={inspectorButton}
-            aria-label="Open footprint inspector"
-            onClick={() => {
-              setInspectorOpen(true);
-              setCatalogOpen(false);
-            }}
-          >
-            Inspector
-          </MobileAction>
-          {(['3d', '2d'] as const).map((value) => (
+            {(['translate', 'rotate', 'scale'] as const).map((value) => (
+              <button
+                key={value}
+                disabled={!draft?.models[active] || view === '2d'}
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+              >
+                {value === 'translate'
+                  ? 'Move'
+                  : value === 'rotate'
+                    ? 'Rotate'
+                    : 'Scale'}
+              </button>
+            ))}
             <button
-              key={value}
-              aria-pressed={view === value}
-              onClick={() => setView(value)}
-            >
-              {value.toUpperCase()}
-            </button>
-          ))}
-          {(['translate', 'rotate', 'scale'] as const).map((value) => (
-            <button
-              key={value}
-              disabled={!draft?.models[active] || view === '2d'}
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
-            >
-              {value === 'translate'
-                ? 'Move'
-                : value === 'rotate'
-                  ? 'Rotate'
-                  : 'Scale'}
-            </button>
-          ))}
-          <button
-            aria-pressed={side === 'B'}
-            onClick={() =>
-              setSide((previous) => (previous === 'F' ? 'B' : 'F'))
-            }
-          >
-            View {side === 'F' ? 'back' : 'front'}
-          </button>
-        </Toolbar>
-        {draft ? (
-          <FootprintCanvas
-            info={currentInfo}
-            models={
-              draft.modelMode === 'preserve'
-                ? currentInfo?.models || []
-                : draft.models
-            }
-            assets={previews.assets}
-            selected={active}
-            onSelect={setActive}
-            onChange={changeModel}
-            mode={mode}
-            view={view}
-            pad={pad}
-            onPad={(value) => {
-              setPad(value);
-              setTab('pads');
-            }}
-            side={side}
-          />
-        ) : (
-          <LargePreview role="region" aria-label="Footprint preview">
-            <h2>
-              {ASSEMBLY_PRESETS.find((preset) => preset.id === assemblyId)
-                ?.label || 'Key assembly'}
-            </h2>
-            <NewDesignWorkspace
-              key={assemblyId}
-              embedded
-              mode="assembly"
-              previewExpanded
-              initial={assemblyDraft}
-              onDraft={setAssemblyDraft}
-              onCancel={() => {}}
-              onCreate={(_source, assets) =>
-                onAssemblyApply?.(assemblyDraft, assets)
+              aria-pressed={side === 'B'}
+              onClick={() =>
+                setSide((previous) => (previous === 'F' ? 'B' : 'F'))
               }
-              applyLabel="Apply assembly"
+            >
+              View {side === 'F' ? 'back' : 'front'}
+            </button>
+          </Toolbar>
+          {draft ? (
+            <FootprintCanvas
+              info={currentInfo}
+              models={
+                draft.modelMode === 'preserve'
+                  ? currentInfo?.models || []
+                  : draft.models
+              }
+              assets={previews.assets}
+              selected={active}
+              onSelect={setActive}
+              onChange={changeModel}
+              mode={mode}
+              view={view}
+              pad={pad}
+              onPad={(value) => {
+                setPad(value);
+                setTab('pads');
+              }}
+              side={side}
             />
-          </LargePreview>
-        )}
-        {currentInfo &&
-          draft?.models.some((model) => modelPreview(model, previews.assets)) &&
-          view === '3d' && (
-            <Inset aria-label="Magnified model alignment">
-              <FootprintCanvas
-                info={info}
-                models={draft.models.filter((_, index) => index === active)}
-                assets={previews.assets}
-                selected={0}
-                onSelect={() => {}}
-                side={side}
+          ) : (
+            <LargePreview role="region" aria-label="Footprint preview">
+              <h2>
+                {ASSEMBLY_PRESETS.find((preset) => preset.id === assemblyId)
+                  ?.label || 'Key assembly'}
+              </h2>
+              <NewDesignWorkspace
+                key={assemblyId}
+                embedded
+                mode="assembly"
+                previewExpanded
+                initial={assemblyDraft}
+                onDraft={setAssemblyDraft}
+                onCancel={() => {}}
+                onCreate={(_source, assets) =>
+                  onAssemblyApply?.(assemblyDraft, assets)
+                }
+                applyLabel="Apply assembly"
               />
-            </Inset>
+            </LargePreview>
           )}
-      </Center>
-      <Panel
-        $drawer="inspector"
-        $open={inspectorOpen}
-        aria-label="Footprint inspector"
-      >
-        {!draft && (
-          <MobileAction onClick={closeDrawer}>Close inspector</MobileAction>
-        )}
-        <DrawerLabel>Inspector</DrawerLabel>
-        <Toolbar aria-label="Inspector tabs">
-          <button
-            aria-pressed={tab === 'model'}
-            onClick={() => {
-              setTab('model');
-              setView('3d');
-            }}
-          >
-            3D models
-          </button>
-          <button
-            aria-pressed={tab === 'pads'}
-            onClick={() => {
-              setTab('pads');
-              setView('2d');
-            }}
-          >
-            Pads & nets
-          </button>
-        </Toolbar>
-        {draft && (
-          <>
-            <EditorHeader>
-              <MobileAction onClick={closeDrawer}>Close inspector</MobileAction>
-              <h2>{draft.name}</h2>
-              <p>
-                {history.current.length || !draft.revision
-                  ? 'Unsaved changes'
-                  : `Library footprint · revision ${draft.revision}`}
-              </p>
-              <div className="save-actions">
-                <button
-                  data-primary="true"
-                  onClick={() => void save()}
-                  disabled={
-                    busy ||
-                    modelBusy === 'busy' ||
-                    inspecting ||
-                    !currentInfo ||
-                    !info ||
-                    (info.targets.length > 1 &&
-                      draft.modelMode === 'replace' &&
-                      !draft.target)
-                  }
-                >
-                  Save footprint
-                </button>
-                <button
-                  aria-label="Undo footprint edit"
-                  disabled={!history.current.length}
-                  onClick={() => {
-                    const previous = history.current.pop();
-                    if (previous) {
-                      drafts.current.set(previous.id, previous);
-                      setDraft(previous);
-                    }
-                  }}
-                >
-                  <Undo2 size={16} /> Undo
-                </button>
-              </div>
-            </EditorHeader>
-            <FootprintParameters
-              key={`settings-${draft.id}`}
-              definitions={parameters}
-              values={params}
-              onValidity={setParametersValid}
-              onChange={(key, value) =>
-                edit({ ...draft, parameters: { ...params, [key]: value } })
-              }
-            />
-            {info && info.targets.length > 1 && (
-              <label>
-                Emitted footprint target
-                <select
-                  value={JSON.stringify(draft.target || {})}
-                  onChange={(event) =>
-                    edit({ ...draft, target: JSON.parse(event.target.value) })
-                  }
-                >
-                  <option value="{}">Choose one footprint</option>
-                  {info.targets.map((target, index) => (
-                    <option
-                      key={index}
-                      value={JSON.stringify({
-                        name: target.name,
-                        index: target.index,
-                        count: target.count,
-                      })}
-                    >
-                      {target.reference || target.name || index}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            {tab === 'model' ? (
-              <ModelEditor
-                key={draft.id}
-                onBusy={setModelBusy}
-                models={draft.models}
-                assets={draft.assets}
-                previewAssets={previews.assets}
-                selected={active}
-                onSelect={setActive}
-                onChange={(models, assets) =>
-                  edit({ ...draft, models, assets, modelMode: 'replace' })
-                }
-              />
-            ) : (
-              <>
-                <p>
-                  {info?.pads.length || 0} pads · duplicate numbers share a net.
-                  Mechanical pads remain separate.
-                </p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Pad</th>
-                      <th>Net parameter</th>
-                      <th>Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {info?.nets.map((net) => (
-                      <tr key={net.mappingKey ?? net.number}>
-                        <td>
-                          <button
-                            aria-pressed={pad === net.number}
-                            onClick={() => setPad(net.number)}
-                          >
-                            {net.number || `Unnumbered ${net.pads[0] + 1}`}
-                          </button>
-                        </td>
-                        <td>
-                          {draft.origin.kind === 'kicad' ? (
-                            <input
-                              aria-label={`Pad ${net.number || `unnumbered ${net.pads[0] + 1}`} net parameter`}
-                              value={
-                                draft.mapping[net.mappingKey ?? net.number] ||
-                                net.parameter
-                              }
-                              onChange={(event) =>
-                                edit({
-                                  ...draft,
-                                  mapping: {
-                                    ...draft.mapping,
-                                    [net.mappingKey ?? net.number]:
-                                      event.target.value,
-                                  },
-                                })
-                              }
-                            />
-                          ) : (
-                            <span>Defined by body(p)</span>
-                          )}
-                        </td>
-                        <td>{net.pads.length}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p>
-                  {info?.pads.filter((p) => p.mechanical).length || 0}{' '}
-                  mechanical pads · no net assignment
-                </p>
-              </>
-            )}
-            {info?.pads.some(
-              (pad) =>
-                !['rect', 'roundrect', 'circle', 'oval'].includes(pad.shape)
-            ) && (
-              <p role="status">
-                Custom and trapezoid pad outlines have a simplified preview. The
-                exported footprint retains their original geometry.
-              </p>
-            )}
-            {info?.diagnostics.map((finding, index) => (
-              <p
-                key={index}
-                role={finding.severity === 'error' ? 'alert' : 'status'}
-              >
-                {finding.message}
-              </p>
-            ))}
-
-            <details>
-              <summary>Source & export</summary>
-              <label>
-                Library name
-                <input
-                  value={draft.name}
-                  onChange={(event) =>
-                    edit({ ...draft, name: event.target.value })
-                  }
+          {currentInfo &&
+            draft?.models.some((model) =>
+              modelPreview(model, previews.assets)
+            ) &&
+            view === '3d' && (
+              <Inset aria-label="Magnified model alignment">
+                <FootprintCanvas
+                  info={info}
+                  models={draft.models.filter((_, index) => index === active)}
+                  assets={previews.assets}
+                  selected={0}
+                  onSelect={() => {}}
+                  side={side}
                 />
-              </label>
-              <label>
-                Ergogen module
-                <textarea
-                  aria-label="Footprint module source"
-                  rows={10}
-                  value={draft.module}
-                  readOnly={draft.origin.kind === 'kicad'}
-                  onChange={(event) =>
-                    edit({ ...draft, module: event.target.value })
-                  }
-                />
-              </label>
-              <pre>{yaml}</pre>
-              <button
-                disabled={busy || inspecting || !currentInfo}
-                onClick={() =>
-                  void download().catch((error) => setError(String(error)))
-                }
-              >
-                Export footprint ZIP
-              </button>
-            </details>
-            <p>
-              {impact
-                ? `${impact.placements} linked placements · ${impact.projects} projects${impact.unchecked ? ` · ${impact.unchecked} project counts unavailable` : ''}`
-                : `${uses.declarations} linked declarations · ${uses.projects} projects · counting placements…`}
-            </p>
-            {draft.revision > 0 && (
-              <>
-                <fieldset>
-                  <legend>Link to this project</legend>
-                  <label>
-                    Footprint declaration
-                    <select
-                      value={linkIndex}
-                      onChange={(event) => setLinkIndex(event.target.value)}
-                    >
-                      <option value="">Choose a declaration</option>
-                      {projectUses.map((use, index) => (
-                        <option key={use.path.join('.')} value={index}>
-                          {use.path.slice(1, -1).join(' / ')} · {use.what}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <p>
-                    Only this declaration changes. Its net parameters and
-                    instance overrides are retained.
-                  </p>
+              </Inset>
+            )}
+        </Center>
+        <Panel
+          $drawer="inspector"
+          $open={inspectorOpen}
+          aria-label="Footprint inspector"
+        >
+          {!draft && (
+            <MobileAction onClick={closeDrawer}>Close inspector</MobileAction>
+          )}
+          <DrawerLabel>Inspector</DrawerLabel>
+          <Toolbar aria-label="Inspector tabs">
+            <button
+              aria-pressed={tab === 'model'}
+              onClick={() => {
+                setTab('model');
+                setView('3d');
+              }}
+            >
+              3D models
+            </button>
+            <button
+              aria-pressed={tab === 'pads'}
+              onClick={() => {
+                setTab('pads');
+                setView('2d');
+              }}
+            >
+              Pads & nets
+            </button>
+          </Toolbar>
+          {draft && (
+            <>
+              <EditorHeader>
+                <MobileAction onClick={closeDrawer}>
+                  Close inspector
+                </MobileAction>
+                <h2>{draft.name}</h2>
+                <p>
+                  {history.current.length || !draft.revision
+                    ? 'Unsaved changes'
+                    : `Library footprint · revision ${draft.revision}`}
+                </p>
+                <div className="save-actions">
                   <button
-                    disabled={linkIndex === ''}
+                    data-primary="true"
+                    onClick={() => void save()}
+                    disabled={
+                      busy ||
+                      modelBusy === 'busy' ||
+                      inspecting ||
+                      !currentInfo ||
+                      !info ||
+                      (info.targets.length > 1 &&
+                        draft.modelMode === 'replace' &&
+                        !draft.target)
+                    }
+                  >
+                    Save footprint
+                  </button>
+                  <button
+                    aria-label="Undo footprint edit"
+                    disabled={!history.current.length}
                     onClick={() => {
-                      const use = projectUses[Number(linkIndex)];
-                      if (!use || !context) {
-                        return;
-                      }
-                      try {
-                        const next = linkFootprint(
-                          projectSource,
-                          use,
-                          draft.alias
-                        );
-                        if (onSource) {
-                          onSource(next);
-                        } else {
-                          context.updateRealtimeConfigInput(next);
-                          context.setConfigInput(next);
-                        }
-                        setStatus(
-                          'Linked. Preview in case to inspect the updated footprint.'
-                        );
-                      } catch (error) {
-                        setError(String(error));
+                      const previous = history.current.pop();
+                      if (previous) {
+                        drafts.current.set(previous.id, previous);
+                        setDraft(previous);
                       }
                     }}
                   >
-                    Link selected declaration
+                    <Undo2 size={16} /> Undo
                   </button>
-                </fieldset>
-                <button onClick={onPreview}>Preview in case</button>
-              </>
-            )}
-          </>
-        )}
-        {(status || busy || inspecting) && (
-          <p role="status">
-            {inspecting
-              ? 'Inspecting footprint…'
-              : status || 'Preparing import…'}
-          </p>
-        )}
-        {busy && (
-          <button
-            onClick={() => {
-              operation.current?.abort();
-              setBusy(false);
-            }}
-          >
-            Cancel import
-          </button>
-        )}
-        {(error || storageError || previews.error) && (
-          <p role="alert">{error || storageError || previews.error}</p>
-        )}
-      </Panel>
+                </div>
+              </EditorHeader>
+              <FootprintParameters
+                key={`settings-${draft.id}`}
+                definitions={parameters}
+                values={params}
+                onValidity={setParametersValid}
+                onChange={(key, value) =>
+                  edit({ ...draft, parameters: { ...params, [key]: value } })
+                }
+              />
+              {info && info.targets.length > 1 && (
+                <label>
+                  Emitted footprint target
+                  <select
+                    value={JSON.stringify(draft.target || {})}
+                    onChange={(event) =>
+                      edit({ ...draft, target: JSON.parse(event.target.value) })
+                    }
+                  >
+                    <option value="{}">Choose one footprint</option>
+                    {info.targets.map((target, index) => (
+                      <option
+                        key={index}
+                        value={JSON.stringify({
+                          name: target.name,
+                          index: target.index,
+                          count: target.count,
+                        })}
+                      >
+                        {target.reference || target.name || index}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {tab === 'model' ? (
+                <ModelEditor
+                  key={draft.id}
+                  onBusy={setModelBusy}
+                  models={draft.models}
+                  assets={draft.assets}
+                  previewAssets={previews.assets}
+                  selected={active}
+                  onSelect={setActive}
+                  onChange={(models, assets) =>
+                    edit({ ...draft, models, assets, modelMode: 'replace' })
+                  }
+                />
+              ) : (
+                <>
+                  <p>
+                    {info?.pads.length || 0} pads · duplicate numbers share a
+                    net. Mechanical pads remain separate.
+                  </p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Pad</th>
+                        <th>Net parameter</th>
+                        <th>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {info?.nets.map((net) => (
+                        <tr key={net.mappingKey ?? net.number}>
+                          <td>
+                            <button
+                              aria-pressed={pad === net.number}
+                              onClick={() => setPad(net.number)}
+                            >
+                              {net.number || `Unnumbered ${net.pads[0] + 1}`}
+                            </button>
+                          </td>
+                          <td>
+                            {draft.origin.kind === 'kicad' ? (
+                              <input
+                                aria-label={`Pad ${net.number || `unnumbered ${net.pads[0] + 1}`} net parameter`}
+                                value={
+                                  draft.mapping[net.mappingKey ?? net.number] ||
+                                  net.parameter
+                                }
+                                onChange={(event) =>
+                                  edit({
+                                    ...draft,
+                                    mapping: {
+                                      ...draft.mapping,
+                                      [net.mappingKey ?? net.number]:
+                                        event.target.value,
+                                    },
+                                  })
+                                }
+                              />
+                            ) : (
+                              <span>Defined by body(p)</span>
+                            )}
+                          </td>
+                          <td>{net.pads.length}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p>
+                    {info?.pads.filter((p) => p.mechanical).length || 0}{' '}
+                    mechanical pads · no net assignment
+                  </p>
+                </>
+              )}
+              {info?.pads.some(
+                (pad) =>
+                  !['rect', 'roundrect', 'circle', 'oval'].includes(pad.shape)
+              ) && (
+                <p role="status">
+                  Custom and trapezoid pad outlines have a simplified preview.
+                  The exported footprint retains their original geometry.
+                </p>
+              )}
+              {info?.diagnostics.map((finding, index) => (
+                <p
+                  key={index}
+                  role={finding.severity === 'error' ? 'alert' : 'status'}
+                >
+                  {finding.message}
+                </p>
+              ))}
+
+              <details>
+                <summary>Source & export</summary>
+                <label>
+                  Library name
+                  <input
+                    value={draft.name}
+                    onChange={(event) =>
+                      edit({ ...draft, name: event.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Ergogen module
+                  <textarea
+                    aria-label="Footprint module source"
+                    rows={10}
+                    value={draft.module}
+                    readOnly={draft.origin.kind === 'kicad'}
+                    onChange={(event) =>
+                      edit({ ...draft, module: event.target.value })
+                    }
+                  />
+                </label>
+                <pre>{yaml}</pre>
+                <button
+                  disabled={busy || inspecting || !currentInfo}
+                  onClick={() =>
+                    void download().catch((error) => setError(String(error)))
+                  }
+                >
+                  Export footprint ZIP
+                </button>
+              </details>
+              <p>
+                {impact
+                  ? `${impact.placements} linked placements · ${impact.projects} projects${impact.unchecked ? ` · ${impact.unchecked} project counts unavailable` : ''}`
+                  : `${uses.declarations} linked declarations · ${uses.projects} projects · counting placements…`}
+              </p>
+              {draft.revision > 0 && (
+                <>
+                  <fieldset>
+                    <legend>Link to this project</legend>
+                    <label>
+                      Footprint declaration
+                      <select
+                        value={linkIndex}
+                        onChange={(event) => setLinkIndex(event.target.value)}
+                      >
+                        <option value="">Choose a declaration</option>
+                        {projectUses.map((use, index) => (
+                          <option key={use.path.join('.')} value={index}>
+                            {use.path.slice(1, -1).join(' / ')} · {use.what}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p>
+                      Only this declaration changes. Its net parameters and
+                      instance overrides are retained.
+                    </p>
+                    <button
+                      disabled={linkIndex === ''}
+                      onClick={() => {
+                        const use = projectUses[Number(linkIndex)];
+                        if (!use || !context) {
+                          return;
+                        }
+                        try {
+                          const next = linkFootprint(
+                            projectSource,
+                            use,
+                            draft.alias
+                          );
+                          if (onSource) {
+                            onSource(next);
+                          } else {
+                            context.updateRealtimeConfigInput(next);
+                            context.setConfigInput(next);
+                          }
+                          setStatus(
+                            'Linked. Preview in case to inspect the updated footprint.'
+                          );
+                        } catch (error) {
+                          setError(String(error));
+                        }
+                      }}
+                    >
+                      Link selected declaration
+                    </button>
+                  </fieldset>
+                  <button onClick={onPreview}>Preview in case</button>
+                </>
+              )}
+            </>
+          )}
+          {(status || busy || inspecting) && (
+            <p role="status">
+              {inspecting
+                ? 'Inspecting footprint…'
+                : status || 'Preparing import…'}
+            </p>
+          )}
+          {busy && (
+            <button
+              onClick={() => {
+                operation.current?.abort();
+                setBusy(false);
+              }}
+            >
+              Cancel import
+            </button>
+          )}
+          {(error || storageError || previews.error) && (
+            <p role="alert">{error || storageError || previews.error}</p>
+          )}
+        </Panel>
       </Layout>
     </LibrarySurface>
   );

@@ -36,7 +36,16 @@ export interface DesignReport {
   analysis?: Record<string, import('./case').CaseAnalysis>;
   boards?: Record<string, import('./case').BoardInventory>;
   features: Record<string, DesignFeature>;
-  diagnostics: { feature: string; message: string; code: string }[];
+  diagnostics: {
+    feature: string;
+    sourcePath?: string;
+    message: string;
+    code: string;
+    severity?: 'error' | 'warning';
+    at?: number[];
+    requested?: number;
+    applied?: number;
+  }[];
   adjustments: {
     feature: string;
     target: number;

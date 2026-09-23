@@ -20,18 +20,22 @@ const trayEntry = keyframes`
 
 const Popover = styled.aside`
   position: absolute;
-  z-index: 4;
+  z-index: ${theme.studio.popoverLayer};
   top: ${theme.spacing.md};
   right: ${theme.spacing.md};
-  width: min(360px, calc(100% - ${theme.spacing.lg}));
-  max-height: min(70vh, 520px);
+  width: min(
+    ${theme.studio.quickActionsWidth},
+    calc(100% - ${theme.spacing.lg})
+  );
+  max-height: min(70vh, ${theme.studio.quickActionsHeight});
+  box-sizing: border-box;
   overflow: auto;
   padding: ${theme.spacing.md};
   color: ${theme.colors.text};
-  background: ${theme.colors.backgroundLight};
+  background: ${theme.colors.background};
   border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.cad.fieldRadius};
-  box-shadow: 0 12px 28px rgb(0 0 0 / 28%);
+  border-radius: ${theme.studio.dockRadius};
+  box-shadow: ${theme.studio.toolShadow};
 
   @media (max-width: ${theme.workbench.phoneBreakpoint}) {
     top: auto;
@@ -39,15 +43,14 @@ const Popover = styled.aside`
     bottom: 0;
     left: 0;
     width: 100%;
-    max-height: min(52dvh, 520px);
+    max-height: min(52dvh, ${theme.studio.quickActionsHeight});
     display: flex;
     flex-direction: column;
     padding: ${theme.spacing.sm} ${theme.spacing.md}
       calc(${theme.spacing.md} + env(safe-area-inset-bottom));
     border-right: 0;
     border-bottom: 0;
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 -12px 28px rgb(0 0 0 / 28%);
+    border-radius: ${theme.studio.dockRadius} ${theme.studio.dockRadius} 0 0;
     animation: ${trayEntry} ${theme.workbench.paneMotion};
     overflow: hidden;
   }
@@ -77,14 +80,27 @@ const Header = styled.header`
   justify-content: space-between;
   gap: ${theme.spacing.sm};
   margin-bottom: ${theme.spacing.sm};
+  padding-bottom: ${theme.spacing.sm};
+  border-bottom: 1px solid ${theme.colors.border};
+  > div {
+    flex: 1;
+    align-self: center;
+  }
+  .open-inspector {
+    padding: ${theme.spacing.xs};
+    font-size: ${theme.studio.metadataSize};
+    border: 0;
+    background: transparent;
+    color: ${theme.colors.accent};
+  }
   h2 {
     margin: 0;
-    font-size: 14px;
+    font-size: ${theme.workbench.textSize};
   }
   p {
-    margin: 0.2rem 0 0;
+    margin: ${theme.spacing.xs} 0 0;
     color: ${theme.colors.textDarker};
-    font-size: 12px;
+    font-size: ${theme.studio.metadataSize};
   }
 
   @media (max-width: ${theme.workbench.phoneBreakpoint}) {
@@ -94,7 +110,7 @@ const Header = styled.header`
     flex-shrink: 0;
     margin: 0;
     padding-bottom: ${theme.spacing.sm};
-    background: ${theme.colors.backgroundLight};
+    background: ${theme.colors.background};
   }
 `;
 
@@ -108,12 +124,12 @@ const TrayBody = styled.div`
 `;
 
 const IconButton = styled.button`
-  display: inline-grid;
-  place-items: center;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0;
+  && {
+    width: ${theme.workbench.controlHeight};
+    min-width: ${theme.workbench.controlHeight};
+    padding: 0;
+    flex-shrink: 0;
+  }
 `;
 
 const QuickActions = styled(StudioActions)`
@@ -121,8 +137,21 @@ const QuickActions = styled(StudioActions)`
   padding-top: ${theme.spacing.sm};
   border-top: 1px solid ${theme.colors.border};
   button {
+    padding: ${theme.spacing.sm};
+    font-size: ${theme.studio.metadataSize};
     gap: ${theme.spacing.xs};
     justify-content: flex-start;
+  }
+  button:last-child {
+    color: ${theme.colors.error};
+  }
+
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin-bottom: 0;
+    background: ${theme.colors.background};
   }
 `;
 
@@ -169,8 +198,10 @@ export default function SelectionPopover({
       <Header>
         <div>
           <h2 id="selection-quick-actions-title">{label}</h2>
-          <p>Adjust the draft without opening the Inspector.</p>
         </div>
+        <button className="open-inspector" onClick={onOpenInspector}>
+          <SlidersHorizontal size={16} /> Open Inspector
+        </button>
         <IconButton aria-label="Close selection actions" onClick={onClose}>
           <X size={16} />
         </IconButton>
@@ -184,20 +215,17 @@ export default function SelectionPopover({
           compact
         />
         <QuickActions>
-          <button onClick={onOpenInspector}>
-            <SlidersHorizontal size={16} /> Open Inspector
+          <button aria-label="Add key" onClick={() => onAdd('key')}>
+            <Plus size={16} /> Key
           </button>
-          <button onClick={() => onAdd('key')}>
-            <Plus size={16} /> Add key
+          <button aria-label="Add row" onClick={() => onAdd('rows')}>
+            <Plus size={16} /> Row
           </button>
-          <button onClick={() => onAdd('rows')}>
-            <Plus size={16} /> Add row
+          <button aria-label="Add column" onClick={() => onAdd('columns')}>
+            <Plus size={16} /> Column
           </button>
-          <button onClick={() => onAdd('columns')}>
-            <Plus size={16} /> Add column
-          </button>
-          <button onClick={onDelete}>
-            <Trash2 size={16} /> Delete selection
+          <button aria-label="Delete selection" onClick={onDelete}>
+            <Trash2 size={16} /> Delete
           </button>
         </QuickActions>
       </TrayBody>

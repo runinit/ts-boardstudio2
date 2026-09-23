@@ -23,6 +23,7 @@ import {
   type StudioSelection,
 } from '../utils/studioTargets';
 export type { StudioSelection } from '../utils/studioTargets';
+import { describeSelection } from '../utils/studioSelectionGeometry';
 import type { StudioRule } from '../utils/studioSource';
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -33,7 +34,11 @@ const DRAG_THRESHOLD = 4,
   ZOOM_STEP = 1.25,
   MIN_SCALE = 0.1,
   MAX_SCALE = 5,
-  MOVE_TOLERANCE = 0.01;
+  MOVE_TOLERANCE = 0.01,
+  BOUNDARY_PAD = 2.5,
+  BOUNDARY_RADIUS = 1.8,
+  HANDLE = 1.2,
+  GUIDE_LENGTH = 9;
 export default function StudioCanvas({
   report,
   selection,
@@ -204,6 +209,30 @@ export default function StudioCanvas({
   const drawn = Object.values(visible?.objects || {}).filter(
     (item) => item.kind !== 'anchor'
   );
+  const outline = useMemo(() => {
+    if (!visible) {
+      return null;
+    }
+    try {
+      return describeSelection(visible, selection, side, pitchValues);
+    } catch {
+      return null;
+    }
+  }, [visible, selection, side, pitchValues]);
+  const outlineDelta = useMemo(
+    () => (drag && !previewReady ? drag.delta : [0, 0, 0]),
+    [drag, previewReady]
+  );
+  const outlineBox = useMemo(() => {
+    if (!outline) {
+      return null;
+    }
+    const x = outline.min.x - BOUNDARY_PAD,
+      y = outline.min.y - BOUNDARY_PAD,
+      w = outline.width + 2 * BOUNDARY_PAD,
+      h = outline.height + 2 * BOUNDARY_PAD;
+    return { x, y, w, h };
+  }, [outline]);
   const dragSource = drag?.source,
     dragSelection = drag?.selection;
   const draggedIds = useMemo(() => {
@@ -668,6 +697,7 @@ export default function StudioCanvas({
           width={box.w}
           height={box.h}
           fill="url(#studio-grid)"
+          opacity={theme.studio.gridOpacity}
         />
         {side === 'top' && model && (
           <g transform="scale(1,-1)" pointerEvents="none">
@@ -750,11 +780,13 @@ export default function StudioCanvas({
               )}
               <polygon
                 points={layoutPolygon(item, side)}
-                fill={active ? theme.colors.accent : theme.colors.background}
+                fill={
+                  active ? theme.studio.selection.fill : theme.colors.background
+                }
                 fillOpacity={active ? 0.15 : 0.65}
                 stroke={
                   active
-                    ? theme.colors.accent
+                    ? theme.studio.selection.stroke
                     : item.kind === 'key'
                       ? theme.studio.key
                       : theme.studio.component
@@ -762,16 +794,75 @@ export default function StudioCanvas({
                 strokeWidth={active ? 0.45 : 0.22}
               />
               {active && (
-                <circle
-                  cx={item.position[0]}
-                  cy={-item.position[axis]}
-                  r=".45"
-                  fill={theme.colors.accent}
+                <path
+                  d={`M${item.position[0] - 0.8} ${-item.position[axis]}h1.6m-0.8 -0.8v1.6`}
+                  stroke={theme.studio.selection.cross}
+                  strokeWidth=".18"
+                  fill="none"
                 />
               )}
             </g>
           );
         })}
+        {outline && outlineBox && (
+          <g
+            pointerEvents="none"
+            role="img"
+            aria-label="Selected area"
+            transform={`translate(${outlineDelta[0]},${-outlineDelta[axis]})`}
+          >
+            <rect
+              x={outlineBox.x}
+              y={outlineBox.y}
+              width={outlineBox.w}
+              height={outlineBox.h}
+              rx={BOUNDARY_RADIUS}
+              fill="none"
+              stroke={theme.studio.selection.guide}
+              strokeWidth="0.22"
+              strokeDasharray="1.1 0.8"
+            />
+            {[
+              [outlineBox.x, outlineBox.y],
+              [outlineBox.x + outlineBox.w, outlineBox.y],
+              [outlineBox.x + outlineBox.w, outlineBox.y + outlineBox.h],
+              [outlineBox.x, outlineBox.y + outlineBox.h],
+            ].map(([cx, cy], index) => (
+              <rect
+                key={`handle-${index}`}
+                x={cx - HANDLE / 2}
+                y={cy - HANDLE / 2}
+                width={HANDLE}
+                height={HANDLE}
+                fill={theme.colors.background}
+                stroke={theme.studio.selection.handle}
+                strokeWidth="0.16"
+              />
+            ))}
+            {side === 'top' && outline.annotation && (
+              <text
+                x={outline.center.x}
+                y={outlineBox.y - 1.6}
+                fontSize="2.2"
+                fill={theme.studio.selection.text}
+                textAnchor="middle"
+              >
+                {outline.annotation}
+              </text>
+            )}
+            {side === 'top' && outline.axis && (
+              <line
+                x1={outline.center.x}
+                y1={outlineBox.y + outlineBox.h}
+                x2={outline.center.x}
+                y2={outlineBox.y + outlineBox.h + GUIDE_LENGTH}
+                stroke={theme.studio.selection.guide}
+                strokeWidth="0.12"
+                strokeDasharray="0.6 0.6"
+              />
+            )}
+          </g>
+        )}
         {drag?.snap &&
           drag.snap.guides.map((guide, index) => (
             <line

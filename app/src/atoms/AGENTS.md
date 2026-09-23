@@ -6,16 +6,16 @@ Reusable controls and preview adapters; score 9, a distinct rendering boundary.
 
 ## Where to Look
 
-| Task | Location |
-| --- | --- |
-| Button variants and text fields | `Button.tsx`, `Input.tsx` |
-| Icon names and icon buttons | `Icon.tsx`, `OutlineIconButton.tsx` |
-| Settings card structure | `SettingsLayout.tsx` |
-| KiCanvas custom-element integration | `PcbPreview.tsx` |
-| Three.js STL rendering | `StlPreview.tsx` |
-| SVG and text output | `SvgPreview.tsx`, `TextPreview.tsx` |
-| Preview loading state | `PreviewLoader.tsx`, `LoadingBar.tsx` |
-| Installation/update state | `InstallChip.tsx`, `UpdateChip.tsx` |
+| Task                                | Location                              |
+| ----------------------------------- | ------------------------------------- |
+| Button variants and text fields     | `Button.tsx`, `Input.tsx`             |
+| Icon names and icon buttons         | `Icon.tsx`, `OutlineIconButton.tsx`   |
+| Settings card structure             | `SettingsLayout.tsx`                  |
+| KiCanvas custom-element integration | `PcbPreview.tsx`                      |
+| Three.js STL rendering              | `StlPreview.tsx`                      |
+| SVG and text output                 | `SvgPreview.tsx`, `TextPreview.tsx`   |
+| Preview loading state               | `PreviewLoader.tsx`, `LoadingBar.tsx` |
+| Installation/update state           | `InstallChip.tsx`, `UpdateChip.tsx`   |
 
 ## Conventions
 

@@ -243,7 +243,10 @@ it('retains layout, bridges, clearance, and corners while rebuilding', () => {
     9, 8, 0,
   ]);
   expect(result.designs.boundaries.main_edge.clearance).toBe(4);
-  expect(result.designs.boundaries.main_edge.corners).toEqual({ fillet: 7 });
+  expect(result.designs.boundaries.main_edge.corners).toEqual({
+    fillet: 7,
+    mode: 'adaptive',
+  });
   expect(result.designs.boundaries.main_edge.bridges.manual).toEqual({
     from: { ref: 'fingers_c1_r1' },
     to: { ref: 'fingers_c2_r2' },

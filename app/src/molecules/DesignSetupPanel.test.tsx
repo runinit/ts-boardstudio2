@@ -57,9 +57,7 @@ describe('DesignSetupPanel', () => {
     );
 
     await waitFor(() => expect(loadComponentModel).toHaveBeenCalled());
-    expect(loadComponentModel.mock.calls[0]?.[0]).toBe(
-      'SW_Cherry_MX_PCB.stp'
-    );
+    expect(loadComponentModel.mock.calls[0]?.[0]).toBe('SW_Cherry_MX_PCB.stp');
     expect(screen.getByRole('button', { name: 'Apply setup' })).toBeEnabled();
   });
 });

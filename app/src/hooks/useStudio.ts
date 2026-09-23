@@ -62,7 +62,10 @@ export function useStudio(session: Session) {
   const requestMode = useRef<StudioRequest['outline']>();
   const owned = useRef<StudioQueue | null>(null);
   const adopted = useRef<string | null>(null);
-  const initial = useRef(key);
+  // A saved project can reset to revision one before its first studio request.
+  const openedProject = useRef(session.project);
+  const restorePending = useRef(true);
+  const opening = useRef<string | null>(null);
   const offsets = result?.layout?.offsets;
   const draftOffsets =
     action === 'restore' && layoutRevision !== key ? undefined : offsets;
@@ -100,8 +103,18 @@ export function useStudio(session: Session) {
         return;
       }
       setCompleted(current.key);
+      if (current.session.action === 'restore' && restorePending.current) {
+        restorePending.current = false;
+      }
       if (message.source && message.source !== current.session.source) {
         adopted.current = message.source;
+        if (
+          current.session.action === 'restore' &&
+          opening.current === current.key
+        ) {
+          current.session.edit(message.source);
+          return;
+        }
         if (
           !current.session.amend(
             current.session.revision,
@@ -120,20 +133,34 @@ export function useStudio(session: Session) {
     };
   }, []);
   useEffect(() => {
-    if (adopted.current === source && action === 'amend') {
+    if (openedProject.current !== session.project) {
+      openedProject.current = session.project;
+      restorePending.current = true;
+    }
+    if (
+      adopted.current === source &&
+      (action === 'amend' || action === 'edit')
+    ) {
       adopted.current = null;
       setCompleted(key);
       return;
     }
     const [capturedSource, capturedInjections, capturedAssets] =
       JSON.parse(key);
+    const onOpen =
+      action === 'restore' &&
+      restorePending.current &&
+      hasManagedOutline(capturedSource) &&
+      isOutlineAutomatic(capturedSource);
+    opening.current = onOpen ? key : null;
     const outline =
       requestMode.current ||
-      (initial.current !== key &&
-      action === 'edit' &&
-      isOutlineAutomatic(capturedSource)
+      ((onOpen || action === 'edit') && isOutlineAutomatic(capturedSource)
         ? 'rebuild'
         : 'keep');
+    if (action === 'edit') {
+      restorePending.current = false;
+    }
     requestMode.current = undefined;
     setPending(true);
     setReply(null);
@@ -144,7 +171,7 @@ export function useStudio(session: Session) {
       assets: capturedAssets,
       outline,
     });
-  }, [key, source, action, attempt]);
+  }, [key, source, action, attempt, session.project]);
   const generate = useCallback(() => {
     requestMode.current = 'rebuild';
     setAttempt((value) => value + 1);

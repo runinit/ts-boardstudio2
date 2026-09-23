@@ -6,17 +6,17 @@ Source editing, geometry, persistence, and export; score 12, a shared domain lay
 
 ## Where to Look
 
-| Task | Modules |
-| --- | --- |
-| Native document operations | `studioSource.ts`, `designSource.ts` |
-| Immediate poses, selection, and movement | `studioMove.ts`, `studioSelection.ts` |
-| Outline preparation and freezing | `studioOutline.ts`, `boardOutlines.ts` |
-| Generation request coordination | `studioQueue.ts` |
-| Setup compilation and dimensions | `designSetup.ts`, `designUnits.ts` |
-| Assembly and electrical intent | `applyAssembly.ts`, `assemblyElectrical.ts`, `assemblyNets.ts` |
-| Footprint conflicts and library operations | `injections.ts`, `footprintLibrary.ts`, `footprintService.ts` |
-| Portable projects and downloads | `share.ts`, `zip.ts` |
-| Remote providers | `gitProvider.ts` |
+| Task                                       | Modules                                                        |
+| ------------------------------------------ | -------------------------------------------------------------- |
+| Native document operations                 | `studioSource.ts`, `designSource.ts`                           |
+| Immediate poses, selection, and movement   | `studioMove.ts`, `studioSelection.ts`                          |
+| Outline preparation and freezing           | `studioOutline.ts`, `boardOutlines.ts`                         |
+| Generation request coordination            | `studioQueue.ts`                                               |
+| Setup compilation and dimensions           | `designSetup.ts`, `designUnits.ts`                             |
+| Assembly and electrical intent             | `applyAssembly.ts`, `assemblyElectrical.ts`, `assemblyNets.ts` |
+| Footprint conflicts and library operations | `injections.ts`, `footprintLibrary.ts`, `footprintService.ts`  |
+| Portable projects and downloads            | `share.ts`, `zip.ts`                                           |
+| Remote providers                           | `gitProvider.ts`                                               |
 
 ## Conventions
 

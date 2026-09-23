@@ -75,7 +75,7 @@ export const StudioShell = styled.section`
   button[data-primary='true'] {
     background: ${theme.workbench.primary};
     border-color: ${theme.workbench.primary};
-    color: ${theme.colors.white};
+    color: ${theme.workbench.onPrimary};
   }
   button[data-primary='true']:hover:not(:disabled) {
     background: ${theme.workbench.primaryHover};
@@ -185,13 +185,14 @@ export const StageNav = styled.nav`
   display: flex;
   flex-shrink: 0;
   overflow-x: auto;
-  border-bottom: 1px solid ${theme.colors.border};
+  align-self: stretch;
   button {
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
     background: transparent;
-    padding: ${theme.spacing.sm} ${theme.spacing.lg};
+    padding: ${theme.spacing.sm} ${theme.spacing.compact};
+    white-space: nowrap;
   }
   .workspace-actions {
     margin-left: auto;
@@ -239,19 +240,147 @@ export const StageNav = styled.nav`
   }
 `;
 export const StudioHeader = styled(StudioBar)`
+  min-height: ${theme.studio.headerHeight};
+  padding-block: ${theme.spacing.xs};
+  box-sizing: border-box;
+  background: ${theme.colors.backgroundLight};
   h1 {
-    flex: 1;
+    flex: 0 1 ${theme.studio.projectWidth};
     min-width: 0;
+    font-size: ${theme.workbench.textSize};
+    font-weight: ${theme.fontWeights.semiBold};
+    padding-right: ${theme.spacing.md};
+    border-right: 1px solid ${theme.colors.border};
+  }
+  > nav {
+    margin-right: auto;
+  }
+  > small {
+    white-space: nowrap;
+    font-size: ${theme.studio.metadataSize};
+    display: inline-flex;
+    align-items: center;
+    gap: ${theme.spacing.sm};
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: ${theme.colors.accent};
+    }
+  }
+  .history-actions {
+    display: flex;
+    gap: 0;
+    border: 1px solid ${theme.colors.border};
+    border-radius: ${theme.cad.fieldRadius};
+    button {
+      border: 0;
+      background: transparent;
+    }
+  }
+  button {
+    padding: ${theme.spacing.sm};
+  }
+  .project-action-label {
+    display: none;
+  }
+  .generate-label {
+    display: none;
   }
   @media (max-width: ${theme.studio.breakpoint}) {
+    flex-wrap: wrap;
+    gap: ${theme.spacing.xs};
     h1 {
-      font-size: ${theme.fontSizes.lg};
+      flex: 1;
+      font-size: ${theme.workbench.textSize};
+    }
+    > nav {
+      order: 1;
+      width: 100%;
+      border-top: 1px solid ${theme.colors.border};
+      margin-top: ${theme.spacing.xs};
+    }
+    .history-actions {
+      display: none;
+    }
+    .project-action-label {
+      display: inline;
     }
     > button {
       padding: ${theme.spacing.sm};
     }
     .generate-label {
       font-size: ${theme.fontSizes.bodySmall};
+    }
+  }
+  @media (max-height: ${theme.studio.shortViewportHeight}) {
+    > nav button {
+      flex-direction: row;
+    }
+  }
+`;
+export const StudioContextBar = styled(StudioBar)`
+  min-height: ${theme.studio.contextHeight};
+  box-sizing: border-box;
+  padding-block: ${theme.spacing.xs};
+  background: ${theme.colors.ribbonSurface};
+  font-size: ${theme.studio.metadataSize};
+  .outline-controls,
+  .outline-controls label {
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing.sm};
+    flex-wrap: wrap;
+  }
+  .outline-controls label {
+    white-space: nowrap;
+  }
+  .project-name {
+    min-width: 0;
+    max-width: ${theme.studio.projectWidth};
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ${theme.fonts.code};
+  }
+  .selection-context {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: ${theme.colors.textDark};
+    padding-left: ${theme.spacing.compact};
+    border-left: 1px solid ${theme.colors.border};
+  }
+  button {
+    padding: ${theme.spacing.xs} ${theme.spacing.sm};
+  }
+  @media (max-width: ${theme.studio.breakpoint}) {
+    flex-wrap: wrap;
+    .project-name {
+      display: none;
+    }
+    .selection-context {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .outline-controls {
+      order: 1;
+      width: 100%;
+      border-top: 1px solid ${theme.colors.border};
+      padding-top: ${theme.spacing.xs};
+    }
+  }
+  @media (max-height: ${theme.studio
+      .shortViewportHeight}) and (min-width: ${theme.workbench
+      .phoneBreakpoint}) {
+    .outline-controls {
+      order: 0;
+      width: auto;
+      border-top: 0;
+      padding-top: 0;
     }
   }
 `;
@@ -376,10 +505,25 @@ export const StudioProperties = styled.div`
   min-height: 0;
   overflow: auto;
   padding: ${theme.spacing.md};
-  background: ${theme.colors.backgroundLight};
+  background: ${theme.colors.background};
   border-left: 1px solid ${theme.colors.border};
   h2 {
     overflow-wrap: anywhere;
+    font-size: ${theme.studio.sectionSize};
+  }
+  > details,
+  > details > summary {
+    border-bottom: 1px solid ${theme.colors.border};
+    margin-bottom: ${theme.spacing.md};
+  }
+  summary {
+    color: ${theme.colors.textDark};
+    font-size: ${theme.studio.metadataSize};
+    font-weight: ${theme.fontWeights.semiBold};
+  }
+  input:not([type='checkbox']) {
+    font-family: ${theme.fonts.code};
+    font-variant-numeric: tabular-nums;
   }
   fieldset {
     min-width: 0;
@@ -463,7 +607,7 @@ export const StudioStatus = styled.div`
   flex-wrap: wrap;
   gap: ${theme.spacing.sm};
   flex-shrink: 0;
-  font-size: ${theme.fontSizes.bodySmall};
+  font-size: ${theme.studio.metadataSize};
   button {
     margin-left: auto;
   }
@@ -547,11 +691,8 @@ export const MatrixActions = styled.div`
 
 // Anchor floating tools to the drawing, below normal-flow outline and status bars.
 export const StudioViewport = styled.div`
+  background: ${theme.studio.canvas};
   container: canvas / size;
-  @media (max-height: ${theme.studio.compactRailHeight}) and (min-width: ${theme
-      .workbench.phoneBreakpoint}) {
-    min-height: ${theme.studio.minCanvasHeight};
-  }
   position: relative;
   flex: 1;
   min-width: 0;

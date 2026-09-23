@@ -482,6 +482,40 @@ describe('project status copy', () => {
   });
   afterEach(() => vi.mocked(useStudio).mockImplementation(original));
 
+  it('shows fitted corner locations in project findings', () => {
+    vi.mocked(useStudio).mockReturnValue({
+      ...state,
+      analysis: {
+        ...state.analysis,
+        result: {
+          ...state.analysis.result,
+          designs: {
+            features: {},
+            adjustments: [],
+            assemblies: {},
+            diagnostics: [
+              {
+                feature: 'designs.boundaries.main',
+                sourcePath: 'designs.boundaries.main.corners',
+                code: 'corner-relief-fit',
+                severity: 'warning',
+                at: [20, 30],
+                requested: 2,
+                applied: 1,
+                message: 'Corner relief at (20, 30) mm fitted to 1 mm',
+              },
+            ],
+          },
+        },
+      },
+    });
+    render(<Harness initial={MOVE_SOURCE} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Review 1 finding' }));
+    expect(
+      screen.getByRole('region', { name: 'Project findings' })
+    ).toHaveTextContent('Corner relief at (20, 30) mm fitted to 1 mm');
+  });
+
   it.each([1, 2])(
     'distinguishes current positions from %i export blockers',
     (count) => {

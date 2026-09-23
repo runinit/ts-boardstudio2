@@ -20,12 +20,12 @@ import { UNIT_STEPS } from '../utils/designUnits';
 import type { SnapOptions } from '../utils/layoutSnapping';
 
 const Tool = styled.div`
-  display: grid;
+  position: relative;
+  display: flex;
+  align-items: center;
   flex: none;
-  width: ${theme.studio.touchSize};
   > button {
-    width: ${theme.studio.touchSize};
-    background: ${theme.colors.backgroundLight};
+    background: transparent;
   }
   .snap-disclosure svg {
     transition: transform ${theme.workbench.stateMotion};
@@ -40,11 +40,8 @@ const Tool = styled.div`
   }
 `;
 const QuickGuides = styled.div`
-  display: grid;
-  gap: 1px;
-  width: ${theme.studio.touchSize};
+  display: flex;
   button {
-    min-height: ${theme.studio.touchSize};
     padding: ${theme.spacing.xs};
     border: 0;
     border-radius: ${theme.cad.fieldRadius};
@@ -59,12 +56,14 @@ const QuickGuides = styled.div`
     width: auto;
   }
 `;
-// Keep the content mounted so opening and closing both reveal real rail height.
+// Always mounted so the panel keeps its measured content height when toggled; it docks above the toolbar.
 const Slide = styled.div<{ $open: boolean }>`
+  position: absolute;
+  bottom: calc(100% + ${theme.spacing.compact});
+  left: 0;
   display: grid;
   width: ${theme.studio.toolOptionsWidth};
   grid-template-rows: ${({ $open }) => ($open ? '1fr' : '0fr')};
-  transition: grid-template-rows ${theme.workbench.paneMotion};
   > div {
     min-height: 0;
     overflow: hidden;
@@ -80,8 +79,8 @@ const Panel = styled.div`
   overflow: auto;
   overscroll-behavior: contain;
   background: ${theme.colors.backgroundLight};
-  border-radius: 0 ${theme.cad.fieldRadius} ${theme.cad.fieldRadius}
-    ${theme.cad.fieldRadius};
+  border-radius: ${theme.studio.dockRadius};
+  border: 1px solid ${theme.colors.border};
   box-shadow: ${theme.studio.toolShadow};
   color: ${theme.colors.text};
 
@@ -164,30 +163,24 @@ export default function SnapControls({
     const container = viewport?.current;
     const element = slide.current;
     const content = panel.current;
-    if (!container || !element || !content) {
+    const dock = element?.parentElement;
+    if (!container || !element || !content || !dock) {
       return;
     }
-    // Only constrain the unfolding section; the tool strip keeps its width.
+    // The panel opens upward from the dock and scrolls inside the viewport.
     const measure = () => {
       const bounds = container.getBoundingClientRect();
-      const anchor = element.getBoundingClientRect();
+      const anchor = dock.getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(content).paddingTop);
-      const width = Math.min(
-        parseFloat(theme.studio.toolOptionsWidth),
-        bounds.right - anchor.left - gap
+      const width = Math.max(
+        0,
+        Math.min(
+          parseFloat(theme.studio.toolOptionsWidth),
+          bounds.right - anchor.left - gap
+        )
       );
-      const camera = container
-        .querySelector('[aria-label="View controls"]')
-        ?.getBoundingClientRect();
-      const bottom =
-        camera && anchor.left + width > camera.left
-          ? camera.top
-          : bounds.bottom;
-      const rail = element.closest('[aria-label="Canvas tools"]');
-      const horizontal = rail && getComputedStyle(rail).flexDirection === 'row';
-      const tail = horizontal ? gap : parseFloat(theme.studio.touchSize) + gap;
       element.style.width = `${width}px`;
-      content.style.maxHeight = `${Math.max(0, bottom - anchor.top - tail)}px`;
+      content.style.maxHeight = `${Math.max(0, anchor.top - bounds.top - gap * 3)}px`;
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -303,47 +296,48 @@ export default function SnapControls({
             {advancedOpen && (
               <>
                 <label className="snap-field">
-              Increment · mm
-              <input
-                aria-label="Custom snap increment"
-                type="number"
-                min="0"
-                step="0.1"
-                value={options.millimetres || ''}
-                placeholder="Units"
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  if (Number.isFinite(value) && value >= 0) {
-                    onChange({ ...options, millimetres: value });
-                  }
-                }}
-              />
+                  Increment · mm
+                  <input
+                    aria-label="Custom snap increment"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={options.millimetres || ''}
+                    placeholder="Units"
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      if (Number.isFinite(value) && value >= 0) {
+                        onChange({ ...options, millimetres: value });
+                      }
+                    }}
+                  />
                 </label>
                 <label className="snap-field">
-              Edge gap · mm
-              <input
-                aria-label="Snap edge gap"
-                type="number"
-                min="0"
-                step="0.5"
-                value={options.gap}
-                onChange={(event) => {
-                  const gap = Number(event.target.value);
-                  if (Number.isFinite(gap) && gap >= 0) {
-                    onChange({ ...options, gap });
-                  }
-                }}
-              />
+                  Edge gap · mm
+                  <input
+                    aria-label="Snap edge gap"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={options.gap}
+                    onChange={(event) => {
+                      const gap = Number(event.target.value);
+                      if (Number.isFinite(gap) && gap >= 0) {
+                        onChange({ ...options, gap });
+                      }
+                    }}
+                  />
                 </label>
                 <details>
-              <summary>Alt bypasses snapping · Help</summary>
-              <small>
-                Drop first, then choose Keep relationship to retain a center
-                alignment or edge offset.{' '}
-              </small>
-              <small>
-                1u = {units.u} mm · 1v = {units.v} mm. Alt bypasses snapping.
-              </small>
+                  <summary>Alt bypasses snapping · Help</summary>
+                  <small>
+                    Drop first, then choose Keep relationship to retain a center
+                    alignment or edge offset.{' '}
+                  </small>
+                  <small>
+                    1u = {units.u} mm · 1v = {units.v} mm. Alt bypasses
+                    snapping.
+                  </small>
                 </details>
               </>
             )}

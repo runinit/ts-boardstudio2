@@ -22,9 +22,12 @@ import { readStudio } from '../utils/studioSource';
 import type { KeyAlignment } from '../utils/keyResize';
 import InspectorSection from './InspectorSection';
 
-const RelativeFields = styled.div`
+const RelativeFields = styled.div<{ $compact?: boolean }>`
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    ${({ $compact }) => ($compact ? 3 : 2)},
+    minmax(0, 1fr)
+  );
   gap: ${theme.spacing.sm};
   margin: ${theme.spacing.sm} 0;
   label {
@@ -33,6 +36,8 @@ const RelativeFields = styled.div`
   }
   input {
     width: 100%;
+    font-family: ${theme.fonts.code};
+    font-variant-numeric: tabular-nums;
   }
 `;
 const AdjustmentGroup = styled.fieldset<{ $compact?: boolean }>`
@@ -43,8 +48,35 @@ const AdjustmentGroup = styled.fieldset<{ $compact?: boolean }>`
   margin: ${({ $compact }) => ($compact ? 0 : theme.spacing.lg)} 0 0;
   legend {
     padding-right: ${theme.spacing.sm};
-    ${({ $compact }) => ($compact ? 'font-size: 12px;' : '')}
+    ${({ $compact }) =>
+      $compact ? `font-size: ${theme.studio.metadataSize};` : ''}
   }
+  ${({ $compact }) =>
+    $compact &&
+    `
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: ${theme.spacing.sm};
+      min-width: 0;
+      > label {
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        font-size: ${theme.studio.metadataSize};
+      }
+      > label select {
+        width: 100%;
+      }
+      > details {
+        grid-column: 1 / -1;
+        border-top: 1px solid ${theme.colors.border};
+      }
+      input, select {
+        background: ${theme.workbench.fieldSurface};
+      }
+      label, small {
+        font-size: ${theme.studio.metadataSize};
+      }
+    `}
 `;
 type Props = {
   source: string;
@@ -207,7 +239,7 @@ export default function SelectionControls({
           }}
         >
           <small>Relative to current placement, in the parent’s axes.</small>
-          <RelativeFields>
+          <RelativeFields $compact={compact}>
             {[
               'x',
               'y',

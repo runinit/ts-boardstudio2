@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useStudio } from './useStudio';
 import { SETTLE_MS } from '../utils/studioQueue';
+import { addOutline } from '../utils/studioSource';
 const mocks = vi.hoisted(() => ({ create: vi.fn(), resolve: vi.fn() }));
 vi.mock('../workers/workerFactory', () => ({
   createErgogenWorker: mocks.create,
@@ -11,7 +12,7 @@ vi.mock('./useFootprintLibrary', () => ({
 }));
 vi.mock('../utils/footprintLibrary', () => ({ libraryAssets: () => ({}) }));
 const source = 'schema: ergogen/v1\nlayout: {objects: {}}';
-function setup() {
+function setup(opened = source) {
   const worker = {
     postMessage: vi.fn(),
     terminate: vi.fn(),
@@ -23,7 +24,8 @@ function setup() {
     findings: [],
   }));
   const session = {
-    source,
+    source: opened,
+    project: 'first',
     injections: [],
     assets: {},
     revision: 0,
@@ -36,6 +38,111 @@ function setup() {
   });
   return { worker, session, ...hook };
 }
+
+it('rebuilds an automatic outline on import as one undoable edit', () => {
+  const opened = addOutline(`schema: ergogen/v1
+layout:
+  objects:
+    key: {kind: key, pcb: main, envelopes: {keycap: {size: [18, 18]}}}
+pcbs: {main: {}}
+`);
+  const { worker, session, rerender, unmount } = setup(opened);
+  rerender({ ...session, revision: 1 });
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  const sent = worker.postMessage.mock.calls[0][0];
+  expect(sent.outline).toBe('rebuild');
+
+  act(() =>
+    worker.onmessage?.({
+      data: {
+        type: 'success',
+        requestId: sent.requestId,
+        revision: sent.revision,
+        source: opened + '\n# regenerated',
+        results: {},
+      },
+    })
+  );
+  expect(session.edit).toHaveBeenCalledOnce();
+  expect(session.amend).not.toHaveBeenCalled();
+
+  rerender({
+    ...session,
+    source: opened + '\n# regenerated',
+    revision: 2,
+    action: 'edit',
+  });
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  expect(worker.postMessage).toHaveBeenCalledTimes(1);
+  unmount();
+});
+
+it('rebuilds an automatic project restored after the hook mounts', () => {
+  const { worker, session, rerender, unmount } = setup();
+  const opened = addOutline(`schema: ergogen/v1
+layout:
+  objects:
+    key: {kind: key, pcb: main, envelopes: {keycap: {size: [18, 18]}}}
+pcbs: {main: {}}
+`);
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  const first = worker.postMessage.mock.calls[0][0];
+  rerender({ ...session, source: opened, revision: 1, action: 'restore' });
+  act(() =>
+    worker.onmessage?.({
+      data: {
+        type: 'superseded',
+        requestId: first.requestId,
+        revision: first.revision,
+      },
+    })
+  );
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  expect(worker.postMessage.mock.calls.at(-1)![0].outline).toBe('rebuild');
+  unmount();
+});
+
+it('rebuilds on project switch without rebuilding an undo', () => {
+  const opened = addOutline(`schema: ergogen/v1
+layout:
+  objects:
+    key: {kind: key, pcb: main, envelopes: {keycap: {size: [18, 18]}}}
+pcbs: {main: {}}
+`);
+  const { worker, session, rerender, unmount } = setup(opened);
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  const first = worker.postMessage.mock.calls[0][0];
+  act(() =>
+    worker.onmessage?.({
+      data: {
+        type: 'success',
+        requestId: first.requestId,
+        revision: first.revision,
+        source: opened,
+        results: {},
+      },
+    })
+  );
+
+  rerender({ ...session, revision: 1, action: 'restore' });
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  const undone = worker.postMessage.mock.calls.at(-1)![0];
+  expect(undone.outline).toBe('keep');
+
+  rerender({ ...session, project: 'another', revision: 2, action: 'restore' });
+  act(() =>
+    worker.onmessage?.({
+      data: {
+        type: 'superseded',
+        requestId: undone.requestId,
+        revision: undone.revision,
+      },
+    })
+  );
+  act(() => vi.advanceTimersByTime(SETTLE_MS));
+  expect(worker.postMessage.mock.calls.at(-1)![0].outline).toBe('rebuild');
+  unmount();
+});
 beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();

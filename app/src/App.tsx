@@ -14,7 +14,6 @@ import SideNavigation from './molecules/SideNavigation';
 import {
   ConfigContextProvider,
   useConfigContext,
-  isNativeConfig,
 } from './context/ConfigContext';
 import { getConfigFromHash } from './utils/share';
 import ConflictResolutionDialog from './molecules/ConflictResolutionDialog';
@@ -674,9 +673,9 @@ const AppContent = ({
         <Routes>
           <Route
             path="/"
-            // Show the landing page until the user explicitly chooses a board.
+            // Keep saved source editable when its schema cannot generate.
             element={
-              configInput && isNativeConfig(configInput) ? (
+              configInput ? (
                 <Ergogen onUpdate={onUpdate} pwaState={pwaState} />
               ) : (
                 <Welcome />

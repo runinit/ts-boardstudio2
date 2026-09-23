@@ -29,7 +29,7 @@ const snapshot = object({paths: list({oneOf: [
     object({type: {const: 'circle'}, center: snapshotPoint, radius: {type: 'number', exclusiveMinimum: 0}}, ['type','center','radius'])
 ]})}, ['paths'])
 const boundary = object({snapshot, holes: {enum: ['preserve', 'fill']}, from: names, close: dimension, clearance: dimension, round: dimension, simplify: dimension,
-    corners: {oneOf: [object({fillet: dimension}, ['fillet']), object({chamfer: dimension}, ['chamfer'])]},
+    corners: {oneOf: [object({fillet: dimension, mode: {enum: ['strict','adaptive']}}, ['fillet']), object({chamfer: dimension}, ['chamfer'])]},
     connected: {enum: ['single', 'multiple']}, modifications, bridges: mapping(object({from: mapping({}), to: mapping({}), width: dimension, ends: {enum: ['round','flat']}, align: {enum: ['top','bottom','left','right']}}, ['from', 'to', 'width'])),
     cutouts: list(text), gaps: list(text)})
 const assemblyFields = ['preset','profile','plate_profile','pcb_profile','mounting','construction','supplier','board','manufacturing',

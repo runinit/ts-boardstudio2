@@ -1,6 +1,7 @@
 const m = require('makerjs')
 const g = require('./geometry')
 const MAX_BEVEL_SWEEP = 90 // Keep tangent intersections finite for large arcs.
+const FilletFallback = {Close: 'close', None: 'none'}
 
 const cross = (a,b) => a[0]*b[1]-a[1]*b[0]
 const subtract = (a,b) => a.map((v,i)=>v-b[i])
@@ -120,7 +121,7 @@ const checkFillets = (model,radius,name) => {
         }
     }
 }
-const filletInside = (model,radius) => {
+const filletInside = (model,radius,fallback = FilletFallback.Close) => {
     const result=flat(model)
     let unresolved=false, index=0
     for (const chain of g.chains(result)) {
@@ -138,11 +139,73 @@ const filletInside = (model,radius) => {
     }
     // Short stagger steps can require a fillet to span an adjacent convex arc.
     if (!unresolved) { return result }
+    if (fallback===FilletFallback.None) { return null }
     const closed=g.close(result,radius)
     // Closing a narrow bay can enclose a new void; a solid perimeter needs that filled.
     // Existing holes retain the topology guard and must never be filled implicitly.
     if (g.chains(model).some(chain=>chain.contains?.length)) { return closed }
     return g.union(g.chains(closed).map(chain=>m.chain.toNewModel(chain)))
+}
+const fitInside = (source,radius,name,options = {}) => {
+    const original=flat(source)
+    const expected=JSON.stringify(topology(original))
+    try {
+        // Keep exact legacy geometry when the requested relief is already safe.
+        const exact=filletInside(source,radius,FilletFallback.None)
+        if (exact) {
+            checkFillets(exact,radius,name)
+            g.validate(exact,name)
+        }
+        if (exact && JSON.stringify(topology(exact))===expected && g.contains(exact,source) &&
+            !(options.protected || []).some(gap=>!g.empty(g.combine(exact,gap,'intersect')))) { return exact }
+    } catch (error) {
+        if (!(error instanceof g.DesignError)) { throw error }
+    }
+    const targets=[]
+    for (const chain of g.chains(original)) {
+        const orientation=winding(chain)
+        for (let index=0;index<chain.links.length;index++) {
+            const first=chain.links[index], last=chain.links[(index+1)%chain.links.length]
+            if (!first.endPoints || !last.endPoints) { continue }
+            const at=ends(first)[1]
+            if (cross(direction(first,at),direction(last,at))*orientation>=-g.EPSILON) { continue }
+            targets.push({first:first.walkedPath.pathId,last:last.walkedPath.pathId,at})
+        }
+    }
+    let result=original
+    for (const target of targets) {
+        const attempt=size => {
+            const candidate=g.clone(result)
+            const first=candidate.paths[target.first], last=candidate.paths[target.last]
+            if (!first || !last) { return null }
+            const arc=m.path.fillet(first,last,size)
+            if (!arc) { return null }
+            candidate.paths[`fillet${target.first}_${target.last}`]=arc
+            try {
+                g.validate(candidate,name)
+                if (JSON.stringify(topology(candidate))!==expected || !g.contains(candidate,source)) { return null }
+                if ((options.protected || []).some(gap=>!g.empty(g.combine(candidate,gap,'intersect')))) { return null }
+                return candidate
+            } catch (error) {
+                if (!(error instanceof g.DesignError)) { throw error }
+                return null
+            }
+        }
+        let applied=radius, candidate=attempt(radius)
+        if (!candidate) {
+            let low=0, high=radius
+            while (high-low>g.TOLERANCE) {
+                const middle=(low+high)/2
+                const trial=attempt(middle)
+                if (trial) { low=middle; candidate=trial }
+                else { high=middle }
+            }
+            applied=candidate?low:0
+        }
+        if (candidate) { result=candidate }
+        if (applied<radius-g.TOLERANCE) { options.onFit?.({at:target.at,requested:radius,applied}) }
+    }
+    return result
 }
 const bevelArc = (path,model) => {
     const midpoint=m.point.middle(path), vector=subtract(path.origin,midpoint)
@@ -226,15 +289,15 @@ const chamferSteps = (source,size) => {
         m.model.simplify(model)
     }
 }
-const corners = (model,spec,name) => {
+const corners = (model,spec,name,options = {}) => {
     let result
     try {
-        result=filletInside(model,spec.fillet || spec.chamfer)
+        result=spec.mode==='adaptive' ? fitInside(model,spec.fillet,name,options) : filletInside(model,spec.fillet || spec.chamfer)
     } catch (error) {
         if (!(error instanceof g.DesignError)) { throw error }
         g.fail(name,error.diagnostics[0].message,error.diagnostics[0].code)
     }
-    checkFillets(result,spec.fillet || spec.chamfer,name)
+    if (spec.mode!=='adaptive') { checkFillets(result,spec.fillet || spec.chamfer,name) }
     if (spec.chamfer) {
         const curved=result
         result=flat(result)

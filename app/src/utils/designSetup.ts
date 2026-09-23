@@ -496,7 +496,7 @@ export function compileSetup(
       clearance: OUTLINE_CLEARANCE,
       holes: OUTLINE_HOLES,
       connected: 'single',
-      corners: { fillet: OUTLINE_FILLET },
+      corners: { fillet: OUTLINE_FILLET, mode: 'adaptive' },
     };
     profiles[board] = { from: `boundaries.${board}` };
     pcbs[board] = { profile: `profiles.${board}`, thickness: PCB_THICKNESS };

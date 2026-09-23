@@ -24,11 +24,23 @@ for (const viewport of [
       ({ key, source }) => localStorage.setItem(key, JSON.stringify(source)),
       { key: CONFIG_LOCAL_STORAGE_KEY, source }
     );
+    await page.route('http://localhost:8400/**', (route) => route.abort());
     await page.goto('./');
     const canvas = page.getByRole('group', {
       name: 'Interactive board layout',
     });
     await expect(canvas).toBeVisible({ timeout: READY_TIMEOUT });
+    await expect(
+      page.getByRole('button', { name: 'Generate project', exact: true })
+    ).toBeEnabled({ timeout: READY_TIMEOUT });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth
+      )
+    ).toBe(true);
+    await page.screenshot({
+      path: `../.omo/evidence/stitch-ui/workspace-${viewport.width}.png`,
+    });
     const automatic = page.getByRole('checkbox', { name: 'Automatic outline' });
     const bar = page.getByLabel('Outline controls', { exact: true });
     const tools = page.getByRole('toolbar', { name: 'Canvas tools' });
@@ -43,6 +55,13 @@ for (const viewport of [
     await automatic.click();
     await expect(automatic).toBeChecked();
     if (viewport.width > 1050) {
+      const project = await page
+        .getByRole('button', { name: 'Projects', exact: true })
+        .boundingBox();
+      const stages = await page
+        .getByRole('navigation', { name: 'Design workflow' })
+        .boundingBox();
+      expect(stages!.y).toBeLessThan(project!.y + project!.height);
       await expect(
         page.getByLabel('Project actions', { exact: true })
       ).toBeHidden();

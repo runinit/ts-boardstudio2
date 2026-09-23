@@ -7,6 +7,7 @@ const g = require('./geometry')
 const {deepcopy} = require('../utils')
 
 const sections = ['regions', 'boundaries', 'sketches', 'profiles', 'components', 'assemblies']
+const HolePolicy = {Preserve: 'preserve', Fill: 'fill'}
 const analysisCache = new WeakMap()
 const outlineCache = new WeakMap()
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
@@ -100,6 +101,10 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         try { return anchor(spec || {}, name, points)(units) }
         catch (error) { g.fail(name, error.message, 'reference') }
     }
+    const fillHoles = (model, name) => {
+        g.validate(model, name)
+        return {models: Object.fromEntries(g.chains(model).map((chain, index) => [index, m.chain.toNewModel(chain)]))}
+    }
     const shape = (spec, name, point = locate(spec.anchor, `${name}.anchor`)) => {
         if (options.shape) { return options.shape(spec,name,point) }
         let model
@@ -148,7 +153,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         }
         return model
     }
-    const finish = (model, spec, name, occupied) => {
+    const finish = (model, spec, name, occupied, finishPolicy = {}) => {
         const clearance = dim(spec.clearance || 0, `${name}.clearance`)
         const rounding = dim(spec.round || 0, `${name}.round`)
         if (rounding < 0) { g.fail(name, 'Rounding must be nonnegative') }
@@ -157,13 +162,29 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
         const simplification = dim(spec.simplify || 0, `${name}.simplify`)
         if (simplification < 0) { g.fail(`${name}.simplify`, 'Simplification must be nonnegative') }
         if (simplification) { model = require('./finishing').simplify(model, simplification) }
+        if (finishPolicy.holes === HolePolicy.Fill) {
+            // Clearance and simplification can form new voids before corner relief checks topology.
+            model = fillHoles(model, name)
+            for (const gap of finishPolicy.gaps) { model = g.combine(model, resolve(gap).model, 'subtract') }
+        }
         if (spec.corners) {
-            a.unexpected(spec.corners, `${name}.corners`, ['fillet', 'chamfer'])
-            const styles = Object.keys(spec.corners)
+            a.unexpected(spec.corners, `${name}.corners`, ['fillet', 'chamfer', 'mode'])
+            const styles = Object.keys(spec.corners).filter(key=>key!=='mode')
             if (styles.length !== 1) { g.fail(`${name}.corners`, 'Choose fillet or chamfer') }
             const style = styles[0]
+            const mode=spec.corners.mode || 'strict'
+            if (!['strict','adaptive'].includes(mode) || (mode==='adaptive' && style!=='fillet')) {
+                g.fail(`${name}.corners.mode`, 'Adaptive mode requires a fillet')
+            }
             const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units)
-            model = require('./finishing').corners(model, {[style]:size}, `${name}.corners`)
+            model = require('./finishing').corners(model, {[style]:size,mode}, `${name}.corners`, {
+                protected:(finishPolicy.gaps || []).map(gap=>resolve(gap).model),
+                onFit:fit=>report.diagnostics.push({
+                    feature:name,sourcePath:name,code:'corner-relief-fit',severity:'warning',at:fit.at,
+                    requested:fit.requested,applied:fit.applied,
+                    message:`Corner relief at (${fit.at.map(value=>value.toFixed(2)).join(', ')}) mm fitted from ${fit.requested} mm to ${fit.applied.toFixed(2)} mm`
+                })
+            })
         }
         const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied
         model = modify(model, spec, name, required)
@@ -217,8 +238,8 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 }
             } else if (section === 'boundaries' || section === 'profiles') {
                 a.unexpected(spec, name, ['from', 'snapshot', 'close', 'clearance', 'round', 'simplify', 'corners', 'connected', 'modifications', 'bridges', 'cutouts', 'gaps', 'holes'])
-                const holes = spec.holes ?? 'preserve'
-                if (!['preserve', 'fill'].includes(holes)) { g.fail(`${name}.holes`, 'Choose preserve or fill') }
+                const holes = spec.holes ?? HolePolicy.Preserve
+                if (![HolePolicy.Preserve, HolePolicy.Fill].includes(holes)) { g.fail(`${name}.holes`, 'Choose preserve or fill') }
                 const refs = Array.isArray(spec.from) ? spec.from : [spec.from]
                 const sources = refs.map(resolve)
                 cutouts = [...new Set([...sources.flatMap(source => source.cutouts), ...(spec.cutouts || [])])]
@@ -257,14 +278,11 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                     model = g.combine(model, bridgeModel)
                     features[`${ref}.bridges.${bridge}`] = g.describe(bridgeModel, path)
                 }
-                // Fill incidental voids before finishing; protected gaps and cutouts remain explicit.
-                if (holes === 'fill') {
-                    g.validate(model, name)
-                    model = {models: Object.fromEntries(g.chains(model).map((chain, index) => [index, m.chain.toNewModel(chain)]))}
-                }
+                // Fill composed voids now; finishing reapplies this after clearance and simplification.
+                if (holes === HolePolicy.Fill) { model = fillHoles(model, name) }
                 for (const gap of gaps) { model = g.combine(model, resolve(gap).model, 'subtract') }
                 const before = g.chains(model).length
-                model = finish(model, spec, name, occupied)
+                model = finish(model, spec, name, occupied, {holes, gaps})
                 for (const gap of gaps) {
                     if (!g.empty(g.combine(model, resolve(gap).model, 'intersect'))) { g.fail(name, `Boundary enters protected gap ${gap}`, 'clearance') }
                 }
@@ -272,7 +290,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                     g.fail(name, 'Profiles cannot join separate regions without a named bridge', 'disconnected')
                 }
                 // Intentional cutouts remove material after occupied-area validation.
-                for (const cutout of holes === 'fill' ? cutouts : spec.cutouts || []) {
+                for (const cutout of holes === HolePolicy.Fill ? cutouts : spec.cutouts || []) {
                     model = g.combine(model, resolve(cutout).model, 'subtract')
                     g.validate(model, `${name}.cutouts`)
                 }

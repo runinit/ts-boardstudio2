@@ -70,6 +70,11 @@ Omitting it preserves holes. `fill` removes incidental voids before clearance an
 corner finishing; declared protected gaps are still checked and explicit cutouts
 are subtracted afterward. Use it for automatic solid board outlines.
 
+`corners: {fillet: 2}` keeps strict corner relief. Add `mode: adaptive` to fit
+each inside fillet locally when the requested radius would join regions or close
+a hole. Adjusted corners produce warnings with their positions and fitted radii.
+Declared gaps and cutouts remain protected.
+
 Bridge endpoints must be inside their regions. Local modifications use `size`
 or `radius`, an existing key `anchor`, and `operation: add|subtract|intersect`.
 They may instead use `from: sketches.named_shape`. This supports anchored straight

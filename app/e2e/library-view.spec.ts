@@ -59,11 +59,12 @@ test.describe('Library view', () => {
     await footprint.click();
 
     await page.getByRole('button', { name: '2D', exact: true }).click();
-    await expect(page.getByRole('button', { name: '2D', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
-    await page.getByRole('button', { name: 'Pads & nets', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: '2D', exact: true })
+    ).toHaveAttribute('aria-pressed', 'true');
+    await page
+      .getByRole('button', { name: 'Pads & nets', exact: true })
+      .click();
     await expect(
       page.getByRole('button', { name: 'Pads & nets', exact: true })
     ).toHaveAttribute('aria-pressed', 'true');
@@ -73,10 +74,16 @@ test.describe('Library view', () => {
     ]) {
       await page.setViewportSize(viewport);
       await expect(
-        page.getByRole('button', { name: 'Open footprint catalog', exact: true })
+        page.getByRole('button', {
+          name: 'Open footprint catalog',
+          exact: true,
+        })
       ).toBeVisible();
       await expect(
-        page.getByRole('button', { name: 'Open footprint inspector', exact: true })
+        page.getByRole('button', {
+          name: 'Open footprint inspector',
+          exact: true,
+        })
       ).toBeVisible();
       await expect(
         page.getByRole('region', { name: 'Footprint preview' })

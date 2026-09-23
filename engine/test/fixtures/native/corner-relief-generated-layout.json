@@ -1,0 +1,3144 @@
+{
+  "schema": "ergogen/v1",
+  "units": {
+    "u": 19.05,
+    "v": 19.05,
+    "pitch": 19
+  },
+  "parts": {
+    "key": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "keycap": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "plate": {
+          "size": [
+            14,
+            14
+          ]
+        },
+        "body": {
+          "size": [
+            14,
+            14
+          ],
+          "height": [
+            0,
+            11.6
+          ]
+        }
+      }
+    },
+    "diode": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            4,
+            2
+          ]
+        },
+        "body": {
+          "size": [
+            2.8,
+            1.8
+          ],
+          "height": [
+            0,
+            1.35
+          ]
+        }
+      }
+    },
+    "led": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            5,
+            5
+          ]
+        },
+        "body": {
+          "size": [
+            3.2,
+            2.8
+          ],
+          "height": [
+            0,
+            1.9
+          ]
+        }
+      }
+    },
+    "assembly_mx_solder": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "keycap": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "plate": {
+          "size": [
+            14,
+            14
+          ]
+        },
+        "body": {
+          "size": [
+            14,
+            14
+          ],
+          "height": [
+            0,
+            11.6
+          ]
+        }
+      }
+    },
+    "assembly_diode": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            4,
+            2
+          ]
+        },
+        "body": {
+          "size": [
+            2.8,
+            1.8
+          ],
+          "height": [
+            0,
+            1.35
+          ]
+        }
+      }
+    },
+    "assembly_mx_hotswap": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "keycap": {
+          "size": [
+            18,
+            18
+          ]
+        },
+        "plate": {
+          "size": [
+            14,
+            14
+          ]
+        },
+        "body": {
+          "size": [
+            14,
+            14
+          ],
+          "height": [
+            0,
+            11.6
+          ]
+        }
+      }
+    },
+    "assembly_led": {
+      "revision": "1",
+      "envelopes": {
+        "pcb": {
+          "size": [
+            5,
+            5
+          ]
+        },
+        "body": {
+          "size": [
+            3.2,
+            2.8
+          ],
+          "height": [
+            0,
+            1.9
+          ]
+        }
+      }
+    }
+  },
+  "layout": {
+    "objects": {
+      "fingers_c1_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          },
+          "keycap": {
+            "size": [
+              22.7625,
+              18
+            ]
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r2"
+        ],
+        "placement": {
+          "override": {
+            "at": [
+              -2.38125,
+              0,
+              0
+            ],
+            "fixed": {
+              "x": true
+            }
+          }
+        }
+      },
+      "fingers_c1_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r2"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c1_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          },
+          "keycap": {
+            "size": [
+              22.7625,
+              18
+            ]
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r3"
+        ],
+        "placement": {
+          "override": {
+            "at": [
+              -2.38125,
+              0,
+              0
+            ],
+            "fixed": {
+              "x": true
+            }
+          }
+        }
+      },
+      "fingers_c1_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r3"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c1_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          },
+          "keycap": {
+            "size": [
+              22.7625,
+              18
+            ]
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r4"
+        ],
+        "placement": {
+          "override": {
+            "at": [
+              -2.38125,
+              0,
+              0
+            ],
+            "fixed": {
+              "x": true
+            }
+          }
+        }
+      },
+      "fingers_c1_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r4"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c2_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r2"
+        ]
+      },
+      "fingers_c2_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r2"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c2_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r3"
+        ]
+      },
+      "fingers_c2_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r3"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c2_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r4"
+        ]
+      },
+      "fingers_c2_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r4"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c3_r1": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r1"
+        ]
+      },
+      "fingers_c3_r1_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r1"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r1",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c3_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r2"
+        ]
+      },
+      "fingers_c3_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r2"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c3_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r3"
+        ]
+      },
+      "fingers_c3_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r3"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c3_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r4"
+        ]
+      },
+      "fingers_c3_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r4"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c4_r1": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r1"
+        ]
+      },
+      "fingers_c4_r1_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r1"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r1",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c4_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r2"
+        ]
+      },
+      "fingers_c4_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r2"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c4_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r3"
+        ]
+      },
+      "fingers_c4_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r3"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c4_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r4"
+        ]
+      },
+      "fingers_c4_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r4"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c5_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r2"
+        ]
+      },
+      "fingers_c5_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r2"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c5_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r3"
+        ]
+      },
+      "fingers_c5_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r3"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c5_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "envelopes": {
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "pcb": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r4"
+        ]
+      },
+      "fingers_c5_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r4"
+        ],
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        }
+      },
+      "fingers_c_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r2"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c_r3": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r3"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r4"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r2"
+        ]
+      },
+      "fingers_c_r3_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r3",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r3"
+        ]
+      },
+      "fingers_c_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r4"
+        ]
+      },
+      "fingers_c1_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              22.7625,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "placement": {
+          "override": {
+            "at": [
+              -2.38125,
+              0,
+              0
+            ],
+            "fixed": {
+              "x": true
+            }
+          }
+        }
+      },
+      "fingers_c2_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c3_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c4_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c5_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c1_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r"
+        ]
+      },
+      "fingers_c2_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r"
+        ]
+      },
+      "fingers_c3_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r"
+        ]
+      },
+      "fingers_c4_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r"
+        ]
+      },
+      "fingers_c5_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r"
+        ]
+      },
+      "fingers_c_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r"
+        ]
+      },
+      "fingers_c7_r4": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r4"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              27.525
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "placement": {
+          "override": {
+            "at": [
+              0,
+              -4.7625,
+              0
+            ],
+            "fixed": {
+              "y": true
+            }
+          }
+        }
+      },
+      "fingers_c7_r": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "fingers_c7_r4_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c7_r4",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r4"
+        ]
+      },
+      "fingers_c7_r_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c7_r",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r"
+        ]
+      },
+      "thumb_c1_r1": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "thumb",
+        "cell": [
+          "c1",
+          "r1"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              22.7625,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "placement": {
+          "override": {
+            "at": [
+              -6.697540999999999,
+              -2.012719,
+              0
+            ],
+            "fixed": {
+              "x": true,
+              "rotate": true,
+              "y": true
+            },
+            "rotate": 15
+          }
+        }
+      },
+      "thumb_c2_r1": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r1"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "thumb_c2_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r2"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              27.525
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "placement": {
+          "override": {
+            "at": [
+              0,
+              4.7625,
+              0
+            ],
+            "fixed": {
+              "y": true
+            }
+          }
+        }
+      },
+      "thumb_c3_r1": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r1"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              18
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        }
+      },
+      "thumb_c3_r2": {
+        "kind": "key",
+        "part": "assembly_mx_hotswap",
+        "pcb": "main",
+        "layer": "main",
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r2"
+        ],
+        "envelopes": {
+          "keycap": {
+            "size": [
+              18,
+              27.525
+            ]
+          },
+          "body": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "rotate": 180
+          }
+        },
+        "placement": {
+          "override": {
+            "at": [
+              0,
+              4.7625,
+              0
+            ],
+            "fixed": {
+              "y": true
+            }
+          }
+        }
+      },
+      "thumb_c1_r1_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c1_r1",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c1",
+          "r1"
+        ]
+      },
+      "thumb_c2_r1_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c2_r1",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r1"
+        ]
+      },
+      "thumb_c2_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c2_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r2"
+        ]
+      },
+      "thumb_c3_r1_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c3_r1",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r1"
+        ]
+      },
+      "thumb_c3_r2_diode": {
+        "kind": "component",
+        "part": "assembly_diode",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -2.95,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c3_r2",
+          "at": [
+            0,
+            -5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r2"
+        ]
+      },
+      "mcu": {
+        "kind": "component",
+        "pcb": "main",
+        "layer": "main",
+        "placement": {
+          "at": [
+            187.054478,
+            -24.200204,
+            0
+          ],
+          "override": {
+            "fixed": {
+              "x": true,
+              "y": true
+            },
+            "at": [
+              -51.323228,
+              93.25645399999999,
+              0
+            ]
+          },
+          "solve": [
+            "x",
+            "y"
+          ]
+        },
+        "envelopes": {
+          "pcb": {
+            "size": [
+              18,
+              34
+            ]
+          },
+          "body": {
+            "size": [
+              18,
+              34
+            ],
+            "height": [
+              0,
+              5
+            ]
+          }
+        }
+      },
+      "enc": {
+        "kind": "component",
+        "pcb": "main",
+        "layer": "main",
+        "placement": {
+          "at": [
+            187.054478,
+            -24.200204,
+            0
+          ],
+          "override": {
+            "fixed": {
+              "x": true,
+              "y": true
+            },
+            "at": [
+              -51.323228,
+              64.681454,
+              0
+            ]
+          }
+        },
+        "envelopes": {
+          "pcb": {
+            "size": [
+              15,
+              17
+            ]
+          },
+          "body": {
+            "size": [
+              15,
+              17
+            ],
+            "height": [
+              0,
+              20
+            ]
+          }
+        }
+      },
+      "fingers_c1_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r2"
+        ]
+      },
+      "fingers_c1_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r3"
+        ]
+      },
+      "fingers_c1_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r4"
+        ]
+      },
+      "fingers_c2_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r2"
+        ]
+      },
+      "fingers_c2_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r3"
+        ]
+      },
+      "fingers_c2_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r4"
+        ]
+      },
+      "fingers_c3_r1_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r1",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r1"
+        ]
+      },
+      "fingers_c3_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r2"
+        ]
+      },
+      "fingers_c3_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r3"
+        ]
+      },
+      "fingers_c3_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r4"
+        ]
+      },
+      "fingers_c4_r1_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r1",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r1"
+        ]
+      },
+      "fingers_c4_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r2"
+        ]
+      },
+      "fingers_c4_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r3"
+        ]
+      },
+      "fingers_c4_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r4"
+        ]
+      },
+      "fingers_c5_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r2"
+        ]
+      },
+      "fingers_c5_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r3"
+        ]
+      },
+      "fingers_c5_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r4"
+        ]
+      },
+      "fingers_c_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r2"
+        ]
+      },
+      "fingers_c_r3_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r3",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r3"
+        ]
+      },
+      "fingers_c_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r4"
+        ]
+      },
+      "fingers_c1_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c1_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c1",
+          "r"
+        ]
+      },
+      "fingers_c2_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c2_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c2",
+          "r"
+        ]
+      },
+      "fingers_c3_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c3_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c3",
+          "r"
+        ]
+      },
+      "fingers_c4_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c4_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c4",
+          "r"
+        ]
+      },
+      "fingers_c5_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c5_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c5",
+          "r"
+        ]
+      },
+      "fingers_c_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c",
+          "r"
+        ]
+      },
+      "fingers_c7_r4_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c7_r4",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r4"
+        ]
+      },
+      "fingers_c7_r_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "fingers_c7_r",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "fingers",
+        "cell": [
+          "c7",
+          "r"
+        ]
+      },
+      "thumb_c1_r1_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c1_r1",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c1",
+          "r1"
+        ]
+      },
+      "thumb_c2_r1_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c2_r1",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r1"
+        ]
+      },
+      "thumb_c2_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c2_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c2",
+          "r2"
+        ]
+      },
+      "thumb_c3_r1_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c3_r1",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r1"
+        ]
+      },
+      "thumb_c3_r2_led": {
+        "kind": "component",
+        "part": "assembly_led",
+        "pcb": "main",
+        "envelopes": {
+          "body": {
+            "height": [
+              -3.5,
+              -1.6
+            ]
+          }
+        },
+        "placement": {
+          "ref": "thumb_c3_r2",
+          "at": [
+            0,
+            5,
+            0
+          ],
+          "rotate": 0
+        },
+        "cluster": "thumb",
+        "cell": [
+          "c3",
+          "r2"
+        ]
+      }
+    },
+    "clusters": {
+      "fingers": {
+        "label": "fingers",
+        "layer": "main",
+        "arrangement": {
+          "type": "columns",
+          "columns": [
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c",
+            "c7"
+          ],
+          "rows": [
+            "r1",
+            "r2",
+            "r3",
+            "r4",
+            "r"
+          ],
+          "pitch": [
+            19.05,
+            19.05
+          ],
+          "stagger": {
+            "c7": -9.525,
+            "c5": 2.38125,
+            "c4": 4.7625,
+            "c3": 2.38125
+          }
+        }
+      },
+      "thumb": {
+        "label": "thumb",
+        "arrangement": {
+          "type": "columns",
+          "columns": [
+            "c1",
+            "c2",
+            "c3"
+          ],
+          "rows": [
+            "r1",
+            "r2"
+          ],
+          "pitch": [
+            19.05,
+            19.05
+          ],
+          "stagger": {
+            "c3": -3.164505,
+            "c2": -3.164505,
+            "c1": -3.164505
+          },
+          "offsets": {
+            "c3": [
+              -1.151785,
+              0,
+              0
+            ],
+            "c2": [
+              -1.151785,
+              0,
+              0
+            ],
+            "c1": [
+              -1.151785,
+              0,
+              0
+            ]
+          }
+        },
+        "layer": "main",
+        "placement": {
+          "at": [
+            161.3,
+            -5,
+            0
+          ],
+          "override": {
+            "fixed": {
+              "x": true,
+              "y": true,
+              "rotate": true
+            },
+            "at": [
+              -70.8125,
+              3.814341,
+              0
+            ]
+          },
+          "rotate": -25
+        }
+      }
+    },
+    "layers": {
+      "main": {
+        "surface": "pcb.main.top"
+      }
+    },
+    "constraints": {
+      "alignment": {
+        "type": "aligned",
+        "refs": [
+          "mcu.center",
+          "fingers_c7_r.center"
+        ],
+        "axis": "x",
+        "label": "SuperMini nRF52840 centered on fingers_c7_r"
+      }
+    }
+  },
+  "designs": {
+    "regions": {
+      "main": {
+        "select": {
+          "kind": "key",
+          "pcb": "main"
+        },
+        "envelope": "keycap",
+        "close": 2
+      },
+      "main_components": {
+        "select": {
+          "kind": "component",
+          "pcb": "main"
+        },
+        "envelope": "pcb"
+      }
+    },
+    "boundaries": {
+      "main": {
+        "clearance": 2,
+        "simplify": 2,
+        "corners": {
+          "fillet": 2
+        },
+        "holes": "fill",
+        "connected": "single",
+        "from": [
+          "regions.main",
+          "regions.main_components"
+        ],
+        "bridges": {
+          "fingers_c7_r_mcu": {
+            "from": {
+              "ref": "fingers_c7_r"
+            },
+            "to": {
+              "ref": "mcu"
+            },
+            "width": 10,
+            "ends": "flat"
+          },
+          "fingers_c7_r4_enc": {
+            "from": {
+              "ref": "fingers_c7_r4"
+            },
+            "to": {
+              "ref": "enc"
+            },
+            "width": 10,
+            "ends": "flat"
+          },
+          "fingers_c_r2_thumb_c2_r2": {
+            "from": {
+              "ref": "fingers_c_r2"
+            },
+            "to": {
+              "ref": "thumb_c2_r2"
+            },
+            "width": 10,
+            "ends": "flat"
+          }
+        }
+      }
+    },
+    "profiles": {
+      "main": {
+        "from": "boundaries.main"
+      }
+    }
+  },
+  "pcbs": {
+    "main": {
+      "profile": "profiles.main",
+      "thickness": 1.6
+    }
+  }
+}

@@ -21,11 +21,11 @@ const Dock = styled.div`
   padding: ${theme.spacing.xs};
   border: 1px solid ${theme.colors.border};
   border-radius: ${theme.cad.fieldRadius};
-  background: ${theme.colors.backgroundLight};
+  background: ${theme.colors.background};
   box-shadow: ${theme.studio.toolShadow};
   button {
     padding: ${theme.spacing.sm};
-    min-width: ${theme.studio.touchSize};
+    min-width: ${theme.workbench.controlHeight};
     border: 0;
     border-radius: ${theme.cad.fieldRadius};
     background: transparent;
@@ -38,19 +38,29 @@ const Dock = styled.div`
     background: ${theme.studio.selected};
     color: ${theme.colors.accent};
   }
+  @media (max-width: ${theme.studio.breakpoint}) {
+    button {
+      min-width: ${theme.studio.touchSize};
+    }
+  }
 `;
 const Rail = styled(Dock)`
   top: ${theme.spacing.md};
   left: ${theme.spacing.md};
-  width: ${theme.studio.touchSize};
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  border-radius: ${theme.studio.dockRadius};
   > button {
-    background: ${theme.colors.backgroundLight};
+    color: ${theme.colors.error};
+    border-top: 1px solid ${theme.colors.border};
+  }
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
+    flex-direction: row;
+    left: ${theme.spacing.sm};
+    top: ${theme.spacing.sm};
+    > button {
+      border-top: 0;
+      border-left: 1px solid ${theme.colors.border};
+    }
   }
   @container canvas (height < ${theme.studio
     .shortRailHeight}) and (width > ${theme.workbench.phoneBreakpoint}) {
@@ -63,19 +73,49 @@ const Primary = styled(Dock)`
   display: grid;
   padding: 0;
   border: 0;
-  grid-template-columns: ${theme.studio.touchSize};
-  @container canvas (height < ${theme.studio.compactRailHeight}) {
+  box-shadow: none;
+  grid-template-columns: ${theme.workbench.controlHeight};
+  @media (max-width: ${theme.studio.breakpoint}) {
+    grid-template-columns: ${theme.studio.touchSize};
+  }
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
     grid-template-columns: repeat(5, ${theme.studio.touchSize});
+  }
+  @container canvas (height < ${theme.studio.shortRailHeight}) {
+    grid-template-columns: repeat(
+      5,
+      minmax(${theme.workbench.controlHeight}, auto)
+    );
   }
 `;
 const Zoom = styled(Dock)`
-  z-index: ${theme.studio.panelLayer - 1};
+  z-index: ${theme.studio.panelLayer};
   bottom: ${theme.spacing.md};
-  right: ${theme.spacing.md};
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - ${theme.spacing.lg});
+  flex-wrap: wrap;
+  justify-content: center;
+  border-radius: ${theme.studio.dockRadius};
   align-items: center;
   small {
     min-width: 3em;
     text-align: center;
+    font-family: ${theme.fonts.code};
+    font-variant-numeric: tabular-nums;
+  }
+  .view-actions {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid ${theme.colors.border};
+    padding-left: ${theme.spacing.xs};
+  }
+  @media (max-width: ${theme.workbench.phoneBreakpoint}) {
+    bottom: ${theme.spacing.sm};
+    .view-actions {
+      border-left: 0;
+    }
   }
 `;
 export default function CanvasTools({
@@ -140,7 +180,6 @@ export default function CanvasTools({
             <Hand size={18} />
           </button>
         </Primary>
-        {snapTools}
         {quickEdit}
         {onDelete && (
           <button
@@ -153,29 +192,36 @@ export default function CanvasTools({
         )}
       </Rail>
       <Zoom role="toolbar" aria-label="View controls">
-        <button
-          onClick={() => {
-            setSide(side === 'top' ? 'side' : 'top');
-            reset();
-          }}
-          title="Change viewing plane"
-        >
-          {side === 'top' ? 'Side' : '2D'}
-        </button>
-        <button aria-label="Fit layout" title="Fit layout" onClick={reset}>
-          <Maximize size={16} />
-        </button>
-        <button
-          aria-label="Zoom out"
-          title="Zoom out"
-          onClick={() => zoom('out')}
-        >
-          <Minus size={16} />
-        </button>
-        <small>{scale}%</small>
-        <button aria-label="Zoom in" title="Zoom in" onClick={() => zoom('in')}>
-          <Plus size={16} />
-        </button>
+        {snapTools}
+        <div className="view-actions">
+          <button
+            onClick={() => {
+              setSide(side === 'top' ? 'side' : 'top');
+              reset();
+            }}
+            title="Change viewing plane"
+          >
+            {side === 'top' ? 'Side' : '2D'}
+          </button>
+          <button aria-label="Fit layout" title="Fit layout" onClick={reset}>
+            <Maximize size={16} />
+          </button>
+          <button
+            aria-label="Zoom out"
+            title="Zoom out"
+            onClick={() => zoom('out')}
+          >
+            <Minus size={16} />
+          </button>
+          <small>{scale}%</small>
+          <button
+            aria-label="Zoom in"
+            title="Zoom in"
+            onClick={() => zoom('in')}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
       </Zoom>
     </>
   );

@@ -1,5 +1,23 @@
 # Changelog
 
+## Adaptive automatic outlines
+
+September 23, 2026
+
+Automatic board outlines now fit inside corner relief to nearby geometry and
+report reduced radii. Saved automatic outlines rebuild from the current layout
+on open. Explicit strict corner recipes retain their existing behavior.
+
+## Stitch drafting workspace
+
+September 22, 2026
+
+Project controls and stages share a compact desktop header above a contextual
+ribbon. A darker canvas, grouped selection rail, centered snap/view dock, and
+structured inspector fields bring the supplied Stitch design into the existing
+workbench. Touch layouts retain project menus, inspector drawers, and selection
+trays; snapping settings open above the dock without obscuring its controls.
+
 ## Corrected footprint wiring and options
 
 September 20, 2026

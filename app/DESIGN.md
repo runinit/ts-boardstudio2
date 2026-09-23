@@ -6,6 +6,7 @@ colors:
   primaryHover: '#3b7c99'
   accent: '#79b7d4'
   background: '#20252b'
+  canvas: '#0a0d12'
   backgroundLight: '#282f37'
   backgroundLighter: '#343d47'
   border: '#424d59'
@@ -38,8 +39,9 @@ typography:
     {
       fontFamily: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
     }
-rounded: { field: '5px', tool: '24px', case: '8px', pill: '999px' }
-spacing: { xs: '0.25rem', sm: '0.5rem', md: '1rem', lg: '1.5rem' }
+rounded: { field: '5px', tool: '8px', case: '8px', pill: '999px' }
+spacing:
+  { xs: '0.25rem', sm: '0.5rem', compact: '0.75rem', md: '1rem', lg: '1.5rem' }
 components:
   button-primary:
     {
@@ -85,6 +87,37 @@ components:
 <!-- markdownlint-disable MD025 -->
 
 # Design System: Board Studio CAD Drafting Console
+
+## Stitch integration contract
+
+The supplied `stitch_adaptive_responsive_design_system/code.html` and
+`screen.png` are the visual authority. Their graphite palette and Roboto
+controls override the blue-black/Anybody/Inter defaults in the supplied
+DESIGN.md. This is an operating surface, not a static reproduction of its
+sample keyboard, DRC result, firmware claim, or account avatar.
+
+- Desktop uses one 48px project/stage header and a 40px contextual ribbon.
+  The ribbon shows the actual project, selection, and inspector action.
+  Navigation moves to a second row below 1050px; project actions retain their
+  existing menu and touch targets.
+- Canvas uses `studio.canvas` (#0a0d12). Chrome uses the existing graphite
+  surfaces, draft blue, muted text, and 1px rules. The functional grid remains
+  available, rendered quietly over the dark field.
+- The left rail groups selection and pan controls vertically. Snap controls
+  join the centered bottom view dock. Snap settings open above that dock and
+  own their scrolling, never displacing the view controls.
+- Inspector sections use quiet rules, compact headings, and recessed fields.
+  The existing object browser, inspector drawer, and non-modal mobile selection
+  tray retain their draft and focus behavior.
+- Chrome uses 12px metadata, 14px controls, and 16px section titles. Measurements
+  use the existing mono font stack and tabular numerals. Spacing uses 4/8/12/16/
+  24px tokens; controls use 36px desktop and 44px touch targets; docks use 8px
+  corners and the existing floating-tool shadow.
+- The application shell owns viewport height; canvas, object browser, inspector,
+  and selection tray each own their existing bounded scroll regions.
+- At heights below 480px, stage icons and text sit side by side; landscape
+  outline controls stay in the contextual row. The canvas shrinks to the visible
+  space instead of creating a hidden, scrollable extension behind the header.
 
 ## Overview
 
@@ -165,13 +198,13 @@ Depth is restrained and structural. Tonal graphite layers and quiet rules define
 
 ## Shapes
 
-Use compact rectangular fields and buttons with a 5px radius. Canvas docks use a 24px radius, snap choices use pill corners, and case surfaces use 8px. Rules are 1px solid graphite borders. Stage tabs use no radius and a 2px blue bottom rule for the current step. Preserve visible focus outlines.
+Use compact rectangular fields and buttons with a 5px radius. Canvas docks and case surfaces use 8px corners. Rules are 1px solid graphite borders. Stage tabs use no radius and a 2px blue bottom rule for the current step. Preserve visible focus outlines.
 
 ## Components
 
 ### Project Header and Stage Navigation
 
-The compact header keeps project title and generation together, followed by Design, PCB, Case, and Export. The current stage uses blue text and a blue bottom rule. At narrow widths, secondary project tools move into Project actions. Undo and redo sit beside Inspector and Part library in the workspace strip.
+The desktop header keeps the project, Design, PCB, Case, Library, Export, undo/redo, and project actions in one row. The current stage uses blue text and a blue bottom rule. At narrow widths, stages occupy a second row, secondary project tools move into Project actions, and undo/redo join Inspector in the contextual ribbon.
 
 ### Object Browser and Part Library
 
@@ -179,9 +212,9 @@ The left dock catalogs objects, clusters, bundled parts, and editable custom par
 
 ### Canvas and Tool Docks
 
-The central field owns geometry and selection. Outline and analysis bars precede the canvas viewport; floating tools stay inside that viewport. The rail groups object, column, row, matrix, pan, snapping, and delete actions; the zoom dock sits at lower right. Short canvases arrange the rail in two columns, or one row on wide landscape screens. Pressed tools use selection wash and blue foreground. Icon-only controls retain accessible names.
+The dark central field owns geometry and selection. Outline controls share the contextual ribbon; analysis messages remain above the canvas. The left rail groups object, column, row, matrix, pan, and delete actions. Phones and short landscape canvases use a horizontal rail. The centered bottom dock combines snapping and view controls, wrapping into two rows on phones. Pressed tools use selection wash and blue foreground. Icon-only controls retain accessible names.
 
-One magnet toggles snapping. Its lower chevron unfolds only the settings section; the tool strip keeps its width and has no shared background behind the expanded section. The settings use a 272px surface, paired guide toggles, short numeric rows, and optional help. Opening and closing animate height, pushing later tools down. Short canvases use a horizontal selection strip and scroll only the settings. Very short landscape windows give the canvas a scrollable minimum height. Escape and Close return focus to the chevron; canvas clicks leave settings open. Closed controls are inert, values persist, and reduced motion removes the slide.
+One magnet toggles snapping. Inline guide toggles precede a chevron that opens a 272px settings surface above the dock. The settings own their scrolling and leave dock geometry stable. Essential unit increments are immediately available; More exposes custom millimetres, edge gap, and help. Short landscape windows compact the chrome and constrain the canvas to its visible bounds. Escape and Close return focus to the chevron; canvas clicks leave settings open. Closed controls are inert and values persist.
 
 ### Inspector and Model Editor
 
@@ -215,8 +248,8 @@ Keep gap fit, cutting profile checks, and export readiness as separate labels an
   contextual action popover for common edits: placement, rotation, size, delete,
   duplicate, and add key/row/column shortcuts. The popover is a tonal graphite
   surface with one blue primary action; it never becomes a second full inspector.
-- Placement values in the Inspector use one compact row for position axes and
-  rotation. The row sits immediately below the selection heading; advanced
+- Placement values in the Inspector use a compact two-column grid for position
+  axes and rotation. It sits immediately below the selection heading; advanced
   constraints remain behind a disclosure.
 - Snapping is represented by icon-labelled controls in the canvas dock. The
   first interaction exposes the essential snap modes inline; detailed options

@@ -45,14 +45,18 @@ type Props = {
 const dimensions = ['X', 'Y', 'Z'];
 const PlacementRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: ${theme.spacing.xs};
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${theme.spacing.sm};
   margin-bottom: ${theme.spacing.sm};
   > * {
     min-width: 0;
   }
-  @media (max-width: ${theme.studio.breakpoint}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  > label {
+    grid-template-columns: minmax(0, 1fr);
+    font-size: ${theme.studio.metadataSize};
+  }
+  input {
+    width: 100%;
   }
 `;
 export default function StudioInspector({

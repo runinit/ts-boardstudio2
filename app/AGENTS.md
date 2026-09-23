@@ -27,8 +27,8 @@ Package boundary retained: score 13; browser runtime, assets, and release toolin
 | File, repository, and example loading   | `src/pages/Welcome.tsx`                              |
 | Live editing and request queues         | `src/hooks/useStudio.ts`, `src/utils/studioQueue.ts` |
 | Worker protocols                        | `src/workers/` and its guide                         |
-| Source transformations and export      | `src/utils/` and its guide                           |
-| Preview atoms and shared controls      | `src/atoms/` and its guide                           |
+| Source transformations and export       | `src/utils/` and its guide                           |
+| Preview atoms and shared controls       | `src/atoms/` and its guide                           |
 | Theme tokens                            | `src/theme/theme.ts`                                 |
 | Staged engine and footprint assets      | `patch/` and its guide                               |
 | Architecture notes                      | `DEVELOPMENT.md`                                     |

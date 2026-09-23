@@ -4,6 +4,7 @@ import { parse } from 'yaml';
 import { resolveLayout } from 'ergogen/src/native/draft';
 import type { LayoutReport } from 'ergogen/src/native';
 import StudioCanvas from './StudioCanvas';
+import { theme } from '../theme/theme';
 const report = {
   objects: {
     key: {
@@ -376,4 +377,56 @@ it('selects the physical row from the canvas row tool', () => {
     Reflect.deleteProperty(SVGSVGElement.prototype, 'setPointerCapture');
     Reflect.deleteProperty(SVGSVGElement.prototype, 'getScreenCTM');
   }
+});
+
+it('draws a dashed boundary, amber cross, and pitch annotation for a row', () => {
+  const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const rowObjects = Object.fromEntries(
+    [0, 1, 2].map((i) => {
+      const matrix = [...identity];
+      matrix[3] = i * 19.05;
+      return [
+        `c${i + 1}r1`,
+        {
+          id: `c${i + 1}r1`,
+          label: `c${i + 1}r1`,
+          kind: 'key',
+          position: [i * 19.05, 0, 0],
+          cluster: 'fingers',
+          cell: [`c${i + 1}`, 'r1'],
+          envelopes: { keycap: { size: [18, 18] } },
+          matrix,
+        },
+      ];
+    })
+  );
+  const rowReport = {
+    objects: rowObjects,
+    clusters: {},
+    layers: {},
+    findings: [],
+  } as unknown as LayoutReport;
+  render(
+    <StudioCanvas
+      report={rowReport}
+      selection={{ section: 'rows', cluster: 'fingers', id: 'r1' }}
+      onSelect={vi.fn()}
+      onMove={vi.fn()}
+      stale={false}
+      source="schema: ergogen/v1\nunits: {u: 19.05}\n"
+      side="top"
+      onSide={vi.fn()}
+      rules={{}}
+    />
+  );
+  expect(
+    screen.getByRole('img', { name: 'Selected area' })
+  ).toBeInTheDocument();
+  expect(screen.getByText(/pitch: .* × 3 keys \(/)).toBeInTheDocument();
+  const key = screen.getByRole('button', { name: 'Select c2r1' });
+  expect(key.querySelector('polygon')).toHaveAttribute(
+    'stroke',
+    theme.studio.selection.stroke
+  );
+  expect(key.querySelectorAll('path').length).toBe(1);
 });

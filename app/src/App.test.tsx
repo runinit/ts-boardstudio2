@@ -178,3 +178,34 @@ describe('App shared version compatibility checks', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe('saved project access', () => {
+  it('opens a saved source without a native schema in the editor', () => {
+    const source = 'points:\n  zones: {}\n';
+    localStorage.setItem(
+      'ergogen:multi-config',
+      JSON.stringify({
+        version: 2,
+        activeConfigId: 'legacy-project',
+        configs: [
+          {
+            id: 'legacy-project',
+            name: 'Untitled Keyboard',
+            config: source,
+            createdAt: '2026-09-23T00:00:00.000Z',
+            updatedAt: '2026-09-23T00:00:00.000Z',
+          },
+        ],
+      })
+    );
+    vi.mocked(getConfigFromHash).mockReturnValue(null);
+
+    render(<App />);
+
+    expect(screen.getByTestId('mock-ergogen')).toBeInTheDocument();
+    expect(
+      JSON.parse(localStorage.getItem('ergogen:multi-config') || '{}')
+        .configs[0].config
+    ).toBe(source);
+  });
+});

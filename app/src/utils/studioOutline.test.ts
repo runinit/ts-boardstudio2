@@ -34,6 +34,26 @@ it('defaults Studio outlines to automatic and preserves recipes when frozen', ()
   expect(document.designs.boundaries.main_edge.snapshot.paths).toHaveLength(1);
 });
 
+it('opts managed outlines into fitted fillets while retaining authored settings', () => {
+  const outlined = addOutline(source);
+  expect(parse(outlined).designs.boundaries.main_edge.corners).toEqual({
+    fillet: 2,
+    mode: 'adaptive',
+  });
+
+  const changed = setValue(
+    outlined,
+    ['designs', 'boundaries', 'main_edge', 'corners'],
+    { fillet: 3, mode: 'strict' }
+  );
+  expect(
+    parse(prepareOutlines(changed)).designs.boundaries.main_edge.corners
+  ).toEqual({
+    fillet: 3,
+    mode: 'strict',
+  });
+});
+
 it('does not rewrite a frozen outline until automation is enabled', () => {
   const outlined = addOutline(source);
   const frozen = freezeOutline(outlined, 'main', { paths: [] });

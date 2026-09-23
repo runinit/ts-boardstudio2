@@ -24,7 +24,9 @@ describe('SelectionPopover', () => {
       'aria-label',
       'Selection quick actions'
     );
-    expect(screen.getByRole('heading', { name: 'Selected cluster' })).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: 'Selected cluster' })
+    ).toBeVisible();
     expect(
       screen.getByRole('button', { name: 'Close selection actions' })
     ).toBeVisible();

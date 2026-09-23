@@ -138,6 +138,48 @@ describe('Native perimeter finishing', () => {
         assert.ok(g.paths(board).some(p => p.type==='circle' && p.radius===2))
     })
 
+    it('fits relief locally without joining nearby regions', () => {
+        const main = new m.models.ConnectTheDots(true, [[0,0],[40,0],[40,30],[20.5,30],[20.5,29],[19.5,29],[19.5,30],[0,30]])
+        const island = m.model.moveRelative(new m.models.Rectangle(3,3), [18.5,30.5])
+        const source = {models: {main,island}}
+        const close=sinon.spy(g,'close')
+        const board = require('../../src/designs/finishing').corners(source, {fillet:2,mode:'adaptive'}, 'test.corners')
+        assert.equal(g.validate(board,'board'),2)
+        assert.ok(g.contains(board,source))
+        assert.equal(close.callCount,0)
+    })
+
+    it('keeps full relief where it fits without global closing', async () => {
+        const input=fixture({fillet:3,mode:'adaptive'})
+        const result=await engine.process(input,{debug:true,analysis:true})
+        const board=result.designs.features['profiles.board'].model
+        assert.ok(g.paths(board).some(p=>p.type==='arc' && Math.abs(p.radius-3)<g.TOLERANCE))
+        assert.equal(result.designs.diagnostics.length,0)
+    })
+
+    it('reports locally fitted relief from a native recipe', async () => {
+        const input=fixture({fillet:2,mode:'adaptive'})
+        input.designs.regions.stock.shape.polygon=[[0,0],[40,0],[40,30],[20.5,30],[20.5,29],[19.5,29],[19.5,30],[0,30]]
+        input.designs.regions.island={shape:{size:[3,3],anchor:{shift:[20,32]}}}
+        input.designs.profiles.board.from=['regions.stock','regions.island']
+        const result=await engine.process(input,{debug:true,analysis:true})
+        assert.equal(g.validate(result.designs.features['profiles.board'].model,'board'),2)
+        assert.ok(result.designs.diagnostics.some(item=>item.code==='corner-relief-fit' && item.severity==='warning' && item.at.length===2))
+    })
+
+    it('fits around a protected gap without cutting required stock', async () => {
+        const input=fixture({fillet:3,mode:'adaptive'})
+        input.designs.regions.gap={shape:{radius:0.25,anchor:{shift:[20.5,20.5]}}}
+        input.designs.profiles.board.gaps=['regions.gap']
+        const result=await engine.process(input,{debug:true,analysis:true})
+        const board=result.designs.features['profiles.board'].model
+        const gap=result.designs.features['regions.gap'].model
+        assert.equal(g.validate(board,'board','single'),1)
+        assert.ok(g.contains(board,new m.models.ConnectTheDots(true,stock)))
+        assert.ok(g.empty(g.combine(board,gap,'intersect')))
+        assert.ok(result.designs.diagnostics.some(item=>item.code==='corner-relief-fit'))
+    })
+
     it('respects the simplification limit and preserves already tangent outside arcs', async () => {
         const input = fixture(undefined)
         input.designs.regions.stock.shape.polygon = [[0,0],[20,0],[20,20],[11,20],[10,21],[0,25]]

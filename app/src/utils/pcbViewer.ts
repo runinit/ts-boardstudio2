@@ -11,19 +11,29 @@ export function loadPcbViewer(): Promise<void> {
   }
   if (!pending) {
     const url = `${import.meta.env.BASE_URL}dependencies/kicanvas.js?v=${VIEWER_REVISION}`;
-    pending = import(/* @vite-ignore */ url)
-      .then(() => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.async = true;
+
+    // Public bundles load as scripts; confirm registration before showing the viewer.
+    pending = new Promise<void>((resolve, reject) => {
+      script.onload = () => {
         if (
           !customElements.get('kicanvas-embed') ||
           !customElements.get('kicanvas-source')
         ) {
-          throw new Error('KiCanvas did not initialize.');
+          reject(new Error('KiCanvas did not initialize.'));
+          return;
         }
-      })
-      .catch((error: unknown) => {
-        pending = undefined;
-        throw error;
-      });
+        resolve();
+      };
+      script.onerror = () => reject(new Error('KiCanvas failed to load.'));
+      document.head.appendChild(script);
+    }).catch((error: unknown) => {
+      script.remove();
+      pending = undefined;
+      throw error;
+    });
   }
   return pending;
 }

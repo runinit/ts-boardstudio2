@@ -30,6 +30,8 @@ import {
   OUTLINE_KEY_CLOSE,
 } from './outlineDefaults';
 
+const BRIDGE_POSITION_TOLERANCE = 0.001;
+
 type Arrangement = 'free' | 'columns' | 'arc';
 export interface StudioItem {
   kind?: 'key' | 'component' | 'mount' | 'anchor';
@@ -1148,40 +1150,6 @@ export function addOutline(
   const profile =
     previousProfile ||
     nextId(Object.keys(data.designs?.profiles || {}), `${board}_outline`);
-  // Connect the nearest groups with authored webs; finishing never guesses a bridge.
-  const physical = Object.values(groups).flat();
-  const linked = new Set(physical.slice(0, 1));
-  const bridges: Record<string, unknown> = {};
-  const position = (id: string) => report?.objects[id]?.position || [0, 0, 0];
-  while (linked.size < physical.length) {
-    const pairs = Array.from(linked).flatMap((a) =>
-      physical
-        .filter((b) => !linked.has(b))
-        .map((b) => ({
-          a,
-          b,
-          distance: Math.hypot(
-            ...position(a).map((v, i) => v - position(b)[i])
-          ),
-        }))
-    );
-    pairs.sort((a, b) => a.distance - b.distance);
-    const pair = pairs[0];
-    const a = objects[pair.a],
-      b = objects[pair.b];
-    if (
-      (!a.cluster || a.cluster !== b.cluster) &&
-      (!report || pair.distance > 0.001)
-    ) {
-      bridges[nextId(Object.keys(bridges), `${pair.a}_${pair.b}`)] = {
-        from: { ref: pair.a },
-        to: { ref: pair.b },
-        width: 10,
-        ends: 'flat',
-      };
-    }
-    linked.add(pair.b);
-  }
   const boundary =
     previousBoundary ||
     nextId(Object.keys(data.designs?.boundaries || {}), `${board}_edge`);
@@ -1202,10 +1170,99 @@ export function addOutline(
       return true;
     })
   );
+  // Join logical clusters once; redundant webs can close outline holes.
+  const physical = Object.values(groups).flat();
+  const clusterOf = (id: string) =>
+    objects[id].cluster ? `cluster:${objects[id].cluster}` : `object:${id}`;
+  const keyedClusters = new Set(
+    physical.filter((id) => objects[id].kind === 'key').map(clusterOf)
+  );
+  const parent = new Map(physical.map((id) => [clusterOf(id), clusterOf(id)]));
+  const root = (id: string): string => {
+    const next = parent.get(id);
+    if (next === undefined || next === id) {
+      return id;
+    }
+    const value = root(next);
+    parent.set(id, value);
+    return value;
+  };
+  const join = (left: string, right: string): boolean => {
+    const a = root(left);
+    const b = root(right);
+    if (a === b) {
+      return false;
+    }
+    parent.set(b, a);
+    return true;
+  };
+  const physicalIds = new Set(physical);
+  let remaining = parent.size;
+  for (const bridge of Object.values(authoredBridges)) {
+    const spec = bridge as { from?: { ref?: unknown }; to?: { ref?: unknown } };
+    const from = spec.from?.ref;
+    const to = spec.to?.ref;
+    if (
+      typeof from === 'string' &&
+      typeof to === 'string' &&
+      physicalIds.has(from) &&
+      physicalIds.has(to) &&
+      join(clusterOf(from), clusterOf(to))
+    ) {
+      remaining -= 1;
+    }
+  }
+  const bridges: Record<string, unknown> = {};
+  const position = (id: string) => report?.objects[id]?.position || [0, 0, 0];
+  const pairs: { a: string; b: string; distance: number; order: number }[] = [];
+  for (let i = 0; i < physical.length; i += 1) {
+    for (let j = i + 1; j < physical.length; j += 1) {
+      const a = physical[i];
+      const b = physical[j];
+      const left = clusterOf(a);
+      const right = clusterOf(b);
+      if (
+        left === right ||
+        (keyedClusters.has(left) && objects[a].kind !== 'key') ||
+        (keyedClusters.has(right) && objects[b].kind !== 'key')
+      ) {
+        continue;
+      }
+      const from = position(a);
+      const to = position(b);
+      pairs.push({
+        a,
+        b,
+        distance: Math.hypot(...from.map((value, index) => value - to[index])),
+        order: pairs.length,
+      });
+    }
+  }
+  pairs.sort((a, b) => a.distance - b.distance || a.order - b.order);
+  for (const pair of pairs) {
+    if (remaining <= 1) {
+      break;
+    }
+    if (!join(clusterOf(pair.a), clusterOf(pair.b))) {
+      continue;
+    }
+    remaining -= 1;
+    if (!report || pair.distance > BRIDGE_POSITION_TOLERANCE) {
+      bridges[nextId(Object.keys(bridges), `${pair.a}_${pair.b}`)] = {
+        from: { ref: pair.a },
+        to: { ref: pair.b },
+        width: 10,
+        ends: 'flat',
+      };
+    }
+  }
+  const previousCorners = previous.corners as
+    | { fillet?: unknown; chamfer?: unknown; mode?: unknown }
+    | undefined;
+  const corners = previousCorners || { fillet: OUTLINE_FILLET };
   result = setValue(result, ['designs', 'boundaries', boundary], {
     clearance: OUTLINE_CLEARANCE,
     simplify: 2,
-    corners: { fillet: OUTLINE_FILLET },
     holes:
       (getValue(source, ['designs', 'profiles', previousProfile, 'holes']) as
         | 'preserve'
@@ -1213,6 +1270,10 @@ export function addOutline(
         | undefined) ?? OUTLINE_HOLES,
     connected: 'single',
     ...previous,
+    corners:
+      corners.fillet !== undefined
+        ? { ...corners, mode: corners.mode || 'adaptive' }
+        : corners,
     from: sources,
     bridges: {
       ...bridges,

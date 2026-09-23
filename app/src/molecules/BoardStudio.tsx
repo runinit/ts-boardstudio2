@@ -93,6 +93,7 @@ import {
   StudioShell,
   StudioBar,
   StudioHeader,
+  StudioContextBar,
   StageNav,
   StudioBody,
   StudioPane,
@@ -319,7 +320,7 @@ export default function BoardStudio({
   };
   const choose = (
     value: StudioSelection,
-    panel: 'inspect' | 'keep' = 'inspect',
+    _panel: 'inspect' | 'keep' = 'inspect',
     mode: SelectionMode = 'replace',
     order: StudioTarget[] = []
   ) => {
@@ -503,9 +504,7 @@ export default function BoardStudio({
       return;
     }
     const clusterId =
-      selection.section === 'clusters'
-        ? selection.id
-        : selection.cluster || '';
+      selection.section === 'clusters' ? selection.id : selection.cluster || '';
     const arrangement = data.layout.clusters?.[clusterId]?.arrangement;
     if (
       !clusterId ||
@@ -516,8 +515,7 @@ export default function BoardStudio({
       setError('Select a key matrix before adding a row or column.');
       return;
     }
-    const names =
-      kind === 'columns' ? arrangement.columns : arrangement.rows;
+    const names = kind === 'columns' ? arrangement.columns : arrangement.rows;
     const nextName = nextId(names, kind === 'columns' ? 'c' : 'r');
     const nextSize =
       kind === 'columns'
@@ -592,6 +590,7 @@ export default function BoardStudio({
     ...(report?.findings || []),
     ...(layout.diagnostics || []),
     ...analysis.diagnostics,
+    ...(!boardStale ? analysis.result?.designs?.diagnostics || [] : []),
   ];
   const uniqueFindings = Array.from(
     new Map(
@@ -811,13 +810,43 @@ export default function BoardStudio({
             <span className="desktop">Board Studio / </span>
             {context.activeConfigName}
           </h1>
+          <StageNav aria-label="Design workflow">
+            {stages.map(([id, label, Glyph]) => (
+              <button
+                key={id}
+                aria-current={stage === id ? 'step' : undefined}
+                onClick={() => changeStage(id)}
+              >
+                <Glyph size={18} />
+                {label}
+              </button>
+            ))}
+          </StageNav>
           <small className="desktop">
             {context.error ? 'Needs attention' : 'Autosaved'}
           </small>
+          <div className="history-actions">
+            <button
+              aria-label="Undo project edit"
+              title="Undo project edit"
+              disabled={!context.canUndo}
+              onClick={context.undo}
+            >
+              <Undo2 size={18} />
+            </button>
+            <button
+              aria-label="Redo project edit"
+              title="Redo project edit"
+              disabled={!context.canRedo}
+              onClick={context.redo}
+            >
+              <Redo2 size={18} />
+            </button>
+          </div>
 
           <button
-            data-primary="true"
             aria-label="Generate project"
+            title={preview.pending ? 'Generating…' : 'Generate 3D'}
             aria-busy={preview.pending}
             disabled={
               !!parsed.error ||
@@ -843,6 +872,7 @@ export default function BoardStudio({
           <ProjectMenu>
             <button
               aria-label="Code"
+              title="Code"
               aria-pressed={view === 'code'}
               onClick={() => {
                 if (view === 'code') {
@@ -854,10 +884,12 @@ export default function BoardStudio({
               }}
             >
               <Code2 size={18} />
-              Code
+              <span className="project-action-label">Code</span>
             </button>
             {!parsed.error && (
               <button
+                aria-label="Design setup"
+                title="Design setup"
                 onClick={() => {
                   setAssemblyKeys([]);
                   setAssemblyOpen(false);
@@ -866,7 +898,8 @@ export default function BoardStudio({
                   setPaneTab('properties');
                 }}
               >
-                Design setup
+                <SlidersHorizontal size={18} />
+                <span className="project-action-label">Design setup</span>
               </button>
             )}
             {onUpdate && <UpdateChip onClick={onUpdate} />}
@@ -879,18 +912,38 @@ export default function BoardStudio({
             </button>
           </ProjectMenu>
         </StudioHeader>
-        <StageNav aria-label="Design workflow">
-          {stages.map(([id, label, Glyph]) => (
-            <button
-              key={id}
-              aria-current={stage === id ? 'step' : undefined}
-              onClick={() => changeStage(id)}
-            >
-              <Glyph size={20} />
-              {label}
-            </button>
-          ))}
-          <div className="workspace-actions">
+        <StudioContextBar aria-label="Workspace context">
+          <strong className="project-name">{context.activeConfigName}</strong>
+          <span className="selection-context">
+            {view === 'library' ? 'Part library' : selectionSummary}
+          </span>
+          {['canvas', 'sketch'].includes(view) &&
+            ['design', 'pcb'].includes(stage) && (
+              <div className="outline-controls" aria-label="Outline controls">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={studio.automatic}
+                    onChange={studio.toggle}
+                  />
+                  Automatic outline
+                </label>
+                {!studio.automatic && (
+                  <button type="button" onClick={studio.rebuild}>
+                    Rebuild outline
+                  </button>
+                )}
+                {analysis.error && (
+                  <button type="button" onClick={studio.rebuild}>
+                    Retry outline
+                  </button>
+                )}
+                {analysis.pending && (
+                  <span role="status">Updating outline…</span>
+                )}
+              </div>
+            )}
+          <div className="studio-mobile-tools">
             <button
               aria-label="Undo project edit"
               disabled={!context.canUndo}
@@ -905,11 +958,11 @@ export default function BoardStudio({
             >
               <Redo2 size={18} />
             </button>
-            {view !== 'library' &&
-              ['design', 'pcb'].includes(stage) &&
-              inspectorButton}
           </div>
-        </StageNav>
+          {view !== 'library' &&
+            ['design', 'pcb'].includes(stage) &&
+            inspectorButton}
+        </StudioContextBar>
         {preview.error && (
           <StudioStatus role="alert">{preview.error}</StudioStatus>
         )}
@@ -1605,29 +1658,6 @@ export default function BoardStudio({
                     </div>
                   )}
 
-                <StudioBar aria-label="Outline controls">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={studio.automatic}
-                      onChange={studio.toggle}
-                    />
-                    Automatic outline
-                  </label>
-                  {!studio.automatic && (
-                    <button type="button" onClick={studio.rebuild}>
-                      Rebuild outline
-                    </button>
-                  )}
-                  {analysis.error && (
-                    <button type="button" onClick={studio.rebuild}>
-                      Retry outline
-                    </button>
-                  )}
-                  {analysis.pending && (
-                    <span role="status">Updating outline…</span>
-                  )}
-                </StudioBar>
                 {stale && (
                   <StudioStatus
                     role="status"

@@ -2828,6 +2828,12 @@
                             "minLength": 1
                           }
                         ]
+                      },
+                      "mode": {
+                        "enum": [
+                          "strict",
+                          "adaptive"
+                        ]
                       }
                     },
                     "required": [
@@ -3266,6 +3272,12 @@
                             "type": "string",
                             "minLength": 1
                           }
+                        ]
+                      },
+                      "mode": {
+                        "enum": [
+                          "strict",
+                          "adaptive"
                         ]
                       }
                     },

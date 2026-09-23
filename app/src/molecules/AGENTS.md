@@ -6,16 +6,16 @@ Feature components and editor surfaces; score 12, a distinct interaction domain.
 
 ## Where to Look
 
-| Task | Location |
-| --- | --- |
-| Workflow, selection, edit dispatch | `BoardStudio.tsx` |
-| Pointer editing and immediate draft display | `StudioCanvas.tsx` |
-| Object properties and numeric expressions | `StudioInspector.tsx`, `DimensionField.tsx` |
-| Persistent drawers and editor layout | `StudioStyles.tsx` |
-| Sketches and assembly rendering | `DesignView.tsx`, `AssemblyPreview.tsx` |
-| Case drafts and explicit solid builds | `CaseWizard.tsx`, `CaseField.tsx` |
-| Footprint defaults and model editing | `FootprintLibrary.tsx`, `ModelEditor.tsx` |
-| New native project and setup | `NewDesignWorkspace.tsx`, `DesignSetupPanel.tsx` |
+| Task                                        | Location                                         |
+| ------------------------------------------- | ------------------------------------------------ |
+| Workflow, selection, edit dispatch          | `BoardStudio.tsx`                                |
+| Pointer editing and immediate draft display | `StudioCanvas.tsx`                               |
+| Object properties and numeric expressions   | `StudioInspector.tsx`, `DimensionField.tsx`      |
+| Persistent drawers and editor layout        | `StudioStyles.tsx`                               |
+| Sketches and assembly rendering             | `DesignView.tsx`, `AssemblyPreview.tsx`          |
+| Case drafts and explicit solid builds       | `CaseWizard.tsx`, `CaseField.tsx`                |
+| Footprint defaults and model editing        | `FootprintLibrary.tsx`, `ModelEditor.tsx`        |
+| New native project and setup                | `NewDesignWorkspace.tsx`, `DesignSetupPanel.tsx` |
 
 ## Conventions
 

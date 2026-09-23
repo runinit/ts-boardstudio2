@@ -13,6 +13,7 @@ describe('new design compiler', () => {
     expect(doc.designs.boundaries.main.holes).toBe('fill');
     expect(doc.designs.boundaries.main.clearance).toBe(2);
     expect(doc.designs.boundaries.main.corners.fillet).toBe(2);
+    expect(doc.designs.boundaries.main.corners.mode).toBe('adaptive');
     const objects = Object.values(doc.layout.objects) as any[];
     expect(objects.filter((item) => item.kind === 'key')).toHaveLength(20);
     expect(objects.filter((item) => item.properties?.owner)).toHaveLength(20);
