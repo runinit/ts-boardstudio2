@@ -1,0 +1,255 @@
+import React, { useEffect, useRef, useState } from 'react';
+import type * as Three from 'three';
+import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+type Mesh = { positions: Float32Array; normals: Float32Array; revision: number };
+type ComponentPreview = {
+  id: string;
+  reference: string;
+  pose: { at: { x: number; y: number }; rotation: number };
+  side: 'front' | 'back';
+  model: { offset: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number }; scale: { x: number; y: number; z: number } };
+  mesh: { positions: Float32Array; normals: Float32Array };
+};
+type Controls = OrbitControls;
+const emptyPreviews: ComponentPreview[] = [];
+
+const samePreviews = (left: ComponentPreview[], right: ComponentPreview[]): boolean => left.length === right.length && left.every((item, index) => {
+  const other = right[index];
+  return item.id === other.id
+    && item.reference === other.reference
+    && item.pose.at.x === other.pose.at.x
+    && item.pose.at.y === other.pose.at.y
+    && item.pose.rotation === other.pose.rotation
+    && item.side === other.side
+    && item.model.offset.x === other.model.offset.x
+    && item.model.offset.y === other.model.offset.y
+    && item.model.offset.z === other.model.offset.z
+    && item.model.rotation.x === other.model.rotation.x
+    && item.model.rotation.y === other.model.rotation.y
+    && item.model.rotation.z === other.model.rotation.z
+    && item.model.scale.x === other.model.scale.x
+    && item.model.scale.y === other.model.scale.y
+    && item.model.scale.z === other.model.scale.z
+    && item.mesh.positions === other.mesh.positions
+    && item.mesh.normals === other.mesh.normals;
+});
+
+const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
+  mesh?: Mesh;
+  componentPreviews?: ComponentPreview[];
+  boardThickness?: number;
+}) => {
+  const incomingPreviews = componentPreviews ?? emptyPreviews;
+  const previewsRef = useRef(incomingPreviews);
+  if (!samePreviews(previewsRef.current, incomingPreviews)) previewsRef.current = incomingPreviews;
+  const previews = previewsRef.current;
+  const renderableComponentCount = previews.filter((component) => component.mesh.positions.length >= 9 && component.mesh.positions.length % 3 === 0).length;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const controlsRef = useRef<Controls | null>(null);
+  const fitRef = useRef<(() => void) | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const caseMesh = mesh && mesh.positions.length >= 9 && mesh.positions.length % 3 === 0 ? mesh : undefined;
+    const components = previews.filter((component) => component.mesh.positions.length >= 9 && component.mesh.positions.length % 3 === 0);
+    if (!canvas || (!caseMesh && components.length === 0)) return;
+    let disposed = false;
+    let renderer: Three.WebGLRenderer | undefined;
+    let controls: Controls | undefined;
+    let frame = 0;
+    const geometries: Three.BufferGeometry[] = [];
+    const materials: Three.MeshStandardMaterial[] = [];
+    let observer: ResizeObserver | undefined;
+
+    const build = async () => {
+      const [THREE, controlsModule] = await Promise.all([
+        import('three'),
+        import('three/addons/controls/OrbitControls.js'),
+      ]);
+      if (disposed) return;
+
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      } catch {
+        setError('WebGL is unavailable in this browser.');
+        return;
+      }
+      setError('');
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setClearColor(0xe9ede5, 1);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xe9ede5);
+      const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 10000);
+      camera.up.set(0, 0, 1);
+
+      const previewObjects: Three.Object3D[] = [];
+      const makeGeometry = (positions: Float32Array, normals: Float32Array) => {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        if (normals.length === positions.length) {
+          geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+        } else {
+          geometry.computeVertexNormals();
+        }
+        geometry.computeBoundingBox();
+        geometries.push(geometry);
+        return geometry;
+      };
+
+      if (caseMesh) {
+        const geometry = makeGeometry(caseMesh.positions, caseMesh.normals);
+        const material = new THREE.MeshStandardMaterial({ color: 0x4d8875, roughness: 0.74, metalness: 0.04, side: THREE.DoubleSide });
+        materials.push(material);
+        const caseObject = new THREE.Mesh(geometry, material);
+        scene.add(caseObject);
+        previewObjects.push(caseObject);
+      }
+
+      components.forEach((component, index) => {
+        const partGroup = new THREE.Group();
+        partGroup.position.set(component.pose.at.x, component.pose.at.y, component.side === 'front' ? boardThickness : 0);
+        partGroup.rotation.z = THREE.MathUtils.degToRad(component.pose.rotation);
+
+        const sideGroup = new THREE.Group();
+        if (component.side === 'back') sideGroup.scale.z = -1;
+        partGroup.add(sideGroup);
+
+        const modelGroup = new THREE.Group();
+        modelGroup.position.set(component.model.offset.x, component.model.offset.y, component.model.offset.z);
+        modelGroup.rotation.set(
+          THREE.MathUtils.degToRad(component.model.rotation.x),
+          THREE.MathUtils.degToRad(component.model.rotation.y),
+          THREE.MathUtils.degToRad(component.model.rotation.z),
+        );
+        modelGroup.scale.set(component.model.scale.x, component.model.scale.y, component.model.scale.z);
+        sideGroup.add(modelGroup);
+
+        const geometry = makeGeometry(component.mesh.positions, component.mesh.normals);
+        const hue = (index * 0.137 + 0.08) % 1;
+        const material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(hue, 0.56, 0.52), roughness: 0.62, metalness: 0.08, side: THREE.DoubleSide });
+        materials.push(material);
+        modelGroup.add(new THREE.Mesh(geometry, material));
+        scene.add(partGroup);
+        previewObjects.push(partGroup);
+      });
+      scene.add(new THREE.HemisphereLight(0xf8faf0, 0x68766d, 2.2));
+      const keyLight = new THREE.DirectionalLight(0xffe5d4, 2.4);
+      keyLight.position.set(-3, 5, 4);
+      scene.add(keyLight);
+      const fillLight = new THREE.DirectionalLight(0xc8e1d4, 1.1);
+      fillLight.position.set(4, 1, -4);
+      scene.add(fillLight);
+
+      controls = new controlsModule.OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.screenSpacePanning = true;
+      controlsRef.current = controls;
+      const render = () => {
+        frame = 0;
+        if (disposed) {
+          return;
+        }
+
+        const moving = controls?.update() ?? false;
+        renderer?.render(scene, camera);
+        if (moving) {
+          requestRender();
+        }
+      };
+      const requestRender = () => {
+        if (!disposed && !frame) {
+          frame = requestAnimationFrame(render);
+        }
+      };
+      controls.addEventListener('change', requestRender);
+
+      const fitCamera = () => {
+        scene.updateMatrixWorld(true);
+        const bounds = new THREE.Box3();
+        previewObjects.forEach((object) => bounds.expandByObject(object));
+        if (bounds.isEmpty()) return;
+        const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+        const radius = Math.max(sphere.radius, 0.1);
+        const distance = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.28;
+        controls?.target.copy(sphere.center);
+        camera.position.set(sphere.center.x + distance * 0.72, sphere.center.y + distance * 0.72, sphere.center.z + distance * 0.55);
+        camera.near = Math.max(radius / 1000, 0.01);
+        camera.far = distance + radius * 8;
+        camera.updateProjectionMatrix();
+        if (controls) {
+          controls.minDistance = radius * 0.2;
+          controls.maxDistance = distance * 4;
+          controls.update();
+        }
+        requestRender();
+      };
+      fitRef.current = fitCamera;
+      fitCamera();
+
+      const resize = () => {
+        const width = Math.max(canvas.clientWidth, 1);
+        const height = Math.max(canvas.clientHeight, 1);
+        renderer?.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        requestRender();
+      };
+      resize();
+      observer = new ResizeObserver(resize);
+      observer.observe(canvas);
+
+    };
+
+    build().catch(() => setError('The 3D preview could not initialize.'));
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      controls?.dispose();
+      geometries.forEach((geometry) => geometry.dispose());
+      materials.forEach((material) => material.dispose());
+      renderer?.dispose();
+      controlsRef.current = null;
+      fitRef.current = null;
+    };
+  }, [mesh?.positions, mesh?.normals, mesh?.revision, previews, boardThickness]);
+
+  const zoom = (factor: number) => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    controls.object.position.sub(controls.target).multiplyScalar(factor).add(controls.target);
+    controls.update();
+  };
+
+  if ((!mesh || mesh.positions.length < 9) && renderableComponentCount === 0) return <div className="wb-case-preview-empty">
+    <span className="wb-case-preview-wire"><CaseWire /></span>
+    <strong>{error || 'Waiting for a case assembly'}</strong>
+    <small>The 3D preview appears when the settled geometry is ready.</small>
+  </div>;
+
+  return <div className="wb-case-preview" aria-label={`Case and component mesh preview, ${renderableComponentCount} components`}>
+    <canvas ref={canvasRef} aria-label="Interactive 3D case preview. Drag to orbit and scroll to zoom." />
+    <div className="wb-case-preview-label"><span>CASE + COMPONENTS · {renderableComponentCount} COMPONENTS</span>{mesh && <span>r{mesh.revision}</span>}</div>
+    <div className="wb-case-preview-disclaimer">Visual preview · not clearance proof</div>
+    <div className="wb-case-preview-controls">
+      <button aria-label="Zoom out" onClick={() => zoom(1.2)}>−</button>
+      <button aria-label="Fit preview" onClick={() => fitRef.current?.()}>Fit</button>
+      <button aria-label="Zoom in" onClick={() => zoom(1 / 1.2)}>+</button>
+    </div>
+    {error && <div className="wb-case-preview-error" role="status">{error}</div>}
+  </div>;
+};
+
+const CaseWire = () => <svg viewBox="0 0 80 60" aria-hidden="true">
+  <path d="m10 20 30-12 30 12-30 12zM10 20v25l30 12V32M70 20v25L40 57" />
+  <path d="m20 24 20 8 20-8M20 30v9l20 8 20-8v-9M28 38v8m24-8v8" />
+</svg>;
+
+export { CasePreview };
+export type { ComponentPreview };

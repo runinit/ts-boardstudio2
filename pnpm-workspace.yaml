@@ -2,6 +2,7 @@ packages:
   - app
   - engine
   - footprints
+  - v2/*
 
 allowBuilds:
   core-js: true

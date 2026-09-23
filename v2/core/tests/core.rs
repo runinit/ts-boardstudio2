@@ -1,0 +1,2062 @@
+use boardstudio_core::CoreEngine;
+use boardstudio_core::model::*;
+
+fn rect(id: &str, x: f64, y: f64, width: f64, height: f64, operation: Operation) -> OutlineFeature {
+    OutlineFeature::Rect {
+        id: id.into(),
+        center: Vec2 { x, y },
+        size: Vec2 {
+            x: width,
+            y: height,
+        },
+        radius: 0.0,
+        operation,
+    }
+}
+fn scene(reply: CoreReply) -> (SceneDelta, ProjectDoc) {
+    match reply {
+        CoreReply::Scene {
+            scene, document, ..
+        } => (scene, document),
+        other => panic!("expected scene: {other:?}"),
+    }
+}
+fn preview(reply: CoreReply) -> SceneDelta {
+    match reply {
+        CoreReply::Preview { scene, .. } => scene,
+        other => panic!("expected preview: {other:?}"),
+    }
+}
+fn edit(base: u64, phase: EditPhase, op: EditOperation) -> CoreRequest {
+    CoreRequest::Edit {
+        id: "request".into(),
+        command: EditCommand {
+            base_revision: base,
+            transaction_id: "drag-1".into(),
+            phase,
+            target_ids: vec![],
+            operation: op,
+        },
+    }
+}
+
+#[test]
+fn preview_does_not_commit_and_stale_edit_fails() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![],
+        pads: vec![],
+        model: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "k1".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let op = EditOperation::MoveParts {
+        positions: vec![Position {
+            id: "k1".into(),
+            at: Vec2 { x: 10.0, y: 5.0 },
+        }],
+    };
+    let preview = preview(engine.handle(edit(0, EditPhase::Preview, op.clone())));
+    assert_eq!(preview.revision, 0);
+    assert_eq!(preview.transforms[0].pose.at.x, 10.0);
+    let (_, snapshot) = scene(engine.handle(CoreRequest::Snapshot { id: "snap".into() }));
+    assert_eq!(snapshot.parts[0].pose.at.x, 0.0);
+    assert!(matches!(
+        engine.handle(CoreRequest::Undo { id: "undo".into() }),
+        CoreReply::Error { .. }
+    ));
+    let failed = EditOperation::MoveParts {
+        positions: vec![
+            Position {
+                id: "k1".into(),
+                at: Vec2 { x: 20.0, y: 0.0 },
+            },
+            Position {
+                id: "missing".into(),
+                at: Vec2::default(),
+            },
+        ],
+    };
+    assert!(matches!(
+        engine.handle(edit(0, EditPhase::Preview, failed)),
+        CoreReply::Error { .. }
+    ));
+    let (_, snapshot) = scene(engine.handle(CoreRequest::Snapshot { id: "snap".into() }));
+    assert_eq!(snapshot.parts[0].pose.at.x, 0.0);
+    let (committed, _) = scene(engine.handle(edit(0, EditPhase::Commit, op.clone())));
+    assert_eq!(committed.revision, 1);
+    assert!(matches!(
+        engine.handle(edit(0, EditPhase::Commit, op)),
+        CoreReply::Error { revision: 1, .. }
+    ));
+}
+
+#[test]
+fn undo_redo_increments_revision() {
+    let mut engine = CoreEngine::new();
+    let feature = rect("outer", 0.0, 0.0, 20.0, 20.0, Operation::Add);
+    scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetOutline { feature },
+    )));
+    let (undo, doc) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(undo.revision, 2);
+    assert!(doc.outline.is_empty());
+    let (redo, doc) = scene(engine.handle(CoreRequest::Redo { id: "redo".into() }));
+    assert_eq!(redo.revision, 3);
+    assert_eq!(doc.outline.len(), 1);
+}
+
+#[test]
+fn union_difference_make_one_hole() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("left", -5.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.outline
+        .push(rect("right", 5.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.outline
+        .push(rect("hole", 0.0, 0.0, 5.0, 5.0, Operation::Subtract));
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert_eq!(scene.contours.len(), 2);
+    assert_eq!(scene.contours.iter().filter(|c| c.hole).count(), 1);
+    assert!(scene.readiness.outline);
+    assert!(!scene.readiness.pcb);
+}
+
+#[test]
+fn wire_roundtrip_matches_contract() {
+    let request = r#"{"id":"snap","kind":"snapshot"}"#;
+    let mut engine = CoreEngine::new();
+    let reply: CoreReply = serde_json::from_str(&engine.request(request)).unwrap();
+    let (_, doc) = scene(reply);
+    assert_eq!(doc.format, "boardstudio/v2");
+    assert_eq!(
+        serde_json::to_value(&doc).unwrap()["caseBodies"],
+        serde_json::json!([])
+    );
+}
+
+#[test]
+fn open_preserves_generator_and_copper() {
+    let mut doc = matrix_doc();
+    doc.definitions[0].pads.push(Pad {
+        id: "p1".into(),
+        number: "1".into(),
+        at: Vec2 { x: 0.0, y: 0.0 },
+        size: Vec2 { x: 1.0, y: 1.0 },
+        shape: PadShape::Circle,
+        drill: None,
+        plated: None,
+        side: None,
+        rotation: None,
+        net_id: None,
+    });
+    doc.definitions[0].pads[0].plated = Some(false);
+    doc.definitions[0].pads[0].side = Some(Side::Back);
+    doc.definitions[0].pads[0].rotation = Some(90.0);
+    doc.definitions[0].generator = Some(PartGenerator {
+        source: "builtin:mx-switch".into(),
+        version: "1".into(),
+        parameters: Default::default(),
+    });
+    doc.boards[0].traces.push(CopperTrace {
+        id: "trace".into(),
+        start: Vec2 { x: 0.0, y: 0.0 },
+        end: Vec2 { x: 1.0, y: 0.0 },
+        width: 0.25,
+        layer: Side::Front,
+        net_id: None,
+    });
+    doc.boards[0].vias.push(CopperVia {
+        id: "via".into(),
+        at: Vec2 { x: 1.0, y: 0.0 },
+        size: 0.8,
+        drill: 0.4,
+        net_id: None,
+    });
+    let mut engine = CoreEngine::new();
+    let json = serde_json::to_string(&CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    })
+    .unwrap();
+    let (_, reopened) = scene(serde_json::from_str(&engine.request(&json)).unwrap());
+    assert_eq!(
+        reopened.definitions[0].generator.as_ref().unwrap().source,
+        "builtin:mx-switch"
+    );
+    assert_eq!(reopened.boards[0].traces[0].id, "trace");
+    assert_eq!(reopened.boards[0].vias[0].id, "via");
+    assert_eq!(reopened.definitions[0].pads[0].plated, Some(false));
+    assert_eq!(reopened.definitions[0].pads[0].rotation, Some(90.0));
+}
+
+#[test]
+fn mechanical_holes_do_not_need_pad_numbers() {
+    let mut doc = matrix_doc();
+    doc.definitions[0].pads = vec!["center", "left", "right"]
+        .into_iter()
+        .map(|id| Pad {
+            id: id.into(),
+            number: String::new(),
+            at: Vec2::default(),
+            size: Vec2 { x: 2.0, y: 2.0 },
+            shape: PadShape::Circle,
+            drill: Some(2.0),
+            plated: Some(false),
+            side: None,
+            rotation: None,
+            net_id: None,
+        })
+        .collect();
+    doc.parts.push(Part {
+        id: "switch".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2::default(),
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    let mut engine = CoreEngine::new();
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert!(
+        !scene
+            .findings
+            .iter()
+            .any(|finding| finding.id.contains(":number")
+                || finding.id.contains(":duplicate-number"))
+    );
+}
+
+#[test]
+fn part_envelope_tracks_committed_move() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![
+            Vec2 { x: -1.0, y: -1.0 },
+            Vec2 { x: 1.0, y: -1.0 },
+            Vec2 { x: 1.0, y: 1.0 },
+            Vec2 { x: -1.0, y: 1.0 },
+        ],
+        pads: vec![],
+        model: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "k1".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    doc.outline.push(OutlineFeature::PartEnvelope {
+        id: "boundary".into(),
+        part_ids: vec!["k1".into()],
+        margin: 1.0,
+        operation: Operation::Add,
+    });
+    let (before, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    let op = EditOperation::MoveParts {
+        positions: vec![Position {
+            id: "k1".into(),
+            at: Vec2 { x: 10.0, y: 0.0 },
+        }],
+    };
+    let (after, _) = scene(engine.handle(edit(0, EditPhase::Commit, op)));
+    let before_min = before.contours[0]
+        .points
+        .iter()
+        .map(|p| p.x)
+        .fold(f64::INFINITY, f64::min);
+    let after_min = after.contours[0]
+        .points
+        .iter()
+        .map(|p| p.x)
+        .fold(f64::INFINITY, f64::min);
+    assert_eq!(after_min - before_min, 10.0);
+}
+
+#[test]
+fn scripts_emit_stable_ids_and_keep_visual_pose() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![],
+        pads: vec![],
+        model: None,
+        generator: None,
+    });
+    doc.scripts.push(Script {
+        id: "layout".into(), name: "Layout".into(), enabled: true,
+        source: "part(\"main\", \"k1\", \"switch\", \"SW1\", 0.0, 0.0, 0.0); rect(\"main\", \"board\", 0.0, 0.0, 20.0, 10.0, 0.0, \"add\");".into(),
+    });
+    let (opened, doc) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert_eq!(doc.parts[0].id, "script/layout/main/k1");
+    assert_eq!(doc.outline[0].id(), "script/layout/main/board");
+    assert!(opened.readiness.outline);
+    let op = EditOperation::MoveParts {
+        positions: vec![Position {
+            id: "script/layout/main/k1".into(),
+            at: Vec2 { x: 7.0, y: 3.0 },
+        }],
+    };
+    let (_, edited) = scene(engine.handle(edit(0, EditPhase::Commit, op)));
+    let (reopened, persisted) = scene(engine.handle(CoreRequest::Open {
+        id: "reopen".into(),
+        document: edited,
+    }));
+    assert_eq!(persisted.parts.len(), 1);
+    assert_eq!(reopened.transforms[0].pose.at.x, 7.0);
+}
+
+#[test]
+fn bad_script_is_atomic_and_limited() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.scripts.push(Script {
+        id: "bad".into(),
+        name: "Bad".into(),
+        enabled: true,
+        source: "while true {}".into(),
+    });
+    let reply = engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    assert!(matches!(reply, CoreReply::Error { revision: 0, .. }));
+    let (_, unchanged) = scene(engine.handle(CoreRequest::Snapshot { id: "snap".into() }));
+    assert_eq!(unchanged.id, "untitled");
+}
+
+#[test]
+fn added_part_joins_board_and_envelope_then_removes_cleanly() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![
+            Vec2 { x: -1.0, y: -1.0 },
+            Vec2 { x: 1.0, y: -1.0 },
+            Vec2 { x: 1.0, y: 1.0 },
+            Vec2 { x: -1.0, y: 1.0 },
+        ],
+        pads: vec![],
+        model: None,
+        generator: None,
+    });
+    doc.outline.push(OutlineFeature::PartEnvelope {
+        id: "env".into(),
+        part_ids: vec![],
+        margin: 1.0,
+        operation: Operation::Add,
+    });
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["env".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let part = Part {
+        id: "k1".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    };
+    let (added, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::AddPart {
+            part,
+            board_id: None,
+        },
+    )));
+    assert!(added.readiness.outline);
+    assert_eq!(doc.boards[0].part_ids, vec!["k1"]);
+    let OutlineFeature::PartEnvelope { part_ids, .. } = &doc.outline[0] else {
+        panic!("expected envelope")
+    };
+    assert_eq!(part_ids, &vec!["k1"]);
+    let (_, removed) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::RemoveParts {
+            ids: vec!["k1".into()],
+        },
+    )));
+    assert!(removed.boards[0].part_ids.is_empty());
+    let OutlineFeature::PartEnvelope { part_ids, .. } = &removed.outline[0] else {
+        panic!("expected envelope")
+    };
+    assert!(part_ids.is_empty());
+}
+
+#[test]
+fn add_part_targets_board_and_removal_cleans_both_boards() {
+    let mut engine = CoreEngine::new();
+    let mut doc = matrix_doc();
+    doc.outline.push(OutlineFeature::PartEnvelope {
+        id: "right-edge".into(),
+        part_ids: vec![],
+        margin: 3.0,
+        operation: Operation::Add,
+    });
+    doc.boards.push(Board {
+        id: "right".into(),
+        name: "Right".into(),
+        outline_ids: vec!["right-edge".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let part = Part {
+        id: "k1".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    };
+    let op = EditOperation::AddPart {
+        part: part.clone(),
+        board_id: Some("right".into()),
+    };
+    let preview = preview(engine.handle(edit(0, EditPhase::Preview, op.clone())));
+    assert!(preview.board_readiness[1].pcb);
+    assert!(!preview.board_readiness[0].pcb);
+    assert!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1
+        .parts
+        .is_empty()
+    );
+    assert!(matches!(
+        engine.handle(CoreRequest::Undo { id: "undo".into() }),
+        CoreReply::Error { .. }
+    ));
+    let (_, added) = scene(engine.handle(edit(0, EditPhase::Commit, op)));
+    assert!(added.boards[0].part_ids.is_empty());
+    assert_eq!(added.boards[1].part_ids, vec!["k1"]);
+    let OutlineFeature::PartEnvelope { part_ids: left, .. } = &added.outline[0] else {
+        panic!("expected envelope")
+    };
+    let OutlineFeature::PartEnvelope {
+        part_ids: right, ..
+    } = &added.outline[1]
+    else {
+        panic!("expected envelope")
+    };
+    assert!(left.is_empty());
+    assert_eq!(right, &vec!["k1"]);
+    let mut invalid = EditOperation::AddPart {
+        part,
+        board_id: Some("missing".into()),
+    };
+    assert!(matches!(
+        engine.handle(edit(1, EditPhase::Commit, invalid.clone())),
+        CoreReply::Error { .. }
+    ));
+    if let EditOperation::AddPart { part, .. } = &mut invalid {
+        part.id = "k2".into();
+    }
+    assert!(matches!(
+        engine.handle(edit(1, EditPhase::Commit, invalid)),
+        CoreReply::Error { .. }
+    ));
+    let (_, removed) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::RemoveParts {
+            ids: vec!["k1".into()],
+        },
+    )));
+    assert!(removed.boards.iter().all(|board| board.part_ids.is_empty()));
+    assert!(removed.outline.iter().all(|feature| matches!(feature, OutlineFeature::PartEnvelope { part_ids, .. } if part_ids.is_empty())));
+}
+
+#[test]
+fn pcb_readiness_checks_pads_outlines_and_thickness() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("edge", 0.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![],
+        pads: vec![Pad {
+            id: "pad1".into(),
+            number: "1".into(),
+            at: Vec2 { x: 0.0, y: 0.0 },
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Circle,
+            drill: None,
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        }],
+        model: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "k1".into(),
+        definition_id: "switch".into(),
+        reference: "SW1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    doc.nets.push(Net {
+        id: "row".into(),
+        name: "ROW".into(),
+        pins: vec![Pin {
+            part_id: "k1".into(),
+            pad_id: "missing".into(),
+        }],
+    });
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["wrong".into()],
+        part_ids: vec!["k1".into()],
+        net_ids: vec!["row".into()],
+        thickness: 0.0,
+        traces: vec![],
+        vias: vec![],
+    });
+    let (bad, _) = scene(engine.handle(CoreRequest::Open {
+        id: "bad".into(),
+        document: doc.clone(),
+    }));
+    assert!(!bad.readiness.pcb);
+    assert!(bad.findings.iter().any(|f| f.id == "board:board:thickness"));
+    assert!(
+        bad.findings
+            .iter()
+            .any(|f| f.id == "board:board:outline:wrong")
+    );
+    assert!(
+        bad.findings
+            .iter()
+            .any(|f| f.id == "net:row:pad:k1:missing")
+    );
+    doc.boards[0].outline_ids = vec!["edge".into()];
+    doc.boards[0].thickness = 1.6;
+    doc.nets[0].pins[0].pad_id = "pad1".into();
+    let (good, _) = scene(engine.handle(CoreRequest::Open {
+        id: "good".into(),
+        document: doc,
+    }));
+    assert!(good.readiness.pcb);
+}
+
+#[test]
+fn invalid_definition_geometry_blocks_own_board() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    for (id, x) in [("left", -20.0), ("right", 20.0)] {
+        doc.outline
+            .push(rect(id, x, 0.0, 10.0, 10.0, Operation::Add));
+        doc.boards.push(Board {
+            id: id.into(),
+            name: id.into(),
+            outline_ids: vec![id.into()],
+            part_ids: vec![format!("{id}-part")],
+            net_ids: vec![],
+            thickness: 1.6,
+            traces: vec![],
+            vias: vec![],
+        });
+        doc.parts.push(Part {
+            id: format!("{id}-part"),
+            definition_id: format!("{id}-def"),
+            reference: id.into(),
+            pose: Pose2 {
+                at: Vec2 { x, y: 0.0 },
+                rotation: 0.0,
+            },
+            side: Side::Front,
+            locked: None,
+            properties: None,
+        });
+        doc.definitions.push(PartDefinition {
+            id: format!("{id}-def"),
+            name: id.into(),
+            kind: PartKind::Custom,
+            courtyard: vec![Vec2 { x: 0.0, y: 0.0 }],
+            pads: vec![Pad {
+                id: "p1".into(),
+                number: "1".into(),
+                at: Vec2 { x: 0.0, y: 0.0 },
+                size: Vec2 { x: 1.0, y: 1.0 },
+                shape: PadShape::Roundrect,
+                drill: Some(0.5),
+                plated: None,
+                side: None,
+                rotation: None,
+                net_id: None,
+            }],
+            model: None,
+            generator: None,
+        });
+    }
+    let bad = &mut doc.definitions[1];
+    bad.courtyard[0].x = f64::NAN;
+    bad.pads[0].size.x = -1.0;
+    bad.pads[0].drill = Some(-0.5);
+    bad.pads.push(Pad {
+        id: "p1".into(),
+        number: "1".into(),
+        at: Vec2 {
+            x: f64::INFINITY,
+            y: 0.0,
+        },
+        size: Vec2 { x: 1.0, y: 1.0 },
+        shape: PadShape::Oval,
+        drill: None,
+        plated: None,
+        side: None,
+        rotation: None,
+        net_id: None,
+    });
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert!(scene.board_readiness[0].pcb);
+    assert!(!scene.board_readiness[1].pcb);
+    for suffix in [
+        "courtyard",
+        "pad:p1:size",
+        "pad:p1:drill",
+        "pad:p1:position",
+        "pad:p1:duplicate-id",
+        "pad:p1:duplicate-number",
+    ] {
+        assert!(
+            scene.findings.iter().any(|finding| finding.id
+                == format!("definition:right-def:{suffix}")
+                && finding.target_ids.contains(&"right-part".to_string())),
+            "missing {suffix}"
+        );
+    }
+}
+
+#[test]
+fn empty_definition_and_pad_ids_are_reported() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "".into(),
+        name: "Custom".into(),
+        kind: PartKind::Custom,
+        courtyard: vec![],
+        pads: vec![Pad {
+            id: "".into(),
+            number: "".into(),
+            at: Vec2 { x: 0.0, y: 0.0 },
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Oval,
+            drill: Some(f64::INFINITY),
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        }],
+        model: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "p".into(),
+        definition_id: "".into(),
+        reference: "U1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    for suffix in ["id", "pad:0:id", "pad:0:number", "pad:0:drill"] {
+        assert!(
+            scene
+                .findings
+                .iter()
+                .any(|finding| finding.id == format!("definition::{suffix}")),
+            "missing {suffix}"
+        );
+    }
+}
+
+#[test]
+fn duplicate_pad_nets_and_invalid_case_block_readiness() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("edge", 0.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.definitions.push(PartDefinition {
+        id: "part".into(),
+        name: "Part".into(),
+        kind: PartKind::Custom,
+        courtyard: vec![],
+        pads: vec![Pad {
+            id: "p".into(),
+            number: "1".into(),
+            at: Vec2 { x: 0.0, y: 0.0 },
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Rect,
+            drill: None,
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        }],
+        model: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "u1".into(),
+        definition_id: "part".into(),
+        reference: "U1".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 0.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    for id in ["a", "b"] {
+        doc.nets.push(Net {
+            id: id.into(),
+            name: id.into(),
+            pins: vec![Pin {
+                part_id: "u1".into(),
+                pad_id: "p".into(),
+            }],
+        });
+    }
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["edge".into()],
+        part_ids: vec!["u1".into()],
+        net_ids: vec!["a".into(), "b".into()],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc.case_bodies.push(CaseBody {
+        id: "case".into(),
+        name: "Case".into(),
+        board_id: "board".into(),
+        kind: CaseKind::Tray,
+        thickness: -1.0,
+        clearance: 0.0,
+        material_id: None,
+        z: None,
+        wall_height: Some(5.0),
+        wall_thickness: Some(2.0),
+        mounts: None,
+        gasket: None,
+    });
+    let (bad, _) = scene(engine.handle(CoreRequest::Open {
+        id: "bad".into(),
+        document: doc.clone(),
+    }));
+    assert!(!bad.readiness.pcb);
+    assert!(
+        bad.findings
+            .iter()
+            .any(|f| f.id == "pad:u1:p:multiple-nets")
+    );
+    doc.nets.pop();
+    doc.boards[0].net_ids.pop();
+    let (case_bad, _) = scene(engine.handle(CoreRequest::Open {
+        id: "case-bad".into(),
+        document: doc,
+    }));
+    assert!(case_bad.readiness.pcb);
+    assert!(!case_bad.readiness.case_ready);
+    assert!(
+        case_bad
+            .findings
+            .iter()
+            .any(|f| f.id == "case:case:dimensions")
+    );
+}
+
+#[test]
+fn board_contours_follow_each_boards_authored_order() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("left", -20.0, 0.0, 10.0, 10.0, Operation::Add));
+    doc.outline
+        .push(rect("cut", -20.0, 0.0, 2.0, 2.0, Operation::Subtract));
+    doc.outline
+        .push(rect("right", 20.0, 0.0, 10.0, 10.0, Operation::Add));
+    doc.boards.push(Board {
+        id: "left-board".into(),
+        name: "Left".into(),
+        outline_ids: vec!["left".into(), "cut".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc.boards.push(Board {
+        id: "right-board".into(),
+        name: "Right".into(),
+        outline_ids: vec!["right".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert_eq!(scene.board_contours.len(), 2);
+    assert_eq!(scene.board_contours[0].board_id, "left-board");
+    assert_eq!(scene.board_contours[0].contours.len(), 2);
+    assert!(
+        scene.board_contours[0]
+            .contours
+            .iter()
+            .any(|contour| contour.hole)
+    );
+    assert_eq!(scene.board_contours[1].board_id, "right-board");
+    assert_eq!(scene.board_contours[1].contours.len(), 1);
+    assert!(
+        scene.board_contours[1].contours[0]
+            .points
+            .iter()
+            .all(|point| point.x > 0.0)
+    );
+    assert!(scene.readiness.pcb);
+}
+
+#[test]
+fn empty_board_subset_blocks_pcb() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("outer", 0.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.outline
+        .push(rect("cut", 0.0, 0.0, 2.0, 2.0, Operation::Subtract));
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["cut".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    let (scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert!(!scene.contours.is_empty());
+    assert!(scene.board_contours[0].contours.is_empty());
+    assert!(!scene.readiness.pcb);
+    assert!(
+        scene
+            .findings
+            .iter()
+            .any(|finding| finding.id == "board:board:empty-outline")
+    );
+}
+
+#[test]
+fn case_readiness_uses_its_board() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("edge", 0.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.boards.push(Board {
+        id: "case-board".into(),
+        name: "Case Board".into(),
+        outline_ids: vec!["edge".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc.boards.push(Board {
+        id: "empty".into(),
+        name: "Empty".into(),
+        outline_ids: vec![],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc.case_bodies.push(CaseBody {
+        id: "case".into(),
+        name: "Case".into(),
+        board_id: "case-board".into(),
+        kind: CaseKind::Plate,
+        thickness: 3.0,
+        clearance: 0.5,
+        material_id: None,
+        z: None,
+        wall_height: None,
+        wall_thickness: None,
+        mounts: None,
+        gasket: None,
+    });
+    let (valid_scene, doc) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert!(!valid_scene.readiness.pcb);
+    assert!(valid_scene.board_readiness[0].pcb);
+    assert!(!valid_scene.board_readiness[1].pcb);
+    assert!(valid_scene.board_readiness[0].case_ready);
+    assert!(!valid_scene.board_readiness[1].case_ready);
+    assert!(valid_scene.readiness.case_ready);
+    let mut invalid = doc;
+    invalid.case_bodies[0].thickness = -1.0;
+    let (invalid_scene, _) = scene(engine.handle(CoreRequest::Open {
+        id: "invalid".into(),
+        document: invalid,
+    }));
+    assert!(!invalid_scene.board_readiness[0].case_ready);
+    assert!(invalid_scene.board_readiness[0].pcb);
+}
+
+#[test]
+fn case_mounts_walls_and_gasket_are_validated() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.outline
+        .push(rect("edge", 0.0, 0.0, 20.0, 20.0, Operation::Add));
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["edge".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc.case_bodies.push(CaseBody {
+        id: "tray".into(),
+        name: "Tray".into(),
+        board_id: "board".into(),
+        kind: CaseKind::Tray,
+        thickness: 3.0,
+        clearance: 0.5,
+        material_id: None,
+        z: Some(0.0),
+        wall_height: None,
+        wall_thickness: None,
+        mounts: Some(vec![Mount {
+            id: "mount".into(),
+            at: Vec2 { x: 0.0, y: 0.0 },
+            kind: MountKind::Boss,
+            hole_diameter: 3.0,
+            boss_diameter: Some(2.0),
+            height: None,
+        }]),
+        gasket: Some(Gasket {
+            inset: 1.0,
+            width: 2.0,
+            depth: 3.0,
+        }),
+    });
+    let (bad, _) = scene(engine.handle(CoreRequest::Open {
+        id: "bad".into(),
+        document: doc.clone(),
+    }));
+    assert!(bad.readiness.pcb);
+    assert!(!bad.readiness.case_ready);
+    for id in [
+        "case:tray:walls",
+        "case:tray:mount:mount:boss",
+        "case:tray:gasket",
+    ] {
+        assert!(bad.findings.iter().any(|finding| finding.id == id));
+    }
+    doc.case_bodies[0].wall_height = Some(8.0);
+    doc.case_bodies[0].wall_thickness = Some(2.0);
+    doc.case_bodies[0].mounts.as_mut().unwrap()[0].boss_diameter = Some(5.0);
+    doc.case_bodies[0].mounts.as_mut().unwrap()[0].height = Some(4.0);
+    doc.case_bodies[0].gasket.as_mut().unwrap().depth = 1.0;
+    let (good, document) = scene(engine.handle(CoreRequest::Open {
+        id: "good".into(),
+        document: doc,
+    }));
+    assert!(good.readiness.case_ready);
+    let wire = serde_json::to_value(&document).unwrap();
+    assert_eq!(wire["caseBodies"][0]["wallHeight"], 8.0);
+    assert_eq!(wire["caseBodies"][0]["mounts"][0]["bossDiameter"], 5.0);
+}
+
+fn matrix_doc() -> ProjectDoc {
+    let mut doc = ProjectDoc::empty("p", "Project");
+    doc.definitions.push(PartDefinition {
+        id: "switch".into(),
+        name: "Switch".into(),
+        kind: PartKind::Switch,
+        courtyard: vec![
+            Vec2 { x: -7.0, y: -7.0 },
+            Vec2 { x: 7.0, y: -7.0 },
+            Vec2 { x: 7.0, y: 7.0 },
+            Vec2 { x: -7.0, y: 7.0 },
+        ],
+        pads: vec![],
+        model: None,
+        generator: None,
+    });
+    doc.outline.push(OutlineFeature::PartEnvelope {
+        id: "edge".into(),
+        part_ids: vec![],
+        margin: 3.0,
+        operation: Operation::Add,
+    });
+    doc.boards.push(Board {
+        id: "board".into(),
+        name: "Board".into(),
+        outline_ids: vec!["edge".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    doc
+}
+
+fn matrix(rows: u32, columns: u32) -> Matrix {
+    Matrix {
+        id: "main".into(),
+        rows,
+        columns,
+        pitch: Vec2 { x: 19.0, y: 19.0 },
+        origin: Vec2 { x: 0.0, y: 0.0 },
+        definition_id: "switch".into(),
+        part_ids: vec![],
+        board_id: None,
+        mirror: None,
+        rotation: None,
+        edge_gap: None,
+        diodes: None,
+        diode_direction: None,
+        row_offsets: vec![],
+        column_offsets: vec![],
+        cells: vec![],
+    }
+}
+
+#[test]
+fn matrix_shrink_discards_out_of_bounds_edits() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(6, 7);
+    value.row_offsets = vec![Vec2 { x: 0.0, y: 0.0 }; 6];
+    value.column_offsets = vec![Vec2 { x: 0.0, y: 0.0 }; 7];
+    value.cells = vec![MatrixCell {
+        row: 5,
+        column: 0,
+        enabled: true,
+        diode: None,
+        definition_id: None,
+        variant: None,
+        offset: Some(Vec2 { x: 2.0, y: 0.0 }),
+        rotation: None,
+        assemblies: vec![],
+    }];
+    let (_, original) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    value.rows = 5;
+    value.columns = 6;
+    let (_, shrunk) = scene(engine.handle(edit(
+        original.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    assert_eq!(shrunk.matrices[0].row_offsets.len(), 5);
+    assert_eq!(shrunk.matrices[0].column_offsets.len(), 6);
+    assert!(shrunk.matrices[0].cells.is_empty());
+    assert!(
+        !shrunk
+            .parts
+            .iter()
+            .any(|part| part.id == "matrix/main/r5c0")
+    );
+}
+
+#[test]
+fn new_matrix_rejects_out_of_bounds_edits() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(1, 1);
+    value.row_offsets = vec![Vec2::default(); 2];
+    assert!(
+        matches!(engine.handle(edit(0, EditPhase::Commit, EditOperation::SetMatrix { matrix: value.clone(), definitions: None })), CoreReply::Error { message, .. } if message == "Matrix offsets exceed dimensions")
+    );
+    value.row_offsets.clear();
+    value.cells = vec![MatrixCell {
+        row: 1,
+        column: 0,
+        enabled: true,
+        diode: None,
+        definition_id: None,
+        variant: None,
+        offset: None,
+        rotation: None,
+        assemblies: vec![],
+    }];
+    assert!(
+        matches!(engine.handle(edit(0, EditPhase::Commit, EditOperation::SetMatrix { matrix: value, definitions: None })), CoreReply::Error { message, .. } if message == "Matrix cell coordinate is invalid or duplicated")
+    );
+}
+
+#[test]
+fn matrix_cells_preserve_survivors_and_companions() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(2, 2);
+    value.row_offsets = vec![Vec2 { x: 0.0, y: 0.0 }, Vec2 { x: 3.0, y: 0.0 }];
+    value.cells = vec![
+        MatrixCell {
+            row: 0,
+            column: 1,
+            enabled: false,
+            diode: None,
+            definition_id: None,
+            variant: None,
+            offset: None,
+            rotation: None,
+            assemblies: vec![],
+        },
+        MatrixCell {
+            row: 1,
+            column: 0,
+            enabled: true,
+            diode: None,
+            definition_id: None,
+            variant: Some("hotswap".into()),
+            offset: Some(Vec2 { x: 2.0, y: 1.0 }),
+            rotation: Some(10.0),
+            assemblies: vec![MatrixAssembly {
+                id: "led".into(),
+                definition_id: "switch".into(),
+                offset: Vec2 { x: 0.0, y: 4.0 },
+                rotation: None,
+                side: None,
+            }],
+        },
+    ];
+    let (_, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    assert_eq!(doc.matrices[0].part_ids.len(), 4);
+    assert!(!doc.parts.iter().any(|part| part.id == "matrix/main/r0c1"));
+    let host = doc
+        .parts
+        .iter()
+        .find(|part| part.id == "matrix/main/r1c0")
+        .unwrap();
+    assert_eq!(host.pose.at, Vec2 { x: 5.0, y: 20.0 });
+    assert_eq!(host.pose.rotation, 10.0);
+    assert_eq!(host.properties.as_ref().unwrap()["variant"], "hotswap");
+    let companion = doc
+        .parts
+        .iter()
+        .find(|part| part.id == "matrix/main/r1c0/led")
+        .unwrap();
+    assert!((companion.pose.at.x - 4.305407289332279).abs() < 1e-9);
+    assert!((companion.pose.at.y - 23.939231012048833).abs() < 1e-9);
+    let reference = host.reference.clone();
+    value.columns = 3;
+    let (_, grown) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    assert_eq!(
+        grown
+            .parts
+            .iter()
+            .find(|part| part.id == host.id)
+            .unwrap()
+            .reference,
+        reference
+    );
+    assert!(grown.parts.iter().any(|part| part.id == "matrix/main/r0c2"));
+}
+
+#[test]
+fn matrix_duplicate_allocates_new_member_ids() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let (_, original) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(1, 1),
+            definitions: None,
+        },
+    )));
+    let mut duplicate = original.matrices[0].clone();
+    duplicate.id = "copy".into();
+    duplicate.origin.x = 30.0;
+    let (_, doc) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: duplicate,
+            definitions: None,
+        },
+    )));
+    assert_eq!(doc.matrices[0].part_ids, vec!["matrix/main/r0c0"]);
+    assert_eq!(doc.matrices[1].part_ids, vec!["matrix/copy/r0c0"]);
+    assert_ne!(doc.parts[0].reference, doc.parts[1].reference);
+}
+
+#[test]
+fn failed_matrix_preview_restores_document() {
+    let mut doc = matrix_doc();
+    doc.parts.push(Part {
+        id: "matrix/main/r0c1".into(),
+        definition_id: "switch".into(),
+        reference: "SW99".into(),
+        pose: Pose2 {
+            at: Vec2::default(),
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        locked: None,
+        properties: None,
+    });
+    let mut engine = CoreEngine::new();
+    let (_, original) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    let reply = engine.handle(edit(
+        0,
+        EditPhase::Preview,
+        EditOperation::SetMatrix {
+            matrix: matrix(1, 2),
+            definitions: None,
+        },
+    ));
+    assert!(matches!(reply, CoreReply::Error { .. }));
+    let (_, snapshot) = scene(engine.handle(CoreRequest::Snapshot {
+        id: "snapshot".into(),
+    }));
+    assert_eq!(snapshot, original);
+    assert!(matches!(
+        engine.handle(CoreRequest::Undo { id: "undo".into() }),
+        CoreReply::Error { .. }
+    ));
+}
+
+#[test]
+fn matrix_registers_definitions_atomically() {
+    let mut doc = matrix_doc();
+    let definitions = std::mem::take(&mut doc.definitions);
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let operation = EditOperation::SetMatrix {
+        matrix: matrix(1, 1),
+        definitions: Some(definitions),
+    };
+    let projected = preview(engine.handle(edit(0, EditPhase::Preview, operation.clone())));
+    assert_eq!(projected.transforms.len(), 1);
+    let (_, snapshot) = scene(engine.handle(CoreRequest::Snapshot {
+        id: "snapshot".into(),
+    }));
+    assert!(snapshot.definitions.is_empty());
+    assert!(snapshot.parts.is_empty());
+    assert!(matches!(
+        engine.handle(CoreRequest::Undo { id: "undo".into() }),
+        CoreReply::Error { .. }
+    ));
+    let (_, placed) = scene(engine.handle(edit(0, EditPhase::Commit, operation)));
+    assert_eq!(placed.definitions.len(), 1);
+    assert_eq!(placed.parts.len(), 1);
+    let mut conflicting = placed.definitions[0].clone();
+    conflicting.name = "Changed".into();
+    assert!(matches!(
+        engine.handle(edit(
+            1,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix: matrix(1, 1),
+                definitions: Some(vec![conflicting]),
+            }
+        )),
+        CoreReply::Error { .. }
+    ));
+    let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert!(undone.definitions.is_empty());
+    assert!(undone.parts.is_empty());
+}
+
+#[test]
+fn matrix_diodes_create_stable_nets() {
+    let mut engine = CoreEngine::new();
+    let mut doc = matrix_doc();
+    let pad = |id: &str| Pad {
+        id: id.into(),
+        number: id.into(),
+        at: Vec2::default(),
+        size: Vec2 { x: 1.0, y: 1.0 },
+        shape: PadShape::Circle,
+        drill: None,
+        plated: None,
+        side: None,
+        rotation: None,
+        net_id: None,
+    };
+    doc.definitions[0].pads = vec![pad("one"), pad("two")];
+    let mut diode = doc.definitions[0].clone();
+    diode.id = "matrix-diode".into();
+    diode.pads = vec![pad("anode"), pad("cathode")];
+    doc.definitions.push(diode);
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let mut value = matrix(1, 2);
+    value.diodes = Some(true);
+    let (placed_scene, placed) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    assert!(placed_scene.readiness.layout);
+    assert_eq!(placed.matrices[0].part_ids.len(), 4);
+    assert!(
+        placed
+            .parts
+            .iter()
+            .any(|part| part.id == "matrix/main/r0c0/diode")
+    );
+    let diode_part = placed
+        .parts
+        .iter()
+        .find(|part| part.id == "matrix/main/r0c0/diode")
+        .unwrap();
+    assert_eq!(diode_part.pose.at, Vec2 { x: 6.0, y: -10.0 });
+    assert!(matches!(diode_part.side, Side::Back));
+    assert!(
+        placed
+            .parts
+            .iter()
+            .find(|part| part.id == "matrix/main/r0c0/diode")
+            .unwrap()
+            .reference
+            .starts_with('D')
+    );
+    let row = placed
+        .nets
+        .iter()
+        .find(|net| net.id == "matrix/main/net/row/0")
+        .unwrap();
+    assert_eq!(row.pins.len(), 2);
+    let link = placed
+        .nets
+        .iter()
+        .find(|net| net.id == "matrix/main/net/link/r0c0")
+        .unwrap();
+    assert_eq!(link.pins[0].pad_id, "cathode");
+    assert_eq!(link.pins[1].pad_id, "one");
+    assert!(placed.boards[0].net_ids.contains(&row.id));
+    value.diode_direction = Some(DiodeDirection::Col2row);
+    let (_, reversed) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    let reversed_row = reversed.nets.iter().find(|net| net.id == row.id).unwrap();
+    let reversed_link = reversed.nets.iter().find(|net| net.id == link.id).unwrap();
+    assert_eq!(reversed_row.pins[0].pad_id, "cathode");
+    assert_eq!(reversed_link.pins[0].pad_id, "anode");
+    assert_eq!(reversed_link.pins[1].pad_id, "one");
+    value.columns = 1;
+    let (_, shrunk) = scene(engine.handle(edit(
+        2,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    assert!(
+        !shrunk
+            .nets
+            .iter()
+            .any(|net| net.id == "matrix/main/net/link/r0c1")
+    );
+    assert!(shrunk.nets.iter().all(|net| {
+        net.pins
+            .iter()
+            .all(|pin| pin.part_id != "matrix/main/r0c1/diode")
+    }));
+    value.id = "copy".into();
+    value.origin.x = 30.0;
+    let (_, duplicated) = scene(engine.handle(edit(
+        3,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    assert!(duplicated.nets.iter().any(|net| net.name == "main_ROW0"));
+    assert!(duplicated.nets.iter().any(|net| net.name == "copy_ROW0"));
+}
+
+#[test]
+fn matrix_led_chain_has_exportable_pins() {
+    let mut engine = CoreEngine::new();
+    let mut doc = matrix_doc();
+    let mut led = doc.definitions[0].clone();
+    led.id = "rgb-led".into();
+    led.pads = ["vdd", "gnd", "din", "dout"]
+        .into_iter()
+        .map(|id| Pad {
+            id: id.into(),
+            number: id.into(),
+            at: Vec2::default(),
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Rect,
+            drill: None,
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        })
+        .collect();
+    doc.definitions.push(led);
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let mut value = matrix(1, 2);
+    value.cells = (0..2)
+        .map(|column| MatrixCell {
+            row: 0,
+            column,
+            enabled: true,
+            diode: None,
+            definition_id: None,
+            variant: None,
+            offset: None,
+            rotation: None,
+            assemblies: vec![MatrixAssembly {
+                id: "led".into(),
+                definition_id: "rgb-led".into(),
+                offset: Vec2::default(),
+                rotation: None,
+                side: None,
+            }],
+        })
+        .collect();
+    let (_, placed) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    let power = placed
+        .nets
+        .iter()
+        .find(|net| net.id == "matrix/main/net/led/vdd")
+        .unwrap();
+    assert_eq!(power.pins.len(), 2);
+    assert!(power.pins.iter().all(|pin| pin.pad_id == "vdd"));
+    let input = placed
+        .nets
+        .iter()
+        .find(|net| net.id == "matrix/main/net/led/in")
+        .unwrap();
+    assert_eq!(
+        input.pins,
+        vec![Pin {
+            part_id: "matrix/main/r0c0/led".into(),
+            pad_id: "din".into()
+        }]
+    );
+    let link = placed
+        .nets
+        .iter()
+        .find(|net| net.id == "matrix/main/net/led/link/r0c0/led")
+        .unwrap();
+    assert_eq!(link.pins[0].pad_id, "dout");
+    assert_eq!(link.pins[1].part_id, "matrix/main/r0c1/led");
+    assert!(placed.boards[0].net_ids.contains(&link.id));
+    value.cells[0].enabled = false;
+    let (_, shrunk) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value.clone(),
+            definitions: None,
+        },
+    )));
+    assert!(!shrunk.nets.iter().any(|net| net.id == link.id));
+    assert_eq!(
+        shrunk
+            .nets
+            .iter()
+            .find(|net| net.id == "matrix/main/net/led/in")
+            .unwrap()
+            .pins[0]
+            .part_id,
+        "matrix/main/r0c1/led"
+    );
+    value.cells[1].assemblies.clear();
+    let (_, removed) = scene(engine.handle(edit(
+        2,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    assert!(
+        !removed
+            .nets
+            .iter()
+            .any(|net| net.id.starts_with("matrix/main/net/led/"))
+    );
+}
+
+#[test]
+fn matrix_targets_board_and_preview_is_scoped() {
+    let mut engine = CoreEngine::new();
+    let mut doc = matrix_doc();
+    doc.outline.push(OutlineFeature::PartEnvelope {
+        id: "right-edge".into(),
+        part_ids: vec![],
+        margin: 3.0,
+        operation: Operation::Add,
+    });
+    doc.boards.push(Board {
+        id: "right".into(),
+        name: "Right".into(),
+        outline_ids: vec!["right-edge".into()],
+        part_ids: vec![],
+        net_ids: vec![],
+        thickness: 1.6,
+        traces: vec![],
+        vias: vec![],
+    });
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let mut target = matrix(1, 2);
+    target.board_id = Some("right".into());
+    let preview = preview(engine.handle(edit(
+        0,
+        EditPhase::Preview,
+        EditOperation::SetMatrix {
+            matrix: target.clone(),
+            definitions: None,
+        },
+    )));
+    assert_eq!(preview.board_contours[1].contours.len(), 1);
+    assert!(preview.board_contours[0].contours.is_empty());
+    assert!(preview.board_readiness[1].pcb);
+    assert!(!preview.board_readiness[0].pcb);
+    assert!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1
+        .parts
+        .is_empty()
+    );
+    let (_, placed) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: target.clone(),
+            definitions: None,
+        },
+    )));
+    assert_eq!(placed.boards[1].part_ids.len(), 2);
+    assert!(placed.boards[0].part_ids.is_empty());
+    let OutlineFeature::PartEnvelope { part_ids, .. } = &placed.outline[1] else {
+        panic!("expected envelope")
+    };
+    assert_eq!(part_ids.len(), 2);
+    let mut edit_matrix = target;
+    edit_matrix.board_id = None;
+    let (_, updated) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: edit_matrix,
+            definitions: None,
+        },
+    )));
+    assert_eq!(updated.matrices[0].board_id.as_deref(), Some("right"));
+    assert_eq!(updated.boards[1].part_ids.len(), 2);
+    let mut invalid = matrix(1, 1);
+    invalid.board_id = Some("missing".into());
+    assert!(matches!(
+        engine.handle(edit(
+            2,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix: invalid,
+                definitions: None,
+            }
+        )),
+        CoreReply::Error { .. }
+    ));
+}
+
+#[test]
+fn matrix_generates_stable_parts_and_one_undo_step() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let preview = preview(engine.handle(edit(
+        0,
+        EditPhase::Preview,
+        EditOperation::SetMatrix {
+            matrix: matrix(2, 2),
+            definitions: None,
+        },
+    )));
+    assert_eq!(preview.transforms.len(), 4);
+    assert!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1
+        .parts
+        .is_empty()
+    );
+    let (committed_scene, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(2, 2),
+            definitions: None,
+        },
+    )));
+    assert_eq!(committed_scene.revision, 1);
+    assert_eq!(
+        doc.matrices[0].part_ids,
+        vec![
+            "matrix/main/r0c0",
+            "matrix/main/r0c1",
+            "matrix/main/r1c0",
+            "matrix/main/r1c1"
+        ]
+    );
+    assert_eq!(doc.boards[0].part_ids.len(), 4);
+    let OutlineFeature::PartEnvelope { part_ids, .. } = &doc.outline[0] else {
+        panic!("expected envelope")
+    };
+    assert_eq!(part_ids.len(), 4);
+    assert!(committed_scene.readiness.outline);
+    let (undone, doc) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(undone.revision, 2);
+    assert!(doc.parts.is_empty());
+}
+
+#[test]
+fn matrix_edit_preserves_moved_member_and_prunes_removed() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(2, 2),
+            definitions: None,
+        },
+    ));
+    let moved_id = "matrix/main/r0c0";
+    let (_, moved) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::MoveParts {
+            positions: vec![Position {
+                id: moved_id.into(),
+                at: Vec2 { x: 5.0, y: 7.0 },
+            }],
+        },
+    )));
+    assert_eq!(
+        moved.parts[0].properties.as_ref().unwrap()["layoutOverride"],
+        1
+    );
+    let mut changed = matrix(1, 2);
+    changed.origin = Vec2 { x: 100.0, y: 50.0 };
+    let (_, doc) = scene(engine.handle(edit(
+        2,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: changed,
+            definitions: None,
+        },
+    )));
+    assert_eq!(doc.parts.len(), 2);
+    assert_eq!(
+        doc.parts
+            .iter()
+            .find(|part| part.id == moved_id)
+            .unwrap()
+            .pose
+            .at,
+        Vec2 { x: 5.0, y: 7.0 }
+    );
+    assert_eq!(
+        doc.parts
+            .iter()
+            .find(|part| part.id == "matrix/main/r0c1")
+            .unwrap()
+            .pose
+            .at,
+        Vec2 { x: 119.0, y: 50.0 }
+    );
+    assert_eq!(doc.boards[0].part_ids.len(), 2);
+    let OutlineFeature::PartEnvelope { part_ids, .. } = &doc.outline[0] else {
+        panic!("expected envelope")
+    };
+    assert_eq!(part_ids.len(), 2);
+    assert!(doc.parts.iter().all(|part| part.id != "matrix/main/r1c0"));
+}
+
+#[test]
+fn matrix_mirror_rotation_and_bad_dimensions() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(1, 2);
+    value.mirror = Some(Mirror::X);
+    value.rotation = Some(90.0);
+    let (_, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    let second = doc
+        .parts
+        .iter()
+        .find(|part| part.id == "matrix/main/r0c1")
+        .unwrap();
+    assert!((second.pose.at.x).abs() < 1e-9);
+    assert!((second.pose.at.y + 19.0).abs() < 1e-9);
+    assert_eq!(doc.matrices[0].edge_gap, Some(Vec2 { x: 1.0, y: 1.0 }));
+    let mut bad_gap = matrix(1, 1);
+    bad_gap.edge_gap = Some(Vec2 { x: 19.0, y: 1.0 });
+    assert!(matches!(
+        engine.handle(edit(
+            1,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix: bad_gap,
+                definitions: None,
+            }
+        )),
+        CoreReply::Error { .. }
+    ));
+    let bad = matrix(0, 3);
+    assert!(matches!(
+        engine.handle(edit(
+            1,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix: bad,
+                definitions: None,
+            }
+        )),
+        CoreReply::Error { revision: 1, .. }
+    ));
+}
+
+#[test]
+fn matrix_shrink_prunes_net_pins_and_stale_members() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let (_, mut doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(1, 2),
+            definitions: None,
+        },
+    )));
+    doc.nets.push(Net {
+        id: "row".into(),
+        name: "ROW".into(),
+        pins: vec![Pin {
+            part_id: "matrix/main/r0c1".into(),
+            pad_id: "p1".into(),
+        }],
+    });
+    doc.constraints.push(Constraint::Offset {
+        id: "linked".into(),
+        source_part_id: "matrix/main/r0c0".into(),
+        target_part_id: "matrix/main/r0c1".into(),
+        offset: Vec2 { x: 19.0, y: 0.0 },
+        rotation: 0.0,
+    });
+    let (_, doc) = scene(engine.handle(CoreRequest::Open {
+        id: "with-net".into(),
+        document: doc,
+    }));
+    assert_eq!(doc.nets[0].pins.len(), 1);
+    let (_, shrunk) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(1, 1),
+            definitions: None,
+        },
+    )));
+    assert!(shrunk.nets[0].pins.is_empty());
+    assert!(shrunk.constraints.is_empty());
+    assert_eq!(shrunk.matrices[0].part_ids, vec!["matrix/main/r0c0"]);
+    assert!(
+        shrunk
+            .parts
+            .iter()
+            .all(|part| part.id != "matrix/main/r0c1")
+    );
+}
+
+#[test]
+fn constraint_preview_commit_and_undo() {
+    let mut engine = CoreEngine::new();
+    let mut doc = ProjectDoc::empty("p", "Project");
+    for id in ["source", "target"] {
+        doc.parts.push(Part {
+            id: id.into(),
+            definition_id: "switch".into(),
+            reference: id.into(),
+            pose: Pose2 {
+                at: Vec2 { x: 0.0, y: 0.0 },
+                rotation: 0.0,
+            },
+            side: Side::Front,
+            locked: None,
+            properties: None,
+        });
+    }
+    doc.constraints.push(Constraint::Offset {
+        id: "offset".into(),
+        source_part_id: "source".into(),
+        target_part_id: "target".into(),
+        offset: Vec2 { x: 10.0, y: 0.0 },
+        rotation: 0.0,
+    });
+    let (_, opened) = scene(engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert_eq!(opened.parts[1].pose.at.x, 10.0);
+    let op = EditOperation::MoveParts {
+        positions: vec![Position {
+            id: "source".into(),
+            at: Vec2 { x: 5.0, y: 0.0 },
+        }],
+    };
+    let preview = preview(engine.handle(edit(0, EditPhase::Preview, op.clone())));
+    assert!(preview.changed_ids.contains(&"target".into()));
+    assert_eq!(
+        preview
+            .transforms
+            .iter()
+            .find(|item| item.id == "target")
+            .unwrap()
+            .pose
+            .at
+            .x,
+        15.0
+    );
+    assert_eq!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1
+        .parts[1]
+            .pose
+            .at
+            .x,
+        10.0
+    );
+    let (_, committed) = scene(engine.handle(edit(0, EditPhase::Commit, op.clone())));
+    assert_eq!(committed.parts[1].pose.at.x, 15.0);
+    assert!(matches!(
+        engine.handle(edit(0, EditPhase::Commit, op)),
+        CoreReply::Error { revision: 1, .. }
+    ));
+    let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(undone.parts[1].pose.at.x, 10.0);
+    assert!(matches!(
+        engine.handle(edit(
+            2,
+            EditPhase::Commit,
+            EditOperation::MoveParts {
+                positions: vec![Position {
+                    id: "target".into(),
+                    at: Vec2 { x: 8.0, y: 0.0 }
+                }],
+            }
+        )),
+        CoreReply::Error { revision: 2, .. }
+    ));
+}

@@ -1,0 +1,43 @@
+name: Validate Board Studio v2
+on:
+  pull_request:
+    paths:
+      - 'v2/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/v2-check.yaml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install KiCad 10
+        run: |
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends kicad
+          kicad-cli version | grep '^10\.'
+      - run: rustup target add wasm32-unknown-unknown
+      - run: cargo install wasm-pack --locked --version 0.15.0
+      - run: pnpm run test:v2
+      - run: pnpm run build:v2
+      - run: pnpm --dir v2/app exec playwright install --with-deps chromium
+      - run: pnpm --dir v2/app test:e2e
+        env:
+          NODE_OPTIONS: --no-experimental-webstorage
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: v2-browser-failure
+          path: v2/app/test-results
+          retention-days: 7
