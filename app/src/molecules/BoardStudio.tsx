@@ -806,10 +806,7 @@ export default function BoardStudio({
           >
             <FolderOpen size={20} />
           </button>
-          <h1>
-            <span className="desktop">Board Studio / </span>
-            {context.activeConfigName}
-          </h1>
+          <h1>{context.activeConfigName}</h1>
           <StageNav aria-label="Design workflow">
             {stages.map(([id, label, Glyph]) => (
               <button
@@ -845,6 +842,7 @@ export default function BoardStudio({
           </div>
 
           <button
+            data-primary="true"
             aria-label="Generate project"
             title={preview.pending ? 'Generating…' : 'Generate 3D'}
             aria-busy={preview.pending}
@@ -913,7 +911,6 @@ export default function BoardStudio({
           </ProjectMenu>
         </StudioHeader>
         <StudioContextBar aria-label="Workspace context">
-          <strong className="project-name">{context.activeConfigName}</strong>
           <span className="selection-context">
             {view === 'library' ? 'Part library' : selectionSummary}
           </span>

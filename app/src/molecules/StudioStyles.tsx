@@ -245,12 +245,11 @@ export const StudioHeader = styled(StudioBar)`
   box-sizing: border-box;
   background: ${theme.colors.backgroundLight};
   h1 {
-    flex: 0 1 ${theme.studio.projectWidth};
+    flex: 0 1 auto;
     min-width: 0;
+    max-width: ${theme.studio.projectWidth};
     font-size: ${theme.workbench.textSize};
     font-weight: ${theme.fontWeights.semiBold};
-    padding-right: ${theme.spacing.md};
-    border-right: 1px solid ${theme.colors.border};
   }
   > nav {
     margin-right: auto;
@@ -282,11 +281,9 @@ export const StudioHeader = styled(StudioBar)`
   button {
     padding: ${theme.spacing.sm};
   }
-  .project-action-label {
-    display: none;
-  }
   .generate-label {
-    display: none;
+    display: inline;
+    white-space: nowrap;
   }
   @media (max-width: ${theme.studio.breakpoint}) {
     flex-wrap: wrap;
@@ -304,14 +301,11 @@ export const StudioHeader = styled(StudioBar)`
     .history-actions {
       display: none;
     }
-    .project-action-label {
-      display: inline;
-    }
     > button {
       padding: ${theme.spacing.sm};
     }
     .generate-label {
-      font-size: ${theme.fontSizes.bodySmall};
+      display: none;
     }
   }
   @media (max-height: ${theme.studio.shortViewportHeight}) {
@@ -336,14 +330,6 @@ export const StudioContextBar = styled(StudioBar)`
   .outline-controls label {
     white-space: nowrap;
   }
-  .project-name {
-    min-width: 0;
-    max-width: ${theme.studio.projectWidth};
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: ${theme.fonts.code};
-  }
   .selection-context {
     flex: 1;
     min-width: 0;
@@ -351,21 +337,12 @@ export const StudioContextBar = styled(StudioBar)`
     text-overflow: ellipsis;
     white-space: nowrap;
     color: ${theme.colors.textDark};
-    padding-left: ${theme.spacing.compact};
-    border-left: 1px solid ${theme.colors.border};
   }
   button {
     padding: ${theme.spacing.xs} ${theme.spacing.sm};
   }
   @media (max-width: ${theme.studio.breakpoint}) {
     flex-wrap: wrap;
-    .project-name {
-      display: none;
-    }
-    .selection-context {
-      padding-left: 0;
-      border-left: 0;
-    }
     .outline-controls {
       order: 1;
       width: 100%;

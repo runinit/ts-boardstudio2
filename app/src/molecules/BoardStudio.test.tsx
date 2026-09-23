@@ -98,6 +98,10 @@ function Harness({ initial }: { initial?: string }) {
 }
 const openInspector = () =>
   fireEvent.click(screen.getByRole('button', { name: 'Inspector' }));
+const toggleCode = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Project actions' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+};
 it('keeps the Inspector closed until explicitly opened on desktop', () => {
   const width = window.innerWidth;
   Object.defineProperty(window, 'innerWidth', {
@@ -144,7 +148,7 @@ it('keeps workflow destinations and code accessible', () => {
   render(<Harness />);
   fireEvent.click(screen.getByRole('button', { name: 'Case' }));
   expect(screen.getByText('Case tools')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+  toggleCode();
   expect(screen.getByText('Code editor')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Export' }));
   expect(screen.getByRole('button', { name: 'Download YAML' })).toBeEnabled();
@@ -360,9 +364,9 @@ it('returns to the part library after closing Code', async () => {
   expect(
     await screen.findByRole('button', { name: 'Preview in case' })
   ).toBeVisible();
-  fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+  toggleCode();
   expect(screen.getByText('Code editor')).toBeVisible();
-  fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+  toggleCode();
   expect(
     await screen.findByRole('button', { name: 'Preview in case' })
   ).toBeVisible();
@@ -585,7 +589,7 @@ describe('project status copy', () => {
   it('opens the controller picker from a missing-controller blocker', () => {
     const source = compileSetup({ ...defaultSetup(), columns: 2, rows: 2 });
     render(<Harness initial={source} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Code' }));
+    toggleCode();
     fireEvent.click(screen.getByRole('button', { name: /Review .* blockers/ }));
     fireEvent.click(
       screen.getByRole('button', {

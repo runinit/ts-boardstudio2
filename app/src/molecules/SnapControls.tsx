@@ -1,5 +1,5 @@
 import {
-  ChevronDown,
+  ChevronsUp,
   CircleDot,
   Crosshair,
   Grid2X2,
@@ -242,7 +242,7 @@ export default function SnapControls({
         aria-controls={id}
         onClick={() => setOpen(!open)}
       >
-        <ChevronDown size={16} />
+        <ChevronsUp size={16} />
       </button>
       <Slide
         $open={open}

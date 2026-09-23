@@ -4,49 +4,32 @@ import styled from 'styled-components';
 import { theme } from '../theme/theme';
 
 const Actions = styled.div<{ $open: boolean }>`
-  display: contents;
-  && > button {
-    display: none;
-  }
+  position: relative;
   > div {
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing.sm};
-  }
-  @media (max-width: ${theme.studio.breakpoint}) {
-    display: block;
-    position: relative;
-    && > button {
-      display: inline-flex;
-    }
-    > div {
-      display: ${({ $open }) => ($open ? 'flex' : 'none')};
-      position: absolute;
-      top: calc(100% + ${theme.spacing.sm});
-      right: 0;
-      z-index: ${theme.studio.popoverLayer + 1};
-      flex-direction: column;
-      align-items: stretch;
-      width: min(
-        ${theme.studio.toolOptionsWidth},
-        calc(100vw - ${theme.spacing.lg})
-      );
-      max-height: calc(
-        100dvh - ${theme.cad.headerHeight} - ${theme.spacing.lg}
-      );
-      overflow: auto;
-      padding: ${theme.spacing.sm};
-      background: ${theme.colors.backgroundLight};
-      border: 1px solid ${theme.colors.border};
-      border-radius: ${theme.cad.fieldRadius};
-      button {
-        justify-content: flex-start;
-      }
+    display: ${({ $open }) => ($open ? 'flex' : 'none')};
+    position: absolute;
+    top: calc(100% + ${theme.spacing.sm});
+    right: 0;
+    z-index: ${theme.studio.popoverLayer + 1};
+    flex-direction: column;
+    align-items: stretch;
+    width: min(
+      ${theme.studio.toolOptionsWidth},
+      calc(100vw - ${theme.spacing.lg})
+    );
+    max-height: calc(100dvh - ${theme.cad.headerHeight} - ${theme.spacing.lg});
+    overflow: auto;
+    padding: ${theme.spacing.sm};
+    background: ${theme.colors.backgroundLight};
+    border: 1px solid ${theme.colors.border};
+    border-radius: ${theme.cad.fieldRadius};
+    button {
+      justify-content: flex-start;
     }
   }
 `;
 
-// Keep project tools inline on desktop and reachable from one narrow-screen menu.
+// Keep secondary project tools together at every width.
 export default function ProjectMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
