@@ -88,6 +88,83 @@ const topology = model => {
     const chains=g.chains(model)
     return [chains.length,count(chains)]
 }
+const insideCorners = model => {
+    const result=[]
+    for (const [chainIndex,chain] of g.chains(model).entries()) {
+        const orientation=winding(chain), links=chain.links
+        for (let index=0;index<links.length;index++) {
+            const first=links[index], last=links[(index+1)%links.length]
+            if (!first.endPoints || !last.endPoints) { continue }
+            const at=ends(first)[1]
+            const incoming=direction(first,at), outgoing=direction(last,at)
+            if (cross(incoming,outgoing)*orientation>=-g.EPSILON) { continue }
+            const turn=Math.abs(Math.atan2(cross(incoming,outgoing),incoming[0]*outgoing[0]+incoming[1]*outgoing[1]))
+            result.push({
+                first:first.walkedPath.pathId,last:last.walkedPath.pathId,at,
+                firstType:first.walkedPath.pathContext.type,lastType:last.walkedPath.pathContext.type,
+                firstLength:first.pathLength,lastLength:last.pathLength,
+                tangentFactor:Math.tan(turn/2),
+                chainIndex,index,chainLength:links.length
+            })
+        }
+    }
+    return result
+}
+// Pair only when both requested tangencies compete for the same short edge.
+const cornerGroups = (targets,radius) => {
+    const links=new Map(targets.map(target=>[target,[]]))
+    for (const target of targets) {
+        if (target.lastType!=='line') { continue }
+        const next=targets.find(candidate=>candidate.chainIndex===target.chainIndex &&
+            candidate.index===(target.index+1)%target.chainLength && candidate.first===target.last &&
+            candidate.firstType==='line')
+        if (!next || target.lastLength>radius*(target.tangentFactor+next.tangentFactor)+g.TOLERANCE) { continue }
+        links.get(target).push(next)
+        links.get(next).push(target)
+    }
+    const groups=[], seen=new Set()
+    for (const target of targets) {
+        if (seen.has(target)) { continue }
+        const group=[], pending=[target]
+        seen.add(target)
+        while (pending.length) {
+            const current=pending.pop()
+            group.push(current)
+            for (const adjacent of links.get(current)) {
+                if (seen.has(adjacent)) { continue }
+                seen.add(adjacent)
+                pending.push(adjacent)
+            }
+        }
+        groups.push(group)
+    }
+    return groups
+}
+const preserves = (candidate,source,expected,name,options) => {
+    try {
+        g.validate(candidate,name)
+        if (JSON.stringify(topology(candidate))!==expected || !g.contains(candidate,source) ||
+            (options.required && !g.contains(candidate,options.required)) ||
+            (options.protected || []).some(gap=>!g.empty(g.combine(candidate,gap,'intersect')))) { return false }
+        return true
+    } catch (error) {
+        if (!(error instanceof g.DesignError)) { throw error }
+        return false
+    }
+}
+// Fill isolated narrow concavities without changing protected topology.
+const healNotches = (source,targets,radius,expected,name,options) => {
+    let result=source
+    for (const group of cornerGroups(targets,radius)) {
+        if (group.length!==1) { continue }
+        const target=group[0]
+        if (target.firstType!=='line' || target.lastType!=='line' || Math.min(target.firstLength,target.lastLength)>radius) { continue }
+        const addition={paths:{notch:new m.paths.Circle(target.at,radius)}}
+        const candidate=g.combine(result,addition)
+        if (preserves(candidate,source,expected,name,options)) { result=candidate }
+    }
+    return result
+}
 const direction = (link,point) => {
     const path=link.walkedPath.pathContext
     if (path.type==='line') {
@@ -149,9 +226,11 @@ const filletInside = (model,radius,fallback = FilletFallback.Close) => {
 const fitInside = (source,radius,name,options = {}) => {
     const original=flat(source)
     const expected=JSON.stringify(topology(original))
+    const initialTargets=insideCorners(original)
+    const healed=flat(healNotches(original,initialTargets,radius,expected,name,options))
     try {
         // Keep exact legacy geometry when the requested relief is already safe.
-        const exact=filletInside(source,radius,FilletFallback.None)
+        const exact=filletInside(healed,radius,FilletFallback.None)
         if (exact) {
             checkFillets(exact,radius,name)
             g.validate(exact,name)
@@ -161,35 +240,19 @@ const fitInside = (source,radius,name,options = {}) => {
     } catch (error) {
         if (!(error instanceof g.DesignError)) { throw error }
     }
-    const targets=[]
-    for (const chain of g.chains(original)) {
-        const orientation=winding(chain)
-        for (let index=0;index<chain.links.length;index++) {
-            const first=chain.links[index], last=chain.links[(index+1)%chain.links.length]
-            if (!first.endPoints || !last.endPoints) { continue }
-            const at=ends(first)[1]
-            if (cross(direction(first,at),direction(last,at))*orientation>=-g.EPSILON) { continue }
-            targets.push({first:first.walkedPath.pathId,last:last.walkedPath.pathId,at})
-        }
-    }
-    let result=original
-    for (const target of targets) {
+    const targets=insideCorners(healed)
+    let result=healed
+    for (const group of cornerGroups(targets,radius)) {
         const attempt=size => {
             const candidate=g.clone(result)
-            const first=candidate.paths[target.first], last=candidate.paths[target.last]
-            if (!first || !last) { return null }
-            const arc=m.path.fillet(first,last,size)
-            if (!arc) { return null }
-            candidate.paths[`fillet${target.first}_${target.last}`]=arc
-            try {
-                g.validate(candidate,name)
-                if (JSON.stringify(topology(candidate))!==expected || !g.contains(candidate,source)) { return null }
-                if ((options.protected || []).some(gap=>!g.empty(g.combine(candidate,gap,'intersect')))) { return null }
-                return candidate
-            } catch (error) {
-                if (!(error instanceof g.DesignError)) { throw error }
-                return null
+            for (const target of group) {
+                const first=candidate.paths[target.first], last=candidate.paths[target.last]
+                if (!first || !last) { return null }
+                const arc=m.path.fillet(first,last,size)
+                if (!arc) { return null }
+                candidate.paths[`fillet${target.first}_${target.last}`]=arc
             }
+            return preserves(candidate,source,expected,name,options) ? candidate : null
         }
         let applied=radius, candidate=attempt(radius)
         if (!candidate) {
@@ -203,7 +266,9 @@ const fitInside = (source,radius,name,options = {}) => {
             applied=candidate?low:0
         }
         if (candidate) { result=candidate }
-        if (applied<radius-g.TOLERANCE) { options.onFit?.({at:target.at,requested:radius,applied}) }
+        if (applied<radius-g.TOLERANCE) {
+            for (const target of group) { options.onFit?.({at:target.at,requested:radius,applied}) }
+        }
     }
     return result
 }

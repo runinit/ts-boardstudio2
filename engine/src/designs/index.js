@@ -167,6 +167,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
             model = fillHoles(model, name)
             for (const gap of finishPolicy.gaps) { model = g.combine(model, resolve(gap).model, 'subtract') }
         }
+        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied
         if (spec.corners) {
             a.unexpected(spec.corners, `${name}.corners`, ['fillet', 'chamfer', 'mode'])
             const styles = Object.keys(spec.corners).filter(key=>key!=='mode')
@@ -178,6 +179,7 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
             }
             const size = g.positive(spec.corners[style], `${name}.corners.${style}`, units)
             model = require('./finishing').corners(model, {[style]:size,mode}, `${name}.corners`, {
+                required,
                 protected:(finishPolicy.gaps || []).map(gap=>resolve(gap).model),
                 onFit:fit=>report.diagnostics.push({
                     feature:name,sourcePath:name,code:'corner-relief-fit',severity:'warning',at:fit.at,
@@ -186,7 +188,6 @@ exports.parse = async (config, points, outlines, units, options = {}) => {
                 })
             })
         }
-        const required = !g.empty(occupied) && clearance > 0 ? offset(occupied, clearance) : occupied
         model = modify(model, spec, name, required)
         g.validate(model, name, spec.connected || 'multiple')
         g.requireContains(model, required, name)

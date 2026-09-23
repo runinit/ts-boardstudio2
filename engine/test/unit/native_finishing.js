@@ -130,12 +130,35 @@ describe('Native perimeter finishing', () => {
     })
 
     it('retains explicit cutouts after corner finishing', async () => {
-        const input = fixture({fillet:3})
+        const input = fixture({fillet:3,mode:'adaptive'})
         input.designs.regions.hole = {shape:{radius:2,anchor:{shift:[10,10]}}}
         input.designs.profiles.board.cutouts = ['regions.hole']
         const board = await generate(input)
         assert.equal(g.chains(board)[0].contains.length,1)
         assert.ok(g.paths(board).some(p => p.type==='circle' && p.radius===2))
+    })
+
+    it('fits shared inside corners together after rotation and reversal', async () => {
+        const polygon = [[0,0],[40,0],[40,30],[20.5,30],[20.5,29],[19.5,29],[19.5,30],[0,30]]
+        const input = fixture({fillet:2,mode:'adaptive'})
+        input.designs.regions.stock.shape.polygon = polygon
+        const board = await generate(input)
+        const rotatedInput = fixture({fillet:2,mode:'adaptive'})
+        rotatedInput.designs.regions.stock.shape.polygon = polygon.map(([x,y])=>[-y,x]).reverse()
+        const rotated = await generate(rotatedInput)
+        const expected = m.model.rotate(board,90,[0,0])
+        const paired = model => g.paths(model).filter(path=>path.type==='arc' && path.radius<1)
+
+        assert.equal(paired(board).length,2)
+        assert.ok(paired(board).every(path=>path.radius>g.TOLERANCE))
+        assert.equal(paired(rotated).length,2)
+        assert.ok(g.contains(rotated,expected) && g.contains(expected,rotated))
+    })
+
+    it('keeps strict relief behavior for a tight inside-corner pair', async () => {
+        const input = fixture({fillet:2,mode:'strict'})
+        input.designs.regions.stock.shape.polygon = [[0,0],[40,0],[40,30],[20.5,30],[20.5,29],[19.5,29],[19.5,30],[0,30]]
+        await assert.rejects(generate(input),/tangentially/)
     })
 
     it('fits relief locally without joining nearby regions', () => {
