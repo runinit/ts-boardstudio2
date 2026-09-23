@@ -1,6 +1,0 @@
-At product HEAD388d1e0, root invoked mcp__lsp__diagnostics severity:error in parallel:
-app/src/utils/footprintPadGeometry.ts: No diagnostics found
-app/src/utils/assemblyElectrical.ts: No diagnostics found
-app/src/molecules/FootprintLibrary.tsx: No diagnostics found
-engine/src/footprint-tools.js: No diagnostics found
-All four tools fulfilled, isError:false. Full tsc also passes in precommit-renderer-fix.log.

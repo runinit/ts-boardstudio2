@@ -1,8 +1,0 @@
-2026-09-20T20:38:48-04:00
-64bfc2e84dc871b191d237fbd3d759f67fc05a76
- M app/e2e/studio-performance.spec.ts
-?? .omo/evidence/performance-responsiveness-refactor/
-?? .omo/plans/
-app/e2e/studio-performance.spec.ts
-State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
-Ownership: port 4184 belongs to root-agent baseline rerun; not stopped. Todo 2 launched no browser or preview server.

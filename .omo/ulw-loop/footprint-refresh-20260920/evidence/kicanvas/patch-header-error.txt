@@ -1,5 +1,0 @@
-$ ./patch/kicanvas/build.sh
-Cloning into '/tmp/tmp.ldIoF1y4bE/source'...
-HEAD is now at b031159 fix: file loading fails when path contains URL-encoded characters (#192)
-error: corrupt patch at line 65
-[ELIFECYCLE] Command failed with exit code 128.

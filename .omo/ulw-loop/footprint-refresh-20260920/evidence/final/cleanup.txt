@@ -1,3 +1,0 @@
-Root e2e-final Playwright runner exited0; four tests passed on64bfc2e; server3074 no listener after runner exit. Browser contexts owned by runner closed with its teardown.
-Native/engine/electrical/footprint proof processes all exited0, no server resources spawned.
-State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

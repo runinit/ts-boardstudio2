@@ -1,1 +1,0 @@
-{"scenario":"retains the exported contour without repeated repairs after a three millimetre key move","hashAssertions":"PASS","calls":7,"offsets":[{"distance":2,"inside":false},{"distance":1,"inside":false},{"distance":1,"inside":false},{"distance":2,"inside":true},{"distance":2,"inside":false},{"distance":2,"inside":false},{"distance":2,"inside":true}]}

@@ -1,9 +1,0 @@
-$ mocha -r test/helpers/register test/index.js
-
-
-  Native notched matrix outline performance
-    ✔ retains the explicit intersection ray when a strict bundle deletes repair options
-    ✔ retains the exported contour without repeated repairs after a three millimetre key move (4981ms)
-
-
-  2 passing (5s)

@@ -1,7 +1,0 @@
-Final browser QA cleanup receipt
-Timestamp: 2026-09-20T17:40:44-04:00
-Tested SHA: c096debd89cf8b77b0b9f30dad99467a37ee599d
-Port: 4184
-Port state after final-surface and routing runs: FREE
-Owned vite preview/playwright processes after both runs: NONE
-Fresh final screenshots: 3, total 188463 bytes
