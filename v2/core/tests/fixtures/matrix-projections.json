@@ -1,0 +1,1408 @@
+{
+  "sourceRevision": "7703d273d46e6716149928b38d97466e9abe60ef",
+  "source": "v2/app/src/ui/matrixGeometry.ts",
+  "cases": [
+    {
+      "name": "none-parametric",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": []
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 7.152894557070724,
+              "y": -1.5453054609622
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 22.04978505906163,
+              "y": 8.754337900421387
+            },
+            "rotation": 56
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": 30.187337507340697,
+              "y": 26.183630489379418
+            },
+            "rotation": 48
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": -2.4906897753223554,
+              "y": 12.596875460805938
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 7.705805221843793,
+              "y": 23.254346260056487
+            },
+            "rotation": 69
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": 18.89213668694272,
+              "y": 39.0451404484348
+            },
+            "rotation": 48
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": -16.465230486587537,
+              "y": 25.62423942705759
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": -7.79556755291987,
+              "y": 28.885282425368274
+            },
+            "rotation": 56
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": 3.434123790154512,
+              "y": 50.272332318298325
+            },
+            "rotation": 48
+          }
+        }
+      ]
+    },
+    {
+      "name": "none-legacy",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [
+          "legacy-a",
+          "matrix/fixture/r0c1",
+          "legacy-b",
+          "legacy-c",
+          "legacy-d",
+          "legacy-e",
+          "legacy-f",
+          "legacy-g"
+        ]
+      },
+      "parts": [
+        {
+          "id": "legacy-a",
+          "definitionId": "switch",
+          "reference": "S0",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "id": "matrix/fixture/r0c1",
+          "definitionId": "switch",
+          "reference": "S1",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "id": "legacy-b",
+          "definitionId": "switch",
+          "reference": "S2",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "id": "legacy-c",
+          "definitionId": "switch",
+          "reference": "S3",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "id": "legacy-d",
+          "definitionId": "switch",
+          "reference": "S4",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "id": "legacy-e",
+          "definitionId": "switch",
+          "reference": "S5",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "id": "legacy-f",
+          "definitionId": "switch",
+          "reference": "S6",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "id": "legacy-g",
+          "definitionId": "switch",
+          "reference": "S7",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-a",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-b",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-c",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 13.196494997166148,
+              "y": -4.342529200749453
+            },
+            "rotation": 69
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-d",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-e",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "legacy-f",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-g",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ]
+    },
+    {
+      "name": "x-parametric",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "mirror": "x",
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": []
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 5.559514408902528,
+              "y": -2.746003524967734
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": -8.447277744085048,
+              "y": -14.226847291129069
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": -27.444402536817808,
+              "y": -17.24500063536761
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": -5.376690322243779,
+              "y": 10.42211806007442
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": -18.431843696764613,
+              "y": 3.558215057274209
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": -36.69430012483046,
+              "y": -2.842244141859929
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": -14.047490851638443,
+              "y": 27.446136921067527
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": -19.57188954158316,
+              "y": 20.011187295496462
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": -43.225763821224604,
+              "y": 15.111585031402399
+            },
+            "rotation": 26
+          }
+        }
+      ]
+    },
+    {
+      "name": "x-legacy",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "mirror": "x",
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [
+          "legacy-a",
+          "matrix/fixture/r0c1",
+          "legacy-b",
+          "legacy-c",
+          "legacy-d",
+          "legacy-e",
+          "legacy-f",
+          "legacy-g"
+        ]
+      },
+      "parts": [
+        {
+          "id": "legacy-a",
+          "definitionId": "switch",
+          "reference": "S0",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "id": "matrix/fixture/r0c1",
+          "definitionId": "switch",
+          "reference": "S1",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "id": "legacy-b",
+          "definitionId": "switch",
+          "reference": "S2",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "id": "legacy-c",
+          "definitionId": "switch",
+          "reference": "S3",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "id": "legacy-d",
+          "definitionId": "switch",
+          "reference": "S4",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "id": "legacy-e",
+          "definitionId": "switch",
+          "reference": "S5",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "id": "legacy-f",
+          "definitionId": "switch",
+          "reference": "S6",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "id": "legacy-g",
+          "definitionId": "switch",
+          "reference": "S7",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-a",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-b",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-c",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": -10.055153374520835,
+              "y": -21.863903002800207
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-d",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-e",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "legacy-f",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-g",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ]
+    },
+    {
+      "name": "y-parametric",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "mirror": "y",
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": []
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 8.440485591097472,
+              "y": -3.253996475032266
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 22.447277744085046,
+              "y": 8.226847291129069
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": 41.444402536817805,
+              "y": 11.24500063536761
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": 19.37669032224378,
+              "y": -16.42211806007442
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 32.431843696764616,
+              "y": -9.558215057274209
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": 50.69430012483046,
+              "y": -3.157755858140071
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": 28.047490851638443,
+              "y": -33.44613692106753
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": 33.57188954158316,
+              "y": -26.011187295496462
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": 57.225763821224604,
+              "y": -21.1115850314024
+            },
+            "rotation": 26
+          }
+        }
+      ]
+    },
+    {
+      "name": "y-legacy",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "mirror": "y",
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [
+          "legacy-a",
+          "matrix/fixture/r0c1",
+          "legacy-b",
+          "legacy-c",
+          "legacy-d",
+          "legacy-e",
+          "legacy-f",
+          "legacy-g"
+        ]
+      },
+      "parts": [
+        {
+          "id": "legacy-a",
+          "definitionId": "switch",
+          "reference": "S0",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "id": "matrix/fixture/r0c1",
+          "definitionId": "switch",
+          "reference": "S1",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "id": "legacy-b",
+          "definitionId": "switch",
+          "reference": "S2",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "id": "legacy-c",
+          "definitionId": "switch",
+          "reference": "S3",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "id": "legacy-d",
+          "definitionId": "switch",
+          "reference": "S4",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "id": "legacy-e",
+          "definitionId": "switch",
+          "reference": "S5",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "id": "legacy-f",
+          "definitionId": "switch",
+          "reference": "S6",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "id": "legacy-g",
+          "definitionId": "switch",
+          "reference": "S7",
+          "side": "front",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-a",
+          "pose": {
+            "at": {
+              "x": 0,
+              "y": 0
+            },
+            "rotation": 0
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 20,
+              "y": 1
+            },
+            "rotation": 3
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-b",
+          "pose": {
+            "at": {
+              "x": 40,
+              "y": 2
+            },
+            "rotation": 6
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-c",
+          "pose": {
+            "at": {
+              "x": 3,
+              "y": -15
+            },
+            "rotation": 9
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 16.055153374520838,
+              "y": -8.136096997199788
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-d",
+          "pose": {
+            "at": {
+              "x": 42,
+              "y": -14
+            },
+            "rotation": 12
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "legacy-e",
+          "pose": {
+            "at": {
+              "x": 5,
+              "y": -31
+            },
+            "rotation": 15
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "legacy-f",
+          "pose": {
+            "at": {
+              "x": 25,
+              "y": -30
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "legacy-g",
+          "pose": {
+            "at": {
+              "x": 45,
+              "y": -29
+            },
+            "rotation": 21
+          }
+        }
+      ]
+    }
+  ]
+}

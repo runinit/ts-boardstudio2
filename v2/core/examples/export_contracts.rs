@@ -13,6 +13,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ($($type:ty),+ $(,)?) => { $(<$type>::export(&config)?;)+ };
     }
     export!(
+        ArchiveEntry,
+        ArchiveAssetBuffer,
+        ArchiveRequest,
+        ArchiveReply,
         Vec2,
         Vec3,
         Pose2,
@@ -72,6 +76,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Transform,
         BoardContours,
         BoardReadiness,
+        MatrixScene,
+        MatrixSceneCell,
+        MatrixColumnBasis,
         SceneDelta,
         CoreRequest,
         CoreReply,

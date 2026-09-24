@@ -1,3 +1,7 @@
+export type * from './ArchiveAssetBuffer';
+export type * from './ArchiveEntry';
+export type * from './ArchiveReply';
+export type * from './ArchiveRequest';
 export type * from './ArtifactDiagnostic';
 export type * from './ArtifactDiagnosticKind';
 export type * from './ArtifactError';
@@ -43,6 +47,9 @@ export type * from './Material';
 export type * from './Matrix';
 export type * from './MatrixAssembly';
 export type * from './MatrixCell';
+export type * from './MatrixColumnBasis';
+export type * from './MatrixScene';
+export type * from './MatrixSceneCell';
 export type * from './MatrixTerminals';
 export type * from './Mirror';
 export type * from './MirrorAxis';

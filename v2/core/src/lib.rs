@@ -1,3 +1,4 @@
+pub mod archive;
 pub mod artifact;
 mod case;
 mod constraints;
@@ -47,6 +48,38 @@ impl CoreEngine {
 #[wasm_bindgen]
 pub fn artifact_request(json: &str) -> String {
     artifact::request(json)
+}
+
+/// Archive payloads cross WASM as typed buffers, independently of JSON metadata.
+#[wasm_bindgen]
+pub fn archive_request(metadata: &str, buffers: js_sys::Array) -> js_sys::Array {
+    use wasm_bindgen::JsCast;
+    let inputs: Result<Vec<Vec<u8>>, _> = buffers
+        .iter()
+        .map(|value| {
+            value
+                .dyn_into::<js_sys::Uint8Array>()
+                .map(|bytes| bytes.to_vec())
+        })
+        .collect();
+    let (reply, outputs) = match inputs {
+        Ok(inputs) => archive::request(metadata, &inputs),
+        Err(_) => (
+            serde_json::to_string(&ArchiveReply::Error {
+                message: "Archive buffers must be Uint8Array values".into(),
+            })
+            .expect("archive error serializes"),
+            Vec::new(),
+        ),
+    };
+    let result = js_sys::Array::new();
+    result.push(&JsValue::from_str(&reply));
+    let encoded = js_sys::Array::new();
+    for bytes in outputs {
+        encoded.push(&js_sys::Uint8Array::from(bytes.as_slice()));
+    }
+    result.push(&encoded);
+    result
 }
 
 impl Default for CoreEngine {
@@ -111,6 +144,34 @@ impl CoreEngine {
                 &self.outline_cache,
                 SceneKind::Committed,
             ),
+            CoreRequest::ProjectMatrices {
+                id,
+                base_revision,
+                matrices,
+            } => {
+                if base_revision != self.document.revision {
+                    return self.error(id, "Stale base revision");
+                }
+                let mut scenes = Vec::with_capacity(matrices.len());
+                for matrix in matrices {
+                    if let Err(message) = matrix::valid_projection_matrix(&matrix) {
+                        return self.error(id, &message);
+                    }
+                    match matrix::project_matrix(
+                        &matrix,
+                        &self.document.parts,
+                        matrix::ProjectionMode::Draft,
+                    ) {
+                        Ok(scene) => scenes.push(scene),
+                        Err(message) => return self.error(id, &message),
+                    }
+                }
+                CoreReply::MatrixProjections {
+                    id,
+                    revision: self.document.revision,
+                    matrix_scenes: scenes,
+                }
+            }
         }
     }
 
@@ -372,6 +433,16 @@ impl CoreEngine {
                 .map(|part| Transform {
                     id: part.id.clone(),
                     pose: part.pose,
+                })
+                .collect(),
+            matrix_scenes: doc
+                .matrices
+                .iter()
+                .filter_map(|matrix| {
+                    if matrix::valid_matrix(matrix, doc).is_err() {
+                        return None;
+                    }
+                    matrix::project_matrix(matrix, &doc.parts, matrix::ProjectionMode::Actual).ok()
                 })
                 .collect(),
             contours: contours.to_vec(),
@@ -736,4 +807,37 @@ fn changed_ids(a: &ProjectDoc, b: &ProjectDoc) -> Vec<String> {
         ids.insert(feature.id().to_string());
     }
     ids.into_iter().collect()
+}
+
+#[cfg(test)]
+mod matrix_protocol_tests {
+    use super::*;
+    use serde_json::json;
+
+    fn draft(id: &str, rows: u64) -> serde_json::Value {
+        json!({ "id": id, "rows": rows, "columns": 2, "pitch": {"x": 19.0, "y": 19.0}, "origin": {"x": 0.0, "y": 0.0}, "definitionId": "missing", "partIds": [] })
+    }
+
+    #[test]
+    fn draft_request_is_stateless_and_invalid_batches_fail_atomically() {
+        let mut engine = CoreEngine::default();
+        let request = json!({ "kind": "project-matrices", "id": "p", "baseRevision": 0, "matrices": [draft("ok", 1)] });
+        let reply: CoreReply = serde_json::from_str(&engine.request(&request.to_string())).unwrap();
+        let CoreReply::MatrixProjections {
+            revision,
+            matrix_scenes,
+            ..
+        } = reply
+        else {
+            panic!("expected projections")
+        };
+        assert_eq!(revision, 0);
+        assert_eq!(matrix_scenes.len(), 1);
+        let invalid = json!({ "kind": "project-matrices", "id": "p2", "baseRevision": 0, "matrices": [draft("ok", 1), draft("bad", 0)] });
+        let reply: CoreReply = serde_json::from_str(&engine.request(&invalid.to_string())).unwrap();
+        assert!(matches!(reply, CoreReply::Error { .. }));
+        assert_eq!(engine.document.revision, 0);
+        assert!(engine.undo.is_empty());
+        assert!(engine.redo.is_empty());
+    }
 }

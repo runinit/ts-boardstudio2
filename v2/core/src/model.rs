@@ -1,6 +1,59 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ArchiveEntry {
+    pub path: String,
+    pub buffer_index: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ArchiveAssetBuffer {
+    pub sha256: String,
+    pub buffer_index: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum ArchiveRequest {
+    PackProject {
+        #[serde(rename = "projectJson")]
+        project_json: String,
+        #[serde(
+            rename = "archiveJson",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        #[cfg_attr(feature = "export-types", ts(optional))]
+        archive_json: Option<String>,
+        assets: Vec<ArchiveEntry>,
+    },
+    UnpackProject,
+    PackFiles {
+        entries: Vec<ArchiveEntry>,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum ArchiveReply {
+    Packed,
+    Unpacked {
+        #[serde(rename = "projectJson")]
+        project_json: String,
+        assets: Vec<ArchiveAssetBuffer>,
+    },
+    Error {
+        message: String,
+    },
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
@@ -827,6 +880,8 @@ pub struct SceneDelta {
     #[serde(rename = "changedIds")]
     pub changed_ids: Vec<String>,
     pub transforms: Vec<Transform>,
+    #[serde(rename = "matrixScenes")]
+    pub matrix_scenes: Vec<MatrixScene>,
     pub contours: Vec<Contour>,
     #[serde(rename = "boardContours")]
     pub board_contours: Vec<BoardContours>,
@@ -834,6 +889,37 @@ pub struct SceneDelta {
     pub board_readiness: Vec<BoardReadiness>,
     pub findings: Vec<Finding>,
     pub readiness: Readiness,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct MatrixScene {
+    #[serde(rename = "matrixId")]
+    pub matrix_id: String,
+    pub cells: Vec<MatrixSceneCell>,
+    pub columns: Vec<MatrixColumnBasis>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct MatrixSceneCell {
+    pub row: u32,
+    pub column: u32,
+    pub enabled: bool,
+    #[serde(rename = "memberId", skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub member_id: Option<String>,
+    pub pose: Pose2,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct MatrixColumnBasis {
+    pub column: u32,
+    #[serde(rename = "axisX")]
+    pub axis_x: Vec2,
+    #[serde(rename = "axisY")]
+    pub axis_y: Vec2,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
@@ -856,6 +942,13 @@ pub enum CoreRequest {
     Snapshot {
         id: String,
     },
+    #[serde(rename = "project-matrices")]
+    ProjectMatrices {
+        id: String,
+        #[serde(rename = "baseRevision")]
+        base_revision: u64,
+        matrices: Vec<Matrix>,
+    },
     #[serde(rename = "prepare-case")]
     PrepareCase {
         id: String,
@@ -874,6 +967,13 @@ pub enum CoreReply {
         id: String,
         scene: SceneDelta,
         document: ProjectDoc,
+    },
+    #[serde(rename = "matrix-projections")]
+    MatrixProjections {
+        id: String,
+        revision: u64,
+        #[serde(rename = "matrixScenes")]
+        matrix_scenes: Vec<MatrixScene>,
     },
     Error {
         id: String,

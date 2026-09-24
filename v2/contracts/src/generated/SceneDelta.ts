@@ -3,7 +3,8 @@ import type { BoardContours } from "./BoardContours";
 import type { BoardReadiness } from "./BoardReadiness";
 import type { Contour } from "./Contour";
 import type { Finding } from "./Finding";
+import type { MatrixScene } from "./MatrixScene";
 import type { Readiness } from "./Readiness";
 import type { Transform } from "./Transform";
 
-export type SceneDelta = { revision: number, transactionId: string, changedIds: Array<string>, transforms: Array<Transform>, contours: Array<Contour>, boardContours: Array<BoardContours>, boardReadiness: Array<BoardReadiness>, findings: Array<Finding>, readiness: Readiness, };
+export type SceneDelta = { revision: number, transactionId: string, changedIds: Array<string>, transforms: Array<Transform>, matrixScenes: Array<MatrixScene>, contours: Array<Contour>, boardContours: Array<BoardContours>, boardReadiness: Array<BoardReadiness>, findings: Array<Finding>, readiness: Readiness, };

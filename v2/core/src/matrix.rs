@@ -1,6 +1,6 @@
 use crate::model::{
-    DiodeDirection, Matrix, MatrixCell, Mirror, Net, OutlineFeature, Part, Pin, Pose2, ProjectDoc,
-    Side, Vec2,
+    DiodeDirection, Matrix, MatrixCell, MatrixColumnBasis, MatrixScene, MatrixSceneCell, Mirror,
+    Net, OutlineFeature, Part, Pin, Pose2, ProjectDoc, Side, Vec2,
 };
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
@@ -191,6 +191,9 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
             return Err("Matrix diode pads are missing".into());
         }
     }
+    if matrix.cells.len() > (matrix.rows * matrix.columns) as usize {
+        return Err("Matrix cells exceed dimensions".into());
+    }
     if matrix.row_offsets.len() > matrix.rows as usize
         || matrix.column_offsets.len() > matrix.columns as usize
         || matrix.column_staggers.len() > matrix.columns as usize
@@ -376,10 +379,383 @@ fn column_rotation(matrix: &Matrix, column: u32) -> f64 {
     }
 }
 
+fn column_basis(matrix: &Matrix, column: u32) -> MatrixColumnBasis {
+    let angle = matrix
+        .column_splays
+        .iter()
+        .take(column as usize + 1)
+        .sum::<f64>()
+        .to_radians();
+    let (sin, cos) = angle.sin_cos();
+    let reflect = |v: Vec2| match matrix.mirror {
+        Some(Mirror::X) => Vec2 { x: -v.x, y: v.y },
+        Some(Mirror::Y) => Vec2 { x: v.x, y: -v.y },
+        None | Some(Mirror::None) => v,
+    };
+    let rotate = |v: Vec2| {
+        let matrix_angle = matrix.rotation.unwrap_or(0.0).to_radians();
+        let (matrix_sin, matrix_cos) = matrix_angle.sin_cos();
+        Vec2 {
+            x: v.x * matrix_cos - v.y * matrix_sin,
+            y: v.x * matrix_sin + v.y * matrix_cos,
+        }
+    };
+    let axis_x = rotate(reflect(Vec2 { x: cos, y: sin }));
+    let axis_y = rotate(reflect(Vec2 { x: -sin, y: cos }));
+    MatrixColumnBasis {
+        column,
+        axis_x,
+        axis_y,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ProjectionMode {
+    Actual,
+    Draft,
+}
+
+pub(crate) fn valid_projection_matrix(matrix: &Matrix) -> Result<(), String> {
+    if matrix.id.is_empty() || matrix.rows == 0 || matrix.columns == 0 {
+        return Err("Matrix dimensions are invalid".into());
+    }
+    if matrix
+        .rows
+        .checked_mul(matrix.columns)
+        .is_none_or(|n| n > MAX_MATRIX_PARTS)
+    {
+        return Err("Matrix dimensions exceed the part limit".into());
+    }
+    if matrix.cells.len() > (matrix.rows * matrix.columns) as usize {
+        return Err("Matrix cells exceed dimensions".into());
+    }
+    if matrix.row_offsets.len() > matrix.rows as usize
+        || matrix.column_offsets.len() > matrix.columns as usize
+        || matrix.column_staggers.len() > matrix.columns as usize
+        || matrix.column_splays.len() > matrix.columns as usize
+    {
+        return Err("Matrix offsets exceed dimensions".into());
+    }
+    if !matrix.pitch.x.is_finite()
+        || !matrix.pitch.y.is_finite()
+        || matrix.pitch.x <= 0.0
+        || matrix.pitch.y <= 0.0
+        || !matrix.origin.x.is_finite()
+        || !matrix.origin.y.is_finite()
+        || matrix.rotation.is_some_and(|value| !value.is_finite())
+        || matrix
+            .row_offsets
+            .iter()
+            .chain(&matrix.column_offsets)
+            .any(|v| !v.x.is_finite() || !v.y.is_finite())
+        || matrix
+            .column_staggers
+            .iter()
+            .chain(&matrix.column_splays)
+            .any(|v| !v.is_finite())
+        || matrix.cells.iter().any(|cell| {
+            cell.row >= matrix.rows
+                || cell.column >= matrix.columns
+                || cell
+                    .offset
+                    .is_some_and(|v| !v.x.is_finite() || !v.y.is_finite())
+                || cell.rotation.is_some_and(|value| !value.is_finite())
+        })
+    {
+        return Err("Matrix contains non-finite geometry".into());
+    }
+    let mut coordinates = BTreeSet::new();
+    if matrix
+        .cells
+        .iter()
+        .any(|cell| !coordinates.insert((cell.row, cell.column)))
+    {
+        return Err("Matrix cell coordinate is invalid or duplicated".into());
+    }
+    Ok(())
+}
+
+pub(crate) fn project_matrix(
+    matrix: &Matrix,
+    parts: &[Part],
+    mode: ProjectionMode,
+) -> Result<MatrixScene, String> {
+    valid_projection_matrix(matrix)?;
+    let members = if mode == ProjectionMode::Actual {
+        cell_members(matrix)
+    } else {
+        BTreeMap::new()
+    };
+    let by_id: BTreeMap<_, _> = if mode == ProjectionMode::Actual {
+        parts.iter().map(|part| (part.id.as_str(), part)).collect()
+    } else {
+        BTreeMap::new()
+    };
+    let cells: BTreeMap<_, _> = matrix
+        .cells
+        .iter()
+        .map(|cell| ((cell.row, cell.column), cell))
+        .collect();
+    let mut projected = Vec::with_capacity((matrix.rows * matrix.columns) as usize);
+    for row in 0..matrix.rows {
+        for column in 0..matrix.columns {
+            let cell = cells.get(&(row, column)).copied();
+            let enabled = cell.is_none_or(|item| item.enabled);
+            let member_id = if enabled {
+                members.get(&(row, column)).cloned()
+            } else {
+                None
+            };
+            let mut pose = Pose2 {
+                at: location(matrix, row, column, cell),
+                rotation: matrix.rotation.unwrap_or(0.0)
+                    + column_rotation(matrix, column)
+                    + cell.and_then(|item| item.rotation).unwrap_or(0.0),
+            };
+            if mode == ProjectionMode::Actual {
+                if let Some(id) = member_id.as_deref().and_then(|id| by_id.get(id)) {
+                    pose = id.pose;
+                } else {
+                    let mut residuals: BTreeMap<u32, (u32, Vec2)> = BTreeMap::new();
+                    for ((saved_row, saved_column), saved_id) in &members {
+                        if saved_id.starts_with(&format!("matrix/{}/", matrix.id)) {
+                            continue;
+                        }
+                        let Some(part) = by_id.get(saved_id.as_str()) else {
+                            continue;
+                        };
+                        let distance = saved_column.abs_diff(column);
+                        if residuals
+                            .get(saved_row)
+                            .is_some_and(|(old, _)| *old <= distance)
+                        {
+                            continue;
+                        }
+                        let expected = location(
+                            matrix,
+                            *saved_row,
+                            *saved_column,
+                            cells.get(&(*saved_row, *saved_column)).copied(),
+                        );
+                        residuals.insert(
+                            *saved_row,
+                            (
+                                distance,
+                                Vec2 {
+                                    x: part.pose.at.x - expected.x,
+                                    y: part.pose.at.y - expected.y,
+                                },
+                            ),
+                        );
+                    }
+                    let mut nearest: Vec<u32> = residuals.keys().copied().collect();
+                    nearest.sort_by_key(|saved_row| (saved_row.abs_diff(row), *saved_row));
+                    if let Some(first) = nearest.first() {
+                        let mut residual = residuals[first].1;
+                        if nearest.len() > 1 && *first != row {
+                            let second = nearest[1];
+                            let t = (row as f64 - *first as f64) / (second as f64 - *first as f64);
+                            let other = residuals[&second].1;
+                            residual = Vec2 {
+                                x: residual.x + t * (other.x - residual.x),
+                                y: residual.y + t * (other.y - residual.y),
+                            };
+                        }
+                        pose.at.x += residual.x;
+                        pose.at.y += residual.y;
+                    }
+                }
+            }
+            if !pose.at.x.is_finite() || !pose.at.y.is_finite() || !pose.rotation.is_finite() {
+                return Err("Matrix projection exceeds finite geometry".into());
+            }
+            projected.push(MatrixSceneCell {
+                row,
+                column,
+                enabled,
+                member_id: if mode == ProjectionMode::Draft {
+                    None
+                } else {
+                    member_id
+                },
+                pose,
+            });
+        }
+    }
+    Ok(MatrixScene {
+        matrix_id: matrix.id.clone(),
+        cells: projected,
+        columns: (0..matrix.columns)
+            .map(|column| column_basis(matrix, column))
+            .collect(),
+    })
+}
+
 pub fn mark_override(part: &mut Part) {
     part.properties
         .get_or_insert_with(BTreeMap::new)
         .insert(OVERRIDE.into(), json!(1));
+}
+
+#[cfg(test)]
+mod projection_tests {
+    use super::*;
+
+    fn matrix() -> Matrix {
+        Matrix {
+            id: "m".into(),
+            name: None,
+            rows: 2,
+            columns: 3,
+            pitch: Vec2 { x: 19.0, y: 19.0 },
+            origin: Vec2 { x: 0.0, y: 0.0 },
+            definition_id: "missing".into(),
+            part_ids: vec!["legacy-0".into(), "matrix/m/r0c1".into(), "legacy-1".into()],
+            board_id: None,
+            mirror: Some(Mirror::X),
+            rotation: Some(10.0),
+            edge_gap: None,
+            diodes: None,
+            diode_direction: None,
+            row_offsets: vec![],
+            column_offsets: vec![],
+            column_staggers: vec![0.0, 3.0],
+            column_splays: vec![0.0, 15.0],
+            cells: vec![MatrixCell {
+                row: 1,
+                column: 1,
+                enabled: false,
+                diode: None,
+                definition_id: None,
+                variant: None,
+                offset: Some(Vec2 { x: 2.0, y: -1.0 }),
+                rotation: Some(7.0),
+                assemblies: vec![],
+            }],
+        }
+    }
+
+    fn part(id: &str, x: f64, y: f64) -> Part {
+        Part {
+            keycap: None,
+            outline: None,
+            id: id.into(),
+            definition_id: "missing".into(),
+            reference: id.into(),
+            pose: Pose2 {
+                at: Vec2 { x, y },
+                rotation: 33.0,
+            },
+            side: Side::Front,
+            locked: None,
+            properties: None,
+            generator_parameters: None,
+        }
+    }
+
+    #[test]
+    fn draft_is_geometry_only_and_contains_row_major_disabled_cells() {
+        let scene = project_matrix(&matrix(), &[], ProjectionMode::Draft).unwrap();
+        assert_eq!(scene.cells.len(), 6);
+        assert!(scene.cells.iter().all(|cell| cell.member_id.is_none()));
+        assert!(!scene.cells[4].enabled);
+        assert_eq!(scene.cells[0].row, 0);
+        assert_eq!(scene.cells[5].column, 2);
+    }
+
+    #[test]
+    fn actual_projection_prefers_saved_pose_and_interpolates_legacy_residuals() {
+        let m = matrix();
+        let parts = vec![
+            part("legacy-0", 100.0, 10.0),
+            part("legacy-1", 100.0, 30.0),
+            part("matrix/m/r0c1", 55.0, 66.0),
+        ];
+        let scene = project_matrix(&m, &parts, ProjectionMode::Actual).unwrap();
+        assert_eq!(scene.cells[1].pose, parts[2].pose);
+        assert_eq!(scene.cells[0].member_id.as_deref(), Some("legacy-0"));
+        assert_eq!(scene.cells[2].member_id.as_deref(), Some("legacy-1"));
+        assert!(scene.cells[4].member_id.is_none());
+        assert!(scene.cells[4].pose.at.x.is_finite());
+    }
+
+    #[test]
+    fn projection_enforces_geometry_validation_at_its_boundary() {
+        let mut m = matrix();
+        m.cells.push(m.cells[0].clone());
+        assert!(project_matrix(&m, &[], ProjectionMode::Draft).is_err());
+        m.cells.clear();
+        m.pitch.x = f64::NAN;
+        assert!(project_matrix(&m, &[], ProjectionMode::Actual).is_err());
+    }
+
+    #[test]
+    fn projections_match_captured_typescript_behavior() {
+        let fixtures: serde_json::Value =
+            serde_json::from_str(include_str!("../tests/fixtures/matrix-projections.json"))
+                .unwrap();
+        for fixture in fixtures["cases"].as_array().unwrap() {
+            let matrix = serde_json::from_value(fixture["matrix"].clone()).unwrap();
+            let parts: Vec<Part> = serde_json::from_value(fixture["parts"].clone()).unwrap();
+            let expected: Vec<MatrixSceneCell> =
+                serde_json::from_value(fixture["expected"].clone()).unwrap();
+            let scene = project_matrix(&matrix, &parts, ProjectionMode::Actual).unwrap();
+            assert_eq!(scene.cells.len(), expected.len());
+            for (actual, expected) in scene.cells.iter().zip(expected) {
+                assert_eq!(
+                    (actual.row, actual.column, actual.enabled, &actual.member_id),
+                    (
+                        expected.row,
+                        expected.column,
+                        expected.enabled,
+                        &expected.member_id
+                    )
+                );
+                assert!(
+                    (actual.pose.at.x - expected.pose.at.x).abs() < 1e-9,
+                    "{} x",
+                    fixture["name"]
+                );
+                assert!(
+                    (actual.pose.at.y - expected.pose.at.y).abs() < 1e-9,
+                    "{} y",
+                    fixture["name"]
+                );
+                assert!(
+                    (actual.pose.rotation - expected.pose.rotation).abs() < 1e-9,
+                    "{} rotation",
+                    fixture["name"]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn projection_rejects_invalid_draft_geometry() {
+        let mut m = matrix();
+        m.rows = 0;
+        assert!(valid_projection_matrix(&m).is_err());
+        m.rows = 2;
+        m.pitch.x = f64::NAN;
+        assert!(valid_projection_matrix(&m).is_err());
+    }
+
+    #[test]
+    fn column_basis_applies_splay_mirror_and_matrix_rotation() {
+        let mut m = matrix();
+        m.column_splays = vec![0.0];
+        m.rotation = Some(90.0);
+        m.mirror = None;
+        let scene = project_matrix(&m, &[], ProjectionMode::Draft).unwrap();
+        assert!((scene.columns[0].axis_x.x).abs() < 1e-9);
+        assert!((scene.columns[0].axis_x.y - 1.0).abs() < 1e-9);
+        m.mirror = Some(Mirror::X);
+        let scene = project_matrix(&m, &[], ProjectionMode::Draft).unwrap();
+        assert!((scene.columns[0].axis_x.y + 1.0).abs() < 1e-9);
+        let determinant = scene.columns[0].axis_x.x * scene.columns[0].axis_y.y
+            - scene.columns[0].axis_x.y * scene.columns[0].axis_y.x;
+        assert!((determinant + 1.0).abs() < 1e-9);
+    }
 }
 
 pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>, String> {
