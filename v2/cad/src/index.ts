@@ -1,13 +1,8 @@
-import type { CaseAssemblyIR, CaseIR, CaseResult, Contour, Vec2 } from '@boardstudio/v2-contracts';
+import type { CaseResult, PreparedCaseAssemblyIR, PreparedCaseIR, PreparedCaseRegion, Vec2 } from '@boardstudio/v2-contracts';
 import type { OpenCascadeInstance, TopoDS_Shape } from 'libcascade';
-import ClipperLib from 'clipper-lib';
 
 const MESH_DEFLECTION_MM = 0.1;
 const MESH_ANGLE_RAD = 0.5;
-const EPSILON = 1e-7;
-const CLIPPER_SCALE = 1_000;
-const CLIPPER_MITER_LIMIT = 4;
-const MAX_CLIPPER_COORD = 1_000_000_000;
 const MAX_STEP_BYTES = 32 * 1024 * 1024;
 
 let instance: Promise<OpenCascadeInstance> | undefined;
@@ -31,86 +26,6 @@ async function getKernel(): Promise<OpenCascadeInstance> {
   }
 
   return instance;
-}
-
-function signedArea(points: Vec2[]): number {
-  let area = 0;
-  for (let i = 0; i < points.length; i++) {
-    const a = points[i];
-    const b = points[(i + 1) % points.length];
-    area += a.x * b.y - b.x * a.y;
-  }
-  return area / 2;
-}
-
-function cleanPoints(contour: Contour): Vec2[] {
-  const points = contour.points.filter((point, index) => {
-    const prev = contour.points[(index + contour.points.length - 1) % contour.points.length];
-    return Math.hypot(point.x - prev.x, point.y - prev.y) > EPSILON;
-  });
-  if (points.length < 3 || Math.abs(signedArea(points)) < EPSILON) {
-    throw new Error('Case contour has fewer than three non-collinear points');
-  }
-  if (points.some((point) => !Number.isFinite(point.x) || !Number.isFinite(point.y))) {
-    throw new Error('Case contour contains a non-finite coordinate');
-  }
-  return points;
-}
-
-function contains(points: Vec2[], point: Vec2): boolean {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const a = points[i];
-    const b = points[j];
-    if ((a.y > point.y) !== (b.y > point.y)) {
-      const crossing = ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x;
-      if (point.x < crossing) {
-        inside = !inside;
-      }
-    }
-  }
-  return inside;
-}
-
-type Ring = { hole: boolean; points: Vec2[] };
-
-function offsetContours(contours: Ring[], distance: number): Ring[] {
-  if (distance === 0) {
-    return contours;
-  }
-
-  const offset = new ClipperLib.ClipperOffset(CLIPPER_MITER_LIMIT);
-  for (const contour of contours) {
-    // Clipper uses opposite winding for holes; one offset then preserves topology.
-    const ordered = signedArea(contour.points) * (contour.hole ? -1 : 1) > 0
-      ? contour.points : [...contour.points].reverse();
-    const path = ordered.map((point) => {
-      const x = Math.round(point.x * CLIPPER_SCALE);
-      const y = Math.round(point.y * CLIPPER_SCALE);
-      if (Math.abs(x) > MAX_CLIPPER_COORD || Math.abs(y) > MAX_CLIPPER_COORD) {
-        throw new Error('Case coordinate exceeds the offset range');
-      }
-      return { X: x, Y: y };
-    });
-    offset.AddPath(path, ClipperLib.JoinType.jtMiter, ClipperLib.EndType.etClosedPolygon);
-  }
-
-  const tree = new ClipperLib.PolyTree();
-  offset.Execute(tree, distance * CLIPPER_SCALE);
-  const rings: Ring[] = [];
-  const visit = (node: ClipperLib.PolyNode): void => {
-    for (const child of node.Childs()) {
-      const points = child.Contour().map((point) => ({
-        x: point.X / CLIPPER_SCALE, y: point.Y / CLIPPER_SCALE,
-      }));
-      if (points.length >= 3) {
-        rings.push({ hole: child.IsHole(), points });
-      }
-      visit(child);
-    }
-  };
-  visit(tree);
-  return rings;
 }
 
 function makePrism(oc: OpenCascadeInstance, points: Vec2[], z: number, depth: number): TopoDS_Shape {
@@ -159,77 +74,45 @@ function fuseShape(oc: OpenCascadeInstance, shape: TopoDS_Shape, tool: TopoDS_Sh
   return fuse.Shape();
 }
 
-function makeShape(oc: OpenCascadeInstance, ir: CaseIR): TopoDS_Shape {
-  const rings = offsetContours(ir.contours.map((contour) => ({
-    hole: contour.hole,
-    points: cleanPoints(contour),
-  })), ir.body.clearance);
-  const outers = rings.filter((ring) => !ring.hole);
-  const holes = rings.filter((ring) => ring.hole);
-  if (outers.length === 0) {
-    throw new Error('Case requires at least one outer contour');
-  }
-
-  using builder = new oc.BRep_Builder();
-  const compound = new oc.TopoDS_Compound();
-  builder.MakeCompound(compound);
-
-  const body = ir.body;
+function makeRegion(oc: OpenCascadeInstance, body: PreparedCaseIR['body'], region: PreparedCaseRegion): TopoDS_Shape {
+  const { outer, holes } = region;
+  let shape = makePrism(oc, outer, body.z ?? 0, body.thickness + (body.kind === 'plate' ? 0 : body.wallHeight ?? 0));
   const baseZ = body.z ?? 0;
   const wallHeight = body.kind === 'plate' ? 0 : body.wallHeight ?? 0;
   const totalHeight = body.thickness + wallHeight;
 
-  for (const outer of outers) {
-    let shape = makePrism(oc, outer.points, baseZ, totalHeight);
-    for (const hole of holes) {
-      if (!contains(outer.points, hole.points[0])) {
-        continue;
-      }
-      const tool = makePrism(oc, hole.points, baseZ, totalHeight);
-      shape = cutShape(oc, shape, tool);
-    }
-
-    if (body.kind !== 'plate') {
-      const wall = body.wallThickness!;
-      const cavityZ = body.kind === 'tray' ? baseZ + body.thickness : baseZ;
-      const cavities = offsetContours([{ hole: false, points: outer.points }], -wall);
-      for (const cavity of cavities.filter((ring) => !ring.hole)) {
-        shape = cutShape(oc, shape, makePrism(oc, cavity.points, cavityZ, wallHeight));
-      }
-
-      if (body.gasket) {
-        const { inset, width, depth } = body.gasket;
-        const grooveOuters = offsetContours([{ hole: false, points: outer.points }], -inset);
-        const grooveInners = offsetContours([{ hole: false, points: outer.points }], -(inset + width));
-        const grooveZ = body.kind === 'tray' ? baseZ + totalHeight - depth : baseZ;
-        for (const grooveOuter of grooveOuters.filter((ring) => !ring.hole)) {
-          let groove = makePrism(oc, grooveOuter.points, grooveZ, depth);
-          for (const grooveInner of grooveInners.filter((ring) => !ring.hole)) {
-            if (contains(grooveOuter.points, grooveInner.points[0])) {
-              groove = cutShape(oc, groove, makePrism(oc, grooveInner.points, grooveZ, depth));
-            }
-          }
-          shape = cutShape(oc, shape, groove);
-        }
-      }
-    }
-
-    for (const mount of body.mounts ?? []) {
-      if (!contains(outer.points, mount.at)) {
-        continue;
-      }
-      if (mount.kind === 'boss') {
-        const bossZ = body.kind === 'lid'
-          ? baseZ + wallHeight - mount.height!
-          : baseZ + body.thickness;
-        shape = fuseShape(oc, shape, makeCylinder(oc, mount.at, bossZ, mount.bossDiameter!, mount.height!));
-      }
-      shape = cutShape(oc, shape, makeCylinder(oc, mount.at, baseZ, mount.holeDiameter, totalHeight));
-    }
-    builder.Add(compound, shape);
+  for (const hole of holes) {
+    shape = cutShape(oc, shape, makePrism(oc, hole, baseZ, totalHeight));
   }
 
-  return compound;
+  if (body.kind !== 'plate') {
+    const cavityZ = body.kind === 'tray' ? baseZ + body.thickness : baseZ;
+    for (const cavity of region.cavities) {
+      shape = cutShape(oc, shape, makePrism(oc, cavity, cavityZ, wallHeight));
+    }
+
+    for (const gasket of region.gaskets) {
+      const depth = body.gasket!.depth;
+      const grooveZ = body.kind === 'tray' ? baseZ + totalHeight - depth : baseZ;
+      let groove = makePrism(oc, gasket.outer, grooveZ, depth);
+      for (const hole of gasket.holes) {
+        groove = cutShape(oc, groove, makePrism(oc, hole, grooveZ, depth));
+      }
+      shape = cutShape(oc, shape, groove);
+    }
+  }
+
+  for (const mount of region.mounts) {
+    if (mount.kind === 'boss') {
+      const bossZ = body.kind === 'lid'
+        ? baseZ + wallHeight - mount.height!
+        : baseZ + body.thickness;
+      shape = fuseShape(oc, shape, makeCylinder(oc, mount.at, bossZ, mount.bossDiameter!, mount.height!));
+    }
+    shape = cutShape(oc, shape, makeCylinder(oc, mount.at, baseZ, mount.holeDiameter, totalHeight));
+  }
+
+  return shape;
 }
 
 function writeStep(oc: OpenCascadeInstance, shape: TopoDS_Shape, path: string): Uint8Array {
@@ -272,47 +155,17 @@ function readMesh(oc: OpenCascadeInstance, shape: TopoDS_Shape, path: string): C
   return { positions: new Float32Array(positions), normals: new Float32Array(normals) };
 }
 
-function validateCase(ir: CaseIR): void {
-  if (!Number.isFinite(ir.body.thickness) || ir.body.thickness <= 0) {
-    throw new Error('Case thickness must be positive');
-  }
-  if (!Number.isFinite(ir.body.clearance) || ir.body.clearance < 0) {
-    throw new Error('Case clearance must be non-negative');
-  }
-  if (ir.body.kind !== 'plate') {
-    const { wallHeight, wallThickness, gasket } = ir.body;
-    if (!wallHeight || !wallThickness || wallHeight <= 0 || wallThickness <= 0) {
-      throw new Error('Tray and lid require positive wall height and thickness');
-    }
-    if (gasket && (
-      gasket.inset < 0 || gasket.width <= 0 || gasket.depth <= 0 ||
-      gasket.inset + gasket.width >= wallThickness || gasket.depth >= wallHeight
-    )) {
-      throw new Error('Gasket groove must fit within the wall rim');
-    }
-  }
-  for (const mount of ir.body.mounts ?? []) {
-    if (!Number.isFinite(mount.holeDiameter) || mount.holeDiameter <= 0) {
-      throw new Error('Mount hole diameter must be positive');
-    }
-    if (mount.kind === 'boss' && (
-      !mount.bossDiameter || !mount.height ||
-      mount.bossDiameter <= mount.holeDiameter || mount.height <= 0
-    )) {
-      throw new Error('Boss diameter and height must exceed its hole and zero');
-    }
-  }
-}
-
-function makeAssembly(oc: OpenCascadeInstance, ir: CaseAssemblyIR): TopoDS_Shape {
+function makeAssembly(oc: OpenCascadeInstance, ir: PreparedCaseAssemblyIR): TopoDS_Shape {
   using builder = new oc.BRep_Builder();
   const compound = new oc.TopoDS_Compound();
   builder.MakeCompound(compound);
 
   try {
     for (const body of ir.bodies) {
-      using shape = makeShape(oc, body);
-      builder.Add(compound, shape);
+      for (const region of body.regions) {
+        using shape = makeRegion(oc, body.body, region);
+        builder.Add(compound, shape);
+      }
     }
     return compound;
   } catch (error) {
@@ -343,23 +196,28 @@ function exportShape(oc: OpenCascadeInstance, shape: TopoDS_Shape, revision: num
 }
 
 /** Builds one revisioned case body; call from a dedicated CAD worker. */
-export async function buildCase(ir: CaseIR): Promise<CaseResult> {
-  validateCase(ir);
+export async function buildCase(ir: PreparedCaseIR): Promise<CaseResult> {
+  if (ir.regions.length === 0) throw new Error('Case requires at least one prepared region');
   const oc = await getKernel();
-  const shape = makeShape(oc, ir);
+  using builder = new oc.BRep_Builder();
+  const compound = new oc.TopoDS_Compound();
+  builder.MakeCompound(compound);
+  for (const region of ir.regions) {
+    using shape = makeRegion(oc, ir.body, region);
+    builder.Add(compound, shape);
+  }
+  const shape = compound;
   return exportShape(oc, shape, ir.revision);
 }
 
 /** Exports all bodies as one STEP compound and one combined mesh. */
-export async function buildAssembly(ir: CaseAssemblyIR): Promise<CaseResult> {
+export async function buildAssembly(ir: PreparedCaseAssemblyIR): Promise<CaseResult> {
   if (ir.bodies.length === 0) {
     throw new Error('Case assembly requires at least one body');
   }
   for (const body of ir.bodies) {
-    if (body.revision !== ir.revision) {
-      throw new Error('Case assembly contains a stale body revision');
-    }
-    validateCase(body);
+    if (body.revision !== ir.revision) throw new Error('Case assembly contains a stale body revision');
+    if (body.regions.length === 0) throw new Error('Case requires at least one prepared region');
   }
   const oc = await getKernel();
   const shape = makeAssembly(oc, ir);

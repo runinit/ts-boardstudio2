@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
-import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
-import { builtinDefinitions, importFootprint } from '@boardstudio/v2-kicad';
+import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, FootprintCompileJob, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
+import { builtinDefinitions } from '@boardstudio/v2-kicad';
 import { catalogue as ergogenCatalogue, isErgogen, modelBindings, normalizeDefinition } from '@boardstudio/v2-ergogen';
 import type { StepModel } from '@boardstudio/v2-cad';
 import { CoreClient } from './CoreClient';
 import { CaseClient } from './CaseClient';
+import { buildCasePreview } from './buildCasePreview';
+import { prepareCase } from './prepareCase';
 import { ExportClient } from './ExportClient';
 import { demoProject } from './demo';
-import { outlineDxf, outlineSvg } from './outlineExport';
 import { activeProjectId, loadAsset, loadProject, packProject, saveAsset, saveProject, unpackProject } from './storage';
 import { bundledModelBytes, bundledModel } from './bundledModels';
 import { Workbench, matrixWithPreset } from './ui/Workbench';
@@ -129,6 +130,7 @@ function App() {
   const queue = useRef<Promise<void>>(Promise.resolve());
 
   async function accept(reply: CoreReply, mode: 'open' | 'commit' | 'preview'): Promise<void> {
+    if (reply.kind === 'case-prepared') return;
     if (reply.kind === 'error') {
       throw new Error(reply.message);
     }
@@ -212,13 +214,10 @@ function App() {
       const ir = caseAssembly(project, scene, selectedBoardId);
 
       try {
-        const result = await caseClient.current.request(ir);
-
-        if (sequence !== caseSeq.current) {
-          return;
+        const result = await buildCasePreview(client.current!, caseClient.current, ir, () => sequence === caseSeq.current);
+        if (result && sequence === caseSeq.current) {
+          setCasePreview(result);
         }
-
-        setCasePreview(result);
       } catch (cause) {
         if (sequence === caseSeq.current) {
           setError(String(cause));
@@ -474,7 +473,10 @@ function App() {
         throw new Error('Select a .kicad_mod footprint');
       }
 
-      const definition = importFootprint(await file.text(), crypto.randomUUID());
+      exportClient.current ??= new ExportClient();
+      const imported = await exportClient.current.artifact({ kind: 'import-footprint', definitionId: crypto.randomUUID(), source: await file.text() });
+      if (imported.kind !== 'import-footprint') throw new Error('Expected Rust footprint import');
+      const definition = { ...imported.result.definition, pads: imported.result.geometry.pads, courtyard: imported.result.geometry.courtyard };
       const current = projectRef.current;
       const document: ProjectDoc = {
         ...current,
@@ -603,9 +605,9 @@ function App() {
         }
 
         const contours = resolved.boardContours.find((entry) => entry.boardId === board.id)?.contours ?? [];
-        const content = kind === 'svg' ? outlineSvg(contours) : outlineDxf(contours);
-
-        download(`${document.name}.${kind}`, content, kind === 'svg' ? 'image/svg+xml' : 'application/dxf');
+        exportClient.current ??= new ExportClient();
+        const result = await exportClient.current.request({ kind: 'outline', document, boardId: board.id, contours, outlineFormat: kind, paths: [], files: {} });
+        download(result.filename, result.bytes, result.mediaType);
         return;
       }
 
@@ -615,7 +617,8 @@ function App() {
         }
 
         caseClient.current ??= new CaseClient();
-        const result = await caseClient.current.request(caseAssembly(document, resolved, board.id));
+        const prepared = await prepareCase(client.current!, caseAssembly(document, resolved, board.id));
+        const result = await caseClient.current.request(prepared);
         const boardSuffix = document.boards.length === 1 ? '' : `-${board.name.replace(/[^a-zA-Z0-9_.-]+/g, '_')}`;
 
         download(`${document.name}${boardSuffix}-case.step`, result.step, 'model/step');
@@ -638,6 +641,11 @@ function App() {
     });
   }
 
+  const compileFootprints = useCallback(async (jobs: FootprintCompileJob[]) => {
+    exportClient.current ??= new ExportClient();
+    return exportClient.current.compile(jobs);
+  }, []);
+
   if (!ready) {
     return <div className="boot-status">Opening Board Studio…</div>;
   }
@@ -658,6 +666,7 @@ function App() {
       onUndo={() => history('undo')}
       onRedo={() => history('redo')}
       onExport={exportFile}
+      compileFootprints={compileFootprints}
       embedUsedModels={embedUsedModels}
       onEmbedUsedModelsChange={setEmbedUsedModels}
       selectedBoardId={selectedBoardId}

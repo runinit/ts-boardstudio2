@@ -11,6 +11,20 @@ type ComponentPreview = {
   model: { offset: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number }; scale: { x: number; y: number; z: number } };
   mesh: { positions: Float32Array; normals: Float32Array };
 };
+
+export function componentSideScale(side: 'front' | 'back'): [number, number, number] {
+  return side === 'back' ? [-1, 1, -1] : [1, 1, 1];
+}
+
+export function componentSideSvgTransform(side: 'front' | 'back'): string {
+  return side === 'back' ? 'scale(-1 1)' : '';
+}
+
+export function componentPoseSvgTransform(at: { x: number; y: number }, rotation: number, side: 'front' | 'back'): string {
+  const pose = `translate(${at.x} ${at.y}) rotate(${rotation})`;
+  const sideTransform = componentSideSvgTransform(side);
+  return sideTransform ? `${pose} ${sideTransform}` : pose;
+}
 type Controls = OrbitControls;
 const emptyPreviews: ComponentPreview[] = [];
 
@@ -117,7 +131,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         partGroup.rotation.z = THREE.MathUtils.degToRad(component.pose.rotation);
 
         const sideGroup = new THREE.Group();
-        if (component.side === 'back') sideGroup.scale.z = -1;
+        sideGroup.scale.set(...componentSideScale(component.side));
         partGroup.add(sideGroup);
 
         const modelGroup = new THREE.Group();

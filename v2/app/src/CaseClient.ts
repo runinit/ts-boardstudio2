@@ -1,4 +1,4 @@
-import type { CaseAssemblyIR, CaseResult } from '@boardstudio/v2-contracts';
+import type { CaseResult, PreparedCaseAssemblyIR } from '@boardstudio/v2-contracts';
 import type { StepModel } from '@boardstudio/v2-cad';
 
 type CaseReply =
@@ -44,7 +44,7 @@ export class CaseClient {
     return worker;
   }
 
-  request(ir: CaseAssemblyIR): Promise<CaseResult> {
+  request(ir: PreparedCaseAssemblyIR): Promise<CaseResult> {
     const id = crypto.randomUUID();
 
     return new Promise((resolve, reject) => {

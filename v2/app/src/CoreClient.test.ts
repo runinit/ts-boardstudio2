@@ -56,6 +56,10 @@ test('restores the committed document after a preview crashes the worker', async
   workers[0].reply({ id: 'open', kind: 'scene', scene, document: committed });
   await opening;
 
+  const preparing = client.request({ id: 'prepare', kind: 'prepare-case', ir: { revision: 0, bodies: [] } });
+  workers[0].reply({ id: 'prepare', kind: 'case-prepared', ir: { revision: 0, bodies: [] } });
+  await preparing;
+
   const pending = client.request({
     id: 'preview',
     kind: 'edit',

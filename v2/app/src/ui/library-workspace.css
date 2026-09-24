@@ -10,9 +10,6 @@
 .wb-library-model-workspace > p { align-self: center; margin: auto; color: var(--wb-muted); }
 .wb-library-model-workspace > button { align-self: flex-end; }
 .wb-library-workspace-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--wb-muted); font-size: 12px; }
-.wb-generator-number { display: grid; gap: 4px; }
-.wb-generator-number input { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--wb-rule); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font-size: 11px; }
-.wb-generator-number input:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
 .wb-generator-json { display: grid; gap: 4px; }
 .wb-generator-json textarea { width: 100%; min-height: 72px; resize: vertical; padding: 7px 8px; border: 1px solid var(--wb-rule); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font: 10px/1.5 var(--wb-mono); }
 .wb-generator-json textarea:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
@@ -43,16 +40,13 @@
 .wb-parts-catalog [role='option']:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: -2px; }
 
 .wb-library-workspace-geometry .wb-preview-drill.is-mechanical { stroke: var(--wb-geometry-outline); stroke-width: .1; }
-.wb-ergogen-line { fill: none; stroke: var(--wb-preview-line, #527d76); stroke-width: .22; vector-effect: non-scaling-stroke; }
-.wb-ergogen-zone { fill: rgba(91, 143, 132, .12); stroke: #5b8f84; stroke-width: .22; stroke-dasharray: .7 .45; vector-effect: non-scaling-stroke; }
-.wb-ergogen-keepout { fill: rgba(191, 91, 91, .1); stroke: #bf5b5b; stroke-width: .28; stroke-dasharray: .5 .35; vector-effect: non-scaling-stroke; }
-.wb-ergogen-text { fill: #a67bc5; font-size: 1.4px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.wb-ergogen-line { fill: none; stroke: var(--wb-geometry-graphic); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.wb-ergogen-zone { fill: var(--wb-geometry-zone); stroke: var(--wb-geometry-graphic); stroke-width: 1; stroke-dasharray: .7 .45; vector-effect: non-scaling-stroke; }
+.wb-ergogen-keepout { fill: color-mix(in srgb, var(--wb-status-error) 10%, transparent); stroke: var(--wb-status-error); stroke-width: 1; stroke-dasharray: .5 .35; vector-effect: non-scaling-stroke; }
+.wb-ergogen-text { fill: var(--wb-geometry-text); font-size: 1.4px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 
 .wb-generator-settings { min-width: 0; margin: 12px 0; padding: 0; border: 0; }
 .wb-generator-settings > legend { padding: 0; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
-.wb-generator-group { border-top: 1px solid var(--wb-rule); }
-.wb-generator-group > summary { padding: 13px 0; font-size: 12px; font-weight: 600; cursor: pointer; }
-.wb-generator-group > summary:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 2px; }
 .wb-generator-fields { display: grid; gap: 12px; padding: 2px 0 16px; min-width: 0; }
 .wb-generator-fields.is-dimensions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .wb-generator-field { display: grid; gap: 6px; min-width: 0; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
@@ -69,3 +63,5 @@
 .wb-library-model-workspace { position: relative; min-height: 0; }
 .wb-library-model-workspace .wb-case-preview { position: relative; }
 .wb-library-model-workspace .wb-case-preview-label, .wb-library-model-workspace .wb-case-preview-disclaimer { display: none; }
+
+.wb-library-workspace-geometry .wb-preview-keycap { stroke: var(--wb-geometry-key); }

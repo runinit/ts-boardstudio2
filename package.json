@@ -23,7 +23,12 @@
     "build:v2": "pnpm --dir v2/ergogen prepare:catalog && pnpm run build:core && pnpm --dir v2/app build",
     "test:v2": "cargo test --manifest-path v2/core/Cargo.toml && pnpm --dir v2/ergogen test && pnpm --dir v2/kicad test && pnpm --dir v2/cad test && pnpm --dir v2/app test",
     "test:perf:v2": "pnpm run build:v2 && pnpm --dir v2/app test:perf",
-    "check:v2": "pnpm run test:v2 && pnpm run build:v2 && pnpm --dir v2/app test:e2e"
+    "generate:contracts:v2": "node v2/contracts/scripts/contracts.mjs generate",
+    "check:contracts:v2": "node v2/contracts/scripts/contracts.mjs check",
+    "test:contracts:v2": "node v2/contracts/test/runtime-import.test.mjs",
+    "generate:catalogue:v2": "node v2/kicad/scripts/catalog.mjs generate",
+    "check:catalogue:v2": "node v2/kicad/scripts/catalog.mjs check",
+    "check:v2": "pnpm run check:contracts:v2 && pnpm run check:catalogue:v2 && pnpm run test:contracts:v2 && pnpm run test:v2 && pnpm run build:v2 && pnpm --dir v2/app test:e2e"
   },
   "workspaces": [
     "app",

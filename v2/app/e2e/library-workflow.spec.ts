@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { configureMatrix } from './matrix-setup';
 import { buildCase } from '../../cad/src/index';
+import { prepareCase } from '../../cad/test/native-prepare.mjs';
 
 test('Parts uses a searchable categorized catalogue and a selected component inspector', async ({ page }) => {
   await page.goto('/');
@@ -11,7 +12,8 @@ test('Parts uses a searchable categorized catalogue and a selected component ins
   await catalog.getByRole('searchbox').fill('RGB');
   await catalog.getByRole('option', { name: /RGB LED/ }).click();
   await expect(page.getByRole('complementary', { name: 'Parts inspector' }).getByRole('heading', { name: 'RGB LED', exact: true })).toBeVisible();
-  await expect(page.getByRole('textbox', { name: 'Definition name' })).toHaveValue('RGB LED');
+  await expect(page.getByRole('textbox', { name: 'Definition name' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Place component', exact: true })).toBeVisible();
   await expect(page.locator('.wb-canvas-footer')).toHaveCount(0);
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText(/No 3D model attached. Import/)).toBeVisible();
@@ -39,6 +41,7 @@ test('matrix creation asks for dimensions and deletion removes its container wit
   await name.fill('Thumb cluster');
   await name.press('Enter');
   await expect(page.getByRole('treeitem', { name: 'Thumb cluster 6 keys', exact: true })).toBeVisible();
+  await page.locator('summary').filter({ hasText: 'Matrix actions' }).click();
   await page.getByRole('button', { name: 'Delete matrix', exact: true }).click();
   await expect(page.getByRole('treeitem', { name: /Thumb cluster/ })).toHaveCount(0);
   await expect(page.locator('.wb-scene-part')).toHaveCount(15);
@@ -113,9 +116,10 @@ test('key assembly placement can cancel and commits its companions in one undo s
 
 test('Parts renders an attached model through the visible 3D control', async ({ page }) => {
   test.setTimeout(60_000);
-  const model = await buildCase({ revision: 0, body: { id: 'model', name: 'Model', boardId: 'main-board', kind: 'plate', thickness: 2, clearance: 0 }, contours: [{ hole: false, points: [{ x: -3, y: -3 }, { x: 3, y: -3 }, { x: 3, y: 3 }, { x: -3, y: 3 }] }] });
+  const model = await buildCase(prepareCase({ revision: 0, body: { id: 'model', name: 'Model', boardId: 'main-board', kind: 'plate', thickness: 2, clearance: 0 }, contours: [{ hole: false, points: [{ x: -3, y: -3 }, { x: 3, y: -3 }, { x: 3, y: 3 }, { x: -3, y: 3 }] }] }));
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
+  await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'switch.step', mimeType: 'model/step',
     buffer: Buffer.from(model.step),

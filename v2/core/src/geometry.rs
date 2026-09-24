@@ -307,6 +307,7 @@ mod tests {
             models: None,
             keycap: None,
             envelope_source: None,
+            kicad_source: None,
             terminals: Default::default(),
             matrix_terminals: None,
             envelope_notice: None,

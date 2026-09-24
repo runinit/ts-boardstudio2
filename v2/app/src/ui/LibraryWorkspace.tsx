@@ -1,7 +1,7 @@
 import React, { lazy, memo, useMemo } from 'react';
 import type { PartDefinition, Vec2 } from '../../../contracts/src/index';
+import type { CompiledFootprint } from '../../../contracts/src/index';
 import type { ComponentPreview } from './CasePreview';
-import { compileFootprint } from '@boardstudio/v2-kicad';
 import { Ergogen2DPreview, ergogenPreviewPoints } from './Ergogen2DPreview';
 import { isErgogen, parameters } from '@boardstudio/v2-ergogen';
 
@@ -23,12 +23,21 @@ class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?:
     return this.props.children;
   }
 }
-export const LibraryWorkspace = memo(({ definition, title, companions = [], models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme }: {
+export const LibraryWorkspace = memo(({ definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme }: {
   definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2 }[];
+  compiled?: CompiledFootprint[];
+  compilePending?: boolean; compileError?: string;
   models?: ComponentPreview[]; modelFilename?: string; modelStatus?: LibraryModelStatus; onRetry?: () => void; show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
 }) => {
-  const footprints = useMemo(() => definition ? [{ definition, at: { x: 0, y: 0 } }, ...companions].map((entry) => {
-    const ir = compileFootprint(entry.definition);
+  const footprints = useMemo(() => definition ? [{ definition, at: { x: 0, y: 0 } }, ...companions].flatMap((entry) => {
+    const ir = compiled.find((item) => item.definition.id === entry.definition.id)?.geometry
+      ?? (isErgogen(entry.definition.generator?.source) ? {
+        pads: entry.definition.pads,
+        courtyard: entry.definition.courtyard,
+        traces: [],
+        vias: [],
+      } : undefined);
+    if (!ir) return [];
     const keycap = entry.definition.kind === 'switch' ? entry.definition.keycap : undefined;
     const generator = entry.definition.generator;
     const keycapToggle = generator?.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
@@ -39,9 +48,14 @@ export const LibraryWorkspace = memo(({ definition, title, companions = [], mode
       { x: -keycap.x / 2, y: -keycap.y / 2 }, { x: keycap.x / 2, y: -keycap.y / 2 },
       { x: keycap.x / 2, y: keycap.y / 2 }, { x: -keycap.x / 2, y: keycap.y / 2 },
     ] : ir.courtyard;
-    return { ...entry, ir, keycap, outline };
-  }) : [], [definition, companions]);
+    return [{ ...entry, ir, keycap, outline }];
+  }) : [], [definition, companions, compiled]);
   if (!definition) return <div className="wb-library-workspace-empty">Select a component or key assembly.</div>;
+  if (!footprints.length) return <div className="wb-library-workspace-empty">
+    {compilePending && <p role="status">Preparing footprint preview…</p>}
+    {compileError && <p role="alert">{compileError}</p>}
+  </div>;
+  const diagnostics = compiled.find((item) => item.definition.id === definition.id)?.diagnostics ?? [];
   const points = footprints.flatMap(({ definition: item, ir, outline, at }) => [...outline, ...ir.pads.flatMap((pad) => {
     const angle = (pad.rotation ?? 0) * Math.PI / 180;
     return [-1, 1].flatMap((x) => [-1, 1].map((y) => ({
@@ -57,6 +71,9 @@ export const LibraryWorkspace = memo(({ definition, title, companions = [], mode
   const size = keycap ?? { x: maxX - minX, y: maxY - minY };
   const outlineLabels = [...new Set(footprints.filter(({ outline }) => outline.length > 0).map(({ keycap }) => keycap ? 'keycap' : 'courtyard'))].join(' / ');
   return <div className="wb-library-workspace" aria-label="Footprint workspace">
+    {compilePending && <p role="status">Compiling footprint preview…</p>}
+    {compileError && <p role="alert">{compileError}</p>}
+    {diagnostics.map((diagnostic, index) => <p className="wb-empty-note" key={`${diagnostic.kind}:${index}`}>{diagnostic.message}</p>)}
     <div className="wb-library-workspace-title"><h2>{title ?? definition.name}</h2><div role="group" aria-label="Part preview view"><button aria-pressed={!show3d} onClick={() => onViewChange(false)}>2D footprint</button><button aria-pressed={show3d} onClick={() => onViewChange(true)}>3D model</button></div></div>
     {show3d ? <div className="wb-library-model-workspace" aria-label="3D footprint model preview">
       {modelStatus?.state === 'error' ? <div className="wb-model-message" role="alert"><p>{modelStatus.message}</p><button className="wb-secondary" onClick={onRetry}>Retry model loading</button></div>

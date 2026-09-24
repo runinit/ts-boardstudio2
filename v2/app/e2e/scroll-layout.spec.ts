@@ -27,6 +27,8 @@ test('inspector fits a narrow effective viewport without horizontal scroll', asy
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Board outline' }).click();
+  await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
 
   const inspector = page.locator('.wb-inspector-content');
   const width = await inspector.evaluate((element) => ({

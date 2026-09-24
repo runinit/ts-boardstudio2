@@ -127,6 +127,7 @@ function View({ document, scene, committed, onEdit }: { document: ProjectDoc; sc
     onUndo={() => {}}
     onRedo={() => {}}
     onExport={() => {}}
+    compileFootprints={async () => []}
   />;
 }
 
@@ -174,6 +175,9 @@ export async function runWorkbenchBenchmark(keys: Size, scope: Scope, captureSta
 
       if (reply.kind === 'error') {
         throw new Error(reply.message);
+      }
+      if (reply.kind === 'case-prepared') {
+        throw new Error('Unexpected case preparation reply during edit benchmark');
       }
 
       const workerDone = performance.now();
@@ -281,6 +285,9 @@ export async function runMatrixBenchmark(keys: Size, scope: 'matrix' | 'row' | '
       if (reply.kind === 'error') {
         throw new Error(reply.message);
       }
+      if (reply.kind === 'case-prepared') {
+        throw new Error('Unexpected case preparation reply during matrix benchmark');
+      }
 
       const workerDone = performance.now();
       await render(root, committed.document, reply.scene);
@@ -350,6 +357,9 @@ export async function preparePointerBenchmark(keys: Size): Promise<{ parts: numb
 
       if (reply.kind === 'error') {
         throw new Error(reply.message);
+      }
+      if (reply.kind === 'case-prepared') {
+        throw new Error('Unexpected case preparation reply during pointer benchmark');
       }
 
       if (reply.kind === 'scene') {

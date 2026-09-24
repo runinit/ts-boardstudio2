@@ -1,5 +1,4 @@
 import type { JsonValue, PartDefinition } from '../../../contracts/src/index';
-import { compileFootprint } from '@boardstudio/v2-kicad';
 import { bundledModel } from '../bundledModels';
 import { geometry as ergogenGeometry, isErgogen, modelAssetId, normalizeDefinition, parameters as ergogenParameters, render as renderErgogen } from '@boardstudio/v2-ergogen';
 
@@ -104,7 +103,6 @@ export function generatorDraft(definition: PartDefinition, edits: GeneratorEdits
       for (const key of ['reversible', 'includeTracesVias']) {
         if (typeof edits[key] === 'boolean') draft.generator.parameters[key] = edits[key];
       }
-      compileFootprint(draft);
     }
     return { definition: draft, error: '' };
   } catch (error) {

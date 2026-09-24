@@ -29,6 +29,9 @@ jobs:
           kicad-cli version | grep '^10\.'
       - run: rustup target add wasm32-unknown-unknown
       - run: cargo install wasm-pack --locked --version 0.15.0
+      - run: pnpm run check:contracts:v2
+      - run: pnpm run check:catalogue:v2
+      - run: pnpm run test:contracts:v2
       - run: pnpm run test:v2
       - run: pnpm run build:v2
       - run: pnpm --dir v2/app exec playwright install --with-deps chromium

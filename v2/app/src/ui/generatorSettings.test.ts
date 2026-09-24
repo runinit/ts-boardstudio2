@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { catalogue } from '@boardstudio/v2-ergogen';
-import { compileFootprint } from '@boardstudio/v2-kicad';
 import { generatorDraft, generatorParameters } from './generatorSettings';
 
 describe('Ergogen generator settings', () => {
@@ -10,9 +9,6 @@ describe('Ergogen generator settings', () => {
     const result = generatorDraft(definition!, { text: 'Board mark', reversible: true, width: '0', thickness: '-0.2' });
     expect(result.error).toBe('');
     expect(result.definition.generator?.parameters).toMatchObject({ text: 'Board mark', reversible: true, width: 0, thickness: -0.2 });
-    const geometry = compileFootprint(result.definition);
-    expect(geometry.pads).toHaveLength(0);
-    expect(geometry.courtyard).toHaveLength(0);
   });
 
   it('parses structured settings as JSON and reports malformed JSON', () => {

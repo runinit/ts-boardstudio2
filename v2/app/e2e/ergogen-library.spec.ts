@@ -9,12 +9,13 @@ for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks2
     await page.getByRole('listbox', { name: 'Footprint library', exact: true }).getByRole('option').click();
     await expect(page.getByRole('checkbox', { name: source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap', exact: true })).toBeChecked();
     if (source.includes('gateron')) {
+      await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
       await page.getByRole('checkbox', { name: 'include_socket_silks', exact: true }).check();
       await page.getByRole('checkbox', { name: 'include_socket_fabs', exact: true }).check();
     }
     const sides = source.startsWith('ceoloide/') ? ['B', 'F'] : ['B'];
     for (const side of sides) {
-      if (source.startsWith('ceoloide/')) await page.getByRole('textbox', { name: 'side', exact: true }).fill(side);
+      if (source.startsWith('ceoloide/')) await page.getByRole('combobox', { name: 'side', exact: true }).selectOption(side);
       const bounds = await page.getByRole('img', { name: 'Footprint preview', exact: true }).evaluate((svg) => {
         const box = (selector: string) => {
           const { x, y, width, height } = (svg.querySelector(selector) as SVGGraphicsElement).getBBox();
@@ -110,6 +111,7 @@ test('saved Ergogen parameters return when switching library items', async ({ pa
   const search = page.getByRole('searchbox', { name: 'Search footprints' });
   await search.fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).first().click();
+  await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   const traceWidth = page.getByRole('spinbutton', { name: 'Trace Width' });
   await traceWidth.fill('0.47');
   await page.getByRole('button', { name: 'Apply generator settings' }).click();
@@ -117,6 +119,7 @@ test('saved Ergogen parameters return when switching library items', async ({ pa
   await page.getByRole('option', { name: /utility text/ }).click();
   await search.fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).first().click();
+  if (!await page.getByRole('spinbutton', { name: 'Trace Width' }).isVisible()) await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Trace Width' })).toHaveValue('0.47');
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Trace Width' })).not.toHaveValue('0.47');
@@ -130,6 +133,7 @@ test('attaching a model to an unsaved generator definition stays within the work
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).first().click();
+  await page.locator('summary').filter({ hasText: '3D model placement' }).click();
   await page.getByRole('group', { name: '3D model placement' }).getByLabel('Attach STEP / WRL').first().setInputFiles({ name: 'switch.step', mimeType: 'model/step', buffer: Buffer.from('not a valid STEP model') });
   await expect(page.getByRole('textbox', { name: 'switch_3dmodel_filename' })).toHaveValue(/^boardstudio-asset:/);
   await expect(page.getByRole('button', { name: 'Apply generator settings' })).toBeEnabled();

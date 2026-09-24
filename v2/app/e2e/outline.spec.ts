@@ -99,6 +99,7 @@ test('part inclusion and margin controls survive save and affect the contour', a
   const key = page.getByRole('button', { name: /^SW1, MX switch/ });
   await key.click();
   await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Use board margin', { exact: true }).click();
   await expect(page.getByLabel('Use board margin', { exact: true })).not.toBeChecked();
   await expect(page.getByLabel('Part edge margin', { exact: true })).toHaveValue('0');
@@ -165,13 +166,14 @@ test('definition keycaps update the outline and per-instance overrides can be re
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
-  await page.getByLabel('Edit component definition').selectOption('mx-switch');
+  await page.getByRole('listbox', { name: 'Footprint library', exact: true }).getByRole('option', { name: 'MX switch', exact: true }).click();
   await page.getByLabel('Definition keycap width', { exact: true }).fill('30');
   await page.getByLabel('Definition keycap width', { exact: true }).blur();
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   await expect.poll(async () => contains(await contours(page), { x: -18, y: 0 })).toBe(true);
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Keycap width', { exact: true }).fill('18');
   await page.getByLabel('Keycap width', { exact: true }).blur();
   await expect.poll(async () => contains(await contours(page), { x: -18, y: 0 })).toBe(false);

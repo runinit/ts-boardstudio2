@@ -111,7 +111,7 @@ test('floating controls remain fixed through zoom and pan and both themes persis
     await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    expect(await page.locator('.wb-canvas-stage').evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === 'dark' ? 'rgb(16, 16, 16)' : 'rgb(198, 198, 198)');
+    expect(await page.locator('.wb-canvas-stage').evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === 'dark' ? 'rgb(16, 27, 39)' : 'rgb(237, 242, 246)');
   }
 });
 

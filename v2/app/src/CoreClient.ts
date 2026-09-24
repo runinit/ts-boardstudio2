@@ -50,7 +50,9 @@ export class CoreClient {
 
   request(request: CoreRequest): Promise<CoreReply> {
     return new Promise((resolve) => {
-      const persist = request.kind !== 'edit' || request.command.phase === 'commit';
+      const persist = request.kind === 'prepare-case'
+        ? false
+        : request.kind !== 'edit' || request.command.phase === 'commit';
 
       this.pending.set(request.id, { resolve, persist });
       this.worker.postMessage(request);

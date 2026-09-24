@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createInstance } from 'libcascade/single/init';
 import { buildAssembly, buildCase, readStepModel } from '../src/index.ts';
+import { prepareAssembly, prepareCase } from './native-prepare.mjs';
+
+const rawCase = async (ir) => buildCase(prepareCase(ir));
+const rawAssembly = async (ir) => buildAssembly(prepareAssembly(ir));
 
 const square = (min, max) => [
   { x: min, y: min },
@@ -11,7 +15,7 @@ const square = (min, max) => [
 ];
 
 test('imports a generated STEP with mesh and bounds', async () => {
-  const result = await buildCase({
+  const result = await rawCase({
     revision: 1,
     body: { id: 'case', name: 'plate', boardId: 'board', kind: 'plate', thickness: 2, clearance: 0 },
     contours: [{ hole: false, points: square(0, 20) }],
@@ -25,7 +29,7 @@ test('imports a generated STEP with mesh and bounds', async () => {
 });
 
 test('exports a holed plate as a readable STEP and mesh', async () => {
-  const result = await buildCase({
+  const result = await rawCase({
     revision: 7,
     body: { id: 'case', name: 'plate', boardId: 'board', kind: 'plate', thickness: 2, clearance: 0.5 },
     contours: [
@@ -55,7 +59,7 @@ test('clearance closes a narrow concave notch without invalid edges', async () =
     { x: 18, y: 30 }, { x: 18, y: 5 }, { x: 12, y: 5 },
     { x: 12, y: 30 }, { x: 0, y: 30 },
   ];
-  const result = await buildCase({
+  const result = await rawCase({
     revision: 8,
     body: { id: 'case', name: 'plate', boardId: 'board', kind: 'plate', thickness: 2, clearance: 4 },
     contours: [{ hole: false, points: contour }],
@@ -72,7 +76,7 @@ test('concave tray and lid retain valid wall solids after inset', async () => {
     { x: 14, y: 30 }, { x: 0, y: 30 },
   ];
   for (const kind of ['tray', 'lid']) {
-    const result = await buildCase({
+    const result = await rawCase({
       revision: 9,
       body: {
         id: kind, name: kind, boardId: 'board', kind,
@@ -105,10 +109,10 @@ async function inspectStep(bytes) {
 test('tray and lid form cavities and honor mounting geometry', async () => {
   const contours = [{ hole: false, points: square(0, 40) }];
   const base = { id: 'body', name: 'body', boardId: 'board', thickness: 2, clearance: 0, z: 3 };
-  const plate = await inspectStep((await buildCase({
+  const plate = await inspectStep((await rawCase({
     revision: 1, body: { ...base, kind: 'plate' }, contours,
   })).step);
-  const tray = await inspectStep((await buildCase({
+  const tray = await inspectStep((await rawCase({
     revision: 2,
     body: {
       ...base, kind: 'tray', wallHeight: 6, wallThickness: 3,
@@ -117,7 +121,7 @@ test('tray and lid form cavities and honor mounting geometry', async () => {
     },
     contours,
   })).step);
-  const lid = await inspectStep((await buildCase({
+  const lid = await inspectStep((await rawCase({
     revision: 3,
     body: { ...base, kind: 'lid', wallHeight: 6, wallThickness: 3 },
     contours,
@@ -143,7 +147,7 @@ test('exports two vertically offset bodies as one STEP compound', async () => {
     },
     contours,
   }));
-  const result = await buildAssembly({ revision: 9, bodies });
+  const result = await rawAssembly({ revision: 9, bodies });
   const shape = await inspectStep(result.step);
 
   assert.equal(result.revision, 9);
@@ -159,7 +163,7 @@ test('plate construction retains a deleted corner and authored cutout', async ()
     { hole: false, points: [{x:10,y:0},{x:30,y:0},{x:30,y:30},{x:0,y:30},{x:0,y:10},{x:10,y:10}] },
     { hole: true, points: square(15, 20) },
   ];
-  const result = await buildCase({
+  const result = await rawCase({
     revision: 12,
     body: { id: 'plate', name: 'plate', boardId: 'board', kind: 'plate', thickness: 2, clearance: 0 },
     contours,

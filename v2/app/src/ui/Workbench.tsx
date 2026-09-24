@@ -3,6 +3,8 @@ import type {
   CaseBody,
   Constraint,
   EditCommand,
+  CompiledFootprint,
+  FootprintCompileJob,
   Matrix,
   MatrixCell,
   OutlineFeature,
@@ -13,20 +15,26 @@ import type {
   Vec2,
   JsonValue,
 } from '../../../contracts/src/index';
+import { componentPoseSvgTransform } from './CasePreview';
 import type { ComponentPreview } from './CasePreview';
 import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
 import { defaultOutlineSettings } from '../../../contracts/src/index';
 import { matrixCellId, matrixMembers, cellPose } from './matrixGeometry';
 import { WorkbenchTree } from './WorkbenchTree';
 import { LibraryWorkspace, type LibraryModelStatus } from './LibraryWorkspace';
+import { InspectorSection } from './InspectorSection';
 import { GeneratorFields } from './GeneratorFields';
 import { PartsLibrary } from './PartsLibrary';
 import { selectionOutline } from './selectionOutline';
-import { generatorDraft, generatorParameters, numericFields } from './generatorSettings';
+import { generatorDraft, generatorParameters } from './generatorSettings';
+import { runLatest } from './compileLatest';
+import { canUseBuiltinDefault } from './builtinPreview';
+import { libraryPreviewFor, libraryPreviewsToCompile } from './libraryPreview';
 import type { TreeEntry } from './WorkbenchTree';
-import { builtinDefinitions, compileFootprint } from '@boardstudio/v2-kicad';
+import { builtinCatalog, builtinDefinitions } from '@boardstudio/v2-kicad';
 import { catalogue as ergogenCatalogue, isErgogen, normalizeDefinition, parameters as ergogenParameterSchema } from '@boardstudio/v2-ergogen';
 import './workbench.css';
+import './inspector.css';
 
 const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ default: module.CasePreview })));
 
@@ -39,6 +47,7 @@ type Props = {
   onUndo: () => void;
   onRedo: () => void;
   onExport: (kind: ExportKind, boardId?: string) => void;
+  compileFootprints: (jobs: FootprintCompileJob[]) => Promise<CompiledFootprint[]>;
   selectedBoardId?: string;
   onSelectBoard?: (boardId: string) => void;
   onNewProject?: () => void;
@@ -155,7 +164,7 @@ const systemColorScheme = (): 'light' | 'dark' => {
   }
 };
 
-const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onModeChange, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
+const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onModeChange, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
   const [themePreference, setThemePreference] = useState<ThemePreference>(readThemePreference);
   const [systemScheme, setSystemScheme] = useState(systemColorScheme);
@@ -180,6 +189,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const [matrixColumns, setMatrixColumns] = useState('');
   const [matrixPreset, setMatrixPreset] = useState<MatrixPresetId>('mx-solder');
   const [libraryParameters, setLibraryParameters] = useState<Record<string, JsonValue>>({});
+  const [compiledPreview, setCompiledPreview] = useState<{ key: string; results: CompiledFootprint[]; error?: string; pending: boolean }>({ key: '', results: [], pending: false });
+  const compileSequence = useRef(0);
   const [matrixGhost, setMatrixGhost] = useState<Matrix | null>(null);
   const [snapFraction, setSnapFraction] = useState(0.25);
   const [zoom, setZoom] = useState(1);
@@ -192,16 +203,15 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const [outlineOperation, setOutlineOperation] = useState<'add' | 'subtract'>('add');
   useEffect(() => { setOutlineDraft([]); setOutlineActive(false); }, [mode, selectedBoardIdProp]);
   const [newNetName, setNewNetName] = useState('');
+  const [scriptsOpen, setScriptsOpen] = useState(false);
   const [activeScriptId, setActiveScriptId] = useState('');
   const [scriptName, setScriptName] = useState('');
   const [scriptSource, setScriptSource] = useState('');
   const [scriptEnabled, setScriptEnabled] = useState(true);
   const [caseBodyId, setCaseBodyId] = useState('');
-  const [modelDefinitionId, setModelDefinitionId] = useState('');
   const [projectName, setProjectName] = useState(document.name);
   const [boardName, setBoardName] = useState('');
   const [localBoardId, setLocalBoardId] = useState('');
-  const [editDefinitionId, setEditDefinitionId] = useState('');
   const [definitionError, setDefinitionError] = useState('');
   const [constraintKind, setConstraintKind] = useState<Constraint['kind']>('offset');
   const [constraintSourceId, setConstraintSourceId] = useState('');
@@ -276,12 +286,19 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const sceneHandlers = useRef<SceneHandlers | null>(null);
 
   const definitions = useMemo(() => new Map(document.definitions.map((item) => [item.id, item])), [document.definitions]);
+  const builtinCompiledCatalog = useMemo(() => builtinCatalog(), []);
   const libraryDefinitions = useMemo(() => {
     const entries = new Map(builtinDefinitions().map((definition) => [definition.id, definition]));
     for (const definition of ergogenCatalogue()) entries.set(definition.id, definition);
     for (const definition of document.definitions) entries.set(definition.id, definition);
     return [...entries.values()];
   }, [document.definitions]);
+  const libraryCompanions = useMemo(() => libraryAssembly
+    ? libraryDefinitions.filter((definition) => definition.id === 'matrix-diode' || (matrixPresetDefinitions[libraryAssembly].led && definition.id === 'rgb-led')).map((definition) => ({
+      definition,
+      at: definition.id === 'matrix-diode' ? { x: 6, y: -10 } : { x: -5, y: -12 },
+    }))
+    : [], [libraryAssembly, libraryDefinitions]);
   const filteredLibrary = useMemo(() => {
     const query = librarySearch.trim().toLocaleLowerCase();
     return libraryDefinitions.filter((definition) => !query || `${definition.name} ${definition.kind}`.toLocaleLowerCase().includes(query));
@@ -290,11 +307,43 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const copperGenerator = ['builtin:mx-hotswap', 'builtin:choc-hotswap', 'builtin:rgb-led'].includes(selectedLibraryDefinition?.generator?.source ?? '');
   const ergogenGenerator = isErgogen(selectedLibraryDefinition?.generator?.source);
   const parameterSchema = useMemo(() => generatorParameters(selectedLibraryDefinition), [selectedLibraryDefinition?.generator?.source]);
-  const numericGeneratorFields = numericFields(selectedLibraryDefinition);
   const generatorPreview = useMemo(() => selectedLibraryDefinition
     ? generatorDraft(selectedLibraryDefinition, libraryParameters, new Map(document.assets.map((asset) => [asset.id, asset.name])))
     : undefined, [selectedLibraryDefinition, libraryParameters, document.assets]);
   const previewDefinition = generatorPreview?.definition;
+  const builtinDefault = previewDefinition?.generator?.source.startsWith('builtin:')
+    ? builtinCompiledCatalog.find((entry) => entry.definition.id === previewDefinition.id && entry.geometry.side === 'front')
+    : undefined;
+  const useBuiltinDefault = canUseBuiltinDefault(previewDefinition, builtinDefault);
+  const libraryPreviewDefinitions = useMemo(() => previewDefinition
+    ? [previewDefinition, ...libraryCompanions.map((entry) => entry.definition)]
+    : [], [previewDefinition, libraryCompanions]);
+  const compileDefinitions = useMemo(() => libraryPreviewsToCompile(libraryPreviewDefinitions, builtinCompiledCatalog), [libraryPreviewDefinitions, builtinCompiledCatalog]);
+  const libraryCompileKey = JSON.stringify(compileDefinitions.map((definition) => [definition.id, definition]));
+  const currentCompileResults = compiledPreview.key === libraryCompileKey && !compiledPreview.pending ? compiledPreview.results : [];
+  const currentCompiledPreview = previewDefinition ? libraryPreviewFor(previewDefinition, currentCompileResults, builtinCompiledCatalog) : undefined;
+  const previewCompilePending = compileDefinitions.length > 0 && (compiledPreview.key !== libraryCompileKey || compiledPreview.pending);
+  const previewCompileError = compiledPreview.key === libraryCompileKey ? compiledPreview.error : undefined;
+  const libraryCompiled = useMemo(() => libraryPreviewDefinitions
+    .map((definition) => libraryPreviewFor(definition, currentCompileResults, builtinCompiledCatalog))
+    .filter((entry): entry is CompiledFootprint => Boolean(entry)), [libraryPreviewDefinitions, currentCompileResults, builtinCompiledCatalog]);
+  useEffect(() => {
+    if (!compileDefinitions.length) return;
+    const definitions = compileDefinitions;
+    setCompiledPreview({ key: libraryCompileKey, results: [], pending: true });
+    return runLatest(compileSequence, () => compileFootprints(definitions.map((definition) => ({
+      id: `library-preview:${definition.id}`,
+      definition,
+      parameters: {},
+      side: 'front',
+    }))), (results) => {
+      setCompiledPreview(results.length === definitions.length
+        ? { key: libraryCompileKey, results, pending: false }
+        : { key: libraryCompileKey, results: [], error: 'Rust returned an incomplete footprint preview batch.', pending: false });
+    }, (cause) => {
+      setCompiledPreview({ key: libraryCompileKey, results: [], error: cause instanceof Error ? cause.message : String(cause), pending: false });
+    });
+  }, [compileFootprints, libraryCompileKey]);
   useEffect(() => {
     const defaults: Record<string, JsonValue> = {};
     for (const [key, parameter] of Object.entries(parameterSchema)) {
@@ -309,10 +358,11 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const saveGenerator = () => {
     if (!selectedLibraryDefinition?.generator || !previewDefinition?.generator || generatorPreview?.error) return;
     const definition = isErgogen(previewDefinition.generator.source) ? normalizeDefinition(previewDefinition) : previewDefinition;
-    const ir = compileFootprint(definition);
+    const ir = currentCompiledPreview?.geometry ?? (useBuiltinDefault ? builtinDefault?.geometry : undefined);
+    if (!isErgogen(definition.generator?.source) && !ir) return;
     const next = isErgogen(definition.generator?.source)
       ? definition
-      : { ...definition, pads: ir.pads.map((pad) => ({ ...pad })), courtyard: ir.courtyard.map((point) => ({ ...point })) };
+      : { ...definition, pads: ir!.pads.map((pad) => ({ ...pad })), courtyard: ir!.courtyard.map((point) => ({ ...point })) };
     const original = document.definitions.find((entry) => entry.id === next.id) ?? selectedLibraryDefinition;
     const instances = document.parts.filter((part) => part.definitionId === next.id);
     let nets = document.nets.map((net) => ({ ...net, pins: [...net.pins] }));
@@ -364,7 +414,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const selectedBoard = document.boards.find((board) => board.id === (selectedBoardIdProp ?? localBoardId)) ?? document.boards[0];
   const activeCaseBody = document.caseBodies.find((body) => body.id === caseBodyId && (!selectedBoard || body.boardId === selectedBoard.id))
     ?? document.caseBodies.find((body) => !selectedBoard || body.boardId === selectedBoard.id);
-  const activeModelDefinition = mode === 'Library' ? selectedLibraryDefinition : document.definitions.find((definition) => definition.id === modelDefinitionId) ?? document.definitions[0];
+  const activeModelDefinition = selectedLibraryDefinition;
   const selectedBoardId = selectedBoard?.id ?? '';
   const boardPartIds = useMemo(() => new Set(selectedBoard?.partIds ?? document.parts.map((part) => part.id)), [selectedBoard, document.parts]);
   const treeVisibleParts = useMemo(() => document.parts.filter((part) => boardPartIds.has(part.id)), [document.parts, boardPartIds]);
@@ -540,6 +590,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
 
   const changeMode = (next: Mode) => {
     setMode(next);
+    setScriptsOpen(false);
     setPendingPart(null);
     setAddPartOpen(false);
     if (next === 'Case' && selectedBoard) onRequestCaseModels?.(selectedBoard.id);
@@ -891,7 +942,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     emit({ kind: 'replace-document', document: { ...document, definitions } }, [activeModelDefinition.id]);
   };
 
-  const editDefinition = mode === 'Library' ? selectedLibraryDefinition : document.definitions.find((definition) => definition.id === editDefinitionId) ?? document.definitions[0];
+  const editDefinition = selectedLibraryDefinition;
   const saveDefinition = (next: PartDefinition) => {
     const definitions = document.definitions.some((definition) => definition.id === next.id) ? document.definitions.map((definition) => definition.id === next.id ? next : definition) : [...document.definitions, next];
     emit({ kind: 'replace-document', document: { ...document, definitions } }, [next.id]);
@@ -899,7 +950,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
 
   const updateDefinition = (changes: Partial<PartDefinition>) => {
     if (!editDefinition) return;
-    saveDefinition({ ...editDefinition, ...changes });
+    const envelopeSource = changes.courtyard
+      ? { ...editDefinition.envelopeSource, courtyard: 'authored' as const }
+      : editDefinition.envelopeSource;
+    saveDefinition({ ...editDefinition, ...changes, ...(envelopeSource ? { envelopeSource } : {}) });
     setDefinitionError('');
   };
 
@@ -912,7 +966,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       pads: [],
     };
     emit({ kind: 'replace-document', document: { ...document, definitions: [...document.definitions, definition] } }, [definition.id]);
-    setEditDefinitionId(definition.id);
+    setLibrarySearch('');
+    setScriptsOpen(false);
+    setRightOpen(true);
+    setLeftOpen(false);
     setLibraryChoice(definition.id);
     setLibraryAssembly(null);
     setDefinitionError('');
@@ -943,7 +1000,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   };
 
   const updatePad = (padId: string, changes: Partial<PartDefinition['pads'][number]>) => {
-    if (!editDefinition) return;
+    if (!editDefinition || editDefinition.kicadSource) return;
     const current = editDefinition.pads.find((pad) => pad.id === padId);
     if (!current) return;
     const nextPad = { ...current, ...changes };
@@ -991,13 +1048,13 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   };
 
   const addDefinitionPad = () => {
-    if (!editDefinition) return;
+    if (!editDefinition || editDefinition.kicadSource) return;
     const pad = { id: makeId(), number: String(editDefinition.pads.length + 1), at: { x: 0, y: 0 }, size: { x: 2, y: 2 }, shape: 'circle' as const };
     updateDefinition({ pads: [...editDefinition.pads, pad] });
   };
 
   const removeDefinitionPad = (padId: string) => {
-    if (!editDefinition) return;
+    if (!editDefinition || editDefinition.kicadSource) return;
     const partIds = new Set(document.parts.filter((part) => part.definitionId === editDefinition.id).map((part) => part.id));
     const nets = document.nets.map((net) => ({ ...net, pins: net.pins.filter((pin) => !partIds.has(pin.partId) || pin.padId !== padId) }));
     emit({ kind: 'replace-document', document: { ...document, definitions: document.definitions.map((definition) => definition.id === editDefinition.id ? { ...editDefinition, pads: editDefinition.pads.filter((pad) => pad.id !== padId) } : definition), nets } }, [editDefinition.id, padId]);
@@ -1467,6 +1524,22 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     : activePart?.reference ?? selectedBoard?.name ?? 'Board';
 
   const getModeDetails = () => {
+    if (scriptsOpen) return <>
+      <div className="wb-inspect-head"><h2>Geometry scripts</h2></div>
+      <button className="wb-secondary" onClick={() => setScriptsOpen(false)}>Back to inspector</button>
+        <div className="wb-script-heading"><h3 className="wb-subtitle">Scripts</h3><button onClick={addScript}>+ New script</button></div>
+        {document.scripts.length > 0 && <label className="wb-script-select-label">Active script<select aria-label="Active script" value={activeScript?.id ?? ''} onChange={(event) => setActiveScriptId(event.target.value)}>
+          {document.scripts.map((script) => <option key={script.id} value={script.id}>{script.name}</option>)}
+        </select></label>}
+        {activeScript ? <div className="wb-script-editor">
+          <label className="wb-script-name">Name<input value={scriptName} onChange={(event) => setScriptName(event.target.value)} /></label>
+          <label className="wb-script-source-label">Rhai source<textarea spellCheck={false} value={scriptSource} onChange={(event) => setScriptSource(event.target.value)} placeholder="// Describe generated geometry and component groups" /></label>
+          <label className="wb-script-enabled"><input type="checkbox" checked={scriptEnabled} onChange={(event) => setScriptEnabled(event.target.checked)} /> Enable on Apply</label>
+          <button className="wb-primary wb-script-apply" disabled={!scriptSource.trim()} onClick={applyScript}>Apply script <ArrowIcon /></button>
+          <div className="wb-script-diagnostics"><span>Core findings</span><FindingList findings={scene.findings} /></div>
+        </div> : <p className="wb-empty-state">Scripts generate named geometry groups. Apply a script to run it in the core.</p>}
+    </>;
+
     if (mode === 'Design' && outlineSettingsOpen) return <><OutlineInspector document={document} board={selectedBoard}
       onChange={(next, ids) => emit({ kind: 'replace-document', document: next }, ids)}
       onDraw={(operation) => { setOutlineOperation(operation); setOutlineDraft([]); setOutlineActive(true); setRightOpen(false); }} /><div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3></div><FindingList findings={scene.findings} /></>;
@@ -1475,14 +1548,15 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       const assigned = boardNets.reduce((total, net) => total + net.pins.filter((pin) => selectedBoard?.partIds.includes(pin.partId) ?? true).length, 0);
       return <>
         <div className="wb-inspect-head"><h2>Board setup</h2><span className="wb-mini-tag">{document.boards.length} board{document.boards.length === 1 ? '' : 's'}</span></div>
+        <InspectorSection title="Board details" detail={selectedBoard?.name}>
         {selectedBoard ? <dl className="wb-measure-list">
           <Measure label="Board" value={selectedBoard.name} />
           <Measure label="Thickness" value={`${selectedBoard.thickness.toFixed(2)} mm`} />
           <Measure label="Placed parts" value={`${selectedBoard.partIds.length}`} />
           <Measure label="Net assignments" value={`${assigned}`} />
         </dl> : <p className="wb-empty-note">Add a board in the project setup to begin mapping nets.</p>}
-        <div className="wb-panel-rule" />
-        <div className="wb-findings-head"><h3 className="wb-subtitle">Pad net mapping</h3><span>{activeDefinition?.pads.length ?? 0}</span></div>
+        </InspectorSection>
+        <div className="wb-findings-head"><h3 className="wb-subtitle">Connections</h3><span>{activeDefinition?.pads.length ?? 0}</span></div>
         {activePart && activeDefinition ? <div className="wb-net-map">
           {Object.entries(activeDefinition.terminals ?? {}).map(([terminal, padIds]) => {
             const assigned = [...new Set(padIds.map((padId) => boardNets.find((net) => net.pins.some((pin) => pin.partId === activePart.id && pin.padId === padId))?.id).filter((id): id is string => Boolean(id)))];
@@ -1520,10 +1594,11 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           <button type="submit" disabled={!newNetName.trim()}>Add net</button>
         </form>
         <div className="wb-panel-rule" />
-        <h3 className="wb-subtitle">Electrical nets</h3>
+        <InspectorSection title="Electrical nets" detail={String(boardNets.length)}>
         <div className="wb-net-list">{boardNets.map((net) => <div className="wb-net-row" key={net.id}>
           <span className="wb-net-swatch" /> <span>{net.name}</span><small>{net.pins.filter((pin) => selectedBoard?.partIds.includes(pin.partId) ?? true).length} pins</small>
         </div>)}</div>
+        </InspectorSection>
       </>;
     }
     if (mode === 'Case') {
@@ -1548,10 +1623,11 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
               <CaseNumber label="Thickness" value={activeCaseBody.thickness} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ thickness: value })} />
               <CaseNumber label="Clearance" value={activeCaseBody.clearance} unit="mm" validation="nonnegative" onCommit={(value) => updateCaseBody({ clearance: value })} />
               <CaseNumber label="Z offset" value={activeCaseBody.z ?? 0} unit="mm" validation="finite" onCommit={(value) => updateCaseBody({ z: value })} />
-              <CaseNumber label="Wall height" value={activeCaseBody.wallHeight ?? 14} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ wallHeight: value })} />
-              <CaseNumber label="Wall thickness" value={activeCaseBody.wallThickness ?? 2} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ wallThickness: value })} />
+              {activeCaseBody.kind !== 'plate' && <><CaseNumber label="Wall height" value={activeCaseBody.wallHeight ?? 14} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ wallHeight: value })} />
+              <CaseNumber label="Wall thickness" value={activeCaseBody.wallThickness ?? 2} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ wallThickness: value })} /></>}
             </div>
           </div>
+          <InspectorSection title="Mounting" detail={`${activeCaseBody.mounts?.length ?? 0} mounts`} defaultOpen={Boolean(activeCaseBody.mounts?.length)}>
           <div className="wb-case-section-head"><h3 className="wb-subtitle">Mounts <small>{activeCaseBody.mounts?.length ?? 0}</small></h3><button onClick={addMount}>+ Add mount</button></div>
           {(activeCaseBody.mounts ?? []).map((mount, index) => <div className="wb-mount-editor" key={mount.id}>
             <div className="wb-mount-head"><strong>Mount {index + 1}</strong><button aria-label={`Remove mount ${index + 1}`} onClick={() => removeMount(mount.id)}>Remove</button></div>
@@ -1566,44 +1642,45 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
               </>}
             </div>
           </div>)}
+          </InspectorSection>
+          <InspectorSection title="Gasket channel" detail={activeCaseBody.gasket ? "Configured" : "Optional"} defaultOpen={Boolean(activeCaseBody.gasket)}>
           <div className="wb-case-section-head"><h3 className="wb-subtitle">Gasket channel</h3>{activeCaseBody.gasket ? <button onClick={() => updateCaseBody({ gasket: undefined })}>Remove</button> : <button onClick={() => updateCaseBody({ gasket: { inset: 2, width: 2, depth: 1.5 } })}>+ Add gasket</button>}</div>
           {activeCaseBody.gasket && <div className="wb-case-measures wb-gasket-measures">
             <CaseNumber label="Inset" value={activeCaseBody.gasket.inset} unit="mm" validation="nonnegative" onCommit={(value) => updateCaseBody({ gasket: { ...activeCaseBody.gasket!, inset: value } })} />
             <CaseNumber label="Width" value={activeCaseBody.gasket.width} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ gasket: { ...activeCaseBody.gasket!, width: value } })} />
             <CaseNumber label="Depth" value={activeCaseBody.gasket.depth} unit="mm" validation="positive" onCommit={(value) => updateCaseBody({ gasket: { ...activeCaseBody.gasket!, depth: value } })} />
           </div>}
+          </InspectorSection>
         </>}
-        <div className="wb-panel-rule" />
-        <h3 className="wb-subtitle">Clearance review</h3>
-        <FindingList findings={caseFindings} />
+        {caseFindings.length > 0 && <InspectorSection title="Clearance review" defaultOpen><FindingList findings={caseFindings} /></InspectorSection>}
       </>;
     }
     if (mode === 'Library') {
       return <>
         <div className="wb-inspect-head"><h2>{libraryAssembly ? assemblyName(libraryAssembly) : selectedLibraryDefinition?.name ?? 'Select a part'}</h2></div>
         {libraryAssembly && <section aria-label="Assembly settings"><p className="wb-empty-note">Switch footprint and diode{matrixPresetDefinitions[libraryAssembly].led ? ', with RGB LED' : ''}.</p><button className="wb-primary" onClick={() => beginMatrixPlacement(1, 1, libraryAssembly)}>Place key assembly</button></section>}
-        {selectedLibraryDefinition && <section className="wb-library-preview" aria-label="Selected footprint settings">
-          <small>Preview updates in the workspace</small>
-          {(copperGenerator || numericGeneratorFields.length > 0 || ergogenGenerator) && <fieldset className="wb-generator-settings">
-            <legend>Generator settings</legend>
-            {!ergogenGenerator && numericGeneratorFields.map((field) => <label className="wb-generator-number" key={field.key}>{field.label}<input type="number" aria-label={field.label} step="any" value={String(libraryParameters[field.key] ?? selectedLibraryDefinition.generator?.parameters[field.key] ?? field.fallback)} onChange={(event) => updateGenerator(field.key, event.target.value)} /></label>)}
+        {!libraryAssembly && selectedLibraryDefinition && <section className="wb-library-preview" aria-label="Selected footprint settings">
+          <p className="wb-inspector-description">{selectedLibraryDefinition.kind === 'switch' ? 'Switch footprint' : selectedLibraryDefinition.kind === 'custom' ? 'Custom component' : 'Component footprint'} · {formatSize(selectedLibraryDefinition.courtyard)}</p>
+          <button className="wb-primary wb-place-part" disabled={Boolean(generatorPreview?.error)} onClick={() => scope?.kind === 'key' ? placeLibraryDefinition(selectedLibraryDefinition) : beginPartPlacement(selectedLibraryDefinition)}>{scope?.kind === 'key' ? 'Apply to selected key' : 'Place component'} <ArrowIcon /></button>
+          {(copperGenerator || ergogenGenerator) && <fieldset className="wb-generator-settings">
+            <legend>Part options</legend>
             {ergogenGenerator && <GeneratorFields definition={selectedLibraryDefinition} edits={libraryParameters} onChange={updateGenerator} onImportModel={onImportModel} error={generatorPreview?.error} />}
-            {copperGenerator && <label><input type="checkbox" aria-label="Reversible footprint" checked={libraryParameters.reversible === true || (libraryParameters.reversible === undefined && selectedLibraryDefinition.generator?.parameters.reversible === true)} onChange={(event) => updateGenerator('reversible', event.target.checked)} /> Reversible</label>}
-            {copperGenerator && <label><input type="checkbox" aria-label="Include traces and vias" checked={libraryParameters.includeTracesVias === true || (libraryParameters.includeTracesVias === undefined && selectedLibraryDefinition.generator?.parameters.includeTracesVias === true)} onChange={(event) => updateGenerator('includeTracesVias', event.target.checked)} /> Include traces and vias</label>}
+            {copperGenerator && <div className="wb-generator-fields">
+              <label className="wb-generator-toggle"><span>Reversible footprint</span><input type="checkbox" aria-label="Reversible footprint" checked={libraryParameters.reversible === true || (libraryParameters.reversible === undefined && selectedLibraryDefinition.generator?.parameters.reversible === true)} onChange={(event) => updateGenerator('reversible', event.target.checked)} /></label>
+              <label className="wb-generator-toggle"><span>Include traces and vias</span><input type="checkbox" aria-label="Include traces and vias" checked={libraryParameters.includeTracesVias === true || (libraryParameters.includeTracesVias === undefined && selectedLibraryDefinition.generator?.parameters.includeTracesVias === true)} onChange={(event) => updateGenerator('includeTracesVias', event.target.checked)} /></label>
+            </div>}
             {generatorPreview?.error && <p className="wb-generator-error" role="alert">{generatorPreview.error}</p>}
-            {selectedLibraryDefinition.envelopeNotice && <p className="wb-empty-note">{selectedLibraryDefinition.envelopeNotice}</p>}
-            <button className="wb-secondary" disabled={Boolean(generatorPreview?.error)} onClick={saveGenerator}>Apply generator settings</button>
+            {previewCompilePending && <p role="status">Compiling footprint preview…</p>}
+            {previewCompileError && <p className="wb-generator-error" role="alert">{previewCompileError}</p>}
+            <button className="wb-secondary" disabled={Boolean(generatorPreview?.error || previewCompilePending || previewCompileError)} onClick={saveGenerator}>Apply generator settings</button>
           </fieldset>}
-          <div className="wb-library-preview-actions">
-            <button className="wb-secondary" onClick={() => scope?.kind === 'key' ? placeLibraryDefinition(selectedLibraryDefinition) : beginPartPlacement(selectedLibraryDefinition)}>{scope?.kind === 'key' ? 'Apply to selected key' : 'Place component'}</button>
-            {(selectedLibraryDefinition.model || selectedLibraryDefinition.models?.length || ergogenGenerator) && <button className="wb-secondary" disabled={!onSelectLibraryModel} onClick={() => setLibrary3dOpen(true)}>Preview 3D model</button>}
-          </div>
+          {selectedLibraryDefinition.envelopeNotice && <p className="wb-empty-note">{selectedLibraryDefinition.envelopeNotice}</p>}
+          {!ergogenGenerator && <InspectorSection title="Keycap & outline" defaultOpen={selectedLibraryDefinition.kind === 'switch'}>
+            <DefinitionKeycapControls definition={selectedLibraryDefinition} onChange={(keycap) => updateDefinition({ keycap })} />
+            {selectedLibraryDefinition.kind !== 'switch' && <p className="wb-empty-note">The component courtyard defines its outline contribution. Adjust the edge margin after placing it.</p>}
+          </InspectorSection>}
         </section>}
-        <div className="wb-panel-rule" />
-        <div className="wb-script-heading"><h3 className="wb-subtitle">Component definition</h3><button onClick={addCustomDefinition}>+ New definition</button></div>
-        {document.definitions.length > 0 && <label className="wb-script-select-label">Edit definition<select aria-label="Edit component definition" value={editDefinition?.id ?? ''} onChange={(event) => { setEditDefinitionId(event.target.value); setLibraryChoice(event.target.value); setLibraryAssembly(null); setDefinitionError(''); }}>
-          {document.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
-        </select></label>}
+        {!libraryAssembly && editDefinition && !editDefinition.generator && <InspectorSection title="Edit footprint" detail="Custom geometry" defaultOpen={editDefinition.pads.length === 0}>
         {editDefinition && <section className="wb-definition-editor" aria-label="Custom component definition editor">
           <label>Name<DraftInput ariaLabel="Definition name" value={editDefinition.name} onCommit={(value) => updateDefinition({ name: value })} /></label>
           <label>Kind<select aria-label="Definition kind" value={editDefinition.kind} onChange={(event) => updateDefinition({ kind: event.target.value as PartDefinition['kind'] })}>
@@ -1613,9 +1690,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             <label>Width<DraftInput ariaLabel="Courtyard width" type="number" min="0.01" step="0.1" value={courtyardSize(editDefinition.courtyard).x} onCommit={(value) => updateCourtyard('x', value)} /></label>
             <label>Height<DraftInput ariaLabel="Courtyard height" type="number" min="0.01" step="0.1" value={courtyardSize(editDefinition.courtyard).y} onCommit={(value) => updateCourtyard('y', value)} /></label>
           </div>
-          <DefinitionKeycapControls definition={editDefinition} onChange={(keycap) => updateDefinition({ keycap })} />
-          <div className="wb-definition-pad-heading"><strong>Pads <small>{editDefinition.pads.length}</small></strong><button type="button" onClick={addDefinitionPad}>+ Add pad</button></div>
-          {editDefinition.pads.map((pad, index) => <fieldset className="wb-definition-pad" key={index}>
+          <div className="wb-definition-pad-heading"><strong>Pads <small>{editDefinition.pads.length}</small></strong><button type="button" disabled={Boolean(editDefinition.kicadSource)} onClick={addDefinitionPad}>+ Add pad</button></div>
+          {editDefinition.kicadSource && <p className="wb-empty-note">Imported pad geometry stays linked to its original KiCad source. Edit the footprint envelope, reference, nets, and attached models here.</p>}
+          {editDefinition.pads.map((pad, index) => <fieldset className="wb-definition-pad" key={index} disabled={Boolean(editDefinition.kicadSource)}>
             <legend>Pad {index + 1}</legend>
             <div className="wb-definition-pad-grid">
               <label>ID<DraftInput ariaLabel={`Pad ${index + 1} ID`} value={pad.id} onCommit={(value) => commitPadField(pad.id, 'id', value)} /></label>
@@ -1635,16 +1712,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           {definitionError && <p className="wb-definition-error" role="alert">{definitionError}</p>}
           <p className="wb-model-bound">Definitions in use stay in the library; edits apply to every placed instance.</p>
         </section>}
-        {onImportFootprint && <label className="wb-footprint-import">Import KiCad footprint<input type="file" accept=".kicad_mod" onChange={(event) => {
-          const file = event.currentTarget.files?.[0];
-          if (file) onImportFootprint(file);
-          event.currentTarget.value = '';
-        }} /></label>}
-        {onImportModel && <section className="wb-model-import" aria-label="3D model binding">
-          <h3 className="wb-subtitle">3D model binding</h3>
-          <label className="wb-script-select-label">Part definition<select aria-label="Part definition for model" value={activeModelDefinition?.id ?? ''} onChange={(event) => { setModelDefinitionId(event.target.value); setLibraryChoice(event.target.value); setLibraryAssembly(null); }}>
-            {document.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
-          </select></label>
+        </InspectorSection>}
+        {!libraryAssembly && !ergogenGenerator && onImportModel && <InspectorSection title="3D model" detail={activeModelDefinition?.model ? "Attached" : "Optional"}>
+          <section className="wb-model-import" aria-label="3D model binding">
           {activeModelDefinition?.model ? <p className="wb-model-bound">Bound asset: {document.assets.find((asset) => asset.id === activeModelDefinition.model?.assetId)?.name ?? activeModelDefinition.model.assetId}</p> : <p className="wb-model-bound">No model attached to this definition.</p>}
           <label className="wb-footprint-import">Attach STEP / WRL model<input type="file" accept=".step,.stp,.wrl,model/step,model/vrml" disabled={!activeModelDefinition} onChange={(event) => {
             const file = event.currentTarget.files?.[0];
@@ -1657,19 +1727,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             <ModelVector title="Rotation" value={activeModelDefinition.model.rotation} unit="°" validation="finite" onCommit={(axis, value) => updateModel('rotation', axis, value)} />
             <ModelVector title="Scale" value={activeModelDefinition.model.scale} unit="×" validation="positive" onCommit={(axis, value) => updateModel('scale', axis, value)} />
           </div>}
-        </section>}
-        <div className="wb-panel-rule" />
-        <div className="wb-script-heading"><h3 className="wb-subtitle">Scripts</h3><button onClick={addScript}>+ New script</button></div>
-        {document.scripts.length > 0 && <label className="wb-script-select-label">Active script<select aria-label="Active script" value={activeScript?.id ?? ''} onChange={(event) => setActiveScriptId(event.target.value)}>
-          {document.scripts.map((script) => <option key={script.id} value={script.id}>{script.name}</option>)}
-        </select></label>}
-        {activeScript ? <div className="wb-script-editor">
-          <label className="wb-script-name">Name<input value={scriptName} onChange={(event) => setScriptName(event.target.value)} /></label>
-          <label className="wb-script-source-label">Rhai source<textarea spellCheck={false} value={scriptSource} onChange={(event) => setScriptSource(event.target.value)} placeholder="// Describe generated geometry and component groups" /></label>
-          <label className="wb-script-enabled"><input type="checkbox" checked={scriptEnabled} onChange={(event) => setScriptEnabled(event.target.checked)} /> Enable on Apply</label>
-          <button className="wb-primary wb-script-apply" disabled={!scriptSource.trim()} onClick={applyScript}>Apply script <ArrowIcon /></button>
-          <div className="wb-script-diagnostics"><span>Core findings</span><FindingList findings={scene.findings} /></div>
-        </div> : <p className="wb-empty-state">Scripts generate named geometry groups. Apply a script to run it in the core.</p>}
+        </section></InspectorSection>}
       </>;
     }
     if (mode === 'Export') {
@@ -1694,11 +1752,12 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     }
     if (selectedMatrix && scope && scope.kind !== 'component') return <>
       <div className="wb-inspect-head"><h2>{selectionTitle}</h2></div>
-      {scope.kind === 'matrix' && <div className="wb-object-actions"><label>Matrix name<DraftInput ariaLabel="Matrix name" value={selectedMatrix.name ?? selectionTitle} onCommit={(name) => { if (name.trim()) commitMatrix({ ...selectedMatrix, name: name.trim() }); }} /></label><button className="wb-secondary" onClick={() => { emit({ kind: 'remove-matrix', id: selectedMatrix.id }, [selectedMatrix.id, ...selectedMatrix.partIds]); setScope(null); setSelected([]); }}>Delete matrix</button></div>}
+      {scope.kind === 'matrix' && <div className="wb-object-actions"><label>Matrix name<DraftInput ariaLabel="Matrix name" value={selectedMatrix.name ?? selectionTitle} onCommit={(name) => { if (name.trim()) commitMatrix({ ...selectedMatrix, name: name.trim() }); }} /></label></div>}
       {scope.kind === 'matrix'
         ? <MatrixEditor document={document} onEdit={onEdit} scope={scope} onDuplicateDesign={onDuplicateDesign} />
         : <CellInspector matrix={selectedMatrix} scope={scope} definitions={libraryDefinitions} parts={treeParts} members={memberMaps.get(selectedMatrix.id) ?? new Map()} onChange={(matrix, definitions) => commitMatrix(matrix, 'commit', undefined, definitions)} />}
-      <div className="wb-panel-rule" /><FindingList findings={scene.findings} />
+      {scope.kind === 'matrix' && <InspectorSection title="Matrix actions"><button className="wb-secondary" onClick={() => { emit({ kind: 'remove-matrix', id: selectedMatrix.id }, [selectedMatrix.id, ...selectedMatrix.partIds]); setScope(null); setSelected([]); }}>Delete matrix</button></InspectorSection>}
+      {scene.findings.length > 0 && <InspectorSection title="Findings" detail={String(scene.findings.length)} defaultOpen><FindingList findings={scene.findings} /></InspectorSection>}
     </>;
     return <>
       <div className="wb-inspect-head"><h2>{selectionTitle}</h2>
@@ -1706,15 +1765,15 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       {activePart && activeDefinition && scope?.kind === 'component' ? <>
         <p className="wb-part-title">{activeDefinition.name}<span>{activeDefinition.kind}</span></p>
         {activeDefinition.envelopeNotice && <p className="wb-empty-note">{activeDefinition.envelopeNotice}</p>}
-        <PartOutlineControls part={activePart} definition={activeDefinition} onChange={(next) => emit({ kind: 'replace-document', document: { ...document, parts: document.parts.map((part) => part.id === next.id ? next : part) } }, [next.id])} />
-        <div className="wb-panel-rule" />
         <h3 className="wb-subtitle">Position <small>millimetres</small></h3>
         <div className="wb-coordinate-grid">
           <Coordinate label="X" value={activePart.pose.at.x} onCommit={(value) => updatePosition('x', value)} />
           <Coordinate label="Y" value={activePart.pose.at.y} onCommit={(value) => updatePosition('y', value)} />
         </div>
-        <div className="wb-panel-rule" />
-        <h3 className="wb-subtitle">Layout constraint <small>{activeConstraint ? 'Driving' : 'Optional'}</small></h3>
+        <InspectorSection title="Board outline" detail={activePart.outline?.excluded ? 'Excluded' : 'Included'}>
+        <PartOutlineControls part={activePart} definition={activeDefinition} onChange={(next) => emit({ kind: 'replace-document', document: { ...document, parts: document.parts.map((part) => part.id === next.id ? next : part) } }, [next.id])} />
+        </InspectorSection>
+        <InspectorSection title="Layout constraint" detail={activeConstraint ? 'Active' : 'Optional'} defaultOpen={Boolean(activeConstraint)}>
         {visibleParts.length > 1 ? <div className="wb-constraint-form">
           <label>Relationship
             <select aria-label="Constraint type" value={constraintKind} onChange={(event) => setConstraintKind(event.target.value as Constraint['kind'])}>
@@ -1749,18 +1808,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             {activeConstraint && <button type="button" className="is-remove" onClick={removeConstraint}>Remove</button>}
           </div>
         </div> : <p className="wb-empty-note">Add another part on this board to create a layout constraint.</p>}
-        <div className="wb-panel-rule" />
-        <dl className="wb-measure-list">
-          <Measure label="Side" value={activePart.side} />
-          <Measure label="Rotation" value={`${activePart.pose.rotation.toFixed(1)}°`} />
-          <Measure label="Pads" value={`${activeDefinition.pads.length}`} />
-          <Measure label="Courtyard" value={formatSize(activeDefinition.courtyard)} />
-        </dl>
-        <div className="wb-panel-rule" />
-        <h3 className="wb-subtitle">Pad map <small>{activeDefinition.pads.length} pads</small></h3>
-        {activeDefinition.pads.slice(0, 6).map((pad) => <div className="wb-pad-row" key={pad.id}>
-          <span className="wb-pad-number">{pad.number}</span><span>{boardNets.find((net) => net.pins.some((pin) => pin.partId === activePart.id && pin.padId === pad.id))?.name ?? 'Unmapped'}</span><small>{pad.shape}</small>
-        </div>)}
+        </InspectorSection>
+        <button className="wb-inspector-link" onClick={() => changeMode('PCB')}>Edit electrical connections <ArrowIcon /></button>
         {activeParts.length > 1 && <p className="wb-selection-count">{activeParts.length} parts selected. Position edits apply to selection.</p>}
       </> : <>
         <p className="wb-empty-note">Select a key, component, or matrix to edit it.</p>
@@ -1769,9 +1818,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         <div className="wb-empty-measure"><span>Placed parts</span><strong>{visibleParts.length}</strong></div>
 
       </>}
-      <div className="wb-panel-rule" />
-      <div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3><span>{scene.findings.length}</span></div>
-      <FindingList findings={scene.findings} />
+      {scene.findings.length > 0 && <InspectorSection title="Findings" detail={String(scene.findings.length)} defaultOpen><FindingList findings={scene.findings} /></InspectorSection>}
     </>;
   };
 
@@ -1793,6 +1840,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             event.currentTarget.value = '';
             setProjectMenuOpen(false);
           }} />}
+          <button onClick={() => { setProjectMenuOpen(false); setScriptsOpen(true); setRightOpen(true); }}>Geometry scripts</button>
           <label className="wb-theme-setting">Appearance<select aria-label="Color theme" value={themePreference} onChange={(event) => chooseTheme(event.target.value as ThemePreference)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
         </div>}
       </div>
@@ -1817,7 +1865,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     <p className="wb-keyboard-status" role="status" aria-label="Keyboard movement" aria-live="polite">{keyboardStatus}</p>
     <section className="wb-workspace" id="workbench">
       <aside id="wb-inventory" className={`wb-inventory ${leftOpen ? 'is-open' : ''}`} aria-label="Part inventory">
-        {mode === 'Library' ? <PartsLibrary definitions={libraryDefinitions} assemblies={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id), definitionId: matrixPresetDefinitions[id].definitionId }))} query={librarySearch} selected={libraryAssembly ? `assembly:${libraryAssembly}` : selectedLibraryDefinition?.id ?? ''} onSearch={setLibrarySearch} onSelect={(id) => { setLibraryChoice(id); setLibraryAssembly(null); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} onAssembly={(id) => { const preset = id as MatrixPresetId; setLibraryAssembly(preset); setLibraryChoice(matrixPresetDefinitions[preset].definitionId); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} /> : <>
+        {mode === 'Library' ? <PartsLibrary definitions={libraryDefinitions} assemblies={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id), definitionId: matrixPresetDefinitions[id].definitionId }))} query={librarySearch} selected={libraryAssembly ? `assembly:${libraryAssembly}` : selectedLibraryDefinition?.id ?? ''} onCreate={addCustomDefinition} onImport={onImportFootprint} onSearch={setLibrarySearch} onSelect={(id) => { setScriptsOpen(false); setLibraryChoice(id); setLibraryAssembly(null); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} onAssembly={(id) => { setScriptsOpen(false); const preset = id as MatrixPresetId; setLibraryAssembly(preset); setLibraryChoice(matrixPresetDefinitions[preset].definitionId); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} /> : <>
         <div className="wb-board-picker">
           <label htmlFor="wb-board-select">Board</label>
           <div><select id="wb-board-select" aria-label="Selected board" value={selectedBoardId} onChange={(event) => selectBoard(event.target.value)}>
@@ -1895,7 +1943,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
               </g>}
             </g>
           </svg>
-          {mode === 'Library' && <LibraryWorkspace definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryAssembly ? libraryDefinitions.filter((definition) => definition.id === 'matrix-diode' || (matrixPresetDefinitions[libraryAssembly].led && definition.id === 'rgb-led')).map((definition) => ({ definition, at: definition.id === 'matrix-diode' ? { x: 6, y: -10 } : { x: -5, y: -12 } })) : undefined} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={setLibrary3dOpen} colorScheme={colorScheme} />}
+          {mode === 'Library' && <LibraryWorkspace definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={setLibrary3dOpen} colorScheme={colorScheme} />}
           {mode === 'Case' && <React.Suspense fallback={<div role="status">Loading case preview…</div>}><CasePreview
             mesh={activeCaseBody ? casePreview : undefined}
             componentPreviews={selectedBoard ? componentPreviews : undefined}
@@ -1916,7 +1964,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       </section>
 
       <aside id="wb-inspector" className={`wb-inspector ${rightOpen ? 'is-open' : ''}`} aria-label={`${mode === 'Library' ? 'Parts' : mode} inspector`}>
-        <div className="wb-inspector-content" key={mode}>{getModeDetails()}</div>
+        <div className="wb-inspector-content" key={`${mode}:${scriptsOpen}:${mode === 'Library' ? libraryAssembly ?? selectedLibraryDefinition?.id : `${selectedBoardId}:${scope?.matrixId}:${scope?.kind}:${scope?.row}:${scope?.column}:${activePart?.id}`}`}>{getModeDetails()}</div>
         <div className="wb-inspector-bottom"><span><span className="wb-inspector-orb" />Live analysis</span><span className="wb-revision" title="Saved document revision">r{document.revision}</span></div>
       </aside>
       {(leftOpen || rightOpen) && <button className="wb-drawer-scrim" aria-label="Close panels" onClick={() => { setLeftOpen(false); setRightOpen(false); }} />}
@@ -1969,9 +2017,11 @@ const definitionIssues = (definition: PartDefinition): string[] => {
   for (const [index, pad] of definition.pads.entries()) {
     if (!pad.id.trim() || ids.has(pad.id)) issues.push(`Pad ${index + 1} needs a unique ID.`);
     ids.add(pad.id);
-    if (!pad.number.trim()) issues.push(`Pad ${index + 1} needs a number.`);
-    if (numbers.has(pad.number)) issues.push(`Pad ${index + 1} number must be unique.`);
-    numbers.add(pad.number);
+    if (!definition.kicadSource) {
+      if (!pad.number.trim()) issues.push(`Pad ${index + 1} needs a number.`);
+      if (numbers.has(pad.number)) issues.push(`Pad ${index + 1} number must be unique.`);
+      numbers.add(pad.number);
+    }
     if (!Number.isFinite(pad.at.x) || !Number.isFinite(pad.at.y)) issues.push(`Pad ${index + 1} position must be finite.`);
     if (!Number.isFinite(pad.size.x) || !Number.isFinite(pad.size.y) || pad.size.x <= 0 || pad.size.y <= 0) {
       issues.push(`Pad ${index + 1} size must be positive.`);
@@ -2148,7 +2198,7 @@ const ScenePart = memo(({ part, definition, active, constrained, handlers }: {
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handlers.current?.choosePart(part.id, event.ctrlKey || event.metaKey); }
     handlers.current?.nudgePart(event, part);
   }}
-  transform={`translate(${part.pose.at.x} ${part.pose.at.y}) rotate(${part.pose.rotation})`}>
+  transform={componentPoseSvgTransform(part.pose.at, part.pose.rotation, part.side)}>
   {definition?.courtyard.length ? <polygon points={definition.courtyard.map((point) => `${point.x},${point.y}`).join(' ')} className="wb-part-courtyard" /> : <rect x="-4" y="-4" width="8" height="8" rx="0.8" className="wb-part-courtyard" />}
   {definition?.kind === 'switch' && (part.keycap ?? definition.keycap) && <rect className="wb-keycap-boundary" x={-(part.keycap ?? definition.keycap)!.x / 2} y={-(part.keycap ?? definition.keycap)!.y / 2} width={(part.keycap ?? definition.keycap)!.x} height={(part.keycap ?? definition.keycap)!.y} rx="0.9" />}
   {definition?.pads.map((pad) => <circle key={pad.id} cx={pad.at.x} cy={pad.at.y} r={Math.max(0.35, Math.min(pad.size.x, pad.size.y) / 2)} className="wb-part-pad" />)}
@@ -2316,44 +2366,52 @@ const MatrixEditor = ({ document, onEdit, scope, onDuplicateDesign }: { document
   const field = (label: string, value: number, unitLabel: string, validation: NumberRule, onCommit: (value: number) => void) => <CaseNumber key={label} label={label} value={value} unit={unitLabel} validation={validation} onCommit={onCommit} />;
 
   return <section className="wb-matrix-editor" aria-label="Key matrix editor">
-    {!matrix ? <p className="wb-empty-state">Choose a part definition, then create a repeated key group.</p> : <>
-      <label className="wb-script-select-label">Part definition<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value })}>
-        {document.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
-      </select></label>
-      <div className="wb-matrix-number-grid">
-        {field('Rows', matrix.rows, 'keys', 'positive-integer', (value) => update({ rows: value }))}
-        {field('Columns', matrix.columns, 'keys', 'positive-integer', (value) => update({ columns: value }))}
-        {field('Pitch X', matrix.pitch.x, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, x: value } }))}
-        {field('Pitch Y', matrix.pitch.y, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, y: value } }))}
-        {field('Edge gap X', matrix.edgeGap?.x ?? 1, 'mm', 'nonnegative', (value) => update({ edgeGap: { ...(matrix.edgeGap ?? { x: 1, y: 1 }), x: value } }))}
-        {field('Edge gap Y', matrix.edgeGap?.y ?? 1, 'mm', 'nonnegative', (value) => update({ edgeGap: { ...(matrix.edgeGap ?? { x: 1, y: 1 }), y: value } }))}
-        {field('Origin X', matrix.origin.x, 'mm', 'finite', (value) => update({ origin: { ...matrix.origin, x: value } }))}
-        {field('Origin Y', matrix.origin.y, 'mm', 'finite', (value) => update({ origin: { ...matrix.origin, y: value } }))}
-        {field('Rotation', matrix.rotation ?? 0, '°', 'finite', (value) => update({ rotation: value }))}
-      </div>
-      <p className="wb-matrix-derived">Keycap preview {Math.max(0, matrix.pitch.x - (matrix.edgeGap?.x ?? 1)).toFixed(1)} × {Math.max(0, matrix.pitch.y - (matrix.edgeGap?.y ?? 1)).toFixed(1)} mm</p>
-      <label className="wb-script-select-label wb-matrix-mirror">Mirror<select aria-label="Mirror matrix" value={matrix.mirror ?? 'none'} onChange={(event) => update({ mirror: event.target.value as Matrix['mirror'] })}>
-        <option value="none">None</option><option value="x">X axis</option><option value="y">Y axis</option>
-      </select></label>
-      <div className="wb-matrix-cell-actions">
-        <label>Duplicate design as variant<select aria-label="Duplicate design preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
-          <option value="mx-solder">MX solder</option><option value="mx-hotswap">MX hotswap</option><option value="choc-solder">Choc solder</option><option value="choc-hotswap">Choc hotswap</option><option value="mx-rgb">MX RGB</option><option value="choc-rgb">Choc RGB</option><option value="mx-hotswap-rgb">MX hotswap RGB</option><option value="choc-hotswap-rgb">Choc hotswap RGB</option>
+    {!matrix ? <p className="wb-empty-state">Select a matrix to edit its layout.</p> : <>
+      <InspectorSection title="Layout" detail={`${matrix.rows} × ${matrix.columns}`} defaultOpen>
+        <div className="wb-matrix-number-grid">
+          {field('Rows', matrix.rows, 'keys', 'positive-integer', (value) => update({ rows: value }))}
+          {field('Columns', matrix.columns, 'keys', 'positive-integer', (value) => update({ columns: value }))}
+          {field('Pitch X', matrix.pitch.x, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, x: value } }))}
+          {field('Pitch Y', matrix.pitch.y, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, y: value } }))}
+        </div>
+      </InspectorSection>
+      <InspectorSection title="Position & orientation" defaultOpen>
+        <div className="wb-matrix-number-grid">
+          {field('Origin X', matrix.origin.x, 'mm', 'finite', (value) => update({ origin: { ...matrix.origin, x: value } }))}
+          {field('Origin Y', matrix.origin.y, 'mm', 'finite', (value) => update({ origin: { ...matrix.origin, y: value } }))}
+          {field('Rotation', matrix.rotation ?? 0, '°', 'finite', (value) => update({ rotation: value }))}
+        </div>
+        <label className="wb-script-select-label">Mirror<select aria-label="Mirror matrix" value={matrix.mirror ?? 'none'} onChange={(event) => update({ mirror: event.target.value as Matrix['mirror'] })}>
+          <option value="none">None</option><option value="x">X axis</option><option value="y">Y axis</option>
         </select></label>
-        <button disabled={!matrix || !onDuplicateDesign} onClick={() => matrix && onDuplicateDesign?.(matrix.id, presetId)}>Duplicate design as variant</button>
-      </div>
-      <label className="wb-script-select-label">Apply matrix preset<select aria-label="Apply matrix preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
-        <option value="mx-solder">MX solder</option><option value="mx-hotswap">MX hotswap</option><option value="choc-solder">Choc solder</option><option value="choc-hotswap">Choc hotswap</option><option value="mx-rgb">MX RGB</option><option value="choc-rgb">Choc RGB</option><option value="mx-hotswap-rgb">MX hotswap RGB</option><option value="choc-hotswap-rgb">Choc hotswap RGB</option>
-      </select><button disabled={!matrix} onClick={() => {
-        if (!matrix) return;
-        const result = matrixWithPreset(matrix, presetId);
-        const missing = result.definitions.filter((definition) => !definitions.has(definition.id));
-        commit(result.matrix, missing);
-      }}>Apply preset</button></label>
-      <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Add matrix diodes" checked={Boolean(matrix.diodes)} onChange={(event) => update({ diodes: event.target.checked })} /> Add one diode per key</label>
-      <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
-        <option value="row2col">Rows to columns</option><option value="col2row">Columns to rows</option>
-      </select></label>
-
+      </InspectorSection>
+      <InspectorSection title="Key assembly" detail={definitions.get(matrix.definitionId)?.name}>
+        <label className="wb-script-select-label">Assembly preset<select aria-label="Apply matrix preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
+          {(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => <option key={id} value={id}>{assemblyName(id)}</option>)}
+        </select></label>
+        <div className="wb-inspector-actions">
+          <button className="wb-secondary" onClick={() => {
+            const result = matrixWithPreset(matrix, presetId);
+            const missing = result.definitions.filter((definition) => !definitions.has(definition.id));
+            commit(result.matrix, missing);
+          }}>Apply preset</button>
+          <button className="wb-inspector-link" disabled={!onDuplicateDesign} onClick={() => onDuplicateDesign?.(matrix.id, presetId)}>Duplicate design as variant</button>
+        </div>
+        <label className="wb-script-select-label">Switch footprint<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value })}>
+          {document.definitions.filter((definition) => definition.kind === 'switch' || definition.id === matrix.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+        </select></label>
+        <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Add matrix diodes" checked={Boolean(matrix.diodes)} onChange={(event) => update({ diodes: event.target.checked })} /> Add one diode per key</label>
+        {matrix.diodes && <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
+          <option value="row2col">Rows to columns</option><option value="col2row">Columns to rows</option>
+        </select></label>}
+      </InspectorSection>
+      <InspectorSection title="Keycap spacing" detail="Preview only">
+        <div className="wb-matrix-number-grid">
+          {field('Edge gap X', matrix.edgeGap?.x ?? 1, 'mm', 'nonnegative', (value) => update({ edgeGap: { ...(matrix.edgeGap ?? { x: 1, y: 1 }), x: value } }))}
+          {field('Edge gap Y', matrix.edgeGap?.y ?? 1, 'mm', 'nonnegative', (value) => update({ edgeGap: { ...(matrix.edgeGap ?? { x: 1, y: 1 }), y: value } }))}
+        </div>
+        <p className="wb-empty-note">Keycap preview {Math.max(0, matrix.pitch.x - (matrix.edgeGap?.x ?? 1)).toFixed(1)} × {Math.max(0, matrix.pitch.y - (matrix.edgeGap?.y ?? 1)).toFixed(1)} mm</p>
+      </InspectorSection>
     </>}
   </section>;
 };
@@ -2365,7 +2423,7 @@ const ModelVector = ({ title, value, unit: unitLabel, validation, onCommit }: { 
 
 const Measure = ({ label, value }: { label: string; value: string }) => <div className="wb-measure"><dt>{label}</dt><dd>{value}</dd></div>;
 
-const FindingList = ({ findings }: { findings: SceneDelta['findings'] }) => findings.length ? <ul className="wb-findings">{findings.slice(0, 6).map((finding) => <li key={finding.id} className={`is-${finding.severity}`}>
+const FindingList = ({ findings }: { findings: SceneDelta['findings'] }) => findings.length ? <ul className="wb-findings">{findings.map((finding) => <li key={finding.id} className={`is-${finding.severity}`}>
   <span className="wb-finding-mark" /><span>{finding.message}</span>
 </li>)}</ul> : <p className="wb-no-findings"><span>✓</span> No active findings</p>;
 

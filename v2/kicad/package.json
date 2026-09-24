@@ -10,6 +10,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test test/*.test.ts"
+    "test": "cargo build --manifest-path ../core/Cargo.toml --locked --example artifact_request && node --experimental-strip-types --test test/*.test.ts"
   }
 }

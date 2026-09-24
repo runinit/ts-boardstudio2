@@ -8,7 +8,7 @@ import { emptyProject } from '../../contracts/src/index.ts';
 import type { Contour, Part, PartDefinition, ProjectDoc } from '../../contracts/src/index.ts';
 import { catalogue, child, modelAssetIds, parseForms, value } from '../../ergogen/src/index.ts';
 import type { Expression } from '../../ergogen/src/index.ts';
-import { exportBoard } from '../src/index.ts';
+import { exportNativeBoard, finishNativeExport, prepareNativeExport } from './nativeArtifact.ts';
 
 const definitions = catalogue();
 const contour: Contour[] = [{ hole: false, points: [
@@ -81,7 +81,7 @@ test('exports placed front and back Ergogen switches with instance nets and mult
     ['ergogen:model:socket.step', 'models/socket.step'],
     ['ergogen:model:keycap.step', 'models/keycap.step'],
   ]);
-  const board = exportBoard(doc, 'main', contour, 0, paths).content;
+  const board = exportNativeBoard(doc, 'main', contour, paths);
 
   for (const net of ['ROW0', 'COL0', 'ROW1', 'COL1']) {
     assert.match(board, new RegExp(`\\(net \\d+ "${net}"\\)`, 'u'));
@@ -111,7 +111,7 @@ test('exports document pad-net assignments for Ergogen terminal groups', () => {
   doc.boards[0].netIds = ['gnd'];
   const paths = new Map(modelAssetIds(connector).map((id) => [id, `models/${id.replaceAll(':', '_').replaceAll('/', '_')}.step`]));
 
-  const board = exportBoard(doc, 'main', contour, 0, paths).content;
+  const board = exportNativeBoard(doc, 'main', contour, paths);
   assert.match(board, /\(net 1 "GND"\)/u);
   assert.match(board, new RegExp(`\\(pad "${pad.number}"[^\\n]*\\(net 1 "GND"\\)` , 'u'));
 });
@@ -125,7 +125,7 @@ test('exports placed Ergogen zone, reversible text, and front/back route as KiCa
     part(text, 'label', 0, 'front', { text: 'BOARD', reversible: true }),
     part(router, 'route', 0, 'front', { net: 'GND', route: 'f(0,0)(2,0)v(2,2)' }),
   ];
-  const board = exportBoard(project([zone, text, router], parts), 'main', contour, 0).content;
+  const board = exportNativeBoard(project([zone, text, router], parts), 'main', contour);
 
   assert.match(board, /\(net \d+ "GND"\)/u);
   assert.match(board, /\(zone /u);
@@ -139,7 +139,7 @@ test('upgrades legacy vendor footprint arcs for KiCad 10', { skip: !hasKiCad10 }
   for (const source of ['infused-kim/choc', 'infused-kim/nice_view']) {
     const item = definition(source);
     const paths = new Map(modelAssetIds(item).map((id) => [id, `models/${id.slice(14).replaceAll('/', '_')}`]));
-    const board = exportBoard(project([item], [part(item, 'part', 0, 'front', {})]), 'main', contour, 0, paths).content;
+    const board = exportNativeBoard(project([item], [part(item, 'part', 0, 'front', {})]), 'main', contour, paths);
     assert.match(board, /\(fp_arc \(start [^)]+\) \(mid [^)]+\) \(end [^)]+\)/u);
     assert.doesNotThrow(() => parseWithKiCad(board));
   }
@@ -148,7 +148,30 @@ test('upgrades legacy vendor footprint arcs for KiCad 10', { skip: !hasKiCad10 }
 test('KiCad 10 parses default board output from every bundled generator', { skip: !hasKiCad10 }, () => {
   for (const item of definitions) {
     const paths = new Map(modelAssetIds(item).map((id) => [id, `models/${id.slice(14).replaceAll('/', '_')}`]));
-    const board = exportBoard(project([item], [part(item, 'part', 0, 'front', {})]), 'main', contour, 0, paths).content;
+    const board = exportNativeBoard(project([item], [part(item, 'part', 0, 'front', {})]), 'main', contour, paths);
     assert.doesNotThrow(() => parseWithKiCad(board), item.generator?.source);
   }
+});
+
+test('standalone export batches all Ergogen generators and reports skipped board utilities', () => {
+  assert.equal(definitions.length, 39);
+  const doc = emptyProject('ergogen-library', 'Ergogen library');
+  doc.definitions = definitions;
+  const paths = new Map(definitions.flatMap((item) => modelAssetIds(item).map((id) => [
+    id,
+    `models/${id.replaceAll(':', '_').replaceAll('/', '_')}.step`,
+  ] as const)));
+  const plan = prepareNativeExport(
+    doc,
+    { kind: 'standalone-footprints', definitionIds: definitions.map((item) => item.id) },
+    [],
+    paths,
+    'ergogen-library',
+  );
+  const artifact = finishNativeExport(plan, paths, 'ergogen-library');
+
+  assert.ok(artifact.skippedUtilities.includes('utility text'));
+  assert.ok(artifact.skippedUtilities.includes('utility router'));
+  assert.equal(artifact.files.length + artifact.skippedUtilities.length, definitions.length);
+  assert.ok(artifact.files.some((file) => file.content.includes('${KIPRJMOD}/models/')));
 });

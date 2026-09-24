@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync } from 'fflate';
 import { buildCase } from '@boardstudio/v2-cad';
+import { prepareCase } from '../../cad/test/native-prepare.mjs';
 
 const placeGuidedMatrix = async (page: import('@playwright/test').Page) => {
   await configureMatrix(page);
@@ -114,6 +115,7 @@ test('paints 100 and 200 key outline previews within latency targets', async ({ 
 test('packages a local model with relative KiCad paths', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
+  await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'sample.step',
     mimeType: 'model/step',
@@ -142,6 +144,8 @@ test('packages a local model with relative KiCad paths', async ({ page }) => {
 test('runs a bounded script to add an outline hole', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
+  await page.getByRole('button', { name: 'Geometry scripts', exact: true }).click();
   await page.getByRole('button', { name: '+ New script' }).click();
   await page.getByRole('textbox', { name: 'Rhai source' }).fill('rect("extra", "hole", 30.0, -10.0, 3.0, 3.0, 0.0, "subtract");');
   await page.getByRole('checkbox', { name: 'Enable on Apply' }).check();
@@ -196,6 +200,7 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('combobox', { name: 'Cell variant' }).selectOption('choc-switch');
   await expect(page.getByRole('combobox', { name: 'Cell variant' })).toHaveValue('choc-switch');
   await page.getByRole('button', { name: 'Matrix', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('mx-hotswap-rgb');
   await page.getByRole('button', { name: 'Apply preset' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(90);
@@ -338,6 +343,7 @@ test('matrix diode direction is editable and survives matrix edits', async ({ pa
   await page.getByRole('button', { name: 'New project' }).click();
   await placeGuidedMatrix(page);
 
+  await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   const direction = page.getByRole('combobox', { name: 'Diode direction' });
   await expect(direction).toHaveValue('row2col');
   await direction.selectOption('col2row');
@@ -414,7 +420,8 @@ test('duplicates a matrix as a separate preset project', async ({ page }) => {
   const originalId = await page.evaluate(() => localStorage.getItem('boardstudio-v2-active-project'));
   expect(originalId).toBeTruthy();
 
-  await page.getByRole('combobox', { name: 'Duplicate design preset' }).selectOption('choc-rgb');
+  await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
+  await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('choc-rgb');
   await page.getByRole('button', { name: 'Duplicate design as variant' }).click();
   await expect(page.getByRole('textbox', { name: 'Project name' })).toHaveValue(/choc-rgb/);
   await expect(page.locator('.wb-scene-part')).toHaveCount(90);
@@ -496,12 +503,12 @@ test('authors a custom component and exports a KiCad footprint library', async (
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: 'New project' }).click();
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.getByRole('button', { name: '+ New definition' }).click();
-  const editor = page.getByRole('combobox', { name: 'Edit component definition' });
-  await expect(editor.locator('option:checked')).toHaveText('Custom component 7');
+  await page.getByRole('button', { name: 'New custom component' }).click();
+  const editor = page.getByRole('complementary', { name: 'Parts inspector' });
+  await expect(editor.getByRole('heading', { level: 2 })).toHaveText('Custom component 7');
   await page.getByRole('textbox', { name: 'Definition name' }).fill('Controller mount');
   await page.getByRole('textbox', { name: 'Definition name' }).blur();
-  await expect(editor.locator('option:checked')).toHaveText('Controller mount');
+  await expect(editor.getByRole('heading', { level: 2 })).toHaveText('Controller mount');
   await page.getByRole('button', { name: '+ Add pad' }).click();
   await expect(page.getByRole('group', { name: 'Pad 1' })).toBeVisible();
   await page.getByRole('tab', { name: 'Export' }).click();
@@ -514,14 +521,15 @@ test('authors a custom component and exports a KiCad footprint library', async (
 
 test('shows attached STEP components in the 3D case preview', async ({ page }) => {
   test.setTimeout(60_000);
-  const model = await buildCase({
+  const model = await buildCase(prepareCase({
     revision: 0,
     body: { id: 'preview-model', name: 'Preview model', boardId: 'main-board', kind: 'plate', thickness: 2, clearance: 0 },
     contours: [{ hole: false, points: [{ x: -3, y: -3 }, { x: 3, y: -3 }, { x: 3, y: 3 }, { x: -3, y: 3 }] }],
-  });
+  }));
 
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
+  await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'preview.step',
     mimeType: 'model/step',
@@ -536,6 +544,7 @@ test('propagates a linked layout constraint during a source move', async ({ page
   await page.goto('/');
   await page.getByRole('button', { name: /^SW2, MX switch/ }).click();
   await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
   await page.getByRole('combobox', { name: 'Constraint source part' }).selectOption({ label: 'SW1' });
   await page.getByRole('spinbutton', { name: 'Offset X (mm)' }).fill('25');
   await page.getByRole('button', { name: 'Add constraint' }).click();

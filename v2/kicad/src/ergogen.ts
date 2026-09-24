@@ -66,7 +66,6 @@ export function exportErgogenForms(
       if (kind === 'module') form[0] = 'footprint';
       footprints.push(serialize(form));
     } else if (['segment', 'via', 'zone', 'gr_text', 'gr_line', 'gr_arc', 'gr_circle', 'gr_poly', 'gr_rect'].includes(kind)) {
-      if (!part) throw new Error(`Ergogen ${kind} requires a placed part`);
       objects.push(serialize(form));
     } else {
       throw new Error(`Unsupported Ergogen output form: ${kind}`);

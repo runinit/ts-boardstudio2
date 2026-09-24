@@ -165,3 +165,24 @@ mechanical fit. The 3D component view is visual; it does not prove clearances.
 The KiCad footprint importer supports a documented subset, and mirror
 constraints reflect placement without changing asymmetric footprint geometry.
 The v2 CI workflow runs on pull requests and does not deploy.
+
+### Inspector organization
+
+Parts inspectors focus on placement and part options. Standard built-in footprints
+use their existing pad geometry; pad spacing, size and drill tuning are no longer
+exposed. Previously saved parameters are retained and still compile unchanged.
+Bundled generator assembly choices and keycap dimensions are visible; connection
+bindings, model placement and advanced footprint parameters are disclosed separately.
+
+The catalogue owns footprint import and **New custom component**. Raw courtyard
+and pad authoring is available only through **Edit footprint** for non-generator
+custom/imported definitions. The selected catalogue item is the sole editing target;
+there are no separate definition or model-target selectors. Key assemblies show
+only their assembly description and placement action. Geometry scripts live under
+**Project → Geometry scripts**.
+
+Design inspectors lead with position and layout. Outline overrides, optional
+constraints, assembly settings and matrix actions have named disclosure sections.
+Electrical connections stay in PCB. Case inspectors show wall dimensions only for
+trays/lids and disclose mounting and gasket details. These changes reduce routine
+configuration without changing project formats, footprint identities or exports.

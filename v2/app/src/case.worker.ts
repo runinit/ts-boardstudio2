@@ -1,8 +1,8 @@
-import type { CaseAssemblyIR, CaseResult } from '@boardstudio/v2-contracts';
+import type { CaseResult, PreparedCaseAssemblyIR } from '@boardstudio/v2-contracts';
 import { buildAssembly, readStepModel } from '@boardstudio/v2-cad';
 import type { StepModel } from '@boardstudio/v2-cad';
 
-type CaseMessage = { id: string; kind: 'case'; ir: CaseAssemblyIR } | { id: string; kind: 'model'; bytes: Uint8Array };
+type CaseMessage = { id: string; kind: 'case'; ir: PreparedCaseAssemblyIR } | { id: string; kind: 'model'; bytes: Uint8Array };
 type CaseReply =
   | { id: string; kind: 'case'; result: CaseResult }
   | { id: string; kind: 'model'; result: StepModel }

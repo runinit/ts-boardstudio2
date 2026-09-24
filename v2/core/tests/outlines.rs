@@ -72,6 +72,7 @@ fn automatic_part_envelopes_exclude_nonphysical_utilities() {
         kind: PartKind::Utility,
         keycap: None,
         envelope_source: None,
+        kicad_source: None,
         terminals: Default::default(),
         matrix_terminals: None,
         envelope_notice: None,
@@ -112,6 +113,50 @@ fn automatic_part_envelopes_exclude_nonphysical_utilities() {
     }));
     assert!(contains(&resolved.contours, 19.05, 0.0));
     assert!(!contains(&resolved.contours, 100.0, 0.0));
+}
+
+#[test]
+fn automatic_envelope_reflects_asymmetric_back_side_footprints() {
+    let mut doc = document();
+    doc.definitions[0].kind = PartKind::Passive;
+    doc.definitions[0].courtyard = vec![
+        Vec2 { x: 0.0, y: 0.0 },
+        Vec2 { x: 6.0, y: 0.0 },
+        Vec2 { x: 6.0, y: 2.0 },
+        Vec2 { x: 0.0, y: 2.0 },
+    ];
+    doc.parts = vec![Part {
+        id: "back-part".into(),
+        definition_id: "switch".into(),
+        reference: "U1".into(),
+        pose: Pose2 {
+            at: Vec2::default(),
+            rotation: 0.0,
+        },
+        side: Side::Back,
+        keycap: None,
+        outline: None,
+        locked: None,
+        properties: None,
+        generator_parameters: None,
+    }];
+    doc.boards[0].part_ids = vec!["back-part".into()];
+    doc.boards[0].outline_ids = vec!["edge".into()];
+    doc.outline[0] = OutlineFeature::PartEnvelope {
+        settings: OutlineSettings::default(),
+        id: "edge".into(),
+        part_ids: vec!["back-part".into()],
+        margin: 0.0,
+        operation: Operation::Add,
+    };
+
+    let mut core = CoreEngine::new();
+    let resolved = scene(core.handle(CoreRequest::Open {
+        id: "open-back".into(),
+        document: doc,
+    }));
+    assert!(contains(&resolved.contours, -3.0, 1.0));
+    assert!(!contains(&resolved.contours, 3.0, 1.0));
 }
 
 fn commit(core: &mut CoreEngine, revision: u64, operation: serde_json::Value) -> SceneDelta {

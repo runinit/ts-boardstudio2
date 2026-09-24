@@ -7,11 +7,20 @@ license = "MIT OR Apache-2.0"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+export-types = ["dep:ts-rs"]
+
+[[example]]
+name = "export_contracts"
+required-features = ["export-types"]
+
 [dependencies]
 i_overlay = "9.0.0"
+kiutils_sexpr = "=0.1.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 wasm-bindgen = "0.2.128"
+ts-rs = { version = "=12.0.1", optional = true, features = ["serde-compat", "serde-json-impl"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rhai = { version = "1.26.1", default-features = false, features = ["std"] }

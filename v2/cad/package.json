@@ -7,16 +7,14 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "clipper-lib": "6.4.2",
     "libcascade": "3.0.2"
   },
   "devDependencies": {
     "@boardstudio/v2-contracts": "workspace:*",
-    "@types/clipper-lib": "6.4.0",
     "typescript": "^5.9.3"
   },
   "scripts": {
     "check": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test test/*.test.mjs"
+    "test": "cargo build --manifest-path ../core/Cargo.toml --target-dir ../core/target --example prepare_case --locked && node --test test/*.test.mjs"
   }
 }

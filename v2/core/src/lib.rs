@@ -1,3 +1,5 @@
+pub mod artifact;
+mod case;
 mod constraints;
 mod geometry;
 mod matrix;
@@ -39,6 +41,12 @@ impl CoreEngine {
         };
         serde_json::to_string(&reply).expect("reply serializes")
     }
+}
+
+/// Handle an artifact request without mutating the stateful document engine.
+#[wasm_bindgen]
+pub fn artifact_request(json: &str) -> String {
+    artifact::request(json)
 }
 
 impl Default for CoreEngine {
@@ -85,6 +93,14 @@ impl CoreEngine {
             CoreRequest::Edit { id, command } => self.edit(id, command),
             CoreRequest::Undo { id } => self.history(id, History::Undo),
             CoreRequest::Redo { id } => self.history(id, History::Redo),
+            CoreRequest::PrepareCase { id, ir } => match case::prepare(&ir) {
+                Ok(ir) => CoreReply::CasePrepared { id, ir },
+                Err(message) => CoreReply::Error {
+                    id,
+                    message,
+                    revision: ir.revision,
+                },
+            },
             CoreRequest::Snapshot { id } => self.scene(
                 id,
                 "snapshot",

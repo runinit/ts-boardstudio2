@@ -1,5 +1,6 @@
 import type { JsonValue, PartDefinition } from '../../../contracts/src/index';
 import { generatorParameters, type GeneratorEdits } from './generatorSettings';
+import { InspectorSection } from './InspectorSection';
 
 const labelFor = (key: string) => key.replaceAll('_', ' ').replace(/\b(pcb|xyz|led|rgb)\b/gi, (word) => word.toUpperCase()).replace(/^./, (letter) => letter.toUpperCase());
 
@@ -10,22 +11,31 @@ export function GeneratorFields({ definition, edits, onChange, onImportModel, er
 }) {
   const entries = Object.entries(generatorParameters(definition));
   const groups = [
-    { name: 'Dimensions', kind: 'dimensions', open: true },
     { name: 'Footprint options', kind: 'options', open: true },
-    { name: 'Identification', kind: 'identity', open: true },
+    { name: 'Keycap dimensions', kind: 'dimensions', open: true },
     { name: 'Connections', kind: 'connections', open: false },
-    { name: '3D model placement', kind: 'models', open: true },
-    { name: 'Advanced parameters', kind: 'advanced', open: false },
+    { name: '3D model placement', kind: 'models', open: false },
+    { name: 'Advanced footprint options', kind: 'advanced', open: false },
   ];
-  const groupFor = (key: string, type: string) => /3dmodel|model_/.test(key) ? 'models' : type === 'number' ? 'dimensions' : type === 'boolean' ? 'options' : type === 'net' ? 'connections' : type === 'string' ? 'identity' : 'advanced';
+  // Surface assembly choices; generator implementation details stay opt-in.
+  const groupFor = (key: string, type: string) => {
+    if (/3dmodel|model_/.test(key)) return 'models';
+    if (type === 'net') return 'connections';
+    if (/^keycap_(width|height|depth)$/.test(key)) return 'dimensions';
+    if (/^(side|reversible|hotswap|solder|include_keycap|show_keycaps|choc_v1_support|choc_v2_support|name|text)$/.test(key)) return 'options';
+    // Utilities need their geometry/content visible to be useful.
+    if ((definition.kind as string) === 'utility' && !/pad|trace|drill/.test(key) && ['number', 'string', 'boolean'].includes(type)) return 'options';
+    return 'advanced';
+  };
   return <div className="wb-generator-groups">{groups.map((group) => {
     const fields = entries.filter(([key, parameter]) => groupFor(key, parameter.type) === group.kind);
     if (!fields.length) return null;
-    return <details key={`${definition.id}:${group.kind}`} open={group.open} className="wb-generator-group"><summary>{group.name}</summary>
+    return <InspectorSection key={`${definition.id}:${group.kind}`} title={group.name} defaultOpen={group.open}>
       <div role="group" aria-label={group.name} className={`wb-generator-fields is-${group.kind}`}>
         {fields.map(([key, parameter]) => {
           const current = edits[key] ?? definition.generator?.parameters[key] ?? parameter.value;
           const label = labelFor(key);
+          if (key === 'side' && (current === 'F' || current === 'B')) return <label className="wb-generator-field" key={key}>Board side<select aria-label="side" value={current} onChange={(event) => onChange(key, event.target.value)}><option value="F">Front</option><option value="B">Back</option></select></label>;
           if (parameter.type === 'boolean') return <label className="wb-generator-toggle" key={key}><span>{label}</span><input type="checkbox" aria-label={key} checked={current === true} onChange={(event) => onChange(key, event.target.checked)} /></label>;
           if (parameter.type === 'array' || parameter.type === 'object' || parameter.type === 'anchor') {
             const value = typeof current === 'string' ? current : JSON.stringify(current ?? (parameter.type === 'array' ? [] : {}), null, 2);
@@ -44,6 +54,6 @@ export function GeneratorFields({ definition, edits, onChange, onImportModel, er
           return <label className="wb-generator-field" key={key}>{label}<input type={parameter.type === 'number' ? 'number' : 'text'} step={parameter.type === 'number' ? 'any' : undefined} aria-label={parameter.type === 'number' ? key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) : key} value={String(current ?? '')} onChange={(event) => onChange(key, event.target.value)} /></label>;
         })}
       </div>
-    </details>;
+    </InspectorSection>;
   })}</div>;
 }

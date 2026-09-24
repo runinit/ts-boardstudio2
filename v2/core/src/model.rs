@@ -2,28 +2,38 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Vec2 {
     pub x: f64,
     pub y: f64,
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Pose2 {
     pub at: Vec2,
     pub rotation: f64,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Material {
     pub id: String,
     pub name: String,
     pub thickness: f64,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Pad {
     pub id: String,
     pub number: String,
@@ -42,6 +52,7 @@ pub struct Pad {
     pub net_id: Option<String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum PadShape {
     Circle,
@@ -50,6 +61,8 @@ pub enum PadShape {
     Roundrect,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct PartModel {
     #[serde(rename = "assetId")]
     pub asset_id: String,
@@ -58,6 +71,16 @@ pub struct PartModel {
     pub scale: Vec3,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct KicadSource {
+    #[cfg_attr(feature = "export-types", ts(type = "1"))]
+    pub format_version: u8,
+    pub source: String,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct PartDefinition {
     pub id: String,
     pub name: String,
@@ -70,6 +93,16 @@ pub struct PartDefinition {
         skip_serializing_if = "Option::is_none"
     )]
     pub envelope_source: Option<EnvelopeSource>,
+    #[serde(
+        rename = "kicadSource",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub kicad_source: Option<KicadSource>,
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<BTreeMap<String, Vec<String>>>", optional)
+    )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub terminals: BTreeMap<String, Vec<String>>,
     #[serde(
@@ -94,29 +127,38 @@ pub struct PartDefinition {
     pub generator: Option<PartGenerator>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase", default)]
 pub struct EnvelopeSource {
+    #[cfg_attr(feature = "export-types", ts(optional = nullable))]
     pub courtyard: Option<EnvelopeOrigin>,
+    #[cfg_attr(feature = "export-types", ts(optional = nullable))]
     pub keycap: Option<EnvelopeOrigin>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum EnvelopeOrigin {
     Generated,
     Authored,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct MatrixTerminals {
     pub row: String,
     pub column: String,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct PartGenerator {
     pub source: String,
     pub version: String,
     pub parameters: BTreeMap<String, serde_json::Value>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum PartKind {
     Switch,
@@ -128,6 +170,8 @@ pub enum PartKind {
     Utility,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Part {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keycap: Option<Vec2>,
@@ -150,12 +194,15 @@ pub struct Part {
     pub generator_parameters: Option<BTreeMap<String, serde_json::Value>>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum Side {
     Front,
     Back,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Pin {
     #[serde(rename = "partId")]
     pub part_id: String,
@@ -163,12 +210,16 @@ pub struct Pin {
     pub pad_id: String,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Net {
     pub id: String,
     pub name: String,
     pub pins: Vec<Pin>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Matrix {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -193,30 +244,37 @@ pub struct Matrix {
     pub diodes: Option<bool>,
     #[serde(rename = "diodeDirection", skip_serializing_if = "Option::is_none")]
     pub diode_direction: Option<DiodeDirection>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<Vec2>>", optional))]
     #[serde(rename = "rowOffsets", default, skip_serializing_if = "Vec::is_empty")]
     pub row_offsets: Vec<Vec2>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<Vec2>>", optional))]
     #[serde(
         rename = "columnOffsets",
         default,
         skip_serializing_if = "Vec::is_empty"
     )]
     pub column_offsets: Vec<Vec2>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<f64>>", optional))]
     #[serde(
         rename = "columnStaggers",
         default,
         skip_serializing_if = "Vec::is_empty"
     )]
     pub column_staggers: Vec<f64>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<f64>>", optional))]
     #[serde(
         rename = "columnSplays",
         default,
         skip_serializing_if = "Vec::is_empty"
     )]
     pub column_splays: Vec<f64>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<MatrixCell>>", optional))]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub cells: Vec<MatrixCell>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct MatrixCell {
     pub row: u32,
     pub column: u32,
@@ -231,10 +289,16 @@ pub struct MatrixCell {
     pub offset: Option<Vec2>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rotation: Option<f64>,
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<Vec<MatrixAssembly>>", optional)
+    )]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub assemblies: Vec<MatrixAssembly>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct MatrixAssembly {
     pub id: String,
     #[serde(rename = "definitionId")]
@@ -246,6 +310,7 @@ pub struct MatrixAssembly {
     pub side: Option<Side>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum Mirror {
     None,
@@ -253,19 +318,24 @@ pub enum Mirror {
     Y,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum DiodeDirection {
     Row2col,
     Col2row,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase", default)]
 pub struct PartOutline {
+    #[cfg_attr(feature = "export-types", ts(as = "Option<bool>", optional))]
     pub excluded: bool,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<f64>", optional))]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub margin: Option<f64>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum CornerStyle {
     #[default]
@@ -274,6 +344,7 @@ pub enum CornerStyle {
     Chamfer,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase", default)]
 pub struct OutlineSettings {
     pub corners: CornerStyle,
@@ -290,6 +361,7 @@ impl Default for OutlineSettings {
     }
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum OutlineFeature {
     Polygon {
@@ -305,6 +377,7 @@ pub enum OutlineFeature {
         operation: Operation,
     },
     PartEnvelope {
+        #[cfg_attr(feature = "export-types", ts(as = "Option<OutlineSettings>", optional))]
         #[serde(default)]
         settings: OutlineSettings,
         id: String,
@@ -329,12 +402,15 @@ impl OutlineFeature {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum Operation {
     Add,
     Subtract,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Board {
     pub id: String,
     pub name: String,
@@ -345,12 +421,19 @@ pub struct Board {
     #[serde(rename = "netIds")]
     pub net_ids: Vec<String>,
     pub thickness: f64,
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<Vec<CopperTrace>>", optional)
+    )]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub traces: Vec<CopperTrace>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<CopperVia>>", optional))]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub vias: Vec<CopperVia>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct CopperTrace {
     pub id: String,
     pub start: Vec2,
@@ -361,6 +444,8 @@ pub struct CopperTrace {
     pub net_id: Option<String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct CopperVia {
     pub id: String,
     pub at: Vec2,
@@ -370,6 +455,8 @@ pub struct CopperVia {
     pub net_id: Option<String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct CaseBody {
     pub id: String,
     pub name: String,
@@ -392,6 +479,8 @@ pub struct CaseBody {
     pub gasket: Option<Gasket>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Mount {
     pub id: String,
     pub at: Vec2,
@@ -404,18 +493,22 @@ pub struct Mount {
     pub height: Option<f64>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum MountKind {
     Hole,
     Boss,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Gasket {
     pub inset: f64,
     pub width: f64,
     pub depth: f64,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum CaseKind {
     Plate,
@@ -423,6 +516,8 @@ pub enum CaseKind {
     Lid,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Asset {
     pub id: String,
     pub name: String,
@@ -435,6 +530,8 @@ pub struct Asset {
     pub source: Option<String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Script {
     pub id: String,
     pub name: String,
@@ -442,6 +539,7 @@ pub struct Script {
     pub enabled: bool,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum Constraint {
     Offset {
@@ -485,13 +583,17 @@ impl Constraint {
     }
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum MirrorAxis {
     Vertical,
     Horizontal,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct ProjectDoc {
+    #[cfg_attr(feature = "export-types", ts(type = "\"boardstudio/v2\""))]
     pub format: String,
     pub id: String,
     pub name: String,
@@ -534,6 +636,7 @@ impl ProjectDoc {
     }
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum EditOperation {
     MoveParts {
@@ -544,6 +647,7 @@ pub enum EditOperation {
     },
     AddPart {
         part: Part,
+        #[cfg_attr(feature = "export-types", ts(optional))]
         #[serde(rename = "boardId", skip_serializing_if = "Option::is_none")]
         board_id: Option<String>,
     },
@@ -575,17 +679,22 @@ pub enum EditOperation {
     },
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Position {
     pub id: String,
     pub at: Vec2,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum EditPhase {
     Preview,
     Commit,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct EditCommand {
     #[serde(rename = "baseRevision")]
     pub base_revision: u64,
@@ -597,11 +706,55 @@ pub struct EditCommand {
     pub operation: EditOperation,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Contour {
     pub points: Vec<Vec2>,
     pub hole: bool,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct CaseIR {
+    pub revision: u64,
+    pub body: CaseBody,
+    pub contours: Vec<Contour>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct CaseAssemblyIR {
+    pub revision: u64,
+    pub bodies: Vec<CaseIR>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct PreparedCaseIR {
+    pub revision: u64,
+    pub body: CaseBody,
+    pub regions: Vec<PreparedCaseRegion>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct PreparedCaseRegion {
+    pub outer: Vec<Vec2>,
+    pub holes: Vec<Vec<Vec2>>,
+    pub cavities: Vec<Vec<Vec2>>,
+    pub gaskets: Vec<PreparedGasketRegion>,
+    pub mounts: Vec<Mount>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct PreparedGasketRegion {
+    pub outer: Vec<Vec2>,
+    pub holes: Vec<Vec<Vec2>>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct PreparedCaseAssemblyIR {
+    pub revision: u64,
+    pub bodies: Vec<PreparedCaseIR>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
     Error,
@@ -609,6 +762,7 @@ pub enum Severity {
     Info,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
 pub enum Scope {
     Layout,
@@ -617,6 +771,8 @@ pub enum Scope {
     Case,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Finding {
     pub id: String,
     pub severity: Severity,
@@ -626,6 +782,8 @@ pub struct Finding {
     pub target_ids: Vec<String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Readiness {
     pub layout: bool,
     pub outline: bool,
@@ -634,17 +792,23 @@ pub struct Readiness {
     pub case_ready: bool,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct Transform {
     pub id: String,
     pub pose: Pose2,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct BoardContours {
     #[serde(rename = "boardId")]
     pub board_id: String,
     pub contours: Vec<Contour>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct BoardReadiness {
     #[serde(rename = "boardId")]
     pub board_id: String,
@@ -654,6 +818,8 @@ pub struct BoardReadiness {
     pub case_ready: bool,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct SceneDelta {
     pub revision: u64,
     #[serde(rename = "transactionId")]
@@ -670,15 +836,34 @@ pub struct SceneDelta {
     pub readiness: Readiness,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreRequest {
-    Open { id: String, document: ProjectDoc },
-    Edit { id: String, command: EditCommand },
-    Undo { id: String },
-    Redo { id: String },
-    Snapshot { id: String },
+    Open {
+        id: String,
+        document: ProjectDoc,
+    },
+    Edit {
+        id: String,
+        command: EditCommand,
+    },
+    Undo {
+        id: String,
+    },
+    Redo {
+        id: String,
+    },
+    Snapshot {
+        id: String,
+    },
+    #[serde(rename = "prepare-case")]
+    PrepareCase {
+        id: String,
+        ir: CaseAssemblyIR,
+    },
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreReply {
     Preview {
@@ -694,5 +879,317 @@ pub enum CoreReply {
         id: String,
         message: String,
         revision: u64,
+    },
+    #[serde(rename = "case-prepared")]
+    CasePrepared {
+        id: String,
+        ir: PreparedCaseAssemblyIR,
+    },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "lowercase")]
+pub enum OutlineExportFormat {
+    Svg,
+    Dxf,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct LocalTrace {
+    pub id: String,
+    pub start: Vec2,
+    pub end: Vec2,
+    pub width: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pad_id: Option<String>,
+    pub layer: Side,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct LocalVia {
+    pub id: String,
+    pub at: Vec2,
+    pub size: f64,
+    pub drill: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pad_id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct FootprintGeometry {
+    pub side: Side,
+    pub courtyard: Vec<Vec2>,
+    pub pads: Vec<Pad>,
+    pub traces: Vec<LocalTrace>,
+    pub vias: Vec<LocalVia>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum ArtifactDiagnosticKind {
+    Approximation,
+    UnavailableModel,
+    ExportUnsupported,
+    ParseError,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ArtifactDiagnostic {
+    pub kind: ArtifactDiagnosticKind,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_start: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_end: Option<u64>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct CompiledFootprint {
+    pub definition: PartDefinition,
+    pub geometry: FootprintGeometry,
+    pub diagnostics: Vec<ArtifactDiagnostic>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview_svg: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct FootprintCompileJob {
+    pub id: String,
+    pub definition: PartDefinition,
+    pub parameters: BTreeMap<String, serde_json::Value>,
+    pub side: Side,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum ArtifactErrorCode {
+    ParseError,
+    Validation,
+    Unsupported,
+    StaleResult,
+    MismatchedResults,
+    NotFound,
+    Internal,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ArtifactError {
+    pub code: ArtifactErrorCode,
+    pub message: String,
+    pub diagnostics: Vec<ArtifactDiagnostic>,
+}
+
+impl ArtifactError {
+    pub(crate) fn new(code: ArtifactErrorCode, message: impl Into<String>) -> Self {
+        Self {
+            code,
+            message: message.into(),
+            diagnostics: Vec::new(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct FootprintPatch {
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub footprint_name: Option<String>,
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reference: Option<String>,
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placement: Option<Pose2>,
+    pub side: Side,
+    pub pad_nets: BTreeMap<String, (u32, String)>,
+    pub uuid_scope: String,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<String>>", optional))]
+    #[serde(default)]
+    pub model_forms: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PrepareExportRequest {
+    pub snapshot_token: String,
+    pub expected_revision: u64,
+    pub document: ProjectDoc,
+    pub target: ExportTarget,
+    pub contours: Vec<Contour>,
+    pub model_paths: BTreeMap<String, String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+#[serde(rename_all_fields = "camelCase")]
+pub enum ExportTarget {
+    Board { board_id: String },
+    StandaloneFootprints { definition_ids: Vec<String> },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ErgogenJob {
+    pub job_id: String,
+    pub definition: PartDefinition,
+    pub part: Part,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ReservedNet {
+    pub name: String,
+    pub index: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ExportPlan {
+    pub snapshot_token: String,
+    pub fingerprint: String,
+    pub revision: u64,
+    pub target: ExportTarget,
+    pub jobs: Vec<ErgogenJob>,
+    pub reserved_nets: Vec<ReservedNet>,
+    pub next_net_index: u32,
+    pub contours: Vec<Contour>,
+    pub captured_document: ProjectDoc,
+    pub model_paths: BTreeMap<String, String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ErgogenJobResult {
+    pub snapshot_token: String,
+    pub revision: u64,
+    pub job_id: String,
+    pub source: String,
+    pub nets: Vec<ReservedNet>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct FinishExportRequest {
+    pub plan: ExportPlan,
+    pub results: Vec<ErgogenJobResult>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ArtifactFile {
+    pub filename: String,
+    pub content: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ExportArtifact {
+    pub snapshot_token: String,
+    pub revision: u64,
+    pub files: Vec<ArtifactFile>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<String>>", optional))]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skipped_utilities: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct OutlineExportRequest {
+    pub filename: String,
+    pub board: Board,
+    pub contours: Vec<Contour>,
+    pub format: OutlineExportFormat,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+#[serde(rename_all_fields = "camelCase")]
+pub enum ArtifactRequest {
+    CompileFootprints {
+        id: String,
+        jobs: Vec<FootprintCompileJob>,
+    },
+    ImportFootprint {
+        id: String,
+        definition_id: String,
+        source: String,
+    },
+    PrepareExport {
+        id: String,
+        request: PrepareExportRequest,
+    },
+    FinishExport {
+        id: String,
+        request: FinishExportRequest,
+    },
+    ExportOutline {
+        id: String,
+        request: OutlineExportRequest,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+#[serde(rename_all_fields = "camelCase")]
+pub enum ArtifactReply {
+    CompileFootprints {
+        id: String,
+        result: Vec<CompiledFootprint>,
+    },
+    ImportFootprint {
+        id: String,
+        result: CompiledFootprint,
+    },
+    PrepareExport {
+        id: String,
+        result: ExportPlan,
+    },
+    FinishExport {
+        id: String,
+        result: ExportArtifact,
+    },
+    ExportOutline {
+        id: String,
+        result: ArtifactFile,
+    },
+    Error {
+        id: String,
+        error: ArtifactError,
     },
 }

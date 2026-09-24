@@ -171,6 +171,11 @@ pub(super) fn envelope(
         } else {
             d.courtyard.iter().map(|p| [p.x, p.y]).collect()
         };
+        if matches!(p.side, crate::model::Side::Back) {
+            for point in &mut path {
+                point[0] = -point[0];
+            }
+        }
         if !simple(&path) {
             return Err(format!(
                 "{}: outline envelope must be a simple polygon",
