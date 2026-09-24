@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { emptyProject } from '@boardstudio/v2-contracts';
+import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
 import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
 import { builtinDefinitions, importFootprint } from '@boardstudio/v2-kicad';
 import type { StepModel } from '@boardstudio/v2-cad';
@@ -364,7 +364,7 @@ function App() {
       const outlineId = crypto.randomUUID();
 
       document.definitions = builtinDefinitions();
-      document.outline = [{ id: outlineId, kind: 'part-envelope', partIds: [], margin: 4, operation: 'add' }];
+      document.outline = [{ id: outlineId, kind: 'part-envelope', settings: defaultOutlineSettings, partIds: [], margin: 4, operation: 'add' }];
       document.boards = [{ id: boardId, name: 'Main board', outlineIds: [outlineId], partIds: [], netIds: [], thickness: 1.6 }];
       document.materials = [{ id: 'pla', name: 'PLA', thickness: 3 }];
 

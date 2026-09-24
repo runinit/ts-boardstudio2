@@ -176,6 +176,6 @@ export function builtinDefinitions(): PartDefinition[] {
     ['matrix-diode', 'Matrix diode', 'builtin:matrix-diode', 'passive'],
   ] as const).map(([id, name, source, kind]) => {
     const geometry = builtinGeometry(source, {})!;
-    return { id, name, kind, pads: geometry.pads, courtyard: geometry.courtyard, generator: { source, version: VERSION, parameters: {} } };
+    return { id, name, kind, ...(kind === 'switch' ? { keycap: { x: 18, y: 18 } } : {}), pads: geometry.pads, courtyard: geometry.courtyard, generator: { source, version: VERSION, parameters: {} } };
   });
 }

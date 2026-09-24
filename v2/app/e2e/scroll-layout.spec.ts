@@ -26,6 +26,7 @@ test('inspector fits a narrow effective viewport without horizontal scroll', asy
   await page.setViewportSize({ width: 1024, height: 576 });
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
+  await page.getByRole('button', { name: 'Component', exact: true }).click();
 
   const inspector = page.locator('.wb-inspector-content');
   const width = await inspector.evaluate((element) => ({

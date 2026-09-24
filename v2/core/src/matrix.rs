@@ -22,6 +22,98 @@ fn member_id(matrix: &str, row: u32, column: u32) -> String {
     format!("matrix/{matrix}/r{row}c{column}")
 }
 
+// Preserve ordered IDs from early projects, including after growth adds canonical cells.
+fn cell_members(matrix: &Matrix) -> BTreeMap<(u32, u32), String> {
+    let prefix = format!("matrix/{}/", matrix.id);
+    let ids: BTreeSet<_> = matrix.part_ids.iter().collect();
+    let mut legacy = matrix.part_ids.iter().filter(|id| {
+        !id.starts_with(&prefix)
+            && !id
+                .rsplit_once('/')
+                .is_some_and(|(parent, _)| ids.contains(&parent.to_string()))
+    });
+    let cells: BTreeMap<_, _> = matrix
+        .cells
+        .iter()
+        .map(|cell| ((cell.row, cell.column), cell))
+        .collect();
+    let mut members = BTreeMap::new();
+    for row in 0..matrix.rows {
+        for column in 0..matrix.columns {
+            if cells.get(&(row, column)).is_some_and(|cell| !cell.enabled) {
+                continue;
+            }
+            let canonical = member_id(&matrix.id, row, column);
+            let id = if ids.contains(&canonical) {
+                canonical
+            } else {
+                legacy.next().cloned().unwrap_or(canonical)
+            };
+            members.insert((row, column), id);
+        }
+    }
+    members
+}
+
+// Record deletions in the parametric source before cleaning up generated parts.
+pub(crate) fn removed_members(doc: &mut ProjectDoc, requested: &[String]) -> Vec<String> {
+    let mut removed: BTreeSet<String> = requested.iter().cloned().collect();
+    for matrix in &mut doc.matrices {
+        let members = cell_members(matrix);
+        for row in 0..matrix.rows {
+            for column in 0..matrix.columns {
+                let id = members
+                    .get(&(row, column))
+                    .cloned()
+                    .unwrap_or_else(|| member_id(&matrix.id, row, column));
+                let prefix = format!("{id}/");
+                if !requested
+                    .iter()
+                    .any(|part| part == &id || part.starts_with(&prefix))
+                {
+                    continue;
+                }
+                let index = matrix
+                    .cells
+                    .iter()
+                    .position(|cell| cell.row == row && cell.column == column)
+                    .unwrap_or_else(|| {
+                        matrix.cells.push(MatrixCell {
+                            row,
+                            column,
+                            enabled: true,
+                            diode: None,
+                            definition_id: None,
+                            variant: None,
+                            offset: None,
+                            rotation: None,
+                            assemblies: vec![],
+                        });
+                        matrix.cells.len() - 1
+                    });
+                let cell = &mut matrix.cells[index];
+                if requested.contains(&id) {
+                    cell.enabled = false;
+                    removed.extend(
+                        matrix
+                            .part_ids
+                            .iter()
+                            .filter(|part| part.starts_with(&prefix))
+                            .cloned(),
+                    );
+                } else {
+                    if requested.contains(&format!("{id}/{DIODE_MEMBER}")) {
+                        cell.diode = Some(false);
+                    }
+                    cell.assemblies
+                        .retain(|assembly| !requested.contains(&format!("{id}/{}", assembly.id)));
+                }
+            }
+        }
+    }
+    removed.into_iter().collect()
+}
+
 pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), String> {
     if matrix.id.is_empty()
         || !matrix
@@ -278,6 +370,8 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
         .get(board_index)
         .map(|board| board.outline_ids.clone())
         .unwrap_or_default();
+    let previous_members = previous.as_ref().map(cell_members).unwrap_or_default();
+    let mut next_members = BTreeMap::new();
     let mut next = incoming.clone();
     next.edge_gap = Some(incoming.edge_gap.unwrap_or(Vec2 {
         x: DEFAULT_EDGE_GAP_MM,
@@ -309,12 +403,50 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
             if cell.is_some_and(|cell| !cell.enabled) {
                 continue;
             }
-            let id = member_id(&incoming.id, row, column);
-            let pose = Pose2 {
+            let id = previous_members
+                .get(&(row, column))
+                .cloned()
+                .unwrap_or_else(|| member_id(&incoming.id, row, column));
+            next_members.insert((row, column), id.clone());
+            let mut pose = Pose2 {
                 at: location(incoming, row, column, cell),
                 rotation: incoming.rotation.unwrap_or(0.0)
                     + cell.and_then(|cell| cell.rotation).unwrap_or(0.0),
             };
+            if id != member_id(&incoming.id, row, column) {
+                if let (Some(before), Some(&index)) = (&previous, part_index.get(&id)) {
+                    let old_cell = before
+                        .cells
+                        .iter()
+                        .find(|cell| cell.row == row && cell.column == column);
+                    let expected = location(before, row, column, old_cell);
+                    let actual = doc.parts[index].pose;
+                    let angle = -before.rotation.unwrap_or(0.0).to_radians();
+                    let (sin, cos) = angle.sin_cos();
+                    let dx = actual.at.x - expected.x;
+                    let dy = actual.at.y - expected.y;
+                    let mut x = dx * cos - dy * sin;
+                    let mut y = dx * sin + dy * cos;
+                    if before.mirror == Some(Mirror::X) {
+                        x = -x;
+                    }
+                    if before.mirror == Some(Mirror::Y) {
+                        y = -y;
+                    }
+                    if incoming.mirror == Some(Mirror::X) {
+                        x = -x;
+                    }
+                    if incoming.mirror == Some(Mirror::Y) {
+                        y = -y;
+                    }
+                    let (sin, cos) = incoming.rotation.unwrap_or(0.0).to_radians().sin_cos();
+                    pose.at.x += x * cos - y * sin;
+                    pose.at.y += x * sin + y * cos;
+                    pose.rotation += actual.rotation
+                        - before.rotation.unwrap_or(0.0)
+                        - old_cell.and_then(|cell| cell.rotation).unwrap_or(0.0);
+                }
+            }
             let mut members = vec![(
                 id,
                 incoming.definition_id.clone(),
@@ -414,6 +546,8 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                         pose,
                         side,
                         locked: None,
+                        keycap: None,
+                        outline: None,
                         properties: (!properties.is_empty()).then_some(properties),
                     });
                 }
@@ -485,7 +619,14 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
     } else {
         doc.matrices.push(next);
     }
-    sync_nets(doc, incoming, board_index, &cells, &mut changed);
+    sync_nets(
+        doc,
+        incoming,
+        board_index,
+        &cells,
+        &next_members,
+        &mut changed,
+    );
     changed.extend(removed);
     Ok(changed)
 }
@@ -495,6 +636,7 @@ fn sync_nets(
     matrix: &Matrix,
     board_index: usize,
     cells: &BTreeMap<(u32, u32), &MatrixCell>,
+    members: &BTreeMap<(u32, u32), String>,
     changed: &mut Vec<String>,
 ) {
     let prefix = format!("matrix/{}/net/", matrix.id);
@@ -508,7 +650,7 @@ fn sync_nets(
     for board in &mut doc.boards {
         board.net_ids.retain(|id| !id.starts_with(&prefix));
     }
-    let mut nets = led_nets(matrix, cells, &prefix);
+    let mut nets = led_nets(matrix, cells, members, &prefix);
     if matrix.diodes == Some(true) {
         let mut row_nets: Vec<Net> = (0..matrix.rows)
             .map(|row| Net {
@@ -531,7 +673,10 @@ fn sync_nets(
                 if cell.is_some_and(|cell| !cell.enabled) {
                     continue;
                 }
-                let switch = member_id(&matrix.id, row, column);
+                let switch = members
+                    .get(&(row, column))
+                    .cloned()
+                    .unwrap_or_else(|| member_id(&matrix.id, row, column));
                 let diode = cell.is_none_or(|cell| cell.diode != Some(false));
                 if diode {
                     let diode_id = format!("{switch}/{DIODE_MEMBER}");
@@ -581,7 +726,12 @@ fn sync_nets(
     }
 }
 
-fn led_nets(matrix: &Matrix, cells: &BTreeMap<(u32, u32), &MatrixCell>, prefix: &str) -> Vec<Net> {
+fn led_nets(
+    matrix: &Matrix,
+    cells: &BTreeMap<(u32, u32), &MatrixCell>,
+    cell_ids: &BTreeMap<(u32, u32), String>,
+    prefix: &str,
+) -> Vec<Net> {
     let mut members = vec![];
     for row in 0..matrix.rows {
         for column in 0..matrix.columns {
@@ -597,7 +747,14 @@ fn led_nets(matrix: &Matrix, cells: &BTreeMap<(u32, u32), &MatrixCell>, prefix: 
                         row,
                         column,
                         assembly.id.as_str(),
-                        format!("{}/{}", member_id(&matrix.id, row, column), assembly.id),
+                        format!(
+                            "{}/{}",
+                            cell_ids
+                                .get(&(row, column))
+                                .cloned()
+                                .unwrap_or_else(|| member_id(&matrix.id, row, column)),
+                            assembly.id
+                        ),
                     ));
                 }
             }

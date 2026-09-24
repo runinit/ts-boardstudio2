@@ -174,6 +174,8 @@ pub fn apply_scripts(doc: &mut ProjectDoc) -> Result<(), String> {
                         pose,
                         side: Side::Front,
                         locked: None,
+                        keycap: None,
+                        outline: None,
                         properties: None,
                     });
                 }

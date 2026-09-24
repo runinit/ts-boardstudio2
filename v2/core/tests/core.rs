@@ -51,6 +51,7 @@ fn preview_does_not_commit_and_stale_edit_fails() {
         courtyard: vec![],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -63,6 +64,8 @@ fn preview_does_not_commit_and_stale_edit_fails() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     engine.handle(CoreRequest::Open {
@@ -243,6 +246,8 @@ fn mechanical_holes_do_not_need_pad_numbers() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     let mut engine = CoreEngine::new();
@@ -275,6 +280,7 @@ fn part_envelope_tracks_committed_move() {
         ],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -287,11 +293,14 @@ fn part_envelope_tracks_committed_move() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "boundary".into(),
         part_ids: vec!["k1".into()],
+        settings: Default::default(),
         margin: 1.0,
         operation: Operation::Add,
     });
@@ -330,6 +339,7 @@ fn scripts_emit_stable_ids_and_keep_visual_pose() {
         courtyard: vec![],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.scripts.push(Script {
@@ -393,11 +403,13 @@ fn added_part_joins_board_and_envelope_then_removes_cleanly() {
         ],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "env".into(),
         part_ids: vec![],
+        settings: Default::default(),
         margin: 1.0,
         operation: Operation::Add,
     });
@@ -425,6 +437,8 @@ fn added_part_joins_board_and_envelope_then_removes_cleanly() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     };
     let (added, doc) = scene(engine.handle(edit(
@@ -462,6 +476,7 @@ fn add_part_targets_board_and_removal_cleans_both_boards() {
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "right-edge".into(),
         part_ids: vec![],
+        settings: Default::default(),
         margin: 3.0,
         operation: Operation::Add,
     });
@@ -489,6 +504,8 @@ fn add_part_targets_board_and_removal_cleans_both_boards() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     };
     let op = EditOperation::AddPart {
@@ -574,6 +591,7 @@ fn pcb_readiness_checks_pads_outlines_and_thickness() {
             net_id: None,
         }],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -586,6 +604,8 @@ fn pcb_readiness_checks_pads_outlines_and_thickness() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     doc.nets.push(Net {
@@ -659,6 +679,8 @@ fn invalid_definition_geometry_blocks_own_board() {
             },
             side: Side::Front,
             locked: None,
+            keycap: None,
+            outline: None,
             properties: None,
         });
         doc.definitions.push(PartDefinition {
@@ -679,6 +701,7 @@ fn invalid_definition_geometry_blocks_own_board() {
                 net_id: None,
             }],
             model: None,
+            keycap: None,
             generator: None,
         });
     }
@@ -746,6 +769,7 @@ fn empty_definition_and_pad_ids_are_reported() {
             net_id: None,
         }],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -758,6 +782,8 @@ fn empty_definition_and_pad_ids_are_reported() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     let (scene, _) = scene(engine.handle(CoreRequest::Open {
@@ -799,6 +825,7 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
             net_id: None,
         }],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -811,6 +838,8 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     for id in ["a", "b"] {
@@ -1103,11 +1132,13 @@ fn matrix_doc() -> ProjectDoc {
         ],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "edge".into(),
         part_ids: vec![],
+        settings: Default::default(),
         margin: 3.0,
         operation: Operation::Add,
     });
@@ -1354,6 +1385,8 @@ fn failed_matrix_preview_restores_document() {
         },
         side: Side::Front,
         locked: None,
+        keycap: None,
+        outline: None,
         properties: None,
     });
     let mut engine = CoreEngine::new();
@@ -1671,6 +1704,7 @@ fn matrix_targets_board_and_preview_is_scoped() {
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "right-edge".into(),
         part_ids: vec![],
+        settings: Default::default(),
         margin: 3.0,
         operation: Operation::Add,
     });
@@ -1993,6 +2027,8 @@ fn constraint_preview_commit_and_undo() {
             },
             side: Side::Front,
             locked: None,
+            keycap: None,
+            outline: None,
             properties: None,
         });
     }

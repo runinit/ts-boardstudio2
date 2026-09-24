@@ -27,6 +27,7 @@ export type PartDefinition = {
   id: Id;
   name: string;
   kind: 'switch' | 'controller' | 'connector' | 'encoder' | 'passive' | 'custom';
+  keycap?: Vec2;
   courtyard: Vec2[];
   pads: Pad[];
   model?: { assetId: Id; offset: Vec3; rotation: Vec3; scale: Vec3 };
@@ -38,6 +39,8 @@ export type PartDefinition = {
 };
 
 export type Part = {
+  keycap?: Vec2;
+  outline?: { excluded?: boolean; margin?: number };
   id: Id;
   definitionId: Id;
   reference: string;
@@ -106,10 +109,13 @@ export type Constraint =
   | { id: Id; kind: 'offset'; sourcePartId: Id; targetPartId: Id; offset: Vec2; rotation: number }
   | { id: Id; kind: 'mirror'; sourcePartId: Id; targetPartId: Id; axis: 'vertical' | 'horizontal'; coordinate: number };
 
+export type OutlineSettings = { corners: 'sharp' | 'fillet' | 'chamfer'; size: number; bridgeWidth: number };
+export const defaultOutlineSettings: OutlineSettings = { corners: 'fillet', size: 2, bridgeWidth: 10 };
+
 export type OutlineFeature =
   | { id: Id; kind: 'polygon'; points: Vec2[]; operation: 'add' | 'subtract' }
   | { id: Id; kind: 'rect'; center: Vec2; size: Vec2; radius: number; operation: 'add' | 'subtract' }
-  | { id: Id; kind: 'part-envelope'; partIds: Id[]; margin: number; operation: 'add' | 'subtract' };
+  | { id: Id; kind: 'part-envelope'; settings?: OutlineSettings; partIds: Id[]; margin: number; operation: 'add' | 'subtract' };
 
 export type Board = {
   id: Id;

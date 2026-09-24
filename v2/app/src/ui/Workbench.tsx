@@ -13,6 +13,9 @@ import type {
   Vec2,
 } from '../../../contracts/src/index';
 import type { ComponentPreview } from './CasePreview';
+import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
+import { defaultOutlineSettings } from '../../../contracts/src/index';
+import { matrixCellId, matrixMembers, cellPose } from './matrixGeometry';
 import { WorkbenchTree } from './WorkbenchTree';
 import { LibraryWorkspace } from './LibraryWorkspace';
 import { generatorDraft, numericFields } from './generatorSettings';
@@ -123,12 +126,41 @@ const PITCH_MM = 19.05;
 const nudgeStep = 0.1;
 const nudgeLargeStep = 1;
 const makeId = (): string => `ui-${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
+type ThemePreference = 'system' | 'light' | 'dark';
+const THEME_KEY = 'boardstudio:v2:theme';
+
+const readThemePreference = (): ThemePreference => {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored === 'light' || stored === 'dark' ? stored : 'system';
+  } catch {
+    return 'system';
+  }
+};
+
+const systemColorScheme = (): 'light' | 'dark' => {
+  try {
+    return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+};
 
 const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreview, onRequestCaseModels, onDuplicateDesign, onModeChange, casePreview, componentPreviews, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
+  const [themePreference, setThemePreference] = useState<ThemePreference>(readThemePreference);
+  const [systemScheme, setSystemScheme] = useState(systemColorScheme);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const projectTriggerRef = useRef<HTMLButtonElement>(null);
+  const projectFileRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [scope, setScope] = useState<SelectionScope | null>(null);
   const [expandedTree, setExpandedTree] = useState<Set<string>>(() => new Set());
+  const [treeGrouping, setTreeGrouping] = useState<'column' | 'row'>(() => { try { return localStorage.getItem('boardstudio:v2:tree-grouping') === 'row' ? 'row' : 'column'; } catch { return 'column'; } });
+  const [addPartOpen, setAddPartOpen] = useState(false);
+  const [pendingPart, setPendingPart] = useState<PartDefinition | null>(null);
+  const [placementPoint, setPlacementPoint] = useState<Vec2>({ x: 0, y: 0 });
+  const addPartRef = useRef<HTMLButtonElement>(null);
   const [librarySearch, setLibrarySearch] = useState('');
   const [libraryChoice, setLibraryChoice] = useState('');
   const [library3dOpen, setLibrary3dOpen] = useState(false);
@@ -141,6 +173,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const [rightOpen, setRightOpen] = useState(false);
   const [outlineDraft, setOutlineDraft] = useState<Vec2[]>([]);
   const [outlineActive, setOutlineActive] = useState(false);
+  const [outlineSettingsOpen, setOutlineSettingsOpen] = useState(false);
+  const [outlineOperation, setOutlineOperation] = useState<'add' | 'subtract'>('add');
+  useEffect(() => { setOutlineDraft([]); setOutlineActive(false); }, [mode, selectedBoardIdProp]);
   const [newNetName, setNewNetName] = useState('');
   const [activeScriptId, setActiveScriptId] = useState('');
   const [scriptName, setScriptName] = useState('');
@@ -158,6 +193,60 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const [constraintX, setConstraintX] = useState('0');
   const [constraintY, setConstraintY] = useState('0');
   const [constraintRotation, setConstraintRotation] = useState('0');
+  const colorScheme = themePreference === 'system' ? systemScheme : themePreference;
+
+  useEffect(() => {
+    const media = matchMedia('(prefers-color-scheme: dark)');
+    const update = (event: MediaQueryListEvent) => setSystemScheme(event.matches ? 'dark' : 'light');
+    if (media.addEventListener) {
+      media.addEventListener('change', update);
+      return () => media.removeEventListener('change', update);
+    }
+    media.addListener(update);
+    return () => media.removeListener(update);
+  }, []);
+
+  useEffect(() => {
+    window.document.documentElement.dataset.theme = colorScheme;
+    window.document.documentElement.style.colorScheme = colorScheme;
+    const meta = window.document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (meta) meta.content = colorScheme === 'dark' ? '#161616' : '#f2f4f8';
+  }, [colorScheme]);
+
+  useEffect(() => {
+    if (!addPartOpen) return;
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !window.document.getElementById('wb-add-part')?.contains(event.target) && !addPartRef.current?.contains(event.target)) setAddPartOpen(false);
+    };
+    window.document.addEventListener('pointerdown', dismiss);
+    return () => window.document.removeEventListener('pointerdown', dismiss);
+  }, [addPartOpen]);
+
+  const chooseTheme = (preference: ThemePreference) => {
+    setThemePreference(preference);
+    try { localStorage.setItem(THEME_KEY, preference); } catch { /* Keep the current session usable. */ }
+  };
+
+  useEffect(() => {
+    if (!projectMenuOpen) return;
+    const dismiss = (event: PointerEvent) => {
+      if (event.target instanceof Node && !window.document.querySelector('.wb-project-menu')?.contains(event.target)) {
+        setProjectMenuOpen(false);
+      }
+    };
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProjectMenuOpen(false);
+        projectTriggerRef.current?.focus();
+      }
+    };
+    window.document.addEventListener('pointerdown', dismiss);
+    window.document.addEventListener('keydown', keydown);
+    return () => {
+      window.document.removeEventListener('pointerdown', dismiss);
+      window.document.removeEventListener('keydown', keydown);
+    };
+  }, [projectMenuOpen]);
   const [constraintAxis, setConstraintAxis] = useState<'vertical' | 'horizontal'>('vertical');
   const [constraintCoordinate, setConstraintCoordinate] = useState('0');
   const [keyboardStatus, setKeyboardStatus] = useState('');
@@ -222,21 +311,22 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const boardPartIds = useMemo(() => new Set(selectedBoard?.partIds ?? document.parts.map((part) => part.id)), [selectedBoard, document.parts]);
   const treeVisibleParts = useMemo(() => document.parts.filter((part) => boardPartIds.has(part.id)), [document.parts, boardPartIds]);
   const visibleParts = useMemo(() => [...parts.values()].filter((part) => boardPartIds.has(part.id)), [parts, boardPartIds]);
-  const visibleMatrices = useMemo(() => document.matrices.filter((matrix) => !matrix.boardId || matrix.boardId === selectedBoardId), [document.matrices, selectedBoardId]);
+  const visibleMatrices = useMemo(() => document.matrices.filter((matrix) => matrix.boardId ? matrix.boardId === selectedBoardId : matrix.partIds.some((id) => boardPartIds.has(id)) || (!matrix.partIds.length && document.boards.length <= 1)), [document.matrices, selectedBoardId, boardPartIds, document.boards.length]);
   const matrixMap = useMemo(() => new Map(visibleMatrices.map((matrix) => [matrix.id, matrix])), [visibleMatrices]);
   const matrixCellOverrides = useMemo(() => new Map(visibleMatrices.map((matrix) => [
     matrix.id,
     new Map((matrix.cells ?? []).map((cell) => [`${cell.row}:${cell.column}`, cell])),
   ])), [visibleMatrices]);
+  const memberMaps = useMemo(() => new Map(visibleMatrices.map((matrix) => [matrix.id, matrixMembers(matrix)])), [visibleMatrices]);
   const matrixPartLookup = useMemo(() => {
     const lookup = new Map<string, { matrixId: string; row: number; column: number; assemblyId?: string }>();
     for (const matrix of visibleMatrices) {
       for (let row = 0; row < matrix.rows; row += 1) {
         for (let column = 0; column < matrix.columns; column += 1) {
-          lookup.set(matrixCellId(matrix.id, row, column), { matrixId: matrix.id, row, column });
+          lookup.set(memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column), { matrixId: matrix.id, row, column });
           const cell = matrixCellOverrides.get(matrix.id)?.get(`${row}:${column}`);
-          for (const assembly of cell?.assemblies ?? []) lookup.set(`${matrixCellId(matrix.id, row, column)}/${assembly.id}`, { matrixId: matrix.id, row, column, assemblyId: assembly.id });
-          if (matrix.diodes && cell?.diode !== false) lookup.set(`${matrixCellId(matrix.id, row, column)}/diode`, { matrixId: matrix.id, row, column, assemblyId: 'diode' });
+          for (const assembly of cell?.assemblies ?? []) lookup.set(`${memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column)}/${assembly.id}`, { matrixId: matrix.id, row, column, assemblyId: assembly.id });
+          if (matrix.diodes && cell?.diode !== false) lookup.set(`${memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column)}/diode`, { matrixId: matrix.id, row, column, assemblyId: 'diode' });
         }
       }
       for (const id of matrix.partIds) {
@@ -249,7 +339,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       }
     }
     return lookup;
-  }, [visibleMatrices, matrixCellOverrides]);
+  }, [visibleMatrices, matrixCellOverrides, memberMaps]);
   const activeConstraint = activePart
     ? document.constraints.find((constraint) => constraint.targetPartId === activePart.id && boardPartIds.has(constraint.sourcePartId))
     : undefined;
@@ -286,6 +376,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   useEffect(() => {
     if (selectedBoardIdProp === undefined && selectedBoard) setLocalBoardId(selectedBoard.id);
     setBoardName(selectedBoard?.name ?? '');
+    setPendingPart(null);
+    setMatrixGhost(null);
+    setAddPartOpen(false);
     setSelected([]);
     setScope(null);
   }, [selectedBoardIdProp, selectedBoard?.id]);
@@ -329,9 +422,14 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         setOutlineDraft([]);
         setOutlineActive(false);
         setSelected([]);
+        setScope(null);
+        setMatrixGhost(null);
+        setPendingPart(null);
+        setAddPartOpen(false);
+        if (addPartOpen) addPartRef.current?.focus();
       }
-      if (event.key === 'Enter' && outlineActive && outlineDraft.length >= 3) {
-        const feature: OutlineFeature = { id: makeId(), kind: 'polygon', points: outlineDraft, operation: 'add' };
+      if (event.key === 'Enter' && !isTyping(event.target) && outlineActive && outlineDraft.length >= 3) {
+        const feature: OutlineFeature = { id: makeId(), kind: 'polygon', points: outlineDraft, operation: outlineOperation };
         saveOutline(feature);
         setOutlineDraft([]);
         setOutlineActive(false);
@@ -350,7 +448,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       window.removeEventListener('keydown', handleKey);
       window.removeEventListener('keyup', releaseSpace);
     };
-  }, [onRedo, onUndo, selected, document.revision, outlineActive, outlineDraft]);
+  }, [onRedo, onUndo, selected, document.revision, outlineActive, outlineDraft, outlineOperation, addPartOpen]);
 
   const emit = (operation: EditCommand['operation'], targetIds: string[], phase: EditCommand['phase'] = 'commit', transactionId?: string) => {
     const currentTransaction = transactionId ?? (phase === 'preview' ? transaction.current : makeId());
@@ -380,6 +478,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
 
   const changeMode = (next: Mode) => {
     setMode(next);
+    setPendingPart(null);
+    setAddPartOpen(false);
     if (next === 'Case' && selectedBoard) onRequestCaseModels?.(selectedBoard.id);
   };
 
@@ -389,7 +489,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     if (scope.matrixId) {
       next.row = scope.row ?? 0;
       next.column = scope.column ?? 0;
-      if (kind === 'component') next.partId = scope.partId ?? matrixCellId(scope.matrixId, next.row, next.column);
+      if (kind === 'component') next.partId = scope.partId ?? memberMaps.get(scope.matrixId)?.get(`${next.row}:${next.column}`) ?? matrixCellId(scope.matrixId, next.row, next.column);
       if (kind !== 'component') delete next.partId;
     }
     selectScope(next);
@@ -398,7 +498,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   const addBoard = () => {
     const index = document.boards.length + 1;
     const board = { id: makeId(), name: `Board ${index}`, outlineIds: [] as string[], partIds: [] as string[], netIds: [] as string[], thickness: 1.6 };
-    const envelope: OutlineFeature = { id: makeId(), kind: 'part-envelope', partIds: [], margin: 4, operation: 'add' };
+    const envelope: OutlineFeature = { id: makeId(), kind: 'part-envelope', settings: defaultOutlineSettings, partIds: [], margin: 4, operation: 'add' };
     board.outlineIds = [envelope.id];
     emit({ kind: 'replace-document', document: { ...document, outline: [...document.outline, envelope], boards: [...document.boards, board] } }, [board.id, envelope.id]);
     selectBoard(board.id);
@@ -423,18 +523,25 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   };
 
   const choosePart = (id: string, additive = false) => {
+    if (outlineActive || pendingPart) return;
+    setOutlineSettingsOpen(false);
     if (suppressClick.current) return;
     setSelected((current) => additive
       ? current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
       : [id]);
     const matrixCell = matrixPartLookup.get(id);
-    setScope(matrixCell
-      ? { kind: 'component', ...matrixCell, partId: id }
-      : { kind: 'component', partId: id });
+    if (matrixCell && scope?.matrixId === matrixCell.matrixId && ['matrix', 'row', 'column'].includes(scope.kind)) {
+      selectScope({ ...scope, row: matrixCell.row, column: matrixCell.column });
+      return;
+    }
+    setScope(matrixCell && !matrixCell.assemblyId && scope?.kind !== 'component'
+      ? { kind: 'key', ...matrixCell }
+      : { kind: 'component', ...(matrixCell ?? {}), partId: id });
     setRightOpen(true);
   };
 
   const selectScope = useCallback((next: SelectionScope) => {
+    setOutlineSettingsOpen(false);
     const matrix = next.matrixId ? matrixMap.get(next.matrixId) : undefined;
     let ids: string[] = [];
     if (next.kind === 'component' && next.partId) {
@@ -448,14 +555,14 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         ids = matrix.partIds.filter((id) => matrixPartLookup.get(id)?.column === next.column);
       }
       if (next.kind === 'key' && next.row !== undefined && next.column !== undefined) {
-        ids = [matrixCellId(matrix.id, next.row, next.column)];
+        ids = [memberMaps.get(matrix.id)?.get(`${next.row}:${next.column}`) ?? matrixCellId(matrix.id, next.row, next.column)];
       }
     }
     const liveIds = ids.filter((id) => boardPartIds.has(id));
     setScope(next);
     setSelected(liveIds);
     setRightOpen(true);
-  }, [matrixMap, boardPartIds, matrixPartLookup]);
+  }, [matrixMap, boardPartIds, matrixPartLookup, memberMaps]);
 
   const toggleTree = useCallback((id: string) => setExpandedTree((current) => {
     const next = new Set(current);
@@ -477,7 +584,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       expandable: true,
       expanded: boardExpanded,
       onToggle: () => toggleTree(boardKey),
-      onSelect: () => { if (!boardExpanded) toggleTree(boardKey); },
+      onSelect: () => { setScope(null); setSelected([]); setOutlineSettingsOpen(false); if (!boardExpanded) toggleTree(boardKey); },
     });
     if (!boardExpanded) return rows;
     const memberIds = new Set<string>();
@@ -487,8 +594,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       const isExpanded = expandedTree.has(matrixKey);
       rows.push({
         id: matrixKey,
-        label: 'Key matrix',
-        detail: `${matrix.rows} × ${matrix.columns}`,
+        label: `Matrix ${document.matrices.indexOf(matrix) + 1}`,
+        detail: `${[...(memberMaps.get(matrix.id)?.values() ?? [])].filter((id) => treeParts.has(id)).length} keys`,
         level: 1,
         kind: 'matrix',
         expandable: true,
@@ -498,24 +605,24 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         onSelect: () => selectScope({ kind: 'matrix', matrixId: matrix.id }),
       });
       if (!isExpanded) continue;
-      for (let row = 0; row < matrix.rows; row += 1) {
-        const rowKey = `row:${matrix.id}:${row}`;
-        const rowExpanded = expandedTree.has(rowKey);
+      const groupCount = treeGrouping === 'column' ? matrix.columns : matrix.rows;
+      const keyCount = treeGrouping === 'column' ? matrix.rows : matrix.columns;
+      for (let group = 0; group < groupCount; group++) {
+        const groupKey = `${treeGrouping}:${matrix.id}:${group}`;
+        const groupExpanded = expandedTree.has(groupKey);
+        const enabledCount = Array.from({ length: keyCount }, (_, index) => treeParts.has(memberMaps.get(matrix.id)?.get(treeGrouping === 'column' ? `${index}:${group}` : `${group}:${index}`) ?? '')).filter(Boolean).length;
         rows.push({
-          id: rowKey,
-          label: `Row ${row + 1}`,
-          detail: `${matrix.columns} keys`,
-          level: 2,
-          kind: 'row',
-          expandable: true,
-          expanded: rowExpanded,
-          selected: scope?.kind === 'row' && scope.matrixId === matrix.id && scope.row === row,
-          onToggle: () => toggleTree(rowKey),
-          onSelect: () => selectScope({ kind: 'row', matrixId: matrix.id, row }),
+          id: groupKey, label: `${treeGrouping === 'column' ? 'Column' : 'Row'} ${group + 1}`,
+          detail: `${enabledCount} keys`, level: 2, kind: treeGrouping, expandable: true, expanded: groupExpanded,
+          selected: scope?.kind === treeGrouping && scope.matrixId === matrix.id && scope[treeGrouping] === group,
+          onToggle: () => toggleTree(groupKey),
+          onSelect: () => selectScope({ kind: treeGrouping, matrixId: matrix.id, [treeGrouping]: group }),
         });
-        if (!rowExpanded) continue;
-        for (let column = 0; column < matrix.columns; column += 1) {
-          const part = treeParts.get(matrixCellId(matrix.id, row, column));
+        if (!groupExpanded) continue;
+        for (let index = 0; index < keyCount; index++) {
+          const row = treeGrouping === 'column' ? index : group;
+          const column = treeGrouping === 'column' ? group : index;
+          const part = treeParts.get(memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? '');
           const cell = matrixCellOverrides.get(matrix.id)?.get(`${row}:${column}`);
           const keyId = `key:${matrix.id}:${row}:${column}`;
           const components = [
@@ -525,7 +632,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           rows.push({
             id: keyId,
             label: `Key ${row + 1}.${column + 1}`,
-            detail: cell?.enabled === false ? 'Empty slot' : part?.reference ?? 'Placeable',
+            detail: !part ? 'Empty slot' : part.reference,
             level: 3,
             kind: 'key',
             expandable: components.length > 0,
@@ -537,7 +644,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           });
           if (expandedTree.has(keyId)) {
             for (const component of components) {
-              const partId = `${matrixCellId(matrix.id, row, column)}/${component.id}`;
+              const partId = `${memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column)}/${component.id}`;
               rows.push({
                 id: `component:${partId}`,
                 label: component.label,
@@ -551,18 +658,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           }
         }
       }
-      // Columns cross rows, so keep them as sibling selection nodes.
-      for (let column = 0; column < matrix.columns; column += 1) {
-        rows.push({
-          id: `column:${matrix.id}:${column}`,
-          label: `Column ${column + 1}`,
-          detail: `${matrix.rows} keys`,
-          level: 2,
-          kind: 'column',
-          selected: scope?.kind === 'column' && scope.matrixId === matrix.id && scope.column === column,
-          onSelect: () => selectScope({ kind: 'column', matrixId: matrix.id, column }),
-        });
-      }
+
     }
     for (const part of treeVisibleParts) {
       if (memberIds.has(part.id)) continue;
@@ -578,7 +674,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       });
     }
     return rows;
-  }, [selectedBoardId, selectedBoard?.name, visibleMatrices, treeVisibleParts, expandedTree, scope, treeParts, definitions, matrixCellOverrides, selectScope, toggleTree]);
+  }, [selectedBoardId, selectedBoard?.name, visibleMatrices, treeVisibleParts, expandedTree, scope, treeParts, definitions, matrixCellOverrides, selectScope, toggleTree, treeGrouping, memberMaps, document.matrices]);
 
   const nudgePart = (event: React.KeyboardEvent<Element>, part: Part) => {
     if (!event.key.startsWith('Arrow') || part.locked) return;
@@ -884,6 +980,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       cells: [],
     };
     setMatrixGhost(matrix);
+    setLeftOpen(false);
+    setRightOpen(false);
+    setPendingPart(null);
+    setOutlineSettingsOpen(false);
     setMode('Design');
     setScope(null);
   };
@@ -918,7 +1018,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       const definitionsNext = [...document.definitions, definition];
       const part = createPart(definition, document.parts);
       const boards = document.boards.map((board) => board.id === selectedBoardId ? { ...board, partIds: [...board.partIds, part.id] } : board);
-      emit({ kind: 'replace-document', document: { ...document, definitions: definitionsNext, parts: [...document.parts, part], boards } }, [definition.id, part.id, selectedBoardId]);
+      const outline = document.outline.map((feature) => feature.kind === 'part-envelope' && selectedBoard?.outlineIds.includes(feature.id) ? { ...feature, partIds: [...feature.partIds, part.id] } : feature);
+      emit({ kind: 'replace-document', document: { ...document, definitions: definitionsNext, parts: [...document.parts, part], boards, outline } }, [definition.id, part.id, selectedBoardId]);
       setSelected([part.id]);
       setScope({ kind: 'component', partId: part.id });
       setMode('Design');
@@ -927,7 +1028,38 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     addDefinition(definition);
   };
 
+  const beginPartPlacement = (definition: PartDefinition) => {
+    setPendingPart(definition);
+    setPlacementPoint(snapDelta({ x: (viewBounds.minX + viewBounds.maxX) / 2, y: (viewBounds.minY + viewBounds.maxY) / 2 }, { x: PITCH_MM, y: PITCH_MM }, snapFraction));
+    setAddPartOpen(false);
+    setLeftOpen(false);
+    setRightOpen(false);
+    setOutlineActive(false);
+    setMatrixGhost(null);
+    setMode('Design');
+    svgRef.current?.focus();
+  };
+
+  const placePendingPart = (at: Vec2) => {
+    if (!pendingPart || !selectedBoard) return;
+    const part = { ...createPart(pendingPart, document.parts), pose: { at, rotation: 0 } };
+    const nextDefinitions = definitions.has(pendingPart.id) ? document.definitions : [...document.definitions, pendingPart];
+    const boards = document.boards.map((board) => board.id === selectedBoard.id ? { ...board, partIds: [...board.partIds, part.id] } : board);
+    const outline = document.outline.map((feature) => feature.kind === 'part-envelope' && selectedBoard.outlineIds.includes(feature.id) ? { ...feature, partIds: [...feature.partIds, part.id] } : feature);
+    emit({ kind: 'replace-document', document: { ...document, definitions: nextDefinitions, parts: [...document.parts, part], boards, outline } }, [part.id, selectedBoard.id]);
+    setPendingPart(null);
+    setScope({ kind: 'component', partId: part.id });
+    setSelected([part.id]);
+    setOutlineSettingsOpen(false);
+    setRightOpen(true);
+  };
+
   const drawOutline = (event: React.MouseEvent<SVGSVGElement>) => {
+    if (pendingPart && event.button === 0) {
+      const point = pointFromEvent(event, svgRef.current);
+      if (point) placePendingPart(event.altKey ? point : snapDelta(point, { x: PITCH_MM, y: PITCH_MM }, snapFraction));
+      return;
+    }
     if (mode === 'Design' && matrixGhost && event.button === 0) {
       const point = pointFromEvent(event, svgRef.current);
       if (!point) return;
@@ -942,7 +1074,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     if (mode !== 'Design' || !outlineActive || event.button !== 0) return;
     const point = pointFromEvent(event, svgRef.current);
     if (!point) return;
-    setOutlineDraft((current) => [...current, point]);
+    if (event.detail > 1) return;
+    const snapped = event.altKey ? point : snapDelta(point, { x: PITCH_MM, y: PITCH_MM }, snapFraction);
+    setOutlineDraft((current) => current.some((p) => p.x === snapped.x && p.y === snapped.y) ? current : [...current, snapped]);
   };
 
   const finishOutline = () => {
@@ -951,7 +1085,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       id: makeId(),
       kind: 'polygon',
       points: outlineDraft,
-      operation: 'add',
+      operation: outlineOperation,
     };
     saveOutline(feature);
     setOutlineDraft([]);
@@ -959,7 +1093,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   };
 
   const startDrag = (event: React.PointerEvent<SVGGElement>, part: Part) => {
-    if (part.locked || outlineActive) return;
+    if (part.locked || outlineActive || pendingPart) return;
     if (event.button === 1 || spaceDown.current) return;
     const pointerStart = pointFromEvent(event, svgRef.current);
     if (!pointerStart) return;
@@ -985,6 +1119,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         return true;
       })
       : matrixCell ? [part.id] : selected.includes(part.id) ? selected : [part.id];
+    if (!usesMatrixScope) setScope(matrixCell && !matrixCell.assemblyId && scope?.kind !== 'component'
+      ? { kind: 'key', matrixId: matrixCell.matrixId, row: matrixCell.row, column: matrixCell.column }
+      : { kind: 'component', partId: part.id, ...(matrixCell ?? {}) });
+    setOutlineSettingsOpen(false);
     const origins = ids.map((id) => parts.get(id)).filter((item): item is Part => Boolean(item)).map((item) => ({ id: item.id, at: item.pose.at }));
     if (scope?.kind === 'row' && matrixCell && scope.row !== matrixCell.row) {
       setScope({ ...scope, row: matrixCell.row });
@@ -1131,6 +1269,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
   };
 
   const moveCanvasPointer = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (pendingPart) {
+      const point = pointFromEvent(event, svgRef.current);
+      if (point) setPlacementPoint(event.altKey ? point : snapDelta(point, { x: PITCH_MM, y: PITCH_MM }, snapFraction));
+    }
     if (matrixGhost && mode === 'Design' && !panDrag.current) {
       const point = pointFromEvent(event, svgRef.current);
       if (point) setMatrixGhost((current) => current ? { ...current, origin: point } : current);
@@ -1226,7 +1368,16 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     return () => canvas.removeEventListener('wheel', handleWheel);
   }, []);
 
+  const selectedMatrix = scope?.matrixId ? matrixMap.get(scope.matrixId) : undefined;
+  const selectionTitle = scope?.kind === 'component' && activePart ? activePart.reference : selectedMatrix
+    ? `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}${scope?.kind === 'row' ? ` · Row ${(scope.row ?? 0) + 1}` : scope?.kind === 'column' ? ` · Column ${(scope.column ?? 0) + 1}` : scope?.kind === 'key' ? ` · Key ${(scope.row ?? 0) + 1}.${(scope.column ?? 0) + 1}` : ''}`
+    : activePart?.reference ?? selectedBoard?.name ?? 'Board';
+
   const getModeDetails = () => {
+    if (mode === 'Design' && outlineSettingsOpen) return <><OutlineInspector document={document} board={selectedBoard}
+      onChange={(next, ids) => emit({ kind: 'replace-document', document: next }, ids)}
+      onDraw={(operation) => { setOutlineOperation(operation); setOutlineDraft([]); setOutlineActive(true); setRightOpen(false); }} /><div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3></div><FindingList findings={scene.findings} /></>;
+
     if (mode === 'PCB') {
       const assigned = boardNets.reduce((total, net) => total + net.pins.filter((pin) => selectedBoard?.partIds.includes(pin.partId) ?? true).length, 0);
       return <>
@@ -1310,7 +1461,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
     }
     if (mode === 'Library') {
       return <>
-        <div className="wb-inspect-head"><h2>Part library</h2><span className="wb-mini-tag">{libraryDefinitions.length} definitions</span></div>
+        <div className="wb-inspect-head"><h2>Parts</h2><span className="wb-mini-tag">{libraryDefinitions.length} definitions</span></div>
         <p className="wb-empty-note">Select a footprint to inspect it, then place it on the board or the selected key.</p>
         <label className="wb-library-search">Search footprints<input type="search" aria-label="Search footprints" value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} placeholder="Name or kind" /></label>
         <div className="wb-library-list" role="listbox" aria-label="Footprint library">
@@ -1349,6 +1500,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             <label>Width<DraftInput ariaLabel="Courtyard width" type="number" min="0.01" step="0.1" value={courtyardSize(editDefinition.courtyard).x} onCommit={(value) => updateCourtyard('x', value)} /></label>
             <label>Height<DraftInput ariaLabel="Courtyard height" type="number" min="0.01" step="0.1" value={courtyardSize(editDefinition.courtyard).y} onCommit={(value) => updateCourtyard('y', value)} /></label>
           </div>
+          <DefinitionKeycapControls definition={editDefinition} onChange={(keycap) => updateDefinition({ keycap })} />
           <div className="wb-definition-pad-heading"><strong>Pads <small>{editDefinition.pads.length}</small></strong><button type="button" onClick={addDefinitionPad}>+ Add pad</button></div>
           {editDefinition.pads.map((pad, index) => <fieldset className="wb-definition-pad" key={index}>
             <legend>Pad {index + 1}</legend>
@@ -1426,13 +1578,19 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         <button className="wb-primary wb-export-action" onClick={() => onExport('project')}>Save .boardstudio project <ArrowIcon /></button>
       </>;
     }
+    if (selectedMatrix && scope && scope.kind !== 'component') return <>
+      <div className="wb-inspect-head"><h2>{selectionTitle}</h2></div>
+      {scope.kind === 'matrix'
+        ? <MatrixEditor document={document} onEdit={onEdit} scope={scope} onDuplicateDesign={onDuplicateDesign} />
+        : <CellInspector matrix={selectedMatrix} scope={scope} definitions={libraryDefinitions} parts={treeParts} members={memberMaps.get(selectedMatrix.id) ?? new Map()} onChange={(matrix, definitions) => commitMatrix(matrix, 'commit', undefined, definitions)} />}
+      <div className="wb-panel-rule" /><FindingList findings={scene.findings} />
+    </>;
     return <>
-      <div className="wb-inspect-head"><h2>{activePart ? activePart.reference : 'Workpiece'}</h2>
-        <span className={`wb-mini-tag ${activePart?.locked ? 'is-locked' : ''}`}>{activePart?.locked ? 'Locked' : activePart ? 'Selected part' : 'Design'}</span></div>
-      <MatrixEditor document={document} onEdit={onEdit} scope={scope} onCreate={createGuidedMatrix} onDuplicateDesign={onDuplicateDesign} />
-      <div className="wb-panel-rule" />
-      {activePart && activeDefinition ? <>
+      <div className="wb-inspect-head"><h2>{selectionTitle}</h2>
+        {activePart?.locked && <span className="wb-mini-tag is-locked">Locked</span>}</div>
+      {activePart && activeDefinition && scope?.kind === 'component' ? <>
         <p className="wb-part-title">{activeDefinition.name}<span>{activeDefinition.kind}</span></p>
+        <PartOutlineControls part={activePart} definition={activeDefinition} onChange={(next) => emit({ kind: 'replace-document', document: { ...document, parts: document.parts.map((part) => part.id === next.id ? next : part) } }, [next.id])} />
         <div className="wb-panel-rule" />
         <h3 className="wb-subtitle">Position <small>millimetres</small></h3>
         <div className="wb-coordinate-grid">
@@ -1489,10 +1647,11 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         </div>)}
         {activeParts.length > 1 && <p className="wb-selection-count">{activeParts.length} parts selected. Position edits apply to selection.</p>}
       </> : <>
-        <p className="wb-empty-note">Select a part on the canvas or add one from the library. Dragging and numeric edits share the same millimetre coordinates.</p>
+        <p className="wb-empty-note">Select a key, component, or matrix to edit it.</p>
+        <button className="wb-secondary" onClick={createGuidedMatrix}>New Matrix</button>
         <div className="wb-empty-measure"><span>Outline</span><strong>{readiness.outline ? 'Resolved' : 'Not defined'}</strong></div>
         <div className="wb-empty-measure"><span>Placed parts</span><strong>{visibleParts.length}</strong></div>
-        <div className="wb-empty-measure"><span>Canvas scale</span><strong>1 : 1 mm</strong></div>
+
       </>}
       <div className="wb-panel-rule" />
       <div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3><span>{scene.findings.length}</span></div>
@@ -1507,35 +1666,41 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
       <a className="wb-brand" href="#workbench" aria-label="Board Studio workbench">
         <span className="wb-brand-mark"><BrandMark /></span><span>BOARD<span className="wb-brand-light">STUDIO</span></span>
       </a>
+      <div className="wb-project-menu">
+        <button ref={projectTriggerRef} className="wb-project-trigger" aria-expanded={projectMenuOpen} aria-controls="wb-project-dropdown" onClick={() => setProjectMenuOpen((open) => !open)}>Project <span aria-hidden="true">⌄</span></button>
+        {projectMenuOpen && <div id="wb-project-dropdown" className="wb-project-dropdown" aria-label="Project menu">
+          {onNewProject && <button onClick={() => { setProjectMenuOpen(false); onNewProject(); }}>New project</button>}
+          {onImport && <button className="wb-open-project" onClick={() => projectFileRef.current?.click()}>Open v2 project</button>}
+          {onImport && <input ref={projectFileRef} className="wb-project-file-input" type="file" accept=".boardstudio" onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            if (file) onImport(file);
+            event.currentTarget.value = '';
+            setProjectMenuOpen(false);
+          }} />}
+          <label className="wb-theme-setting">Appearance<select aria-label="Color theme" value={themePreference} onChange={(event) => chooseTheme(event.target.value as ThemePreference)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+        </div>}
+      </div>
       <div className="wb-project-title"><span className="wb-project-dot" /><input aria-label="Project name" value={projectName} onChange={(event) => setProjectName(event.target.value)} onBlur={commitProjectName} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setProjectName(document.name); }} /><span className="wb-revision">r{document.revision}</span></div>
       <div className="wb-top-actions">
         <span className="wb-save-state"><span /> Saved locally</span>
-        {onNewProject && <button className="wb-new-project" onClick={onNewProject}>New project</button>}
-        {onImport && <label className="wb-open-project">Open v2 project<input type="file" accept=".boardstudio" onChange={(event) => {
-          const file = event.currentTarget.files?.[0];
-          if (file) onImport(file);
-          event.currentTarget.value = '';
-        }} /></label>}
         <button className="wb-icon-button" aria-label="Undo" title="Undo (Ctrl+Z)" onClick={onUndo}><UndoIcon /></button>
         <button className="wb-icon-button" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" onClick={onRedo}><RedoIcon /></button>
-        <button className="wb-primary wb-top-export" onClick={() => setMode('Export')}>Export <ArrowIcon /></button>
       </div>
     </header>
     <nav className="wb-modebar" aria-label="Workbench stages">
       <button className="wb-mobile-toggle" onClick={() => setLeftOpen((open) => !open)} aria-expanded={leftOpen} aria-controls="wb-inventory">Parts</button>
       <div className="wb-modes" role="tablist" aria-label="Design stage">
         {modes.map((item) => <button key={item} role="tab" aria-selected={mode === item} className={`wb-mode ${mode === item ? 'is-active' : ''}`} onClick={() => changeMode(item)}>
-          <ModeIcon mode={item} /><span>{item}</span>{item === 'PCB' && !boardReady && <i className="wb-mode-mark" aria-label="Not ready" />}
+          <ModeIcon mode={item} /><span>{item === 'Library' ? 'Parts' : item}</span>{item === 'PCB' && !boardReady && <i className="wb-mode-mark" aria-label="Not ready" />}
         </button>)}
       </div>
-      <div className="wb-stage-status"><span className={`wb-status-point ${modeReady ? 'is-ready' : ''}`} />{mode === 'Design' ? 'Outline preview live' : `${mode} workspace`}</div>
+      <div className="wb-stage-status"><span className={`wb-status-point ${modeReady ? 'is-ready' : ''}`} />{mode === 'Design' ? 'Outline preview live' : `${mode === 'Library' ? 'Parts' : mode} workspace`}</div>
       <button className="wb-mobile-toggle" onClick={() => setRightOpen((open) => !open)} aria-expanded={rightOpen} aria-controls="wb-inspector">Inspect</button>
     </nav>
 
     <p className="wb-keyboard-status" role="status" aria-label="Keyboard movement" aria-live="polite">{keyboardStatus}</p>
     <section className="wb-workspace" id="workbench">
       <aside id="wb-inventory" className={`wb-inventory ${leftOpen ? 'is-open' : ''}`} aria-label="Part inventory">
-        <div className="wb-side-heading"><div><h1>Parts</h1><p>Design inventory</p></div><button className="wb-small-add" aria-label="Open part library" onClick={() => setMode('Library')}><span>+</span></button></div>
         <div className="wb-board-picker">
           <label htmlFor="wb-board-select">Board</label>
           <div><select id="wb-board-select" aria-label="Selected board" value={selectedBoardId} onChange={(event) => selectBoard(event.target.value)}>
@@ -1543,42 +1708,56 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           </select><button type="button" onClick={addBoard}>+ New</button></div>
           {selectedBoard && <input aria-label="Board name" value={boardName} onChange={(event) => setBoardName(event.target.value)} onBlur={commitBoardName} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setBoardName(selectedBoard.name); }} />}
         </div>
-        <div className="wb-inventory-tools"><span>{visibleParts.length} placed</span><button onClick={() => setMode('Library')}>Browse library <ArrowIcon /></button></div>
-        <div className="wb-tree-actions"><button className="wb-guided-matrix" onClick={createGuidedMatrix}>Guide 6 × 5 matrix</button><small>Move the matrix, then click to place all keys</small></div>
-        <p id="wb-nudge-guidance" className="wb-keyboard-help">Select a part, then use arrow keys to move it. Shift moves 1 mm.</p>
+        <div className="wb-tree-actions"><button onClick={createGuidedMatrix}>New Matrix</button></div>
+        <div className="wb-inventory-add">
+        <div className="wb-inventory-tools">
+          <button ref={addPartRef} type="button" aria-expanded={addPartOpen} aria-controls="wb-add-part" onClick={() => setAddPartOpen((open) => !open)}>Add Part <ArrowIcon /></button>
+          <label>Group<select aria-label="Tree grouping" value={treeGrouping} onChange={(event) => { const value = event.target.value as 'row' | 'column'; setTreeGrouping(value); try { localStorage.setItem('boardstudio:v2:tree-grouping', value); } catch { /* Session preference remains available. */ } }}><option value="column">Columns</option><option value="row">Rows</option></select></label>
+        </div>
+        {addPartOpen && <section id="wb-add-part" className="wb-add-part-flyout" aria-label="Add Part">
+          <div><strong>Add Part</strong><button aria-label="Close Add Part" onClick={() => { setAddPartOpen(false); addPartRef.current?.focus(); }}>Close</button></div>
+          <input autoFocus type="search" aria-label="Search parts" placeholder="Search parts" value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} />
+          <div className="wb-add-part-results">{filteredLibrary.map((definition) => <button key={definition.id} onClick={() => beginPartPlacement(definition)}><PartGlyph kind={definition.kind} /><span>{definition.name}<small>{definition.kind}</small></span></button>)}
+            {!filteredLibrary.length && <p>No parts match this search.</p>}
+          </div>
+        </section>}
+        </div>
         <WorkbenchTree entries={treeEntries} />
         <div className="wb-inventory-foot"><span>DESIGN COLLECTION</span><strong>{libraryDefinitions.length} part definitions</strong></div>
       </aside>
 
-      <section className="wb-canvas-column" aria-label={`${mode} canvas`}>
+      <section className="wb-canvas-column" aria-label={`${mode === 'Library' ? 'Parts' : mode} canvas`}>
         <div className="wb-canvas-toolbar">
-          <div className="wb-canvas-context"><span className="wb-context-icon"><ModeIcon mode={mode} /></span><span><strong>{mode === 'Design' ? 'Layout' : mode === 'PCB' ? 'Circuit board' : mode === 'Case' ? 'Case assembly' : mode}</strong><small>{mode === 'Design' ? 'Top view · millimetres' : 'Top view · board coordinates'}</small></span></div>
-          <div className="wb-selection-pills" role="group" aria-label="Selection scope">
-            {(['matrix', 'row', 'column', 'key', 'component'] as const).map((kind) => <button key={kind} className={scope?.kind === kind ? 'is-active' : ''} aria-pressed={scope?.kind === kind} disabled={!scope || (kind !== 'component' && !scope.matrixId)} onClick={() => changeScope(kind)}>{kind[0].toUpperCase() + kind.slice(1)}</button>)}
-          </div>
+          <div className="wb-canvas-context"><span className="wb-context-icon"><ModeIcon mode={mode} /></span><span><strong>{mode === 'Design' ? 'Layout' : mode === 'PCB' ? 'Circuit board' : mode === 'Case' ? 'Case assembly' : mode === 'Library' ? 'Parts' : mode}</strong><small>{mode === 'Design' ? 'Top view · millimetres' : 'Top view · board coordinates'}</small></span></div>
           <div className="wb-canvas-actions">
-            <label className="wb-snap-control">Snap<select aria-label="Snap increment" value={snapFraction} onChange={(event) => setSnapFraction(Number(event.target.value))}>
-              <option value={0.125}>⅛u</option><option value={0.25}>¼u</option><option value={0.5}>½u</option><option value={1}>1u</option>
-            </select></label>
-            {mode === 'Design' && <button className={`wb-tool-button ${outlineActive ? 'is-armed' : ''}`} aria-pressed={outlineActive} onClick={() => { setOutlineDraft([]); setOutlineActive((active) => !active); }} title="Click points on canvas to sketch an outline">
+
+            {mode === 'Design' && <button className={`wb-tool-button ${outlineActive ? 'is-armed' : ''}`} aria-pressed={outlineActive} onClick={() => { setOutlineSettingsOpen(true); setRightOpen(true); }} title="Configure automatic outline and optional additions or cutouts">
               <OutlineIcon /><span>{outlineDraft.length ? `${outlineDraft.length} points` : 'Outline'}</span>
             </button>}
             {outlineActive && <button className="wb-tool-commit" onClick={finishOutline} disabled={outlineDraft.length < 3}>Close outline <span>↵</span></button>}
             {outlineDraft.length === 0 && <button className="wb-view-button" aria-label="Fit view" title="Fit view" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}><FitIcon /></button>}
           </div>
         </div>
-        <div className="wb-canvas-stage">
-          <div className="wb-canvas-watermark">{mode.toUpperCase()}<span> / MM</span></div>
-          <svg ref={svgRef} className={`wb-canvas ${matrixGhost ? 'is-placing-matrix' : ''}`} style={{ display: mode === 'Case' || mode === 'Library' ? 'none' : undefined }} viewBox={`${viewBounds.minX} ${-viewBounds.maxY} ${viewBounds.width} ${viewBounds.height}`} role="application" aria-label="Board layout canvas. Use the CAD tree to select objects; use wheel to zoom and Space-drag to pan." onPointerDown={startCanvasPan} onPointerMove={moveCanvasPointer} onPointerUp={endCanvasPointer} onPointerCancel={endCanvasPointer} onClick={drawOutline} onDoubleClick={finishOutline}>
+        <div className={`wb-canvas-stage ${leftOpen || rightOpen ? 'has-drawer' : ''}`}>
+          {mode === 'Design' && <>
+          <div className="wb-selection-pills" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} role="group" aria-label="Selection scope">
+            {(['matrix', 'row', 'column', 'key', 'component'] as const).map((kind) => <button key={kind} className={scope?.kind === kind ? 'is-active' : ''} aria-pressed={scope?.kind === kind} disabled={!scope || (kind !== 'component' && !scope.matrixId)} aria-label={kind[0].toUpperCase() + kind.slice(1)} title={kind[0].toUpperCase() + kind.slice(1)} onClick={() => changeScope(kind)}><ScopeIcon kind={kind} /></button>)}
+          </div>
+            <label className="wb-snap-control" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>Snap<select aria-label="Snap increment" value={snapFraction} onChange={(event) => setSnapFraction(Number(event.target.value))}>
+              <option value={0.125}>⅛u</option><option value={0.25}>¼u</option><option value={0.5}>½u</option><option value={1}>1u</option>
+            </select></label>
+          </>}
+          <div className="wb-canvas-watermark">{mode === 'Library' ? 'PARTS' : mode.toUpperCase()}<span> / MM</span></div>
+          <svg tabIndex={0} onKeyDown={(event) => { if (!pendingPart) return; if (event.key === 'Enter') { event.preventDefault(); placePendingPart(placementPoint); } if (event.key.startsWith('Arrow')) { event.preventDefault(); const step = PITCH_MM * snapFraction; setPlacementPoint((point) => ({ x: point.x + (event.key === 'ArrowRight' ? step : event.key === 'ArrowLeft' ? -step : 0), y: point.y + (event.key === 'ArrowUp' ? step : event.key === 'ArrowDown' ? -step : 0) })); } }} ref={svgRef} className={`wb-canvas ${matrixGhost ? 'is-placing-matrix' : ''}`} style={{ display: mode === 'Case' || mode === 'Library' ? 'none' : undefined }} viewBox={`${viewBounds.minX} ${-viewBounds.maxY} ${viewBounds.width} ${viewBounds.height}`} role="application" aria-label="Board layout canvas. Use the CAD tree to select objects; use wheel to zoom and Space-drag to pan." onPointerDown={startCanvasPan} onPointerMove={moveCanvasPointer} onPointerUp={endCanvasPointer} onPointerCancel={endCanvasPointer} onClick={drawOutline} onDoubleClick={finishOutline}>
             <defs>
-              <pattern id="wb-grid-small" width={unit} height={unit} patternUnits="userSpaceOnUse"><path d={`M ${unit} 0 L 0 0 0 ${unit}`} fill="none" stroke="#e7e8e5" strokeWidth="0.045" /></pattern>
-              <pattern id="wb-grid-large" width={unit * 5} height={unit * 5} patternUnits="userSpaceOnUse"><rect width={unit * 5} height={unit * 5} fill="url(#wb-grid-small)" /><path d={`M ${unit * 5} 0 L 0 0 0 ${unit * 5}`} fill="none" stroke="#d3d7d4" strokeWidth="0.09" /></pattern>
+              <pattern id="wb-grid-small" width={unit} height={unit} patternUnits="userSpaceOnUse"><path d={`M ${unit} 0 L 0 0 0 ${unit}`} fill="none" stroke="var(--wb-grid-small)" strokeWidth="0.045" /></pattern>
+              <pattern id="wb-grid-large" width={unit * 5} height={unit * 5} patternUnits="userSpaceOnUse"><rect width={unit * 5} height={unit * 5} fill="url(#wb-grid-small)" /><path d={`M ${unit * 5} 0 L 0 0 0 ${unit * 5}`} fill="none" stroke="var(--wb-grid-large)" strokeWidth="0.09" /></pattern>
             </defs>
             <rect x={bounds.minX} y={-bounds.maxY} width={bounds.width} height={bounds.height} fill="url(#wb-grid-large)" />
-            <g transform="scale(1,-1)">
+            <g transform="scale(1,-1)" style={outlineActive || pendingPart ? { pointerEvents: 'none' } : undefined}>
               {visibleContours.map((contour, index) => <polygon key={`contour-${index}`} points={contour.points.map((point) => `${point.x},${point.y}`).join(' ')} className={`wb-outline-shape ${contour.hole ? 'is-hole' : ''}`} />)}
               {mode === 'Design' && matrixGhost && <MatrixGhost matrix={matrixGhost} cells={new Map()} scope={null} ghost onPlace={() => undefined} onSelect={() => undefined} onStagger={() => undefined} />}
-              {mode === 'Design' && visibleMatrices.map((matrix) => <MatrixGhost key={matrix.id} matrix={matrix} cells={matrixCellOverrides.get(matrix.id) ?? new Map()} scope={scope} onPlace={(row, column) => {
+              {mode === 'Design' && visibleMatrices.map((matrix) => <MatrixGhost key={matrix.id} matrix={matrix} parts={parts} members={memberMaps.get(matrix.id)} definitions={definitions} cells={matrixCellOverrides.get(matrix.id) ?? new Map()} scope={scope} onPlace={(row, column) => {
                 setCell(matrix, row, column, { enabled: true });
                 selectScope({ kind: 'key', matrixId: matrix.id, row, column });
               }} onSelect={(row, column) => selectScope({ kind: 'key', matrixId: matrix.id, row, column })} onStagger={(event, axis, index) => startStagger(event, matrix, axis, index)} />)}
@@ -1586,6 +1765,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
                 const definition = definitions.get(part.definitionId);
                 return <ScenePart key={part.id} part={part} definition={definition} active={selectedIds.has(part.id)} constrained={constrainedTargetIds.has(part.id)} handlers={sceneHandlers} />;
               })}
+              {pendingPart && <g className="wb-placement-preview" transform={`translate(${placementPoint.x} ${placementPoint.y})`}><polygon points={pendingPart.courtyard.map((point) => `${point.x},${point.y}`).join(' ')} /><path d="M-2 0h4M0-2v4" /></g>}
               {outlineDraft.length > 0 && <g className="wb-outline-draft">
                 <polyline points={outlineDraft.map((point) => `${point.x},${point.y}`).join(' ')} />
                 {outlineDraft.map((point, index) => <circle key={index} cx={point.x} cy={point.y} r="0.8" />)}
@@ -1594,7 +1774,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
           </svg>
           {mode === 'Library' && (library3dOpen && selectedLibraryDefinition?.model
             ? <div className="wb-library-workspace wb-library-model-workspace" aria-label="3D footprint model preview">
-              {libraryModelPreview ? <React.Suspense fallback={<p>Loading 3D preview…</p>}><CasePreview componentPreviews={[libraryModelPreview]} boardThickness={selectedBoard?.thickness ?? 0} /></React.Suspense> : <p>Loading the attached 3D model…</p>}
+              {libraryModelPreview ? <React.Suspense fallback={<p>Loading 3D preview…</p>}><CasePreview componentPreviews={[libraryModelPreview]} boardThickness={selectedBoard?.thickness ?? 0} colorScheme={colorScheme} /></React.Suspense> : <p>Loading the attached 3D model…</p>}
               <button className="wb-secondary" onClick={() => setLibrary3dOpen(false)}>Back to 2D footprint</button>
             </div>
             : <LibraryWorkspace definition={previewDefinition} />)}
@@ -1602,8 +1782,10 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
             mesh={activeCaseBody ? casePreview : undefined}
             componentPreviews={selectedBoard ? componentPreviews : undefined}
             boardThickness={selectedBoard?.thickness ?? 0}
+            colorScheme={colorScheme}
           /></React.Suspense>}
-          {mode !== 'Case' && mode !== 'Library' && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place a part, then sketch the live outline around your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
+          {mode !== 'Case' && mode !== 'Library' && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
+          {pendingPart && <div className="wb-canvas-hint" role="status">Place {pendingPart.name} · Click or Enter to place · Esc cancels</div>}
           {outlineActive && <div className="wb-canvas-hint"><span className="wb-hint-dot" /> Click to add points <kbd>Esc</kbd> cancel <kbd>Enter</kbd> close</div>}
           <div className="wb-axis-indicator" aria-label="Coordinate axes"><span className="wb-axis-y">Y</span><span className="wb-axis-origin">0</span><span className="wb-axis-x">X</span></div>
           <div className="wb-canvas-scale">{unit} mm <span /> 1:1</div>
@@ -1615,7 +1797,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, onNewPro
         </footer>
       </section>
 
-      <aside id="wb-inspector" className={`wb-inspector ${rightOpen ? 'is-open' : ''}`} aria-label={`${mode} inspector`}>
+      <aside id="wb-inspector" className={`wb-inspector ${rightOpen ? 'is-open' : ''}`} aria-label={`${mode === 'Library' ? 'Parts' : mode} inspector`}>
         <div className="wb-inspector-content" key={mode}>{getModeDetails()}</div>
         <div className="wb-inspector-bottom"><span><span className="wb-inspector-orb" />Live analysis</span><span>REV {String(scene.revision).padStart(3, '0')}</span></div>
       </aside>
@@ -1684,11 +1866,14 @@ const definitionIssues = (definition: PartDefinition): string[] => {
 const getBounds = (poses: Map<string, Part['pose']>, visibleParts: Part[], visibleContours: SceneDelta['contours'], matrices: Matrix[]) => {
   const all = [...visibleContours.flatMap((contour) => contour.points)];
   for (const part of visibleParts) all.push(poses.get(part.id)?.at ?? part.pose.at);
+  const renderedParts = new Map(visibleParts.map((part) => [part.id, part]));
   for (const matrix of matrices) {
+    const members = matrixMembers(matrix);
+    const cells = new Map((matrix.cells ?? []).map((cell) => [`${cell.row}:${cell.column}`, cell]));
     const size = { x: matrix.pitch.x / 2, y: matrix.pitch.y / 2 };
     for (let row = 0; row < matrix.rows; row += 1) {
       for (let column = 0; column < matrix.columns; column += 1) {
-        const center = matrixPosition(matrix, row, column);
+        const center = cellPose(matrix, row, column, cells.get(`${row}:${column}`), members, renderedParts).at;
         all.push({ x: center.x - size.x, y: center.y - size.y }, { x: center.x + size.x, y: center.y + size.y });
       }
     }
@@ -1716,25 +1901,11 @@ const cameraBounds = (bounds: ReturnType<typeof getBounds>, zoom: number, pan: V
   };
 };
 
-const matrixCellId = (matrixId: string, row: number, column: number) => `matrix/${matrixId}/r${row}c${column}`;
-
 const withCell = (matrix: Matrix, row: number, column: number, changes: Partial<MatrixCell>): Matrix => {
   const cells = matrix.cells ?? [];
   const current = cells.find((cell) => cell.row === row && cell.column === column);
   const next: MatrixCell = { row, column, enabled: current?.enabled ?? true, ...current, ...changes };
   return { ...matrix, cells: cells.filter((cell) => cell.row !== row || cell.column !== column).concat(next) };
-};
-
-const matrixPosition = (matrix: Matrix, row: number, column: number, cell?: MatrixCell): Vec2 => {
-  let x = column * matrix.pitch.x + (matrix.columnOffsets?.[column]?.x ?? 0) + (matrix.rowOffsets?.[row]?.x ?? 0) + (cell?.offset?.x ?? 0);
-  let y = row * matrix.pitch.y + (matrix.columnOffsets?.[column]?.y ?? 0) + (matrix.rowOffsets?.[row]?.y ?? 0) + (cell?.offset?.y ?? 0);
-  if (matrix.mirror === 'x') x *= -1;
-  if (matrix.mirror === 'y') y *= -1;
-  const rotation = (matrix.rotation ?? 0) * Math.PI / 180;
-  return {
-    x: matrix.origin.x + x * Math.cos(rotation) - y * Math.sin(rotation),
-    y: matrix.origin.y + x * Math.sin(rotation) + y * Math.cos(rotation),
-  };
 };
 
 const localMatrixDelta = (matrix: Matrix, delta: Vec2): Vec2 => {
@@ -1765,32 +1936,44 @@ const createPart = (definition: PartDefinition, parts: Part[]): Part => {
   };
 };
 
-const MatrixGhost = memo(({ matrix, cells, scope, onPlace, onSelect, onStagger, ghost = false }: {
+const MatrixGhost = memo(({ matrix, cells, scope, onPlace, onSelect, onStagger, ghost = false, parts = new Map(), members = new Map(), definitions = new Map() }: {
   matrix: Matrix;
   cells: Map<string, MatrixCell>;
   scope: SelectionScope | null;
   ghost?: boolean;
+  parts?: Map<string, Part>;
+  members?: Map<string, string>;
+  definitions?: Map<string, PartDefinition>;
   onPlace: (row: number, column: number) => void;
   onSelect: (row: number, column: number) => void;
   onStagger: (event: React.PointerEvent<SVGElement>, axis: 'row' | 'column', index: number) => void;
 }) => {
+  const handleOffset = (x: number, y: number): Vec2 => {
+    if (matrix.mirror === 'x') x *= -1;
+    if (matrix.mirror === 'y') y *= -1;
+    const angle = (matrix.rotation ?? 0) * Math.PI / 180;
+    return { x: x * Math.cos(angle) - y * Math.sin(angle), y: x * Math.sin(angle) + y * Math.cos(angle) };
+  };
   const keyWidth = Math.max(1, matrix.pitch.x - (matrix.edgeGap?.x ?? 1));
   const keyHeight = Math.max(1, matrix.pitch.y - (matrix.edgeGap?.y ?? 1));
   return <g className="wb-matrix-ghost" aria-label={`Matrix ${matrix.rows} by ${matrix.columns}`}>
     {Array.from({ length: matrix.rows }, (_, row) => Array.from({ length: matrix.columns }, (_, column) => {
       const cell = cells.get(`${row}:${column}`);
       const enabled = ghost || cell?.enabled !== false;
-      const center = matrixPosition(matrix, row, column, cell);
+      const pose = cellPose(matrix, row, column, cell, members, parts);
+      const center = pose.at;
+      const part = parts.get(members.get(`${row}:${column}`) ?? '');
+      const keycap = part?.keycap ?? definitions.get(part?.definitionId ?? matrix.definitionId)?.keycap;
       const selected = scope?.matrixId === matrix.id && scope.row === row && scope.column === column && ['key', 'component'].includes(scope.kind);
-      const transform = `translate(${center.x} ${center.y}) rotate(${-(matrix.rotation ?? 0) - (cell?.rotation ?? 0)})`;
+      const transform = `translate(${center.x} ${center.y}) rotate(${pose.rotation})`;
       const label = `${ghost ? 'Ghost' : enabled ? 'Select' : 'Place'} key, row ${row + 1}, column ${column + 1}`;
       return <rect
         key={`${row}:${column}`}
         className={`wb-matrix-cell ${enabled ? 'is-enabled' : 'is-empty'} ${selected ? 'is-selected' : ''}`}
-        x={-keyWidth / 2}
-        y={-keyHeight / 2}
-        width={keyWidth}
-        height={keyHeight}
+        x={-(keycap?.x ?? keyWidth) / 2}
+        y={-(keycap?.y ?? keyHeight) / 2}
+        width={keycap?.x ?? keyWidth}
+        height={keycap?.y ?? keyHeight}
         rx="0.9"
         transform={transform}
         role="button"
@@ -1807,14 +1990,16 @@ const MatrixGhost = memo(({ matrix, cells, scope, onPlace, onSelect, onStagger, 
       />;
     }))}
     {Array.from({ length: matrix.rows }, (_, row) => {
-      const point = matrixPosition(matrix, row, 0, cells.get(`${row}:0`));
-      return <g key={`row-handle-${row}`} className="wb-stagger-handle is-row" transform={`translate(${point.x - matrix.pitch.x * 0.9} ${point.y})`}>
+      const point = cellPose(matrix, row, 0, cells.get(`${row}:0`), members, parts).at;
+      const offset = handleOffset(-matrix.pitch.x * 0.9, 0);
+      return <g key={`row-handle-${row}`} className="wb-stagger-handle is-row" transform={`translate(${point.x + offset.x} ${point.y + offset.y})`}>
         <rect width="1.2" height="2.8" x="-0.6" y="-1.4" rx="0.4" aria-label={`Stagger row ${row + 1}`} onPointerDown={(event) => onStagger(event, 'row', row)} />
       </g>;
     })}
     {Array.from({ length: matrix.columns }, (_, column) => {
-      const point = matrixPosition(matrix, 0, column, cells.get(`0:${column}`));
-      return <g key={`column-handle-${column}`} className="wb-stagger-handle is-column" transform={`translate(${point.x} ${point.y + matrix.pitch.y * 0.9})`}>
+      const point = cellPose(matrix, 0, column, cells.get(`0:${column}`), members, parts).at;
+      const offset = handleOffset(0, -matrix.pitch.y * 0.9);
+      return <g key={`column-handle-${column}`} className="wb-stagger-handle is-column" transform={`translate(${point.x + offset.x} ${point.y + offset.y})`}>
         <rect width="2.8" height="1.2" x="-1.4" y="-0.6" rx="0.4" aria-label={`Stagger column ${column + 1}`} onPointerDown={(event) => onStagger(event, 'column', column)} />
       </g>;
     })}
@@ -1830,6 +2015,7 @@ const ScenePart = memo(({ part, definition, active, constrained, handlers }: {
 }) => <g className={`wb-scene-part ${active ? 'is-selected' : ''} ${constrained ? 'is-constrained' : ''}`} role="button" tabIndex={0}
   aria-label={`${part.reference}, ${definition?.name ?? 'part'}${constrained ? ', constrained target' : ''}, X ${part.pose.at.x} Y ${part.pose.at.y}`}
   aria-pressed={active}
+  aria-description="Arrow keys move 0.1 mm; Shift+Arrow moves 1 mm. Delete removes the selection."
   onPointerDown={(event) => handlers.current?.startDrag(event, part)}
   onPointerMove={(event) => handlers.current?.moveDrag(event)}
   onPointerUp={(event) => handlers.current?.endDrag(event)}
@@ -1839,8 +2025,9 @@ const ScenePart = memo(({ part, definition, active, constrained, handlers }: {
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handlers.current?.choosePart(part.id, event.ctrlKey || event.metaKey); }
     handlers.current?.nudgePart(event, part);
   }}
-  transform={`translate(${part.pose.at.x} ${part.pose.at.y}) rotate(${-part.pose.rotation})`}>
+  transform={`translate(${part.pose.at.x} ${part.pose.at.y}) rotate(${part.pose.rotation})`}>
   {definition?.courtyard.length ? <polygon points={definition.courtyard.map((point) => `${point.x},${point.y}`).join(' ')} className="wb-part-courtyard" /> : <rect x="-4" y="-4" width="8" height="8" rx="0.8" className="wb-part-courtyard" />}
+  {definition?.kind === 'switch' && (part.keycap ?? definition.keycap) && <rect className="wb-keycap-boundary" x={-(part.keycap ?? definition.keycap)!.x / 2} y={-(part.keycap ?? definition.keycap)!.y / 2} width={(part.keycap ?? definition.keycap)!.x} height={(part.keycap ?? definition.keycap)!.y} rx="0.9" />}
   {definition?.pads.map((pad) => <circle key={pad.id} cx={pad.at.x} cy={pad.at.y} r={Math.max(0.35, Math.min(pad.size.x, pad.size.y) / 2)} className="wb-part-pad" />)}
   <circle r="1.25" className="wb-part-center" />
   {constrained && <circle r="8.1" className="wb-part-constrained" aria-hidden="true" />}
@@ -1854,6 +2041,7 @@ const ScenePart = memo(({ part, definition, active, constrained, handlers }: {
   && previous.part.pose.at.x === next.part.pose.at.x
   && previous.part.pose.at.y === next.part.pose.at.y
   && previous.part.pose.rotation === next.part.pose.rotation
+  && previous.part.keycap === next.part.keycap
   && previous.part.properties === next.part.properties
   && previous.definition === next.definition
   && previous.active === next.active
@@ -1915,15 +2103,59 @@ const CaseNumber = ({ label, value, unit: unitLabel, validation, onCommit }: { l
   </label>;
 };
 
-const MatrixEditor = ({ document, onEdit, scope, onCreate, onDuplicateDesign }: { document: ProjectDoc; onEdit: (command: EditCommand) => void; scope: SelectionScope | null; onCreate: () => void; onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void }) => {
-  const [matrixId, setMatrixId] = useState('');
+const CellInspector = ({ matrix, scope, definitions, parts, members, onChange }: {
+  matrix: Matrix; scope: SelectionScope; definitions: PartDefinition[]; parts: Map<string, Part>; members: Map<string, string>;
+  onChange: (matrix: Matrix, definitions?: PartDefinition[]) => void;
+}) => {
+  const field = (label: string, value: number, onCommit: (value: number) => void) => <CaseNumber key={label} label={label} value={value} unit="mm" validation="finite" onCommit={onCommit} />;
+  if (scope.kind === 'row' || scope.kind === 'column') {
+    const axis = scope.kind;
+    const index = scope[axis] ?? 0;
+    const offsets = axis === 'row' ? matrix.rowOffsets ?? [] : matrix.columnOffsets ?? [];
+    const offset = offsets[index] ?? { x: 0, y: 0 };
+    const count = [...members].filter(([key, id]) => Number(key.split(':')[axis === 'row' ? 0 : 1]) === index && parts.has(id)).length;
+    const update = (value: Vec2) => {
+      const next = [...offsets];
+      while (next.length <= index) next.push({ x: 0, y: 0 });
+      next[index] = value;
+      onChange({ ...matrix, [axis === 'row' ? 'rowOffsets' : 'columnOffsets']: next });
+    };
+    return <section aria-label={`${axis} properties`}><p className="wb-empty-note">{count} enabled keys</p>
+      <div className="wb-matrix-number-grid">{field('Offset X', offset.x, (x) => update({ ...offset, x }))}{field('Offset Y', offset.y, (y) => update({ ...offset, y }))}</div>
+      <button className="wb-secondary" onClick={() => update({ x: 0, y: 0 })}>Reset offsets</button>
+    </section>;
+  }
+  const row = scope.row ?? 0;
+  const column = scope.column ?? 0;
+  const cell = matrix.cells?.find((entry) => entry.row === row && entry.column === column) ?? { row, column, enabled: true };
+  const update = (changes: Partial<MatrixCell>) => {
+    const next = withCell(matrix, row, column, changes);
+    const definition = definitions.find((entry) => entry.id === changes.definitionId);
+    onChange(next, definition ? [definition] : undefined);
+  };
+  return <section aria-label="Key properties">
+    <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Key enabled" checked={cell.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Enabled</label>
+    <div className="wb-matrix-number-grid">
+      {field('Local X', cell.offset?.x ?? 0, (x) => update({ offset: { x, y: cell.offset?.y ?? 0 } }))}
+      {field('Local Y', cell.offset?.y ?? 0, (y) => update({ offset: { x: cell.offset?.x ?? 0, y } }))}
+      <CaseNumber label="Key rotation" value={cell.rotation ?? 0} unit="°" validation="finite" onCommit={(rotation) => update({ rotation })} />
+    </div>
+    <button className="wb-secondary" onClick={() => update({ offset: { x: 0, y: 0 }, rotation: 0 })}>Reset local transform</button>
+    <label className="wb-script-select-label">Switch variant<select aria-label="Cell variant" value={cell.definitionId ?? matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value, variant: event.target.value })}>
+      {definitions.filter((definition) => definition.kind === 'switch' || definition.id === 'mx-hotswap' || definition.id === 'choc-hotswap').map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+    </select></label>
+    <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Diode on selected key" disabled={!matrix.diodes} checked={Boolean(matrix.diodes && cell.diode !== false)} onChange={(event) => update({ diode: event.target.checked })} /> Diode</label>
+    <h3 className="wb-subtitle">Attached components</h3>
+    {matrix.diodes && cell.diode !== false && <p className="wb-empty-note">Matrix diode</p>}
+    {(cell.assemblies ?? []).map((assembly) => <div className="wb-pad-row" key={assembly.id}><span>{definitions.find((entry) => entry.id === assembly.definitionId)?.name ?? assembly.definitionId}</span><button aria-label={`Remove ${assembly.id}`} onClick={() => update({ assemblies: cell.assemblies?.filter((entry) => entry.id !== assembly.id) })}>Remove</button></div>)}
+    {!cell.assemblies?.length && !(matrix.diodes && cell.diode !== false) && <p className="wb-empty-note">No attached components. Apply a component in Parts.</p>}
+  </section>;
+};
+
+const MatrixEditor = ({ document, onEdit, scope, onDuplicateDesign }: { document: ProjectDoc; onEdit: (command: EditCommand) => void; scope: SelectionScope | null; onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void }) => {
   const [presetId, setPresetId] = useState<MatrixPresetId>('mx-solder');
-  const matrix = document.matrices.find((item) => item.id === scope?.matrixId) ?? document.matrices.find((item) => item.id === matrixId) ?? document.matrices[0];
+  const matrix = document.matrices.find((item) => item.id === scope?.matrixId);
   const definitions = new Map(document.definitions.map((definition) => [definition.id, definition]));
-  const parts = new Map(document.parts.map((part) => [part.id, part]));
-  const selectedCell = matrix && scope?.kind === 'key' && scope.matrixId === matrix.id && scope.row !== undefined && scope.column !== undefined
-    ? matrix.cells?.find((cell) => cell.row === scope.row && cell.column === scope.column) ?? { row: scope.row, column: scope.column, enabled: true }
-    : undefined;
   const commit = (next: Matrix, definitions?: PartDefinition[]) => onEdit({
     baseRevision: document.revision,
     transactionId: makeId(),
@@ -1937,18 +2169,9 @@ const MatrixEditor = ({ document, onEdit, scope, onCreate, onDuplicateDesign }: 
     commit({ ...matrix, ...changes });
   };
 
-  const updateSelectedCell = (changes: Partial<MatrixCell>) => {
-    if (!matrix || scope?.kind !== 'key' || scope.row === undefined || scope.column === undefined) return;
-    commit(withCell(matrix, scope.row, scope.column, changes));
-  };
-
   const field = (label: string, value: number, unitLabel: string, validation: NumberRule, onCommit: (value: number) => void) => <CaseNumber key={label} label={label} value={value} unit={unitLabel} validation={validation} onCommit={onCommit} />;
 
   return <section className="wb-matrix-editor" aria-label="Key matrix editor">
-      <div className="wb-matrix-heading"><h3 className="wb-subtitle">Key matrix</h3><div><button onClick={onCreate}>+ New matrix</button></div></div>
-    {document.matrices.length > 0 && <label className="wb-script-select-label">Matrix group<select aria-label="Select matrix" value={matrix?.id ?? ''} onChange={(event) => setMatrixId(event.target.value)}>
-      {document.matrices.map((item, index) => <option key={item.id} value={item.id}>Matrix {index + 1} · {item.rows} × {item.columns}</option>)}
-    </select></label>}
     {!matrix ? <p className="wb-empty-state">Choose a part definition, then create a repeated key group.</p> : <>
       <label className="wb-script-select-label">Part definition<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value })}>
         {document.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
@@ -1968,15 +2191,11 @@ const MatrixEditor = ({ document, onEdit, scope, onCreate, onDuplicateDesign }: 
       <label className="wb-script-select-label wb-matrix-mirror">Mirror<select aria-label="Mirror matrix" value={matrix.mirror ?? 'none'} onChange={(event) => update({ mirror: event.target.value as Matrix['mirror'] })}>
         <option value="none">None</option><option value="x">X axis</option><option value="y">Y axis</option>
       </select></label>
-      <label className="wb-script-select-label">Switch variant<select aria-label="Cell variant" value={selectedCell?.definitionId ?? matrix.definitionId} disabled={!selectedCell} onChange={(event) => updateSelectedCell({ definitionId: event.target.value, variant: event.target.value })}>
-        {builtinDefinitions().filter((definition) => definition.kind === 'switch').map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
-      </select></label>
       <div className="wb-matrix-cell-actions">
         <label>Duplicate design as variant<select aria-label="Duplicate design preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
           <option value="mx-solder">MX solder</option><option value="mx-hotswap">MX hotswap</option><option value="choc-solder">Choc solder</option><option value="choc-hotswap">Choc hotswap</option><option value="mx-rgb">MX RGB</option><option value="choc-rgb">Choc RGB</option><option value="mx-hotswap-rgb">MX hotswap RGB</option><option value="choc-hotswap-rgb">Choc hotswap RGB</option>
         </select></label>
         <button disabled={!matrix || !onDuplicateDesign} onClick={() => matrix && onDuplicateDesign?.(matrix.id, presetId)}>Duplicate design as variant</button>
-        <label><input type="checkbox" aria-label="Diode on selected key" disabled={!selectedCell || !matrix.diodes} checked={Boolean(matrix.diodes && selectedCell?.diode !== false)} onChange={(event) => updateSelectedCell({ diode: event.target.checked })} /> Diode</label>
       </div>
       <label className="wb-script-select-label">Apply matrix preset<select aria-label="Apply matrix preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
         <option value="mx-solder">MX solder</option><option value="mx-hotswap">MX hotswap</option><option value="choc-solder">Choc solder</option><option value="choc-hotswap">Choc hotswap</option><option value="mx-rgb">MX RGB</option><option value="choc-rgb">Choc RGB</option><option value="mx-hotswap-rgb">MX hotswap RGB</option><option value="choc-hotswap-rgb">Choc hotswap RGB</option>
@@ -1990,12 +2209,7 @@ const MatrixEditor = ({ document, onEdit, scope, onCreate, onDuplicateDesign }: 
       <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
         <option value="row2col">Rows to columns</option><option value="col2row">Columns to rows</option>
       </select></label>
-      <div className="wb-matrix-members"><div><strong>Group membership</strong><small>{matrix.partIds.length} parts</small></div>
-        {matrix.partIds.length > 0 ? <ul>{matrix.partIds.map((id) => {
-          const part = parts.get(id);
-          return <li key={id}><span>{part?.reference ?? id}</span><small>{part ? definitions.get(part.definitionId)?.name ?? 'Part' : 'Generated member'}</small></li>;
-        })}</ul> : <p>Members appear as the core generates the matrix.</p>}
-      </div>
+
     </>}
   </section>;
 };
@@ -2017,6 +2231,14 @@ const PartGlyph = ({ kind }: { kind: PartDefinition['kind'] }) => <svg viewBox="
       : kind === 'connector' ? <><rect x="4" y="7" width="20" height="14" rx="2" /><path d="M8 10v8M12 10v8M16 10v8M20 10v8" /></>
         : kind === 'encoder' ? <><circle cx="14" cy="14" r="9" /><circle cx="14" cy="14" r="3" /><path d="M14 2v3M14 23v3M2 14h3M23 14h3" /></>
           : <><rect x="5" y="5" width="18" height="18" rx="2" /><path d="M10 10h8v8h-8zM2 10h3M2 18h3M23 10h3M23 18h3" /></>}
+</svg>;
+
+const ScopeIcon = ({ kind }: { kind: SelectionScope['kind'] }) => <svg viewBox="0 0 20 20" aria-hidden="true">
+  {kind === 'matrix' ? <><rect x="3" y="3" width="14" height="14" rx="1" /><path d="M3 8h14M3 12h14M8 3v14M12 3v14" /></>
+    : kind === 'row' ? <><rect x="2" y="7" width="16" height="6" rx="1" /><path d="M7 7v6M13 7v6" /></>
+    : kind === 'column' ? <><rect x="7" y="2" width="6" height="16" rx="1" /><path d="M7 7h6M7 13h6" /></>
+    : kind === 'key' ? <><rect x="3" y="3" width="14" height="14" rx="3" /><path d="M6 13h8" /></>
+    : <><rect x="6" y="6" width="8" height="8" rx="1" /><path d="M7 2v4M13 2v4M7 14v4M13 14v4M2 7h4M2 13h4M14 7h4M14 13h4" /></>}
 </svg>;
 
 const ModeIcon = ({ mode }: { mode: Mode }) => <svg viewBox="0 0 20 20" aria-hidden="true" className="wb-mode-icon">

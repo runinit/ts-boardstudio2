@@ -35,10 +35,11 @@ const samePreviews = (left: ComponentPreview[], right: ComponentPreview[]): bool
     && item.mesh.normals === other.mesh.normals;
 });
 
-const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
+const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme = 'light' }: {
   mesh?: Mesh;
   componentPreviews?: ComponentPreview[];
   boardThickness?: number;
+  colorScheme?: 'light' | 'dark';
 }) => {
   const incomingPreviews = componentPreviews ?? emptyPreviews;
   const previewsRef = useRef(incomingPreviews);
@@ -79,10 +80,11 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
       setError('');
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.setClearColor(0xe9ede5, 1);
+      const darkMode = colorScheme === 'dark';
+      renderer.setClearColor(darkMode ? 0x161616 : 0xf2f4f8, 1);
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xe9ede5);
+      scene.background = new THREE.Color(darkMode ? 0x161616 : 0xf2f4f8);
       const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 10000);
       camera.up.set(0, 0, 1);
 
@@ -102,7 +104,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
 
       if (caseMesh) {
         const geometry = makeGeometry(caseMesh.positions, caseMesh.normals);
-        const material = new THREE.MeshStandardMaterial({ color: 0x4d8875, roughness: 0.74, metalness: 0.04, side: THREE.DoubleSide });
+        const material = new THREE.MeshStandardMaterial({ color: darkMode ? 0x393939 : 0xdde1e6, roughness: 0.74, metalness: 0.04, side: THREE.DoubleSide });
         materials.push(material);
         const caseObject = new THREE.Mesh(geometry, material);
         scene.add(caseObject);
@@ -136,11 +138,11 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
         scene.add(partGroup);
         previewObjects.push(partGroup);
       });
-      scene.add(new THREE.HemisphereLight(0xf8faf0, 0x68766d, 2.2));
-      const keyLight = new THREE.DirectionalLight(0xffe5d4, 2.4);
+      scene.add(new THREE.HemisphereLight(darkMode ? 0xf2f4f8 : 0xffffff, darkMode ? 0x525252 : 0xa8a8a8, 2.2));
+      const keyLight = new THREE.DirectionalLight(darkMode ? 0xd0e2ff : 0xffffff, 2.4);
       keyLight.position.set(-3, 5, 4);
       scene.add(keyLight);
-      const fillLight = new THREE.DirectionalLight(0xc8e1d4, 1.1);
+      const fillLight = new THREE.DirectionalLight(darkMode ? 0xbe95ff : 0xd0e2ff, 1.1);
       fillLight.position.set(4, 1, -4);
       scene.add(fillLight);
 
@@ -217,7 +219,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0 }: {
       controlsRef.current = null;
       fitRef.current = null;
     };
-  }, [mesh?.positions, mesh?.normals, mesh?.revision, previews, boardThickness]);
+  }, [mesh?.positions, mesh?.normals, mesh?.revision, previews, boardThickness, colorScheme]);
 
   const zoom = (factor: number) => {
     const controls = controlsRef.current;

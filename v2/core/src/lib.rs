@@ -588,6 +588,7 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             Ok(vec![part.id.clone()])
         }
         EditOperation::RemoveParts { ids } => {
+            let ids = matrix::removed_members(doc, ids);
             doc.constraints.retain(|constraint| {
                 !ids.iter()
                     .any(|id| id == constraint.source() || id == constraint.target())

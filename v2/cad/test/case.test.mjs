@@ -153,3 +153,18 @@ test('exports two vertically offset bodies as one STEP compound', async () => {
   assert.ok(result.mesh.positions.length > 0);
   assert.equal(result.mesh.positions.length, result.mesh.normals.length);
 });
+
+test('plate construction retains a deleted corner and authored cutout', async () => {
+  const contours = [
+    { hole: false, points: [{x:10,y:0},{x:30,y:0},{x:30,y:30},{x:0,y:30},{x:0,y:10},{x:10,y:10}] },
+    { hole: true, points: square(15, 20) },
+  ];
+  const result = await buildCase({
+    revision: 12,
+    body: { id: 'plate', name: 'plate', boardId: 'board', kind: 'plate', thickness: 2, clearance: 0 },
+    contours,
+  });
+  const measured = await inspectStep(result.step);
+  assert.equal(result.revision, 12);
+  assert.ok(Math.abs(measured.volume - (30 * 30 - 10 * 10 - 5 * 5) * 2) < 0.1);
+});

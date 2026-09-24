@@ -20,6 +20,7 @@ fn fixture(keys: usize) -> ProjectDoc {
         ],
         pads: vec![],
         model: None,
+        keycap: None,
         generator: None,
     });
     for index in 0..keys {
@@ -36,12 +37,15 @@ fn fixture(keys: usize) -> ProjectDoc {
             },
             side: Side::Front,
             locked: None,
+            keycap: None,
+            outline: None,
             properties: None,
         });
     }
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "boundary".into(),
         part_ids: doc.parts.iter().map(|part| part.id.clone()).collect(),
+        settings: Default::default(),
         margin: 3.0,
         operation: Operation::Add,
     });

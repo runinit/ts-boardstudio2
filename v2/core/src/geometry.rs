@@ -4,7 +4,9 @@ use crate::model::{
 use i_overlay::core::fill_rule::FillRule;
 use i_overlay::core::overlay_rule::OverlayRule;
 use i_overlay::float::single::SingleFloatOverlay;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
+#[path = "outline.rs"]
+mod automatic;
 
 // Millimetre coordinates are quantized to a micrometre before clipping.
 const SCALE: f64 = 1_000.0;
@@ -63,80 +65,46 @@ fn rect(center: Vec2, size: Vec2, radius: f64) -> Path {
     path
 }
 
-fn envelope(doc: &ProjectDoc, ids: &[String], margin: f64) -> Option<Path> {
-    let member_ids: BTreeSet<_> = ids.iter().map(String::as_str).collect();
-    let definitions: BTreeMap<_, _> = doc
-        .definitions
-        .iter()
-        .map(|def| (def.id.as_str(), def))
-        .collect();
-    let mut min = Vec2 {
-        x: f64::INFINITY,
-        y: f64::INFINITY,
-    };
-    let mut max = Vec2 {
-        x: f64::NEG_INFINITY,
-        y: f64::NEG_INFINITY,
-    };
-    let mut found = false;
-    for part in doc
-        .parts
-        .iter()
-        .filter(|part| member_ids.contains(part.id.as_str()))
-    {
-        let Some(def) = definitions.get(part.definition_id.as_str()) else {
-            continue;
-        };
-        for corner in &def.courtyard {
-            let angle = part.pose.rotation.to_radians();
-            let (sin, cos) = angle.sin_cos();
-            let x = part.pose.at.x + corner.x * cos - corner.y * sin;
-            let y = part.pose.at.y + corner.x * sin + corner.y * cos;
-            min.x = min.x.min(x);
-            min.y = min.y.min(y);
-            max.x = max.x.max(x);
-            max.y = max.y.max(y);
-            found = true;
-        }
-    }
-    if !found {
-        return None;
-    }
-    let center = Vec2 {
-        x: (max.x + min.x) / 2.0,
-        y: (max.y + min.y) / 2.0,
-    };
-    let size = Vec2 {
-        x: max.x - min.x + margin * 2.0,
-        y: max.y - min.y + margin * 2.0,
-    };
-    Some(rect(center, size, 0.0))
-}
-
-fn feature_path(doc: &ProjectDoc, feature: &OutlineFeature) -> Option<Path> {
-    match feature {
-        OutlineFeature::Polygon { points, .. } => Some(points.iter().copied().map(point).collect()),
+type FeatureGeometry = Result<(Shapes, Vec<String>), String>;
+fn feature_geometry(doc: &ProjectDoc, feature: &OutlineFeature) -> FeatureGeometry {
+    let path = match feature {
+        OutlineFeature::Polygon { points, .. } => points.iter().copied().map(point).collect(),
         OutlineFeature::Rect {
             center,
             size,
             radius,
             ..
-        } => Some(rect(*center, *size, *radius)),
+        } => {
+            if !size.x.is_finite()
+                || !size.y.is_finite()
+                || size.x <= 0.0
+                || size.y <= 0.0
+                || !radius.is_finite()
+                || *radius < 0.0
+            {
+                return Err("Rectangle dimensions must be positive and radius nonnegative".into());
+            }
+            rect(*center, *size, *radius)
+        }
         OutlineFeature::PartEnvelope {
-            part_ids, margin, ..
-        } => envelope(doc, part_ids, *margin),
+            part_ids,
+            margin,
+            settings,
+            ..
+        } => return automatic::envelope(doc, part_ids, *margin, settings),
+    };
+    if !automatic::simple(&path) {
+        return Err(
+            "Outline requires a non-self-intersecting polygon with three distinct finite points"
+                .into(),
+        );
     }
+    Ok((vec![vec![path]], vec![]))
 }
-
-fn valid(path: &Path) -> bool {
-    path.len() >= 3 && path.iter().all(|p| p[0].is_finite() && p[1].is_finite())
-}
-
 #[derive(Clone, Default)]
 pub struct OutlineCache {
-    paths: BTreeMap<String, (OutlineFeature, Option<Path>)>,
+    paths: BTreeMap<String, (OutlineFeature, FeatureGeometry)>,
 }
-
 pub fn outlines(
     doc: &ProjectDoc,
     previous: Option<&OutlineCache>,
@@ -144,14 +112,14 @@ pub fn outlines(
 ) -> (OutlineCache, Vec<Contour>, Vec<Finding>) {
     let mut cache = OutlineCache::default();
     for feature in &doc.outline {
-        let path = previous
+        let paths = previous
             .and_then(|old| old.paths.get(feature.id()))
             .filter(|(old_feature, _)| old_feature == feature && !depends_on(feature, moved))
-            .map(|(_, path)| path.clone())
-            .unwrap_or_else(|| feature_path(doc, feature));
+            .map(|(_, paths)| paths.clone())
+            .unwrap_or_else(|| feature_geometry(doc, feature));
         cache
             .paths
-            .insert(feature.id().into(), (feature.clone(), path));
+            .insert(feature.id().into(), (feature.clone(), paths));
     }
     let (contours, findings) = compose(doc.outline.iter(), &cache);
     (cache, contours, findings)
@@ -172,32 +140,92 @@ fn compose<'a>(
 ) -> (Vec<Contour>, Vec<Finding>) {
     let mut shapes: Shapes = vec![];
     let mut findings = vec![];
+    let mut finishing = None;
     for feature in features {
-        let Some((_, Some(path))) = cache.paths.get(feature.id()) else {
-            findings.push(Finding {
-                id: format!("outline:{}:missing", feature.id()),
-                severity: Severity::Error,
-                scope: Scope::Outline,
-                message: "Outline feature has no resolved parts".into(),
-                target_ids: vec![feature.id().into()],
-            });
+        if let OutlineFeature::PartEnvelope { settings, .. } = feature {
+            finishing.get_or_insert(settings);
+        }
+        let Some((_, geometry)) = cache.paths.get(feature.id()) else {
             continue;
         };
-        if !valid(&path) {
+        let (paths, notices) = match geometry {
+            Ok(value) => value,
+            Err(message) => {
+                findings.push(Finding {
+                    id: format!("outline:{}:invalid", feature.id()),
+                    severity: Severity::Error,
+                    scope: Scope::Outline,
+                    message: message.clone(),
+                    target_ids: vec![feature.id().into()],
+                });
+                continue;
+            }
+        };
+        for (i, message) in notices.iter().enumerate() {
             findings.push(Finding {
-                id: format!("outline:{}:invalid", feature.id()),
-                severity: Severity::Error,
+                id: format!("outline:{}:notice:{i}", feature.id()),
+                severity: Severity::Warning,
                 scope: Scope::Outline,
-                message: "Outline requires three finite points".into(),
+                message: message.clone(),
                 target_ids: vec![feature.id().into()],
             });
-            continue;
         }
         let rule = match feature.operation() {
             Operation::Add => OverlayRule::Union,
             Operation::Subtract => OverlayRule::Difference,
         };
-        shapes = shapes.overlay(&path, rule, FillRule::EvenOdd);
+        shapes = shapes.overlay(paths, rule, FillRule::EvenOdd);
+    }
+    // Float clipping may introduce sub-grid vertices on straight shared edges.
+    // Resolve those at our document precision before measuring corner lengths.
+    for path in shapes.iter_mut().flatten() {
+        for p in path.iter_mut() {
+            *p = [snap(p[0]), snap(p[1])];
+        }
+        path.dedup();
+        if path.len() > 1 && path.first() == path.last() {
+            path.pop();
+        }
+        let original = path.clone();
+        let n = original.len();
+        if n >= 3 {
+            *path = (0..n)
+                .filter_map(|i| {
+                    let a = original[(i + n - 1) % n];
+                    let b = original[i];
+                    let c = original[(i + 1) % n];
+                    let cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+                    (cross.abs() > 1e-8).then_some(b)
+                })
+                .collect();
+        }
+    }
+    if shapes.iter().flatten().any(|path| !automatic::simple(path)) {
+        findings.push(Finding {
+            id: "outline:precision:invalid".into(),
+            severity: Severity::Error,
+            scope: Scope::Outline,
+            message: "Outline becomes invalid at 0.001 mm precision; increase narrow features"
+                .into(),
+            target_ids: vec![],
+        });
+    }
+    if let Some(settings) = finishing {
+        match automatic::finish(shapes.clone(), settings) {
+            Ok((finished, reduced)) => {
+                shapes = finished;
+                if let Some(actual) = reduced {
+                    findings.push(Finding {id:"outline:corners:fitted".into(),severity:Severity::Warning,scope:Scope::Outline,message:format!("Corner size reduced from {} mm to as little as {:.3} mm to fit nearby edges",settings.size,actual),target_ids:vec![]});
+                }
+            }
+            Err(message) => findings.push(Finding {
+                id: "outline:corners:invalid".into(),
+                severity: Severity::Error,
+                scope: Scope::Outline,
+                message,
+                target_ids: vec![],
+            }),
+        }
     }
     let contours = shapes
         .into_iter()
@@ -229,7 +257,7 @@ pub fn board_contours(
         for problem in problems {
             findings.push(Finding {
                 id: format!("board:{}:feature:{}", board.id, problem.id),
-                severity: Severity::Error,
+                severity: problem.severity,
                 scope: Scope::Pcb,
                 message: problem.message,
                 target_ids: vec![board.id.clone()]
@@ -276,6 +304,7 @@ mod tests {
             ],
             pads: vec![],
             model: None,
+            keycap: None,
             generator: None,
         });
         for index in 0..keys {
@@ -293,11 +322,14 @@ mod tests {
                 },
                 side: Side::Front,
                 locked: None,
+                keycap: None,
+                outline: None,
                 properties: None,
             });
             doc.outline.push(OutlineFeature::PartEnvelope {
                 id: format!("edge-{index}"),
                 part_ids: vec![id],
+                settings: Default::default(),
                 margin: 1.0,
                 operation: Operation::Add,
             });

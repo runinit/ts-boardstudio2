@@ -1,5 +1,5 @@
 import type { Part, ProjectDoc, Vec2 } from '@boardstudio/v2-contracts';
-import { emptyProject } from '@boardstudio/v2-contracts';
+import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
 import { builtinDefinitions } from '@boardstudio/v2-kicad';
 
 const ROWS = 3;
@@ -29,7 +29,7 @@ export function demoProject(): ProjectDoc {
   doc.definitions = definitions;
   doc.parts = parts;
   doc.matrices = [{
-    id: 'matrix', rows: ROWS, columns: COLUMNS,
+    id: 'matrix', boardId: 'main-board', mirror: 'y', rows: ROWS, columns: COLUMNS,
     pitch: { x: PITCH_MM, y: PITCH_MM }, origin: { x: 0, y: 0 },
     definitionId: definition.id, partIds: parts.map((part) => part.id),
   }];
@@ -37,7 +37,7 @@ export function demoProject(): ProjectDoc {
     ...rowPins.map((pins, row) => ({ id: `row-${row}`, name: `ROW${row}`, pins })),
     ...colPins.map((pins, col) => ({ id: `col-${col}`, name: `COL${col}`, pins })),
   ];
-  doc.outline = [{ id: 'board-envelope', kind: 'part-envelope', partIds: parts.map((part) => part.id), margin: 4, operation: 'add' }];
+  doc.outline = [{ id: 'board-envelope', kind: 'part-envelope', settings: defaultOutlineSettings, partIds: parts.map((part) => part.id), margin: 4, operation: 'add' }];
   doc.boards = [{ id: 'main-board', name: 'Main board', outlineIds: ['board-envelope'], partIds: parts.map((part) => part.id), netIds: doc.nets.map((net) => net.id), thickness: 1.6 }];
   doc.materials = [{ id: 'pla', name: 'PLA', thickness: 3 }];
   doc.caseBodies = [{ id: 'switch-plate', name: 'Switch plate', boardId: 'main-board', kind: 'plate', thickness: 3, clearance: 0.5, materialId: 'pla' }];

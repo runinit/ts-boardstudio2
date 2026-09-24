@@ -2,13 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function createMatrix(page: Page): Promise<void> {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: 'New project' }).click();
-  await page.getByRole('button', { name: '+ New matrix' }).click();
+  await page.getByRole('button', { name: 'New Matrix' }).first().click();
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
 }
 
 async function drag(page: Page, target: ReturnType<Page['locator']>, dx: number): Promise<void> {
+  const revision = Number((await page.locator('.wb-revision').textContent())?.slice(1));
   const box = await target.boundingBox();
   expect(box).not.toBeNull();
   const x = box!.x + box!.width / 2;
@@ -18,9 +20,12 @@ async function drag(page: Page, target: ReturnType<Page['locator']>, dx: number)
   await page.mouse.down();
   await page.mouse.move(x + dx, y, { steps: 4 });
   await page.mouse.up();
+  // Resize the committed layout, not an intermediate drag preview.
+  await expect(page.locator('.wb-revision')).toHaveText(`r${revision + 1}`);
 }
 
 async function shrinkRows(page: Page, expectedParts: number): Promise<void> {
+  await page.getByRole('button', { name: 'Matrix', exact: true }).click();
   const rows = page.getByRole('spinbutton', { name: /Rows/ });
 
   await rows.fill('5');

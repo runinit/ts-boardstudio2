@@ -62,6 +62,8 @@ pub struct PartDefinition {
     pub id: String,
     pub name: String,
     pub kind: PartKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keycap: Option<Vec2>,
     pub courtyard: Vec<Vec2>,
     pub pads: Vec<Pad>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -87,6 +89,10 @@ pub enum PartKind {
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Part {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keycap: Option<Vec2>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outline: Option<PartOutline>,
     pub id: String,
     #[serde(rename = "definitionId")]
     pub definition_id: String,
@@ -193,6 +199,37 @@ pub enum DiodeDirection {
     Row2col,
     Col2row,
 }
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct PartOutline {
+    pub excluded: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub margin: Option<f64>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum CornerStyle {
+    #[default]
+    Sharp,
+    Fillet,
+    Chamfer,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct OutlineSettings {
+    pub corners: CornerStyle,
+    pub size: f64,
+    pub bridge_width: f64,
+}
+impl Default for OutlineSettings {
+    fn default() -> Self {
+        Self {
+            corners: CornerStyle::Sharp,
+            size: 2.0,
+            bridge_width: 10.0,
+        }
+    }
+}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum OutlineFeature {
@@ -209,6 +246,8 @@ pub enum OutlineFeature {
         operation: Operation,
     },
     PartEnvelope {
+        #[serde(default)]
+        settings: OutlineSettings,
         id: String,
         #[serde(rename = "partIds")]
         part_ids: Vec<String>,

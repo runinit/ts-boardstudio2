@@ -137,6 +137,8 @@ mod tests {
             },
             side: Side::Front,
             locked: None,
+            keycap: None,
+            outline: None,
             properties: None,
         }
     }

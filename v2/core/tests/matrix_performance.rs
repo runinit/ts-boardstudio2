@@ -33,6 +33,7 @@ fn definition(id: &str, pads: Vec<Pad>) -> PartDefinition {
         ],
         pads,
         model: None,
+        keycap: None,
         generator: None,
     }
 }
@@ -55,6 +56,7 @@ fn guided_matrix_preview() {
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "edge".into(),
         part_ids: vec![],
+        settings: Default::default(),
         margin: 3.0,
         operation: Operation::Add,
     });

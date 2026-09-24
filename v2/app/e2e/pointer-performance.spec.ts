@@ -31,6 +31,7 @@ async function measure(page: Page, keys: 30 | 100 | 200): Promise<{ latency: num
   expect(bounds).not.toBeNull();
   const x = bounds!.x + bounds!.width / 2;
   const y = bounds!.y + bounds!.height / 2;
+  expect(await part.evaluate((element, point) => element.contains(document.elementFromPoint(point.x, point.y)), { x, y }), 'Fit view must keep the benchmark key clear of floating controls').toBe(true);
   const samples: number[] = [];
   let previousTransform = await part.getAttribute('transform');
   let changedFrames = 0;

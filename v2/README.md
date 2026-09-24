@@ -46,16 +46,58 @@ request through a painted 2D outline frame for 100 and 200 key fixtures. It
 warms ten samples and reports the next hundred. The browser test gates the
 95th percentile at 100 ms and 200 ms respectively.
 
+## Automatic outlines
+
+New boards follow the current keycap and component envelopes with a 4 mm margin,
+2 mm fillets, and 10 mm bridges between disconnected groups on the same board.
+The **Outline** button opens margin, sharp/fillet/chamfer, and bridge settings.
+Tight corners are fitted locally; findings report the requested and applied sizes.
+Existing procedural envelopes now follow the layout, retaining their margins and
+membership; envelopes saved without finishing settings retain sharp corners.
+Explicit rectangles and polygons remain authored geometry.
+
+Switch definitions and instances can supply `keycap: {x, y}` dimensions. Built-in
+switches default to 18 × 18 mm; custom switches without dimensions use their
+courtyards and show a finding. The part inspector can override keycap dimensions,
+exclude a part, or give it a separate nonnegative edge margin. A zero margin
+supports edge-mounted parts; exclusion does not validate pad support.
+
+**Draw addition** and **Draw cutout** create optional board features. Click snapped
+points (Alt bypasses snapping), then Enter or double-click to close; Escape cancels.
+Automatic interior voids are filled before authored cutouts are applied. Invalid
+polygons block outline exports. All consumers use the committed board contours,
+including PCB Edge.Cuts, SVG/DXF and case/plate construction.
+
+## Design workbench
+
+**Add Part** searches the shared catalog and starts a standalone cursor preview.
+Click to place on the active board using the selected snap increment; Alt bypasses
+snapping. Arrow keys move the preview and Enter places it. Escape cancels without
+changing the project. Detailed footprint editing and models live in **Parts**;
+**Apply to selected key** adds a variant or companion to a selected matrix cell.
+
+The tree defaults to Board → Matrix → Columns → Keys → Components. Its local
+Columns/Rows preference changes presentation only, and summaries count enabled
+keys. Empty slots remain selectable for restoration. The inspector follows the
+selected matrix, row, column, key, or component; an unselected board offers
+**New Matrix**. Canvas scope and Snap controls stay fixed during pan and zoom.
+
+Project → Appearance selects System, Light, or Dark and persists locally.
+Keycap overlays follow saved member poses, including old row-major projects,
+while disabled slots retain their parametric frame. Starter metadata uses the
+same negative-Y row direction as its existing switches. Editing early matrices
+retains their existing switch identities and net references.
+
 ## Current handoff
 
-The app can create a v2 project with multiple boards and place a guided 6 × 5
+The app can create a v2 project with multiple boards and place a 6 × 5
 matrix in one click. Each cell gets a switch and diode; MX/Choc, solder,
 hotswap, and RGB presets change the assembly. Presets can update a matrix or
 create a separate design. A matrix can map its diode row-to-column or
 column-to-row. The CAD tree selects matrices, rows, columns, keys,
 and components; dragging rows/columns sets stagger. The editor has fractional
 pitch snapping, Alt bypass, wheel zoom, Space-pan, and fit-to-design. The
-contextual library previews compiled 2D footprints in the workspace as
+Parts workspace previews compiled 2D footprints in the workspace as
 generator settings change and loads attached 3D
 models on demand. It can also place and group parts,
 author component pads, link placements with offset or mirror constraints,

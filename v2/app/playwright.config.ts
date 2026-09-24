@@ -5,6 +5,8 @@ const PORT = 4328;
 export default defineConfig({
   testDir: './e2e',
   retries: 0,
+  // This suite includes real-time latency gates; browser workers must not contend.
+  workers: 1,
   use: {
     baseURL: `http://127.0.0.1:${PORT}/`,
     ...devices['Desktop Chrome'],
