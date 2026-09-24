@@ -3,6 +3,7 @@ use crate::model::{
     Side, Vec2,
 };
 use serde_json::json;
+pub(crate) mod layout;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) const MAX_MATRIX_PARTS: u32 = 4096;
@@ -195,6 +196,7 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
         || matrix.column_offsets.len() > matrix.columns as usize
         || matrix.column_staggers.len() > matrix.columns as usize
         || matrix.column_splays.len() > matrix.columns as usize
+        || matrix.column_origins.len() > matrix.columns as usize
     {
         return Err("Matrix offsets exceed dimensions".into());
     }
@@ -216,6 +218,7 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
         .row_offsets
         .iter()
         .chain(&matrix.column_offsets)
+        .chain(matrix.column_origins.iter().flatten())
         .any(|point| !finite(point))
     {
         return Err("Matrix offsets must be finite".into());
@@ -342,8 +345,17 @@ fn location(matrix: &Matrix, row: u32, column: u32, cell: Option<&MatrixCell>) -
         if angle == 0.0 {
             continue;
         }
-        let pivot_x = index as f64 * matrix.pitch.x;
-        let pivot_y = matrix.column_staggers.iter().take(index + 1).sum::<f64>();
+        let pivot = matrix
+            .column_origins
+            .get(index)
+            .copied()
+            .flatten()
+            .unwrap_or(Vec2 {
+                x: index as f64 * matrix.pitch.x,
+                y: matrix.column_staggers.iter().take(index + 1).sum::<f64>(),
+            });
+        let pivot_x = pivot.x;
+        let pivot_y = pivot.y;
         let (sin, cos) = angle.sin_cos();
         let dx = x - pivot_x;
         let dy = y - pivot_y;
@@ -405,6 +417,9 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
             }
             if resized.column_splays.len() <= before.columns as usize {
                 resized.column_splays.truncate(resized.columns as usize);
+            }
+            if resized.column_origins.len() <= before.columns as usize {
+                resized.column_origins.truncate(resized.columns as usize);
             }
             if resized.column_offsets.len() <= before.columns as usize {
                 resized.column_offsets.truncate(resized.columns as usize);

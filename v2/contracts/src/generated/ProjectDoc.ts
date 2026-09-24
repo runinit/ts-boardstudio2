@@ -3,6 +3,7 @@ import type { Asset } from "./Asset";
 import type { Board } from "./Board";
 import type { CaseBody } from "./CaseBody";
 import type { Constraint } from "./Constraint";
+import type { Layout } from "./Layout";
 import type { Material } from "./Material";
 import type { Matrix } from "./Matrix";
 import type { Net } from "./Net";
@@ -12,4 +13,4 @@ import type { PartDefinition } from "./PartDefinition";
 import type { Script } from "./Script";
 import type { JsonValue } from "./serde_json/JsonValue";
 
-export type ProjectDoc = { format: "boardstudio/v2", id: string, name: string, revision: number, parameters: { [key in string]: JsonValue }, definitions: Array<PartDefinition>, parts: Array<Part>, matrices: Array<Matrix>, nets: Array<Net>, outline: Array<OutlineFeature>, boards: Array<Board>, caseBodies: Array<CaseBody>, materials: Array<Material>, assets: Array<Asset>, scripts: Array<Script>, constraints: Array<Constraint>, };
+export type ProjectDoc = { format: "boardstudio/v2", id: string, name: string, revision: number, parameters: { [key in string]: JsonValue }, definitions: Array<PartDefinition>, parts: Array<Part>, matrices: Array<Matrix>, layouts?: Array<Layout>, nets: Array<Net>, outline: Array<OutlineFeature>, boards: Array<Board>, caseBodies: Array<CaseBody>, materials: Array<Material>, assets: Array<Asset>, scripts: Array<Script>, constraints: Array<Constraint>, };

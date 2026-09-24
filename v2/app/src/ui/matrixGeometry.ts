@@ -29,8 +29,7 @@ export function matrixPosition(matrix: Matrix, row: number, column: number, cell
   for (let index = Math.min(column, (matrix.columnSplays?.length ?? 0) - 1); index >= 0; index--) {
     const angle = matrix.columnSplays![index] * Math.PI / 180;
     if (!angle) continue;
-    const pivotX = index * matrix.pitch.x;
-    const pivotY = (matrix.columnStaggers ?? []).slice(0, index + 1).reduce((sum, value) => sum + value, 0);
+    const { x: pivotX, y: pivotY } = splayOrigin(matrix, index);
     const dx = x - pivotX;
     const dy = y - pivotY;
     x = pivotX + dx * Math.cos(angle) - dy * Math.sin(angle);
@@ -67,4 +66,63 @@ export function cellPose(matrix: Matrix, row: number, column: number, cell: Matr
     residual = { x: residual.x + t * (other.x - residual.x), y: residual.y + t * (other.y - residual.y) };
   }
   return { at: { x: at.x + residual.x, y: at.y + residual.y }, rotation: (matrix.rotation ?? 0) + (matrix.mirror === 'x' || matrix.mirror === 'y' ? -1 : 1) * (matrix.columnSplays ?? []).slice(0, column + 1).reduce((sum, angle) => sum + angle, 0) + (cell?.rotation ?? 0) };
+}
+
+const rotatePoint = (point: Vec2, degrees: number, pivot: Vec2 = { x: 0, y: 0 }): Vec2 => {
+  const angle = degrees * Math.PI / 180;
+  const x = point.x - pivot.x;
+  const y = point.y - pivot.y;
+  return { x: pivot.x + x * Math.cos(angle) - y * Math.sin(angle), y: pivot.y + x * Math.sin(angle) + y * Math.cos(angle) };
+};
+
+function splayOrigin(matrix: Matrix, column: number): Vec2 {
+  return matrix.columnOrigins?.[column] ?? { x: column * matrix.pitch.x, y: (matrix.columnStaggers ?? []).slice(0, column + 1).reduce((sum, value) => sum + value, 0) };
+}
+
+export function splayOriginWorld(matrix: Matrix, column: number): Vec2 {
+  let point = splayOrigin(matrix, column);
+  for (let index = column - 1; index >= 0; index--) point = rotatePoint(point, matrix.columnSplays?.[index] ?? 0, splayOrigin(matrix, index));
+  if (matrix.mirror === 'x') point = { ...point, x: -point.x };
+  if (matrix.mirror === 'y') point = { ...point, y: -point.y };
+  point = rotatePoint(point, matrix.rotation ?? 0);
+  return { x: point.x + matrix.origin.x, y: point.y + matrix.origin.y };
+}
+
+function matrixVector(matrix: Matrix, column: number, world: Vec2): Vec2 {
+  let point = rotatePoint(world, -(matrix.rotation ?? 0));
+  if (matrix.mirror === 'x') point.x *= -1;
+  if (matrix.mirror === 'y') point.y *= -1;
+  return rotatePoint(point, -(matrix.columnSplays ?? []).slice(0, column + 1).reduce((sum, value) => sum + value, 0));
+}
+
+function preserveColumns(before: Matrix, after: Matrix, columns: number[]): Matrix {
+  const offsets = Array.from({ length: after.columns }, (_, index) => after.columnOffsets?.[index] ?? { x: 0, y: 0 });
+  for (const column of columns) {
+    const previous = matrixPosition(before, 0, column);
+    const next = matrixPosition(after, 0, column);
+    const delta = matrixVector(after, column, { x: previous.x - next.x, y: previous.y - next.y });
+    offsets[column] = { x: offsets[column].x + delta.x, y: offsets[column].y + delta.y };
+  }
+  return { ...after, columnOffsets: offsets };
+}
+
+export function withSplayOrigin(matrix: Matrix, column: number, world: Vec2 | null): Matrix {
+  let point = world ? rotatePoint({ x: world.x - matrix.origin.x, y: world.y - matrix.origin.y }, -(matrix.rotation ?? 0)) : null;
+  if (point) {
+    if (matrix.mirror === 'x') point.x *= -1;
+    if (matrix.mirror === 'y') point.y *= -1;
+    for (let index = 0; index < column; index++) point = rotatePoint(point, -(matrix.columnSplays?.[index] ?? 0), splayOrigin(matrix, index));
+  }
+  const columnOrigins = Array.from({ length: matrix.columns }, (_, index) => matrix.columnOrigins?.[index] ?? null);
+  columnOrigins[column] = point;
+  return preserveColumns(matrix, { ...matrix, columnOrigins }, Array.from({ length: matrix.columns - column }, (_, index) => index + column));
+}
+
+export function withSplayAngle(matrix: Matrix, column: number, angle: number, affect: 'column' | 'following'): Matrix {
+  const columnSplays = Array.from({ length: matrix.columns }, (_, index) => matrix.columnSplays?.[index] ?? 0);
+  const delta = angle - columnSplays[column];
+  columnSplays[column] = angle;
+  if (affect === 'following' || column === matrix.columns - 1) return { ...matrix, columnSplays };
+  columnSplays[column + 1] -= delta;
+  return preserveColumns(matrix, { ...matrix, columnSplays }, Array.from({ length: matrix.columns - column - 1 }, (_, index) => index + column + 1));
 }

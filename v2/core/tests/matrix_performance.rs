@@ -123,6 +123,7 @@ fn guided_matrix_preview() {
         column_offsets: vec![],
         column_staggers: vec![],
         column_splays: vec![],
+        column_origins: vec![],
         cells,
     };
     assert!(matches!(

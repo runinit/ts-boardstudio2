@@ -14,7 +14,8 @@ test('Parts uses a searchable categorized catalogue and a selected component ins
   await expect(page.getByRole('complementary', { name: 'Parts inspector' }).getByRole('heading', { name: 'RGB LED', exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Definition name' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Place component', exact: true })).toBeVisible();
-  await expect(page.locator('.wb-canvas-footer')).toHaveCount(0);
+  await expect(page.locator('.wb-canvas-footer')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Snap', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText(/No 3D model attached. Import/)).toBeVisible();
   await page.getByRole('button', { name: '2D footprint', exact: true }).click();
@@ -66,6 +67,7 @@ test('row and column selections outline their full scope without selection circl
   const column = (await outline.boundingBox())!;
   expect(column.height).toBeGreaterThan(column.width * 2);
   await expect(page.locator('circle.wb-part-selection')).toHaveCount(0);
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Row', exact: true }).click();
   await expect(outline).toHaveAttribute('data-scope', 'row');
   const row = (await outline.boundingBox())!;
@@ -82,7 +84,7 @@ for (const theme of ['light', 'dark']) {
     await expect(page.getByRole('img', { name: 'Footprint preview' })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-parts-desktop.png`) });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole('button', { name: 'Parts', exact: true }).click();
+    await page.getByRole('button', { name: 'Objects', exact: true }).click();
     await expect(page.getByRole('searchbox', { name: 'Search footprints' })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-parts-catalog-narrow.png`) });
     await page.getByRole('option', { name: 'MX Hotswap RGB', exact: true }).click();

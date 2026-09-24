@@ -97,7 +97,7 @@ test('bundled Ergogen generators are searchable, editable, and previewed', async
   await expect(page.locator('.wb-ergogen-zone')).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'name', exact: true })).toBeVisible();
 
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const embed = page.getByRole('checkbox', { name: 'Embed used models' });
   await expect(embed).toBeChecked();
   await embed.uncheck();
@@ -165,7 +165,7 @@ test('bundled MX models load and generator settings are grouped', async ({ page 
   await page.screenshot({ path: info.outputPath('mx-desktop-dark.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   if (!await page.locator('.wb-inspector-content').isVisible()) await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-  expect(await page.locator('.wb-inspector-content').evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+  await expect.poll(() => page.locator('.wb-inspector-content').evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
   await page.screenshot({ path: info.outputPath('mx-narrow.png') });
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('combobox', { name: 'Color theme' }).selectOption('light');

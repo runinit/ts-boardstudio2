@@ -37,6 +37,8 @@ export type * from './FootprintGeometry';
 export type * from './FootprintPatch';
 export type * from './Gasket';
 export type * from './KicadSource';
+export type * from './Layout';
+export type * from './LayoutMirrorLink';
 export type * from './LocalTrace';
 export type * from './LocalVia';
 export type * from './Material';

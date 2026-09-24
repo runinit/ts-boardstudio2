@@ -26,7 +26,8 @@ test('inspector fits a narrow effective viewport without horizontal scroll', asy
   await page.setViewportSize({ width: 1024, height: 576 });
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
 
@@ -46,7 +47,7 @@ test('selection controls fit when page zoom narrows the workspace', async ({ pag
   await page.setViewportSize({ width: 1024, height: 576 });
   await page.goto('/');
 
-  const controls = await page.locator('.wb-selection-pills').evaluate((element) => ({
+  const controls = await page.getByRole('toolbar', { name: 'Layout commands' }).evaluate((element) => ({
     content: element.scrollWidth,
     viewport: element.clientWidth,
   }));

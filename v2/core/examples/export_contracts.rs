@@ -32,6 +32,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Pin,
         Net,
         Matrix,
+        Layout,
+        LayoutMirrorLink,
         MatrixCell,
         MatrixAssembly,
         Mirror,

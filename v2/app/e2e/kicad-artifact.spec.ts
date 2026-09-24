@@ -42,7 +42,7 @@ test('imports, keeps source pads read-only, and exports the original KiCad sourc
   await page.getByText('Edit footprint', { exact: true }).click();
   await expect(page.getByRole('spinbutton', { name: 'Courtyard width' })).toHaveValue('14');
 
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad footprints' }).getByRole('button', { name: 'Export' }).click();
   const archive = unzipSync(new Uint8Array(await readFile(await (await download).path())));

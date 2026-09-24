@@ -26,7 +26,8 @@ async function drag(page: Page, target: ReturnType<Page['locator']>, dx: number)
 }
 
 async function shrinkRows(page: Page, expectedParts: number): Promise<void> {
-  await page.getByRole('button', { name: 'Matrix', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Matrix', exact: true }).click();
   const rows = page.getByRole('spinbutton', { name: /Rows/ });
 
   await rows.fill('5');
@@ -53,6 +54,7 @@ test('shrinks a custom matrix after moving a key in the removed row', async ({ p
   await columns.blur();
   await expect(page.locator('.wb-scene-part')).toHaveCount(84);
 
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Key', exact: true, pressed: false }).click();
   await drag(page, page.getByRole('button', { name: /^SW42, MX switch/ }), 20);
   await shrinkRows(page, 70);
@@ -66,6 +68,7 @@ test('shrinks a custom matrix without losing a moved surviving key', async ({ pa
   await columns.blur();
   await expect(page.locator('.wb-scene-part')).toHaveCount(84);
 
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Key', exact: true, pressed: false }).click();
   const key = page.getByRole('button', { name: /^SW1, MX switch/ });
   const before = await key.getAttribute('transform');

@@ -16,7 +16,8 @@ test('assembly selection has one placement action and no unrelated footprint set
 test('optional component sections remain accessible by keyboard and preserve committed edits', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await expect(page.getByRole('spinbutton', { name: 'X mm', exact: true })).toBeVisible();
   await expect(page.getByLabel('Use board margin', { exact: true })).toBeHidden();
   const outline = page.locator('summary').filter({ hasText: 'Board outline' });
@@ -33,7 +34,8 @@ test('optional component sections remain accessible by keyboard and preserve com
   await expect(margin).toHaveValue('2');
   await page.reload();
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await outline.click();
   await expect(margin).toHaveValue('2');
 });

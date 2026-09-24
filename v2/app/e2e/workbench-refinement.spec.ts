@@ -31,6 +31,7 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
   await page.getByRole('treeitem', { name: /^Column 1/ }).click();
   await expect(page.getByRole('heading', { name: 'Matrix 1 · Column 1', exact: true })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Rows keys', exact: true })).toHaveCount(0);
+  await page.getByText('Position & rotation', { exact: true }).click();
   await editNumber(page, 'Offset X mm', '3');
   await expect(page.getByRole('button', { name: /^SW1, MX switch/ })).toHaveAttribute('transform', 'translate(3 0) rotate(0)');
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
@@ -47,14 +48,18 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).not.toBeChecked();
   await expect(page.getByRole('treeitem', { name: 'Column 1 2 keys', exact: true })).toBeVisible();
   await expect(page.getByRole('treeitem', { name: 'Key 2.1 Empty slot', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 2.1', exact: true })).toBeVisible();
   await expect(page.getByRole('treeitem', { name: 'Row 2 4 keys', exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Key enabled' }).click();
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).toBeChecked();
   await expect(page.getByRole('treeitem', { name: 'Row 2 5 keys', exact: true })).toBeVisible();
   await page.reload();
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await expect(page.getByRole('combobox', { name: 'Tree grouping' })).toHaveValue('row');
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Select key, row 2, column 1', exact: true })).toHaveAttribute('transform', /rotate\(20\)/);
 });
 
@@ -63,7 +68,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
-  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch switch', exact: true }).click();
+  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
   await expect(page.locator('#wb-add-part')).toHaveCount(0);
   await expect(page.locator('.wb-placement-preview')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -71,7 +76,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
   await expect(page.locator('.wb-revision')).toHaveText('r0');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
-  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch switch', exact: true }).click();
+  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
   const canvas = page.locator('.wb-canvas');
   await canvas.focus();
   await page.keyboard.press('ArrowRight');
@@ -88,10 +93,10 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
   await expect(page.locator('.wb-scene-part')).toHaveCount(16);
 });
 
-test('floating controls remain fixed through zoom and pan and both themes persist', async ({ page }) => {
+test('command controls remain fixed through zoom and pan and both themes persist', async ({ page }) => {
   await page.goto('/');
-  const scope = page.getByRole('group', { name: 'Selection scope' });
-  const snap = page.getByRole('combobox', { name: 'Snap increment' });
+  const scope = page.getByRole('button', { name: /^Select:/ });
+  const snap = page.getByRole('button', { name: 'Snap', exact: true });
   const beforeScope = await scope.boundingBox();
   const beforeSnap = await snap.boundingBox();
   const canvas = page.locator('.wb-canvas');
@@ -111,7 +116,7 @@ test('floating controls remain fixed through zoom and pan and both themes persis
     await page.getByRole('combobox', { name: 'Color theme' }).selectOption(theme);
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    expect(await page.locator('.wb-canvas-stage').evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === 'dark' ? 'rgb(16, 27, 39)' : 'rgb(237, 242, 246)');
+    expect(await page.locator('.wb-canvas-stage').evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(theme === 'dark' ? 'rgb(16, 26, 34)' : 'rgb(233, 238, 242)');
   }
 });
 
@@ -127,6 +132,7 @@ test('reopened legacy and transformed sparse matrices retain member alignment an
   await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
   await editNumber(page, 'Rotation °', '30');
   await expect.poll(async () => overlay.getAttribute('transform')).toBe(await page.getByRole('button', { name: /^SW7, MX switch/ }).getAttribute('transform'));
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Key', exact: true }).click();
   await page.getByRole('button', { name: /^SW15, MX switch/ }).click();
   await page.keyboard.press('Delete');
@@ -135,7 +141,7 @@ test('reopened legacy and transformed sparse matrices retain member alignment an
   await expect(page.locator('.wb-revision')).toHaveText('r2');
   await page.reload();
   await expect.poll(async () => page.getByRole('button', { name: 'Select key, row 2, column 2', exact: true }).getAttribute('transform')).toBe(await page.getByRole('button', { name: /^SW7, MX switch/ }).getAttribute('transform'));
-  await page.getByRole('tab', { name: 'Export', exact: true }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: /Save .boardstudio project/ }).click();
   const data = unzipSync(await readFile((await (await download).path())!));
@@ -156,10 +162,12 @@ test('generated overlays track rotation, mirroring, stagger and disabled slots',
   await page.getByRole('combobox', { name: 'Mirror matrix' }).selectOption('x');
   await expect(page.locator('.wb-revision')).toHaveText('r3');
   await page.getByRole('treeitem', { name: /^Column 2/ }).click();
+  await page.getByText('Position & rotation', { exact: true }).click();
   await editNumber(page, 'Offset Y mm', '4');
   const overlay = page.getByRole('button', { name: 'Select key, row 1, column 2', exact: true });
   const part = page.getByRole('button', { name: /^SW2, MX switch/ });
   await expect.poll(async () => overlay.getAttribute('transform')).toBe(await part.getAttribute('transform'));
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Key', exact: true }).click();
   await part.click();
   await page.getByRole('checkbox', { name: 'Key enabled' }).click();
@@ -182,14 +190,15 @@ for (const theme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-    await expect(page.getByRole('group', { name: 'Selection scope' })).toBeVisible();
-    await page.getByRole('button', { name: 'Parts', exact: true }).click();
+    await expect(page.getByRole('button', { name: /^Select:/ })).toBeVisible();
     await page.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(page.getByRole('searchbox', { name: 'Search parts' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-narrow-flyout.png`) });
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Parts', exact: true }).click();
+    await page.getByRole('button', { name: /^Select:/ }).click();
+    await page.getByRole('button', { name: 'Key', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect', exact: true }).click();
     await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
     await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 1.1' })).toBeVisible();
     await expect(page.getByRole('group', { name: 'Selection scope' })).not.toBeVisible();
@@ -201,13 +210,15 @@ for (const theme of ['light', 'dark'] as const) {
 
 test('mouse placement snaps a standalone part onto only the active board', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: '+ New', exact: true }).click();
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.locator('.wb-revision')).toHaveText('r1');
   await expect(page.locator('.wb-scene-part')).toHaveCount(0);
   await expect(page.locator('.wb-matrix-cell')).toHaveCount(0);
   await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('MX switch');
-  await page.locator('#wb-add-part').getByRole('button', { name: 'MX switch switch', exact: true }).click();
+  await page.locator('#wb-add-part').getByRole('button', { name: 'MX switch', exact: true }).click();
   const point = await page.locator('.wb-canvas').evaluate((node: SVGSVGElement) => {
     const screen = new DOMPoint(20.2, 9.9).matrixTransform(node.getScreenCTM()!);
     return { x: screen.x, y: screen.y };
@@ -220,13 +231,16 @@ test('mouse placement snaps a standalone part onto only the active board', async
   await expect(page.locator('.wb-scene-part')).toHaveCount(0);
   await page.getByRole('button', { name: 'Redo', exact: true }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('combobox', { name: 'Selected board' }).selectOption('main-board');
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(15);
 });
 
 test('column stagger and splay update following keys and support undo, redo and reload', async ({ page }, info) => {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 2 3 keys', exact: true }).click();
+  await page.getByText('Position & rotation', { exact: true }).click();
   await editNumber(page, 'Stagger mm', '5');
   await editNumber(page, 'Splay °', '15');
   const key = page.getByRole('button', { name: /^SW3, MX switch/ });
@@ -239,6 +253,7 @@ test('column stagger and splay update following keys and support undo, redo and 
   await page.reload();
   await expect(key).toHaveAttribute('transform', transformed!);
   await page.getByRole('treeitem', { name: 'Column 2 3 keys', exact: true }).click();
+  await page.getByText('Position & rotation', { exact: true }).click();
   await expect(page.getByRole('spinbutton', { name: 'Stagger mm', exact: true })).toHaveValue('5');
   await expect(page.getByRole('spinbutton', { name: 'Splay °', exact: true })).toHaveValue('15');
   for (const theme of ['dark', 'light']) {
@@ -261,7 +276,8 @@ test('dragging a splayed column follows the pointer in board coordinates', async
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 2 3 keys', exact: true }).click();
   await editNumber(page, 'Splay °', '25');
-  const key = page.getByRole('button', { name: /^SW2, MX switch/ });
+  // Use the middle key; the base key now hosts the separate splay-origin handle.
+  const key = page.getByRole('button', { name: /^SW7, MX switch/ });
   const position = async () => (await key.getAttribute('transform'))!.match(/translate\(([^ ]+) ([^)]+)\)/)!.slice(1).map(Number);
   const before = await position();
   const scale = await page.locator('svg.wb-canvas').evaluate((element) => (element as SVGSVGElement).getScreenCTM()!.inverse().a);

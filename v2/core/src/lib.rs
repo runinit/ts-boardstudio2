@@ -8,6 +8,7 @@ mod script;
 mod validate;
 
 use geometry::{OutlineCache, outlines};
+use matrix::layout;
 use model::*;
 use std::collections::BTreeSet;
 use wasm_bindgen::prelude::*;
@@ -72,6 +73,9 @@ impl CoreEngine {
                 if let Err(message) = script::apply_scripts(&mut document) {
                     return self.error(id, &message);
                 }
+                if let Err(message) = layout::resolve(&mut document) {
+                    return self.error(id, &message);
+                }
                 if let Err(message) = constraints::resolve(&mut document) {
                     return self.error(id, &message);
                 }
@@ -132,6 +136,9 @@ impl CoreEngine {
             Err(message) => return self.error(id, &message),
         };
         let mut changed = changed;
+        if let Err(message) = layout::validate(&next) {
+            return self.error(id, &message);
+        }
         match constraints::resolve(&mut next) {
             Ok(ids) => changed.extend(ids),
             Err(message) => return self.error(id, &message),
@@ -186,6 +193,7 @@ impl CoreEngine {
     fn preview_edit(&mut self, id: String, command: EditCommand) -> CoreReply {
         let backup = PreviewBackup::capture(&self.document, &command.operation);
         let result = apply(&mut self.document, &command.operation).and_then(|mut changed| {
+            layout::validate(&self.document)?;
             changed.extend(constraints::resolve(&mut self.document)?);
             changed.sort();
             changed.dedup();
@@ -435,7 +443,9 @@ enum PreviewBackup {
 impl PreviewBackup {
     // Save only fields a preview can change so pointer moves avoid cloning the document.
     fn capture(doc: &ProjectDoc, operation: &EditOperation) -> Self {
-        if let EditOperation::MoveParts { positions } = operation {
+        if let EditOperation::MoveParts { positions } = operation
+            && !layout::has_linked_positions(doc, positions)
+        {
             let mut affected: BTreeSet<String> = positions
                 .iter()
                 .map(|position| position.id.clone())
@@ -509,6 +519,8 @@ fn affects_outline(op: &EditOperation) -> bool {
             | EditOperation::RemoveParts { .. }
             | EditOperation::RemoveMatrix { .. }
             | EditOperation::SetMatrix { .. }
+            | EditOperation::CreateMirroredPair { .. }
+            | EditOperation::SetLayout { .. }
             | EditOperation::SetConstraint { .. }
             | EditOperation::RemoveConstraint { .. }
             | EditOperation::ReplaceDocument { .. }
@@ -518,8 +530,11 @@ fn affects_outline(op: &EditOperation) -> bool {
 fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String> {
     match op {
         EditOperation::MoveParts { positions } => {
-            let mut changed = vec![];
+            let (mut changed, handled) = layout::move_keys(doc, positions)?;
             for position in positions {
+                if handled.contains(&position.id) {
+                    continue;
+                }
                 let Some(part) = doc.parts.iter_mut().find(|p| p.id == position.id) else {
                     return Err(format!("Unknown part {}", position.id));
                 };
@@ -612,6 +627,7 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
                 .ok_or("Matrix does not exist")?
                 .part_ids
                 .clone();
+            layout::remove_matrix(doc, id);
             let mut changed = apply(doc, &EditOperation::RemoveParts { ids })?;
             doc.matrices.retain(|matrix| matrix.id != *id);
             let prefix = format!("matrix/{id}/net/");
@@ -629,6 +645,12 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             Ok(changed)
         }
         EditOperation::RemoveParts { ids } => {
+            let affected: Vec<_> = doc
+                .matrices
+                .iter()
+                .filter(|matrix| matrix.part_ids.iter().any(|id| ids.contains(id)))
+                .map(|matrix| matrix.id.clone())
+                .collect();
             let ids = matrix::removed_members(doc, ids);
             doc.constraints.retain(|constraint| {
                 !ids.iter()
@@ -649,7 +671,14 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             for matrix in &mut doc.matrices {
                 matrix.part_ids.retain(|id| !ids.contains(id));
             }
-            Ok(ids.clone())
+            for layout in &mut doc.layouts {
+                layout.part_ids.retain(|id| !ids.contains(id));
+            }
+            let mut changed = ids;
+            for matrix_id in affected {
+                changed.extend(layout::sync(doc, &matrix_id)?);
+            }
+            Ok(changed)
         }
         EditOperation::SetNet { net } => {
             if let Some(current) = doc.nets.iter_mut().find(|item| item.id == net.id) {
@@ -693,7 +722,78 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
                 changed.push(definition.id.clone());
             }
             changed.extend(matrix::set_matrix(doc, matrix)?);
+            changed.extend(layout::sync(doc, &matrix.id)?);
             Ok(changed)
+        }
+        EditOperation::CreateMirroredPair {
+            left,
+            right,
+            matrix,
+            definitions,
+        } => {
+            let link = right
+                .mirror_link
+                .as_ref()
+                .ok_or("A new mirrored pair must be linked")?;
+            if left.mirror_link.is_some()
+                || link.source_id != left.id
+                || left.id == right.id
+                || matrix.id != left.matrix_id
+                || left.matrix_id == right.matrix_id
+                || matrix.board_id.as_ref() != Some(&left.board_id)
+                || left.board_id != right.board_id
+                || !left.part_ids.is_empty()
+                || !right.part_ids.is_empty()
+                || !matrix.part_ids.is_empty()
+                || doc
+                    .layouts
+                    .iter()
+                    .any(|layout| layout.id == left.id || layout.id == right.id)
+                || doc
+                    .matrices
+                    .iter()
+                    .any(|item| item.id == left.matrix_id || item.id == right.matrix_id)
+            {
+                return Err(
+                    "Mirrored pair requires two new layouts and distinct matrices on one board"
+                        .into(),
+                );
+            }
+            let mut changed = apply(
+                doc,
+                &EditOperation::SetMatrix {
+                    matrix: matrix.clone(),
+                    definitions: definitions.clone(),
+                },
+            )?;
+            let mut target = matrix.clone();
+            target.id = right.matrix_id.clone();
+            target.name = Some(right.name.clone());
+            for cell in &mut target.cells {
+                for assembly in &mut cell.assemblies {
+                    assembly.offset.x = -assembly.offset.x;
+                    assembly.rotation = assembly.rotation.map(|angle| -angle);
+                }
+            }
+            let target = layout::reflected(matrix, &target, link.axis_x)?;
+            changed.extend(matrix::set_matrix(doc, &target)?);
+            doc.layouts.extend([left.clone(), right.clone()]);
+            layout::validate(doc)?;
+            changed.extend([left.id.clone(), right.id.clone()]);
+            Ok(changed)
+        }
+        EditOperation::SetLayout { layout: incoming } => {
+            let current = doc
+                .layouts
+                .iter_mut()
+                .find(|layout| layout.id == incoming.id)
+                .ok_or("Layout does not exist")?;
+            if current.board_id != incoming.board_id || current.matrix_id != incoming.matrix_id {
+                return Err("Layout ownership cannot be reassigned".into());
+            }
+            *current = incoming.clone();
+            layout::resolve(doc)?;
+            Ok(vec![incoming.id.clone(), incoming.matrix_id.clone()])
         }
         EditOperation::SetConstraint { constraint } => {
             if let Some(current) = doc
@@ -721,6 +821,7 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             let changed = changed_ids(doc, document);
             let mut prepared = document.clone();
             script::apply_scripts(&mut prepared)?;
+            layout::resolve(&mut prepared)?;
             *doc = prepared;
             Ok(changed)
         }

@@ -17,7 +17,7 @@ test('opens the starter workbench and exports a KiCad board', async ({ page }) =
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
@@ -77,10 +77,10 @@ test('moves a focused part with arrow keys and keeps each nudge undoable', async
 test('previews and exports the case assembly as STEP', async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto('/');
-  await page.getByRole('tab', { name: 'Case' }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByLabel(/Case and component mesh preview/)).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('Preview current')).toBeVisible();
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'Case STEP' }).getByRole('button', { name: 'Export' }).click();
@@ -90,7 +90,7 @@ test('previews and exports the case assembly as STEP', async ({ page }) => {
 test('changes a plate to a tray with a valid live case preview', async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto('/');
-  await page.getByRole('tab', { name: 'Case' }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await page.getByRole('combobox', { name: 'Body type' }).selectOption('tray');
   await expect(page.getByText('r1', { exact: true })).toBeVisible();
   await expect(page.getByText('Preview current')).toBeVisible({ timeout: 30_000 });
@@ -122,7 +122,7 @@ test('packages a local model with relative KiCad paths', async ({ page }) => {
     buffer: Buffer.from('ISO-10303-21;\nEND-ISO-10303-21;\n'),
   });
   await expect(page.getByText('Bound asset: sample.step')).toBeVisible();
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
@@ -175,16 +175,18 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: 'New project' }).click();
   await placeGuidedMatrix(page);
-  await page.getByRole('tab', { name: 'PCB' }).click();
+  await page.getByRole('treeitem', { name: 'PCB', exact: true }).click();
   await expect(page.locator('.wb-net-list')).toContainText('_ROW0');
   await expect(page.locator('.wb-net-list')).toContainText('_COL0');
   await page.getByRole('tab', { name: 'Design' }).click();
 
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Expand Row 1' }).click();
   const row = page.getByRole('treeitem', { name: /^Row 1/ });
   await row.click();
-  await expect(page.getByRole('button', { name: 'Row', pressed: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Select: Row', exact: true })).toBeVisible();
   const firstCell = page.getByRole('button', { name: 'Select key, row 1, column 1' });
   const before = await firstCell.getAttribute('transform');
   const handle = page.locator('[aria-label="Stagger row 1"]');
@@ -199,7 +201,8 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('treeitem', { name: /^Key 1\.1/ }).click();
   await page.getByRole('combobox', { name: 'Cell variant' }).selectOption('choc-switch');
   await expect(page.getByRole('combobox', { name: 'Cell variant' })).toHaveValue('choc-switch');
-  await page.getByRole('button', { name: 'Matrix', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Matrix', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('mx-hotswap-rgb');
   await page.getByRole('button', { name: 'Apply preset' }).click();
@@ -209,9 +212,9 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   const zoom = page.locator('.wb-footer-zoom span');
   await canvas.hover();
   await page.mouse.wheel(0, -360);
-  await expect(zoom).not.toHaveText('Zoom 100%');
+  await expect(zoom).not.toHaveText('100%');
   await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(zoom).toHaveText('Zoom 100%');
+  await expect(zoom).toHaveText('100%');
 });
 
 test('canvas drags follow the selected matrix, row, and column scope', async ({ page }) => {
@@ -234,18 +237,21 @@ test('canvas drags follow the selected matrix, row, and column scope', async ({ 
   const switch6 = page.getByRole('button', { name: /^SW6, MX switch/ });
 
   const switch2Before = await switch2.getAttribute('aria-label');
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Matrix', pressed: true }).click();
   await drag(switch1);
   await expect(switch2).not.toHaveAttribute('aria-label', switch2Before!);
 
-  await page.locator('.wb-selection-pills').getByRole('button', { name: 'Row', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Row', exact: true }).click();
   const switch2RowBefore = await switch2.getAttribute('aria-label');
   await drag(switch1);
   await expect(switch2).not.toHaveAttribute('aria-label', switch2RowBefore!);
 
-  await page.locator('.wb-selection-pills').getByRole('button', { name: 'Column', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Column', exact: true }).click();
   const switch6Before = await switch6.getAttribute('aria-label');
-  await drag(switch1);
+  await drag(switch6);
   await expect(switch6).not.toHaveAttribute('aria-label', switch6Before!);
 });
 
@@ -271,15 +277,19 @@ test('row and column scope drags follow the key under the pointer', async ({ pag
   const switch8 = page.getByRole('button', { name: /^SW8, MX switch/ });
   const row1Before = await switch2.getAttribute('aria-label');
 
-  await page.locator('.wb-selection-pills').getByRole('button', { name: 'Row', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Row', exact: true }).click();
   const row4Before = await switch17.getAttribute('aria-label');
   await drag(switch16);
   await expect(switch17).not.toHaveAttribute('aria-label', row4Before!);
   await expect(switch2).toHaveAttribute('aria-label', row1Before!);
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('treeitem', { name: /^Row 4/ })).toHaveAttribute('aria-selected', 'true');
 
-  await page.locator('.wb-selection-pills').getByRole('button', { name: 'Column', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Column', exact: true }).click();
   const column3Before = await switch8.getAttribute('aria-label');
   await drag(switch3);
   await expect(switch8).not.toHaveAttribute('aria-label', column3Before!);
@@ -322,19 +332,23 @@ test('matrix rows and columns are nested beneath their matrix in the CAD tree', 
   const matrix = page.getByRole('treeitem', { name: /^Matrix 1/ });
   const row = page.getByRole('treeitem', { name: /^Row 1/ });
   const column = page.getByRole('treeitem', { name: /^Column 1/ });
-  await expect(matrix).toHaveAttribute('aria-level', '2');
-  await expect(column).toHaveAttribute('aria-level', '3');
+  await expect(matrix).toHaveAttribute('aria-level', '3');
+  await expect(column).toHaveAttribute('aria-level', '4');
   const matrixPadding = Number.parseFloat((await matrix.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
   const columnPadding = Number.parseFloat((await column.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
-  await expect(row).toHaveAttribute('aria-level', '3');
+  await page.keyboard.press('Escape');
+  await expect(row).toHaveAttribute('aria-level', '4');
   const rowPadding = Number.parseFloat((await row.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
   expect(rowPadding).toBeGreaterThan(matrixPadding);
   expect(columnPadding).toBe(rowPadding);
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('column');
+  await page.keyboard.press('Escape');
   await column.click();
   await expect(column).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('button', { name: 'Column', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Select: Column', exact: true })).toBeVisible();
 });
 
 test('matrix diode direction is editable and survives matrix edits', async ({ page }) => {
@@ -392,7 +406,7 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
   await page.keyboard.up('Space');
   await expect.poll(() => canvas.getAttribute('viewBox')).not.toBe(initialView);
   await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(page.locator('.wb-footer-zoom span')).toHaveText('Zoom 100%');
+  await expect(page.locator('.wb-footer-zoom span')).toHaveText('100%');
 });
 
 test('previews a library footprint and keeps generator geometry in sync', async ({ page }) => {
@@ -423,6 +437,7 @@ test('duplicates a matrix as a separate preset project', async ({ page }) => {
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('choc-rgb');
   await page.getByRole('button', { name: 'Duplicate design as variant' }).click();
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Project name' })).toHaveValue(/choc-rgb/);
   await expect(page.locator('.wb-scene-part')).toHaveCount(90);
   const variantId = await page.evaluate(() => localStorage.getItem('boardstudio-v2-active-project'));
@@ -452,20 +467,26 @@ test('keeps board outlines and KiCad exports scoped to the selected board', asyn
   await placeGuidedMatrix(page);
   await expect(page.getByRole('treeitem', { name: /60 parts/ }).first()).toBeVisible();
 
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: '+ New', exact: true }).click();
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Selected board' })).toHaveValue(/.+/);
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('treeitem', { name: /0 parts/ }).first()).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(0);
 
   await placeGuidedMatrix(page);
   await expect(page.getByRole('treeitem', { name: /60 parts/ }).first()).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
   expect((await download).suggestedFilename()).toBe('Board_2.kicad_pcb');
 
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('combobox', { name: 'Selected board' }).selectOption({ label: 'Main board' });
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('treeitem', { name: /60 parts/ }).first()).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
 });
@@ -477,14 +498,14 @@ test('creates a case from a new keyboard project', async ({ page }) => {
   await page.getByRole('button', { name: 'New project' }).click();
   await placeGuidedMatrix(page);
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('tab', { name: 'Case' }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await page.getByRole('button', { name: '+ New case body' }).click();
   await expect(page.getByText('Preview current')).toBeVisible({ timeout: 30_000 });
 });
 
 test('saves and reopens a v2 project archive', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: /Save .boardstudio project/ }).click();
   const archive = await download;
@@ -511,7 +532,7 @@ test('authors a custom component and exports a KiCad footprint library', async (
   await expect(editor.getByRole('heading', { level: 2 })).toHaveText('Controller mount');
   await page.getByRole('button', { name: '+ Add pad' }).click();
   await expect(page.getByRole('group', { name: 'Pad 1' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Export' }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad footprints' }).getByRole('button', { name: 'Export' }).click();
@@ -536,14 +557,16 @@ test('shows attached STEP components in the 3D case preview', async ({ page }) =
     buffer: Buffer.from(model.step),
   });
   await expect(page.getByText('Bound asset: preview.step')).toBeVisible();
-  await page.getByRole('tab', { name: 'Case' }).click();
+  await page.getByRole('tab', { name: 'Design', exact: true }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByLabel('Case and component mesh preview, 15 components')).toBeVisible({ timeout: 30_000 });
 });
 
 test('propagates a linked layout constraint during a source move', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /^SW2, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
   await page.getByRole('combobox', { name: 'Constraint source part' }).selectOption({ label: 'SW1' });
   await page.getByRole('spinbutton', { name: 'Offset X (mm)' }).fill('25');
