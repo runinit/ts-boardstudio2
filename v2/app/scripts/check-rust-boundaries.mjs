@@ -31,7 +31,7 @@ function equivalent(actual, expected, label = 'reply') {
   }
 }
 
-const matrix = { id: 'matrix', rows: 3, columns: 3, definitionId: 'switch', origin: { x: 7, y: -3 }, pitch: { x: 19, y: 19 }, partIds: ['legacy-a', 'matrix/matrix/r0c1', 'legacy-b', 'legacy-c', 'legacy-d', 'legacy-e'], cells: [0, 1, 2].map((column) => ({ row: 1, column, enabled: false })), columnStaggers: [0, 2, -1], columnSplays: [0, 15, -8] };
+const matrix = { id: 'matrix', rows: 3, columns: 3, definitionId: 'switch', origin: { x: 7, y: -3 }, pitch: { x: 19, y: 19 }, partIds: ['legacy-a', 'matrix/matrix/r0c1', 'legacy-b', 'legacy-c', 'legacy-d', 'legacy-e'], cells: [0, 1, 2].map((column) => ({ row: 1, column, enabled: false })), columnStaggers: [0, 2, -1], columnOrigins: [null, { x: 4, y: -20 }], columnSplays: [0, 15, -8] };
 const document = emptyProject('boundary-fixture', 'Boundary fixture');
 document.definitions = [{ id: 'switch', name: 'Switch', kind: 'switch', pads: [], courtyard: [] }];
 document.matrices = [matrix];
@@ -49,6 +49,7 @@ const requests = [
   { id: 'undo', kind: 'undo' },
   { id: 'redo', kind: 'redo' },
   { id: 'large-draft', kind: 'project-matrices', baseRevision: 3, matrices: [{ ...matrix, rows: 50, columns: 10, cells: [], partIds: [] }] },
+  ...['preview', 'commit'].map((phase) => ({ id: `splay-${phase}`, kind: 'edit', command: { baseRevision: 3, transactionId: 'splay', phase, targetIds: ['matrix'], operation: { kind: 'set-matrix-splay', matrixId: 'matrix', column: 1, change: { kind: 'origin', world: { x: 5, y: -12 } } } } })),
 ];
 const native = spawnSync(path.join(root, 'v2/core/target/debug/examples/core_request'), { input: `${requests.map((request) => JSON.stringify(request)).join('\n')}\n`, encoding: 'utf8' });
 if (native.error) throw native.error;
@@ -73,6 +74,9 @@ try {
     });
   }
   assert.equal(nativeReplies[10].matrixScenes[0].cells.length, 500);
+  assert.equal(nativeReplies[11].kind, 'preview');
+  assert.equal(nativeReplies[12].kind, 'scene');
+  assert.deepEqual(nativeReplies[11].scene.matrixScenes, nativeReplies[12].scene.matrixScenes);
   assert.equal(nativeReplies[3].kind, 'error');
   assert.equal(nativeReplies[4].kind, 'preview');
   assert.deepEqual(nativeReplies[1].scene.matrixScenes, nativeReplies[5].scene.matrixScenes);

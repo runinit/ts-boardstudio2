@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type * as Three from 'three';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -49,11 +50,12 @@ const samePreviews = (left: ComponentPreview[], right: ComponentPreview[]): bool
     && item.mesh.normals === other.mesh.normals;
 });
 
-const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme = 'light' }: {
+const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme = 'light', controlsTarget }: {
   mesh?: Mesh;
   componentPreviews?: ComponentPreview[];
   boardThickness?: number;
   colorScheme?: 'light' | 'dark';
+  controlsTarget?: HTMLElement | null;
 }) => {
   const incomingPreviews = componentPreviews ?? emptyPreviews;
   const previewsRef = useRef(incomingPreviews);
@@ -64,11 +66,14 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
   const controlsRef = useRef<Controls | null>(null);
   const fitRef = useRef<(() => void) | null>(null);
   const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const [zoomPercent, setZoomPercent] = useState(100);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const caseMesh = mesh && mesh.positions.length >= 9 && mesh.positions.length % 3 === 0 ? mesh : undefined;
     const components = previews.filter((component) => component.mesh.positions.length >= 9 && component.mesh.positions.length % 3 === 0);
+    setReady(false);
     if (!canvas || (!caseMesh && components.length === 0)) return;
     let disposed = false;
     let renderer: Three.WebGLRenderer | undefined;
@@ -86,7 +91,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
       if (disposed) return;
 
       try {
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
       } catch {
         setError('WebGL is unavailable in this browser.');
         return;
@@ -95,12 +100,15 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       const darkMode = colorScheme === 'dark';
-      renderer.setClearColor(darkMode ? 0x161616 : 0xf2f4f8, 1);
+      // Let the shared canvas surface show through instead of duplicating its palette in WebGL.
+      renderer.setClearColor(0x000000, 0);
+      const theme = getComputedStyle(canvas);
+      const geometryColor = (role: string) => new THREE.Color(theme.getPropertyValue(`--wb-geometry-${role}`).trim());
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(darkMode ? 0x161616 : 0xf2f4f8);
       const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 10000);
       camera.up.set(0, 0, 1);
+      let fittedDistance = 1;
 
       const previewObjects: Three.Object3D[] = [];
       const makeGeometry = (positions: Float32Array, normals: Float32Array) => {
@@ -118,7 +126,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
 
       if (caseMesh) {
         const geometry = makeGeometry(caseMesh.positions, caseMesh.normals);
-        const material = new THREE.MeshStandardMaterial({ color: darkMode ? 0x393939 : 0xdde1e6, roughness: 0.74, metalness: 0.04, side: THREE.DoubleSide });
+        const material = new THREE.MeshStandardMaterial({ color: geometryColor('board'), roughness: 0.74, metalness: 0.04, side: THREE.DoubleSide });
         materials.push(material);
         const caseObject = new THREE.Mesh(geometry, material);
         scene.add(caseObject);
@@ -145,8 +153,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         sideGroup.add(modelGroup);
 
         const geometry = makeGeometry(component.mesh.positions, component.mesh.normals);
-        const hue = (index * 0.137 + 0.08) % 1;
-        const material = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(hue, 0.56, 0.52), roughness: 0.62, metalness: 0.08, side: THREE.DoubleSide });
+        const material = new THREE.MeshStandardMaterial({ color: geometryColor(index % 2 === 0 ? 'key' : 'part'), roughness: 0.62, metalness: 0.08, side: THREE.DoubleSide });
         materials.push(material);
         modelGroup.add(new THREE.Mesh(geometry, material));
         scene.add(partGroup);
@@ -173,6 +180,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
 
         const moving = controls?.update() ?? false;
         renderer?.render(scene, camera);
+        if (controls) setZoomPercent(Math.round(fittedDistance / camera.position.distanceTo(controls.target) * 100));
         if (moving) {
           requestRender();
         }
@@ -191,9 +199,12 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         if (bounds.isEmpty()) return;
         const sphere = bounds.getBoundingSphere(new THREE.Sphere());
         const radius = Math.max(sphere.radius, 0.1);
-        const distance = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.28;
+        const verticalFov = THREE.MathUtils.degToRad(camera.fov / 2);
+        const horizontalFov = Math.atan(Math.tan(verticalFov) * camera.aspect);
+        const distance = radius / Math.sin(Math.min(verticalFov, horizontalFov)) * 1.12;
+        fittedDistance = distance;
         controls?.target.copy(sphere.center);
-        camera.position.set(sphere.center.x + distance * 0.72, sphere.center.y + distance * 0.72, sphere.center.z + distance * 0.55);
+        camera.position.copy(new THREE.Vector3(0.72, 0.72, 0.55).normalize().multiplyScalar(distance).add(sphere.center));
         camera.near = Math.max(radius / 1000, 0.01);
         camera.far = distance + radius * 8;
         camera.updateProjectionMatrix();
@@ -205,7 +216,6 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         requestRender();
       };
       fitRef.current = fitCamera;
-      fitCamera();
 
       const resize = () => {
         const width = Math.max(canvas.clientWidth, 1);
@@ -216,6 +226,8 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         requestRender();
       };
       resize();
+      fitCamera();
+      setReady(true);
       observer = new ResizeObserver(resize);
       observer.observe(canvas);
 
@@ -249,15 +261,18 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
     <small>The 3D preview appears when the settled geometry is ready.</small>
   </div>;
 
+  const viewControls = <div className={controlsTarget ? 'wb-footer-zoom' : 'wb-case-preview-controls'} role="group" aria-label="3D view controls">
+    <button aria-label="Fit preview" title="Fit preview" disabled={!ready} onClick={() => fitRef.current?.()}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4M3 3l4 4m10-4-4 4M3 17l4-4m10 4-4-4" /></svg></button>
+    <button aria-label="Zoom out" title="Zoom out" disabled={!ready} onClick={() => zoom(1.2)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10" /></svg></button>
+    <output aria-label="Preview zoom" title="Zoom relative to the fitted preview">{zoomPercent}%</output>
+    <button aria-label="Zoom in" title="Zoom in" disabled={!ready} onClick={() => zoom(1 / 1.2)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10M10 5v10" /></svg></button>
+  </div>;
+
   return <div className="wb-case-preview" aria-label={`Case and component mesh preview, ${renderableComponentCount} components`}>
     <canvas ref={canvasRef} aria-label="Interactive 3D case preview. Drag to orbit and scroll to zoom." />
-    <div className="wb-case-preview-label"><span>CASE + COMPONENTS · {renderableComponentCount} COMPONENTS</span>{mesh && <span>r{mesh.revision}</span>}</div>
+    <div className="wb-case-preview-label"><span>Case + components</span><span>{renderableComponentCount} {renderableComponentCount === 1 ? 'component' : 'components'}</span>{mesh && <span className="wb-case-preview-revision">r{mesh.revision}</span>}</div>
     <div className="wb-case-preview-disclaimer">Visual preview · not clearance proof</div>
-    <div className="wb-case-preview-controls">
-      <button aria-label="Zoom out" onClick={() => zoom(1.2)}>−</button>
-      <button aria-label="Fit preview" onClick={() => fitRef.current?.()}>Fit</button>
-      <button aria-label="Zoom in" onClick={() => zoom(1 / 1.2)}>+</button>
-    </div>
+    {controlsTarget ? createPortal(viewControls, controlsTarget) : viewControls}
     {error && <div className="wb-case-preview-error" role="status">{error}</div>}
   </div>;
 };

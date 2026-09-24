@@ -45,13 +45,14 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
   await page.getByRole('button', { name: 'Redo', exact: true }).click();
   await expect.poll(() => contours(page)).toEqual(deleted);
 
-  await page.getByRole('button', { name: 'Outline', exact: true }).click();
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.getByLabel('Outline corners').selectOption('chamfer');
   await expect.poll(() => contours(page)).not.toEqual(deleted);
   await expect(page.getByLabel('Chamfer size')).toBeVisible();
   const finished = await contours(page);
   expect(contains(finished, { x: 0, y: 0 })).toBe(false);
-  await page.getByRole('tab', { name: 'Export', exact: true }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'SVG board outline' }).getByRole('button', { name: 'Export', exact: true }).click();
   const svg = await readFile((await (await download).path())!, 'utf8');
@@ -71,7 +72,8 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
 test('draws additions and persistent cutouts without duplicate double-click vertices', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Outline', exact: true }).click();
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.getByLabel('Outline corners').selectOption('sharp');
   await page.getByRole('button', { name: 'Draw addition' }).click();
   await clickPoint(page, { x: 1, y: -1 });
@@ -98,7 +100,8 @@ test('part inclusion and margin controls survive save and affect the contour', a
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   const key = page.getByRole('button', { name: /^SW1, MX switch/ });
   await key.click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Use board margin', { exact: true }).click();
   await expect(page.getByLabel('Use board margin', { exact: true })).not.toBeChecked();
@@ -122,7 +125,8 @@ test('part inclusion and margin controls survive save and affect the contour', a
 test('outline settings fit desktop and mobile and invalid drawings block exports', async ({ page }, info) => {
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Outline', exact: true }).click();
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.screenshot({ path: info.outputPath('outline-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole('heading', { name: 'Board outline', exact: true })).toBeVisible();
@@ -133,7 +137,7 @@ test('outline settings fit desktop and mobile and invalid drawings block exports
   for (const p of [{x:5,y:-5},{x:15,y:-15},{x:5,y:-15},{x:15,y:-5}]) await clickPoint(page,p);
   await page.keyboard.press('Enter');
   await expect(page.getByText(/non-self-intersecting polygon/).first()).toBeVisible();
-  await page.getByRole('tab', { name: 'Export', exact: true }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   await expect(page.locator('.wb-export-row').filter({ hasText: 'SVG board outline' }).getByRole('button')).toBeDisabled();
 });
 
@@ -144,12 +148,14 @@ test('deleted matrix corners remain empty after resizing and rotation follows th
   await configureMatrix(page);
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
+  await page.getByRole('button', { name: /^Select:/ }).click();
   await page.getByRole('button', { name: 'Key', exact: true }).click();
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(58);
   await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Matrix', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Matrix', exact: true }).click();
   const columns = page.getByRole('spinbutton', { name: /Columns/ });
   await columns.fill('6');
   await columns.blur();
@@ -172,7 +178,8 @@ test('definition keycaps update the outline and per-instance overrides can be re
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   await expect.poll(async () => contains(await contours(page), { x: -18, y: 0 })).toBe(true);
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Component', exact: true }).click();
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Part', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Keycap width', { exact: true }).fill('18');
   await page.getByLabel('Keycap width', { exact: true }).blur();
@@ -188,6 +195,7 @@ test('a newly introduced library definition joins the board automatic envelope',
   await page.goto('/');
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.locator('.wb-project-file-input').setInputFiles({ name: 'empty.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Project name' })).toHaveValue('Empty import');
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('option', { name: /^Choc switch/ }).click();

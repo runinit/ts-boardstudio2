@@ -321,6 +321,16 @@ pub struct Matrix {
         skip_serializing_if = "Vec::is_empty"
     )]
     pub column_splays: Vec<f64>,
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<Vec<Option<Vec2>>>", optional)
+    )]
+    #[serde(
+        rename = "columnOrigins",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub column_origins: Vec<Option<Vec2>>,
     #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<MatrixCell>>", optional))]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub cells: Vec<MatrixCell>,
@@ -642,6 +652,27 @@ pub enum MirrorAxis {
     Vertical,
     Horizontal,
 }
+/// A named key layout and its independent, board-owned components.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+#[serde(rename_all = "camelCase")]
+pub struct Layout {
+    pub id: String,
+    pub name: String,
+    pub board_id: String,
+    pub matrix_id: String,
+    pub part_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mirror_link: Option<LayoutMirrorLink>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct LayoutMirrorLink {
+    pub source_id: String,
+    pub axis_x: f64,
+}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
@@ -655,6 +686,9 @@ pub struct ProjectDoc {
     pub definitions: Vec<PartDefinition>,
     pub parts: Vec<Part>,
     pub matrices: Vec<Matrix>,
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<Layout>>", optional))]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub layouts: Vec<Layout>,
     pub nets: Vec<Net>,
     pub outline: Vec<OutlineFeature>,
     pub boards: Vec<Board>,
@@ -677,6 +711,7 @@ impl ProjectDoc {
             definitions: vec![],
             parts: vec![],
             matrices: vec![],
+            layouts: vec![],
             nets: vec![],
             outline: vec![],
             boards: vec![],
@@ -688,6 +723,27 @@ impl ProjectDoc {
         }
     }
 }
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MatrixSplayAffect {
+    Column,
+    Following,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum MatrixSplayChange {
+    Origin {
+        world: Option<Vec2>,
+    },
+    Angle {
+        angle: f64,
+        affect: MatrixSplayAffect,
+    },
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "kebab-case")]
@@ -721,8 +777,24 @@ pub enum EditOperation {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         definitions: Option<Vec<PartDefinition>>,
     },
+    SetMatrixSplay {
+        #[serde(rename = "matrixId")]
+        matrix_id: String,
+        column: u32,
+        change: MatrixSplayChange,
+    },
     SetConstraint {
         constraint: Constraint,
+    },
+    CreateMirroredPair {
+        left: Layout,
+        right: Layout,
+        matrix: Matrix,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        definitions: Option<Vec<PartDefinition>>,
+    },
+    SetLayout {
+        layout: Layout,
     },
     RemoveConstraint {
         id: String,
@@ -916,6 +988,12 @@ pub struct MatrixSceneCell {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 pub struct MatrixColumnBasis {
     pub column: u32,
+    #[serde(rename = "splayOrigin")]
+    pub splay_origin: Vec2,
+    #[serde(rename = "splayAngle")]
+    pub splay_angle: f64,
+    #[serde(rename = "customOrigin")]
+    pub custom_origin: bool,
     #[serde(rename = "axisX")]
     pub axis_x: Vec2,
     #[serde(rename = "axisY")]

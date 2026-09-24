@@ -2,78 +2,84 @@
 name: Board Studio v2 — The Keyboard Lab
 description: A compact visual workbench with neutral panels and distinct geometry colors.
 colors:
-  light-accent: '#0f62fe'
-  light-accent-dark: '#0043ce'
-  light-on-accent: '#ffffff'
-  light-accent-secondary: '#673ab7'
-  light-teal: '#673ab7'
-  light-paper: '#f2f4f8'
-  light-canvas: '#edf2f6'
-  light-panel: '#ffffff'
-  light-raised: '#dde1e6'
-  light-surface-soft: '#edf5ff'
-  light-surface-strong: '#c6c6c6'
-  light-ink: '#161616'
-  light-muted: '#393939'
-  light-subtle: '#525252'
-  light-rule: '#dde1e6'
-  light-rule-strong: '#a8a8a8'
-  light-selection-surface: '#d0e2ff'
-  light-status-success: '#198038'
-  light-status-success-surface: '#defbe6'
-  light-status-warning: '#8a3800'
-  light-status-warning-surface: '#fff1e8'
+  light-accent: '#3858D6'
+  light-accent-dark: '#2945b6'
+  light-on-accent: '#FFFFFF'
+  light-accent-secondary: '#8E5AA5'
+  light-teal: '#3858D6'
+  light-paper: '#f7f8fa'
+  light-canvas: '#E9EEF2'
+  light-panel: '#FFFFFF'
+  light-raised: '#e9eef2'
+  light-surface-soft: '#edf0f8'
+  light-surface-strong: '#dce3ef'
+  light-ink: '#182331'
+  light-muted: '#576678'
+  light-subtle: '#576678'
+  light-rule: '#dbe1e8'
+  light-rule-strong: '#9aaabc'
+  light-selection-surface: '#E9EDFF'
+  light-selection-ink: '#253EAC'
+  light-topbar: '#ffffff'
+  light-topbar-ink: '#182331'
+  light-status-success: '#226c50'
+  light-status-success-surface: '#e2f2e9'
+  light-status-warning: '#8A4B00'
+  light-status-warning-surface: '#FFF1D9'
   light-status-error: '#a2191f'
   light-status-error-surface: '#fff1f1'
-  light-grid-small: '#dce5eb'
-  light-grid-large: '#bccdd9'
-  light-geometry-outline: '#526b80'
-  light-geometry-fill: '#c9e5df'
-  light-geometry-fill-muted: '#dce8f5'
-  light-geometry-key: '#396aa5'
-  light-geometry-part: '#8050b5'
-  light-geometry-label: '#263e54'
-  light-geometry-body: '#e0eaf4'
-  light-geometry-board: '#287d72'
-  light-geometry-graphic: '#287d72'
-  light-geometry-zone: '#d4e7e1'
-  light-geometry-text: '#71429f'
-  dark-accent: '#33b1ff'
-  dark-accent-dark: '#78a9ff'
-  dark-on-accent: '#161616'
-  dark-accent-secondary: '#be95ff'
-  dark-teal: '#3ddbd9'
-  dark-paper: '#161616'
-  dark-canvas: '#101b27'
-  dark-panel: '#262626'
-  dark-raised: '#393939'
-  dark-surface-soft: '#262626'
-  dark-surface-strong: '#525252'
-  dark-ink: '#f2f4f8'
-  dark-muted: '#dde1e6'
-  dark-subtle: '#a8a8a8'
-  dark-rule: '#393939'
-  dark-rule-strong: '#525252'
-  dark-selection-surface: '#393939'
-  dark-status-success: '#42be65'
-  dark-status-success-surface: '#042d15'
-  dark-status-warning: '#ff832b'
-  dark-status-warning-surface: '#3e1a00'
+  light-grid-small: '#d8e1e8'
+  light-grid-large: '#b0c0cd'
+  light-geometry-outline: '#596C86'
+  light-geometry-fill: '#ddebe5'
+  light-geometry-fill-muted: '#e2e9f2'
+  light-geometry-key: '#3858D6'
+  light-geometry-part: '#8E5AA5'
+  light-geometry-label: '#182331'
+  light-geometry-body: '#f7f9fc'
+  light-geometry-board: '#397568'
+  light-geometry-graphic: '#397568'
+  light-geometry-zone: '#ddebe5'
+  light-geometry-text: '#8E5AA5'
+  dark-accent: '#9AADFF'
+  dark-accent-dark: '#b6c4ff'
+  dark-on-accent: '#101725'
+  dark-accent-secondary: '#B98CD1'
+  dark-teal: '#9AADFF'
+  dark-paper: '#151c26'
+  dark-canvas: '#101a22'
+  dark-panel: '#1c2632'
+  dark-raised: '#293443'
+  dark-surface-soft: '#263246'
+  dark-surface-strong: '#344562'
+  dark-ink: '#EDF1F7'
+  dark-muted: '#AFBCCB'
+  dark-subtle: '#AFBCCB'
+  dark-rule: '#344151'
+  dark-rule-strong: '#61738a'
+  dark-selection-surface: '#304373'
+  dark-selection-ink: '#CDD6FF'
+  dark-topbar: '#16222d'
+  dark-topbar-ink: '#EDF1F7'
+  dark-status-success: '#6ab99d'
+  dark-status-success-surface: '#18352d'
+  dark-status-warning: '#F4BA68'
+  dark-status-warning-surface: '#332A1D'
   dark-status-error: '#ff8389'
   dark-status-error-surface: '#491217'
-  dark-grid-small: '#1a2b3b'
-  dark-grid-large: '#30485d'
-  dark-geometry-outline: '#829eb6'
-  dark-geometry-fill: '#193f43'
-  dark-geometry-fill-muted: '#263d56'
-  dark-geometry-key: '#86b3e5'
-  dark-geometry-part: '#be95ff'
-  dark-geometry-label: '#dfebf7'
-  dark-geometry-body: '#263b50'
-  dark-geometry-board: '#61c9b5'
-  dark-geometry-graphic: '#79cbb8'
-  dark-geometry-zone: '#1b3b3b'
-  dark-geometry-text: '#d0acef'
+  dark-grid-small: '#203040'
+  dark-grid-large: '#344b60'
+  dark-geometry-outline: '#6F87A3'
+  dark-geometry-fill: '#18352d'
+  dark-geometry-fill-muted: '#223041'
+  dark-geometry-key: '#9AADFF'
+  dark-geometry-part: '#B98CD1'
+  dark-geometry-label: '#EDF1F7'
+  dark-geometry-body: '#223041'
+  dark-geometry-board: '#6AB99D'
+  dark-geometry-graphic: '#6AB99D'
+  dark-geometry-zone: '#18352d'
+  dark-geometry-text: '#B98CD1'
 typography:
   preview-title:
     fontFamily: '''Aptos Display'', ''Segoe UI'', sans-serif'
@@ -81,10 +87,10 @@ typography:
     fontWeight: 600
   inspector-title:
     fontFamily: '''Aptos Display'', ''Segoe UI'', sans-serif'
-    fontSize: 17px
+    fontSize: 23px
     fontWeight: 600
     lineHeight: 1.3
-    letterSpacing: -0.025em
+    letterSpacing: -0.015em
   section:
     fontFamily: '''Aptos'', ''Segoe UI'', sans-serif'
     fontSize: 13px
@@ -110,11 +116,10 @@ typography:
     fontSize: 10px
     fontWeight: 400
 rounded:
-  field: 3px
+  field: 4px
   control: 4px
   menu: 5px
   flyout: 8px
-  dock: 24px
 spacing:
   compact: 4px
   inline: 8px
@@ -143,7 +148,7 @@ components:
   stage-navigation:
     backgroundColor: '{colors.light-panel}'
     textColor: '{colors.light-muted}'
-    height: 44px
+    height: 48px
   revision-tag:
     backgroundColor: transparent
     textColor: '{colors.light-subtle}'
@@ -165,11 +170,12 @@ components:
     textColor: '{colors.light-ink}'
     rounded: '{rounded.control}'
     padding: 7px 10px
-  scope-dock:
+  command-group:
     backgroundColor: '{colors.light-panel}'
     textColor: '{colors.light-muted}'
-    rounded: '{rounded.dock}'
-    padding: 5px
+    rounded: 3px
+    padding: 0 12px
+    height: 32px
   button-primary-dark:
     backgroundColor: '{colors.dark-accent}'
     textColor: '{colors.dark-on-accent}'
@@ -191,7 +197,7 @@ components:
   stage-navigation-dark:
     backgroundColor: '{colors.dark-panel}'
     textColor: '{colors.dark-muted}'
-    height: 44px
+    height: 48px
   revision-tag-dark:
     backgroundColor: transparent
     textColor: '{colors.dark-subtle}'
@@ -213,11 +219,12 @@ components:
     textColor: '{colors.dark-ink}'
     rounded: '{rounded.control}'
     padding: 7px 10px
-  scope-dock-dark:
+  command-group-dark:
     backgroundColor: '{colors.dark-panel}'
     textColor: '{colors.dark-muted}'
-    rounded: '{rounded.dock}'
-    padding: 5px
+    rounded: 3px
+    padding: 0 12px
+    height: 32px
 ---
 
 # Design System: Board Studio v2
@@ -228,7 +235,7 @@ components:
 
 The Keyboard Lab is an instrument-like workspace for exploring and refining keyboard designs. Compact neutral panels frame a dominant drawing surface. Color identifies actions, geometry, and state; labels and measurements carry the detail.
 
-The working character is calm, precise, and restrained: small controls, aligned values, modest corners, and short state transitions. Catalog, canvas, and inspector share one workspace, with optional properties organized into disclosures. These descriptions record the incumbent interface, rather than proposing a new visual identity.
+The working character is calm, precise, and restrained: small controls, aligned values, modest corners, and short state transitions. Catalog, canvas, and inspector share one workspace, with optional properties organized into disclosures. These descriptions record the approved unified workspace now implemented locally.
 
 **Key Characteristics:**
 
@@ -239,13 +246,13 @@ The working character is calm, precise, and restrained: small controls, aligned 
 - Light and dark palettes with a persisted System option.
 
 This document captures the working tree on 2026-09-24, based on revision
-`17f9380`, including the current workspace and inspector edits. The main sources
+`7703d27`, including the locally implemented unified workbench shell and inspector edits. The main sources
 are [workspace styles](app/src/ui/workbench.css),
 [inspector styles](app/src/ui/inspector.css), and
 [footprint workspace styles](app/src/ui/library-workspace.css).
-Earlier desktop and narrow workspace captures support the layout description;
-current source supplies the updated palette. Fresh browser inspection was blocked
-by the KiCad module's missing `builtinGeometry` export during concurrent work.
+The review originals in `app/.impeccable/review/` support the desktop and narrow
+layout description; current source supplies the token values. The latest
+visual review also records the dark unified composition.
 
 ## Colors
 
@@ -286,7 +293,7 @@ sidecar together when the implementation's palette changes.
 
 ### Neutral
 
-- **Slate canvas:** `canvas` is the 2D drawing and footprint-preview field.
+- **Slate canvas:** `canvas` is the drawing, footprint, and 3D preview field.
   `grid-small` and `grid-large` form its quiet measurement grid.
 - **Shell surfaces:** `paper`, `panel`, and `raised` distinguish the application,
   permanent panels, and raised or hovered areas. `surface-soft` and
@@ -298,22 +305,35 @@ sidecar together when the implementation's palette changes.
 
 **The Geometry Role Rule.** Keep canvas, board, key, pad, and selection roles separate from shell surfaces and status roles.
 
+[CasePreview](app/src/ui/CasePreview.tsx) uses a transparent WebGL background
+over the shared canvas token, with board, key, and part geometry colors on
+its materials. Lighting remains specific to the 3D scene, so shaded materials
+are not flat swatches of those colors.
+
 ### Known implementation exceptions
 
 These are recorded defects or limitations, not patterns to reproduce:
 
-- The outline-completion button pairs ordinary content with the auxiliary action
-  fill: calculated text contrast is 2.47:1 in light mode and 1.55:1 in dark mode.
-  Primary buttons use their paired foreground and pass the checked normal and
-  hover combinations.
-- Several status dots use background-surface tokens as foreground marks,
-  producing approximately 1.0–1.1:1 contrast against panels. Finding severity
-  variants share the same dot styling and lack explicit severity labels.
-- Some 3D scene, material, and lighting colors remain literal values in
-  [CasePreview](app/src/ui/CasePreview.tsx), independent of the CSS palette.
-  A 3D background therefore differs from the 2D slate canvas.
+- Some legacy auxiliary actions still use ordinary ink on the action fill;
+  these need a separate paired-foreground audit when changed. The table below
+  covers the explicit on-accent pair, not every legacy consumer.
 - The existing palette is not a blanket contrast guarantee. Inspect real
   foreground/background pairs, opacity, focus states, and selected surfaces.
+
+Calculated from current opaque CSS pairs (normal text target 4.5:1):
+
+| Pair | Light | Dark |
+| --- | --- | --- |
+| Primary text | 15.87:1 | 13.50:1 |
+| Muted text | 5.87:1 | 7.92:1 |
+| Action | 5.94:1 | 8.36:1 |
+| Action hover | 8.01:1 | 10.53:1 |
+| Selection | 7.63:1 | 6.74:1 |
+| Success | 6.31:1 | 6.59:1 |
+| Warning | 6.80:1 | 8.79:1 |
+| Error | 7.79:1 | 6.45:1 |
+
+These checks do not certify every composited state, geometry layer, or 3D material.
 
 ## Typography
 
@@ -322,33 +342,45 @@ Display. Font availability varies by machine, so these are fallback stacks,
 not bundled-font guarantees. Measurements use SFMono-Regular, Cascadia Code,
 Consolas, then monospace. Tabular numerals are enabled on the workbench root.
 
-- Preview titles use the largest recurring heading (20px, weight 600).
-- Inspector titles are compact (17px, weight 600, 1.3 line height).
-- Body and disclosure headings share a base size (13px); weight separates them.
-- Inspector labels and field content generally use 12px. Numeric field values
-  use the mono stack and keep the unit at the trailing edge.
-- Metadata commonly uses 10–11px. Older chrome includes 8–9px labels, especially
-  at narrow widths; this is an observed density limitation, not a new minimum.
+- Preview titles use 20px; selected inspector titles use 23px, increasing to
+  26px at 1440px. Body text and disclosures use 13px at the normal density.
+- At 1440px, command labels and fields use 16px, disclosure headings 17px,
+  context 15–16px, and navigator labels 16px.
+- Inspector fields normally use 12px. Wide inspector number values use the body
+  stack at 16px; canvas technical labels and revision tags remain monospaced.
+- Compact metadata uses 10–11px. Case preview metadata uses 12–13px;
+  smaller legacy footprint labels are not the default for new controls.
 
-**The Measurement Rule.** Use the mono stack for coordinates, units, revisions, and code; use the body stack for instructions and field labels.
+**The Measurement Rule.** Keep values and units aligned, use tabular numerals,
+and keep precise values available alongside direct manipulation.
 
 ## Layout
 
-The application owns the viewport height (100dvh). The header, stage strip,
-workspace toolbar, and footer frame independently scrolling catalog and inspector
-panels. The center expands to absorb available width.
+The application owns the viewport height (100dvh). The 48px header, 44px
+command toolbar, and 34px footer frame independently scrolling navigator,
+canvas, and right inspector panels. At 1440px and above these become 60px,
+64px, and 60px. A shared 36px context ribbon holds the board/view breadcrumbs
+and Objects/Inspect toggles. The center expands to absorb available width.
 
 | Width | Implemented arrangement |
 | --- | --- |
-| Above 1100px | 240px catalog, flexible center, 320px inspector |
-| 1051–1100px | 250px catalog, flexible center, 294px inspector |
-| 821–1050px | 220px catalog, flexible center, 260px inspector |
-| 820px and below | Full-width workspace with catalog and inspector drawers |
+| Above 1150px | Resizable navigator and inspector, flexible center; default widths remain clamp-based |
+| 981–1150px | Default 220px navigator and 300px inspector; saved widths are bounded to preserve the canvas |
+| 821–980px | Full-width center with navigator drawer and 300px inspector |
+| 820px and below | Full-width workspace with navigator and inspector drawers |
 
-The desktop project header is 58px and the stage strip is 44px. At 560px and
-below they become 52px and 42px; stage icons stack above labels. The canvas
-toolbar can wrap below 1160px. Drawers are capped at 310px or 88vw, with a scrim;
-canvas controls hide while a drawer occupies their space.
+The desktop project header is 48px and the command toolbar is 44px. At 1440px
+they become 60px and 64px; the footer becomes 60px. At 560px and below the
+compact navigation remains label-led. The navigator drawer is capped at 290px
+and the inspector at 370px, each bounded by 92vw, with a scrim.
+
+Both desktop panels support pinned, collapsed, and opt-in auto-hide modes.
+Widths (navigator 200–420px, inspector 280–480px) and modes persist locally.
+Collapsed panels release their full column and reopen from the context ribbon.
+Auto-hide leaves a small reveal control and opens the panel over the canvas;
+pointer presence, keyboard focus, and resizing prevent dismissal. Reveals use
+a short slide, removed under reduced motion. Narrow screens use explicit drawers
+instead of hover behavior. Resizing supports pointer dragging and arrow keys.
 
 Recurring spacing uses compact 4px gaps, 8px inline separation, 12px field gaps,
 16px inspector insets, and 20px section endings. These are extracted repeated
@@ -358,13 +390,17 @@ insets at 700px and below. Footprint workspace padding changes from 35px 38px
 
 **The Stationary Controls Rule.** Scope and snap controls remain anchored to the workspace while world geometry pans and zooms.
 
+The Case view uses the shared footer for its 3D Fit and zoom controls. Its zoom
+percentage is relative to the fitted camera; 2D scale, axes, coordinates, and
+snap status do not appear over the perspective preview. Assembly metadata stays
+at the upper left, and the visual-preview limitation stays at the lower left.
+
 ## Elevation & Depth
 
 Persistent panels are flat and separated by fine rules and surface tone. Menus,
 component flyouts, and mobile drawers use offset shadows to establish their
 position above the workspace. Floating canvas hints and 3D controls have smaller
-shadows. The existing save/live status halo is a legacy exception, not the
-structural shadow vocabulary.
+shadows. Save/live dots use the success foreground and have no halo in the unified shell.
 
 - Project menu: `0 8px 24px rgb(0 0 0 / 20%)`.
 - Component flyout: `0 8px 24px rgb(0 0 0 / 24%)`.
@@ -375,10 +411,10 @@ structural shadow vocabulary.
 
 ## Shapes
 
-Fields and rows have slight rounding (3px); action buttons use 4px. Menus use
-5px and the component flyout uses 8px. Persistent workspace panels remain
-rectangular. Canvas scope and snap docks are the deliberate rounded exception
-(24px), with circular scope buttons (34px square).
+Unified inspector fields and action buttons use 4px corners; command buttons
+use 3px, menus 5px. Persistent workspace panels remain rectangular. Selection
+modes live in a labeled command menu; the earlier rounded floating scope dock
+is superseded.
 
 Thin rules organize the dense controls. Selection makes the relevant boundary
 stronger rather than changing the object's silhouette. Inline SVG icons use
@@ -401,15 +437,28 @@ buttons are dimmed, commonly to 0.42 opacity; specific controls vary.
 ### Fields
 
 Fields combine a label, editable value, and adjacent unit. Numeric fields use a
-3px outline and 34px inspector minimum height. Ordinary name fields are 32px;
+1px outline, 4px corners, and a 34px inspector minimum height (42px at 1440px). Ordinary name fields are 32px;
 generator text fields use 7px 8px padding. Focus changes the field border and/or
 adds a visible ring. Error text remains beside the operation that produced it.
 
 ### Stage navigation and preview switching
 
-Stage tabs combine outline icons and labels. Active tabs use a 2px action-colored
+Design and Parts tabs use text labels. Export is a labeled, icon-only action at
+the upper right beside Undo/Redo; Project, history, and Export use quiet buttons
+with hover and keyboard-focus feedback rather than permanent outlined boxes.
+Layout, PCB, and Case are linked object-tree branches. Active tabs use a 2px action-colored
 bottom rule, stronger text, and weight 700. The Parts preview uses two small
 outlined buttons with pressed state, switching between 2D footprint and 3D model.
+
+Add groups Layouts, contextual matrix actions, Parts, and Board geometry into
+named sections. A short common-parts list expands through search, while Browse
+all parts opens the library. Mirrored pair opens a focused setup over the canvas,
+then previews both halves and a centre axis before a single placement action.
+The halves become named layouts beneath the board. Their key geometry is linked
+in both editing directions; switch choices and components remain local. The
+inspector names the partner and offers Unlink halves. Add provides a layout
+destination for extra components, which can also be reassigned in the inspector.
+Board outline, PCB, and case settings remain shared at board level.
 
 ### Catalog rows and metadata tags
 

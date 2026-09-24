@@ -76,3 +76,24 @@ test('cancelled and superseded draft replies cannot restore an obsolete ghost', 
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.is-placement-preview')).toHaveCount(0);
 });
+
+test('paired drafts share one request and translate together', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Mirrored pair…', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Rows per half', exact: true }).fill('2');
+  await page.getByRole('spinbutton', { name: 'Columns per half', exact: true }).fill('3');
+  await page.getByRole('button', { name: 'Preview placement', exact: true }).click();
+  const ghosts = page.locator('.wb-matrix-ghost.is-placement-preview');
+  await expect(ghosts).toHaveCount(2);
+  await expect(ghosts.nth(0).locator('.wb-matrix-cell')).toHaveCount(6);
+  await expect(ghosts.nth(1).locator('.wb-matrix-cell')).toHaveCount(6);
+  expect(await page.evaluate(() => window.matrixDraftTest.requests)).toBe(1);
+  const before = await ghosts.first().evaluate((element) => element.parentElement?.getAttribute('transform'));
+  const bounds = (await page.locator('.wb-canvas').boundingBox())!;
+  await page.mouse.move(bounds.x + bounds.width * 0.65, bounds.y + bounds.height * 0.65);
+  await nextPaint(page);
+  expect(await ghosts.first().evaluate((element) => element.parentElement?.getAttribute('transform'))).not.toBe(before);
+  expect(await page.evaluate(() => window.matrixDraftTest.requests)).toBe(1);
+  await page.keyboard.press('Escape');
+  await expect(ghosts).toHaveCount(0);
+});

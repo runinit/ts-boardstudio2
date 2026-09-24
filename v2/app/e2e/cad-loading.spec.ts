@@ -8,7 +8,7 @@ test('CAD kernel loads its glue and builds a case preview', async ({ page }) => 
   });
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('tab', { name: 'Case', exact: true }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole('alert')).toHaveCount(0);
   expect(failed).toEqual([]);

@@ -1403,6 +1403,573 @@
           }
         }
       ]
+    },
+    {
+      "name": "none-custom-origins",
+      "sourceRevision": "1695dba",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [],
+        "mirror": "none",
+        "columnOrigins": [
+          null,
+          {
+            "x": -2,
+            "y": -17
+          },
+          {
+            "x": 30,
+            "y": 4
+          }
+        ]
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 7.152894557070724,
+              "y": -1.5453054609622
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 15.176278150236557,
+              "y": 9.258620487244208
+            },
+            "rotation": 56
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": 24.021546727465214,
+              "y": 25.780895693804837
+            },
+            "rotation": 48
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": -2.4906897753223554,
+              "y": 12.596875460805938
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 0.8322983130187076,
+              "y": 23.758628846879308
+            },
+            "rotation": 69
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": 12.726345907067234,
+              "y": 38.64240565286021
+            },
+            "rotation": 48
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": -16.465230486587537,
+              "y": 25.62423942705759
+            },
+            "rotation": 41
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": -14.669074461744938,
+              "y": 29.38956501219109
+            },
+            "rotation": 56
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": -2.7316669897209778,
+              "y": 49.86959752272372
+            },
+            "rotation": 48
+          }
+        }
+      ]
+    },
+    {
+      "name": "x-custom-origins",
+      "sourceRevision": "1695dba",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [],
+        "mirror": "x",
+        "columnOrigins": [
+          null,
+          {
+            "x": -2,
+            "y": -17
+          },
+          {
+            "x": 30,
+            "y": 4
+          }
+        ]
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 5.559514408902528,
+              "y": -2.746003524967734
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": -7.037430009188098,
+              "y": -7.4806092640917266
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": -25.3577467371247,
+              "y": -11.429070887651328
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": -5.376690322243779,
+              "y": 10.42211806007442
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": -17.02199596186766,
+              "y": 10.304453084311557
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": -34.60764432513735,
+              "y": 2.973685605856353
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": -14.047490851638443,
+              "y": 27.446136921067527
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": -18.1620418066862,
+              "y": 26.757425322533795
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": -41.139108021531484,
+              "y": 20.92751477911868
+            },
+            "rotation": 26
+          }
+        }
+      ]
+    },
+    {
+      "name": "y-custom-origins",
+      "sourceRevision": "1695dba",
+      "matrix": {
+        "id": "fixture",
+        "rows": 3,
+        "columns": 3,
+        "definitionId": "switch",
+        "origin": {
+          "x": 7,
+          "y": -3
+        },
+        "pitch": {
+          "x": 19,
+          "y": 18
+        },
+        "rotation": 37,
+        "columnSplays": [
+          4,
+          15,
+          -8
+        ],
+        "columnStaggers": [
+          1,
+          -2,
+          3
+        ],
+        "rowOffsets": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 2,
+            "y": -1
+          }
+        ],
+        "columnOffsets": [
+          {
+            "x": 1,
+            "y": 0
+          }
+        ],
+        "cells": [
+          {
+            "row": 1,
+            "column": 1,
+            "enabled": false,
+            "offset": {
+              "x": 2,
+              "y": 3
+            },
+            "rotation": 13
+          }
+        ],
+        "partIds": [],
+        "mirror": "y",
+        "columnOrigins": [
+          null,
+          {
+            "x": -2,
+            "y": -17
+          },
+          {
+            "x": 30,
+            "y": 4
+          }
+        ]
+      },
+      "parts": [],
+      "expected": [
+        {
+          "row": 0,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c0",
+          "pose": {
+            "at": {
+              "x": 8.440485591097472,
+              "y": -3.253996475032266
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c1",
+          "pose": {
+            "at": {
+              "x": 21.037430009188096,
+              "y": 1.4806092640917266
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r0c2",
+          "pose": {
+            "at": {
+              "x": 39.3577467371247,
+              "y": 5.429070887651328
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c0",
+          "pose": {
+            "at": {
+              "x": 19.37669032224378,
+              "y": -16.42211806007442
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "enabled": false,
+          "pose": {
+            "at": {
+              "x": 31.02199596186766,
+              "y": -16.304453084311557
+            },
+            "rotation": 31
+          }
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r1c2",
+          "pose": {
+            "at": {
+              "x": 48.60764432513735,
+              "y": -8.973685605856353
+            },
+            "rotation": 26
+          }
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c0",
+          "pose": {
+            "at": {
+              "x": 28.047490851638443,
+              "y": -33.44613692106753
+            },
+            "rotation": 33
+          }
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c1",
+          "pose": {
+            "at": {
+              "x": 32.162041806686204,
+              "y": -32.7574253225338
+            },
+            "rotation": 18
+          }
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "enabled": true,
+          "memberId": "matrix/fixture/r2c2",
+          "pose": {
+            "at": {
+              "x": 55.139108021531484,
+              "y": -26.92751477911868
+            },
+            "rotation": 26
+          }
+        }
+      ]
     }
   ]
 }

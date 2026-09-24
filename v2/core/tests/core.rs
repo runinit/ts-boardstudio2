@@ -1217,6 +1217,370 @@ fn matrix_doc() -> ProjectDoc {
     doc
 }
 
+fn mirrored_pair_request(base: u64, phase: &str) -> String {
+    serde_json::json!({
+        "kind": "edit", "id": "pair",
+        "command": {"baseRevision": base, "transactionId": "pair", "phase": phase, "targetIds": [],
+            "operation": {"kind": "create-mirrored-pair",
+                "matrix": {"id": "left-matrix", "rows": 2, "columns": 3, "pitch": {"x": 19, "y": 19},
+                    "origin": {"x": -20, "y": 5}, "mirror": "x", "definitionId": "switch", "boardId": "board", "partIds": []},
+                "left": {"id": "left-layout", "name": "Left half", "boardId": "board", "matrixId": "left-matrix", "partIds": []},
+                "right": {"id": "right-layout", "name": "Right half", "boardId": "board", "matrixId": "right-matrix", "partIds": [],
+                    "mirrorLink": {"sourceId": "left-layout", "axisX": 10}}
+            }
+        }
+    }).to_string()
+}
+
+#[test]
+fn mirrored_pair_is_atomic_and_survives_history_and_reopen() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let response = engine.request(&mirrored_pair_request(0, "commit"));
+    let (_, document) = scene(serde_json::from_str(&response).unwrap());
+    assert_eq!(document.matrices.len(), 2);
+    assert_eq!(document.parts.len(), 12);
+    assert_eq!(document.boards[0].part_ids.len(), 12);
+    let serialized = serde_json::to_value(&document).unwrap();
+    assert_eq!(
+        serialized["layouts"][1]["mirrorLink"]["sourceId"],
+        "left-layout"
+    );
+    let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert!(undone.matrices.is_empty());
+    assert!(undone.parts.is_empty());
+    let (_, redone) = scene(engine.handle(CoreRequest::Redo { id: "redo".into() }));
+    assert_eq!(redone.parts, document.parts);
+    let (_, reopened) = scene(engine.handle(CoreRequest::Open {
+        id: "reopen".into(),
+        document: serde_json::from_value(serialized).unwrap(),
+    }));
+    assert_eq!(reopened.parts, document.parts);
+}
+
+fn linked_pair() -> (CoreEngine, ProjectDoc) {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let response = engine.request(&mirrored_pair_request(0, "commit"));
+    let (_, doc) = scene(serde_json::from_str(&response).unwrap());
+    (engine, doc)
+}
+
+fn assert_reflected_keys(doc: &ProjectDoc) {
+    for left in doc.parts.iter().filter(|part| {
+        part.id.starts_with("matrix/left-matrix/") && part.id.matches('/').count() == 2
+    }) {
+        let right = doc
+            .parts
+            .iter()
+            .find(|part| part.id == left.id.replace("left-matrix", "right-matrix"))
+            .unwrap();
+        assert!(
+            (left.pose.at.x + right.pose.at.x - 20.0).abs() < 1e-8,
+            "{left:?} {right:?}"
+        );
+        assert!((left.pose.at.y - right.pose.at.y).abs() < 1e-8);
+        assert!((left.pose.rotation + right.pose.rotation).abs() < 1e-8);
+    }
+}
+
+#[test]
+fn mirrored_pair_links_geometry_bidirectionally_and_keeps_hardware_local() {
+    let (mut engine, mut doc) = linked_pair();
+    let mut right = doc.matrices[1].clone();
+    right.cells.push(MatrixCell {
+        row: 0,
+        column: 1,
+        enabled: true,
+        variant: Some("right-only".into()),
+        diode: Some(false),
+        definition_id: None,
+        offset: None,
+        rotation: None,
+        assemblies: vec![MatrixAssembly {
+            id: "encoder".into(),
+            definition_id: "switch".into(),
+            offset: Vec2 { x: 3.0, y: -11.0 },
+            rotation: Some(22.0),
+            side: None,
+        }],
+    });
+    doc = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: right,
+            definitions: None,
+        },
+    )))
+    .1;
+    for side in [0, 1] {
+        let mut matrix = doc.matrices[side].clone();
+        matrix.rows = 3;
+        matrix.pitch = Vec2 { x: 20.0, y: 18.0 };
+        matrix.column_staggers = vec![2.0, -3.0, 7.0];
+        matrix.column_splays = vec![5.0, 12.0, -8.0];
+        matrix.column_origins = vec![
+            Some(Vec2 { x: -9.0, y: 17.0 }),
+            None,
+            Some(Vec2 { x: 25.0, y: -12.0 }),
+        ];
+        matrix.rotation = Some(13.0);
+        matrix
+            .cells
+            .retain(|cell| cell.row != 1 || cell.column != 2);
+        matrix.cells.push(MatrixCell {
+            row: 1,
+            column: 2,
+            enabled: false,
+            diode: None,
+            definition_id: None,
+            variant: None,
+            offset: None,
+            rotation: None,
+            assemblies: vec![],
+        });
+        let cell = matrix
+            .cells
+            .iter_mut()
+            .find(|cell| cell.row == 0 && cell.column == 1)
+            .unwrap();
+        cell.offset = Some(Vec2 { x: 2.0, y: 4.0 });
+        cell.rotation = Some(7.0);
+        doc = scene(engine.handle(edit(
+            doc.revision,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix,
+                definitions: None,
+            },
+        )))
+        .1;
+        assert_reflected_keys(&doc);
+        assert_eq!(doc.matrices[0].rows, 3);
+        assert_eq!(doc.matrices[1].rows, 3);
+        assert!(
+            !doc.parts
+                .iter()
+                .any(|part| part.id == "matrix/left-matrix/r1c2"
+                    || part.id == "matrix/right-matrix/r1c2")
+        );
+        assert!(
+            !doc.parts
+                .iter()
+                .any(|part| part.id == "matrix/left-matrix/r0c1/encoder")
+        );
+        let companion = doc.matrices[1]
+            .cells
+            .iter()
+            .find(|cell| cell.row == 0 && cell.column == 1)
+            .unwrap();
+        assert_eq!(companion.variant.as_deref(), Some("right-only"));
+        assert_eq!(companion.assemblies[0].offset.x, 3.0);
+    }
+}
+
+#[test]
+fn mirrored_pair_previews_restore_both_halves_and_nudges_stay_parametric() {
+    let (mut engine, doc) = linked_pair();
+    let mut next = doc.matrices[1].clone();
+    next.columns = 4;
+    preview(engine.handle(edit(
+        doc.revision,
+        EditPhase::Preview,
+        EditOperation::SetMatrix {
+            matrix: next,
+            definitions: None,
+        },
+    )));
+    let snapshot = scene(engine.handle(CoreRequest::Snapshot {
+        id: "snapshot".into(),
+    }))
+    .1;
+    assert_eq!(snapshot, doc);
+    let id = "matrix/right-matrix/r0c0";
+    let original = doc.parts.iter().find(|part| part.id == id).unwrap();
+    let operation = EditOperation::MoveParts {
+        positions: vec![Position {
+            id: id.into(),
+            at: Vec2 {
+                x: original.pose.at.x + 4.0,
+                y: original.pose.at.y + 3.0,
+            },
+        }],
+    };
+    preview(engine.handle(edit(doc.revision, EditPhase::Preview, operation.clone())));
+    assert_eq!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1,
+        doc
+    );
+    let doc = scene(engine.handle(edit(doc.revision, EditPhase::Commit, operation))).1;
+    assert_reflected_keys(&doc);
+    assert!(doc.matrices[1].cells[0].offset.is_some());
+    let mut grow = doc.matrices[0].clone();
+    grow.columns += 1;
+    let grown = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: grow,
+            definitions: None,
+        },
+    )))
+    .1;
+    assert_eq!(
+        grown.parts.iter().find(|part| part.id == id).unwrap().pose,
+        doc.parts.iter().find(|part| part.id == id).unwrap().pose
+    );
+    assert_reflected_keys(&grown);
+}
+
+#[test]
+fn mirrored_pair_keeps_extra_components_local_and_unlink_preserves_poses() {
+    let (mut engine, doc) = linked_pair();
+    let mut local = doc.parts[0].clone();
+    local.id = "left-encoder".into();
+    local.reference = "ENC1".into();
+    let mut doc = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::AddPart {
+            part: local.clone(),
+            board_id: Some("board".into()),
+        },
+    )))
+    .1;
+    let mut left = doc.layouts[0].clone();
+    left.part_ids.push(local.id.clone());
+    doc = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::SetLayout { layout: left },
+    )))
+    .1;
+    let mut right = doc.matrices[1].clone();
+    right.column_staggers = vec![7.0];
+    doc = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: right,
+            definitions: None,
+        },
+    )))
+    .1;
+    assert_eq!(
+        doc.parts.iter().find(|part| part.id == local.id),
+        Some(&local)
+    );
+    assert!(doc.layouts[1].part_ids.is_empty());
+    let mut independent = doc.layouts[1].clone();
+    independent.mirror_link = None;
+    let unlinked = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::SetLayout {
+            layout: independent,
+        },
+    )))
+    .1;
+    assert_eq!(unlinked.parts, doc.parts);
+    let mut change = unlinked.matrices[0].clone();
+    change.rows += 1;
+    let changed = scene(engine.handle(edit(
+        unlinked.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: change,
+            definitions: None,
+        },
+    )))
+    .1;
+    assert_eq!(changed.matrices[1], unlinked.matrices[1]);
+}
+
+#[test]
+fn mirrored_pair_deletion_keeps_surviving_half_and_cleans_membership() {
+    let (mut engine, doc) = linked_pair();
+    let removed = scene(engine.handle(edit(
+        doc.revision,
+        EditPhase::Commit,
+        EditOperation::RemoveParts {
+            ids: vec!["matrix/left-matrix/r0c0".into()],
+        },
+    )))
+    .1;
+    assert_eq!(removed.parts.len(), 10);
+    assert_reflected_keys(&removed);
+    let surviving = removed.matrices[1].clone();
+    let removed = scene(engine.handle(edit(
+        removed.revision,
+        EditPhase::Commit,
+        EditOperation::RemoveMatrix {
+            id: "left-matrix".into(),
+        },
+    )))
+    .1;
+    assert_eq!(removed.matrices, vec![surviving]);
+    assert_eq!(removed.layouts.len(), 1);
+    assert!(removed.layouts[0].mirror_link.is_none());
+    assert_eq!(removed.parts.len(), 5);
+}
+
+#[test]
+fn mirrored_pair_invalid_links_and_failed_previews_do_not_change_document() {
+    let (mut engine, doc) = linked_pair();
+    let mut invalid = doc.matrices[0].clone();
+    invalid.mirror = Some(Mirror::Y);
+    assert!(matches!(
+        engine.handle(edit(
+            doc.revision,
+            EditPhase::Preview,
+            EditOperation::SetMatrix {
+                matrix: invalid,
+                definitions: None
+            }
+        )),
+        CoreReply::Error { .. }
+    ));
+    assert_eq!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1,
+        doc
+    );
+    let mut cycle = doc.layouts[0].clone();
+    cycle.mirror_link = Some(LayoutMirrorLink {
+        source_id: "right-layout".into(),
+        axis_x: 10.0,
+    });
+    assert!(matches!(
+        engine.handle(edit(
+            doc.revision,
+            EditPhase::Commit,
+            EditOperation::SetLayout { layout: cycle }
+        )),
+        CoreReply::Error { .. }
+    ));
+    assert_eq!(
+        scene(engine.handle(CoreRequest::Snapshot {
+            id: "snapshot".into()
+        }))
+        .1,
+        doc
+    );
+}
+
 fn matrix(rows: u32, columns: u32) -> Matrix {
     Matrix {
         id: "main".into(),
@@ -1237,6 +1601,7 @@ fn matrix(rows: u32, columns: u32) -> Matrix {
         column_offsets: vec![],
         column_staggers: vec![],
         column_splays: vec![],
+        column_origins: vec![],
         cells: vec![],
     }
 }
@@ -2404,4 +2769,54 @@ fn deleting_matrix_removes_its_container_and_parts_in_one_edit() {
         id: "undo-empty".into(),
     }));
     assert_eq!(restored_empty.matrices, empty.matrices);
+}
+
+#[test]
+fn matrix_custom_splay_origin_survives_export_and_resize() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(2, 3);
+    value.pitch = Vec2 { x: 20.0, y: 20.0 };
+    value.column_splays = vec![0.0, 90.0];
+    value.column_origins = vec![None, Some(Vec2 { x: 0.0, y: -20.0 })];
+    let (_, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    let key = doc
+        .parts
+        .iter()
+        .find(|p| p.id == "matrix/main/r0c1")
+        .unwrap();
+    assert!((key.pose.at.x + 20.0).abs() < 1e-9);
+    assert!(key.pose.at.y.abs() < 1e-9);
+    assert_eq!(key.pose.rotation, 90.0);
+    let reopened: ProjectDoc = serde_json::from_str(&serde_json::to_string(&doc).unwrap()).unwrap();
+    assert_eq!(
+        reopened.matrices[0].column_origins[1],
+        Some(Vec2 { x: 0.0, y: -20.0 })
+    );
+    let mut value = reopened.matrices[0].clone();
+    value.columns = 1;
+    let (_, shrunk) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    assert_eq!(shrunk.matrices[0].column_origins, vec![None]);
+    let (_, restored) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(
+        restored.matrices[0].column_origins,
+        reopened.matrices[0].column_origins
+    );
 }

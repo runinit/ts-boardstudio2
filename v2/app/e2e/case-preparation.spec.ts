@@ -23,7 +23,7 @@ test('lazily loads CAD and prepares a current case preview and STEP export offli
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await expect.poll(() => wasmRequests.size).toBeGreaterThan(0);
   const wasmBeforeCase = wasmRequests.size;
-  await page.getByRole('tab', { name: 'Case', exact: true }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => wasmRequests.size).toBeGreaterThan(wasmBeforeCase);
   await page.getByRole('combobox', { name: 'Body type' }).selectOption('tray');
@@ -84,10 +84,10 @@ test('lazily loads CAD and prepares a current case preview and STEP export offli
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('tab', { name: 'Case', exact: true }).click();
+  await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
 
-  await page.getByRole('tab', { name: 'Export', exact: true }).click();
+  await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'Case STEP' }).getByRole('button', { name: 'Export' }).click();
   expect((await download).suggestedFilename()).toBe('Starter keyboard-case.step');

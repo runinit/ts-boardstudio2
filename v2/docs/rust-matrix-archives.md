@@ -124,7 +124,7 @@ Boundary diagnostics from the final driver run:
   was 168,898,560 bytes at measurement. This includes the parity harness and is
   not a browser peak-memory guarantee or a worst-case archive-limit stress test.
 
-## UI integration checkpoint
+## Original UI integration checkpoint
 
 Before any combined merge, wait for the UI work to be committed, compare its final
 matrix schema and splay semantics against this branch, and reconcile
@@ -132,3 +132,67 @@ matrix schema and splay semantics against this branch, and reconcile
 projection-parity and UI interaction tests on that combined revision. Passing
 results on this isolated branch do not establish compatibility with pending UI
 changes. Keep the mechanical Workbench adapter commit separate for that review.
+
+## Completed UI reconciliation
+
+The reconciliation recorded with this report integrates UI commit `1695dba`
+(`Unify v2 workbench and add linked mirrored layouts`) into the migration branch
+at `ec48a5b`. The active `codex/rearchitecture` checkout was left unchanged.
+The earlier isolated validation above remains historical; the combined checks
+below apply to the reconciliation committed with this report.
+
+Rust now preserves `columnOrigins` in document and draft projections, including
+custom pivots through successive splays, matrix rotation and mirrors. Each column
+projection also carries its world-space splay origin, local angle and custom-origin
+flag. The new `set-matrix-splay` edit owns origin compensation and the distinction
+between one-column and following-column edits, synchronizing linked layouts from
+either half. The browser retains pointer angles, snapping and request scheduling.
+The UI's three former TypeScript geometry tests were ported to Rust; the duplicated
+TypeScript splay geometry implementation was removed.
+
+Paired placement requests both halves in one origin-zero draft batch. Pointer
+movement translates their shared SVG group without further projection requests.
+The existing revision/request guards reject cancelled and superseded replies.
+The finished UI's navigation, panels and styles are preserved.
+
+Additional verification includes:
+
+- Four native splay tests and three real mirrored-pair protocol tests covering
+  custom origins, compensation, preview/snapshot isolation, commit equivalence,
+  edits from either half, and undo/redo.
+- Three custom-origin projection fixtures captured directly from the UI geometry
+  implementation at `1695dba`, covering none/X/Y mirrors with rotation and splay.
+- Draft origin bounds/finite validation and paired ghost caching/cancellation.
+- Native/WASM parity expanded to 13 core requests and 9 archive requests.
+- Independent review of the full Workbench reconciliation and linked tests.
+
+The first browser attempt exposed a conflict-resolution omission of the new
+Layout/PCB/Case tree branches; the original UI branches were restored. A subsequent
+run passed 96/97 tests and exposed a narrow-screen test race: CSS responded to the
+viewport before React's media-query state applied `is-compact`. The test now waits
+for that state before its unchanged overflow assertion. Ten repeated focused runs
+passed. No CSS change or threshold adjustment was needed.
+
+Final combined validation:
+
+- `pnpm run check:v2`: passed, including generated contracts/catalogue, runtime
+  imports, native/package tests, feature-off WASM, native/WASM parity, 43 app unit
+  tests and all 97 browser tests. This includes custom-origin interaction,
+  cancellation, mirrored-layout archive save/reopen, matrix and pointer latency.
+- `pnpm run test:perf:v2`: all five serial sessions passed unchanged thresholds,
+  with no other agent builds/tests running during measurement. Median worker /
+  painted p95: 100-single 3.7 / 33.7 ms; 100-row 3.2 / 33.5 ms; 200-single
+  5.4 / 33.7 ms; 200-row 4.6 / 35.2 ms.
+
+`pnpm precommit` also passed: 155 test files and 1,069 legacy tests. Its existing
+DesignSetupPanel hook-dependency lint warning remains unrelated to this change.
+
+Combined diagnostics: raw WASM 3,362,186 bytes; synchronous initialization 5.2 ms
+(one Node sample); nine-cell scene 1,493 bytes; 500-cell draft 55,945 bytes. The
+four-MiB archive probe produced a 4,196,452-byte ZIP with 14,614,528-byte WASM
+linear-memory high water and 180,187,136-byte Node peak RSS. These remain limited
+harness observations, not worst-case archive or browser memory guarantees.
+
+The active UI checkout remains at `1695dba`; no merge back, push or deployment was
+performed. Further UI work beyond that revision requires another integration
+check. Validation used the same installed Chromium/environment described above.

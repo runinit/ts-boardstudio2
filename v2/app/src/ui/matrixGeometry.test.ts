@@ -3,10 +3,12 @@ import { matrixSceneAdapter } from './matrixGeometry';
 
 test('indexes Rust matrix scene cells and column bases', () => {
   const pose = { at: { x: 12, y: -4 }, rotation: 17 };
-  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 1, column: 2, enabled: false, pose }], columns: [{ column: 2, axisX: { x: 0, y: 1 }, axisY: { x: -1, y: 0 } }] });
+  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 1, column: 2, enabled: false, pose }], columns: [{ column: 2, splayOrigin: { x: 3, y: -7 }, splayAngle: 17, customOrigin: true, axisX: { x: 0, y: 1 }, axisY: { x: -1, y: 0 } }] });
   expect(adapter.pose(1, 2)).toEqual(pose);
   expect(adapter.member(1, 2)).toBeUndefined();
   expect(adapter.basis(2)?.axisY).toEqual({ x: -1, y: 0 });
+  expect(adapter.basis(2)?.splayOrigin).toEqual({ x: 3, y: -7 });
+  expect(adapter.basis(2)?.customOrigin).toBe(true);
   expect(adapter.pose(0, 0)).toBeUndefined();
 });
 
