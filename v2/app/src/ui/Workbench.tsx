@@ -19,7 +19,7 @@ import { componentPoseSvgTransform } from './CasePreview';
 import type { ComponentPreview } from './CasePreview';
 import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
 import { defaultOutlineSettings } from '../../../contracts/src/index';
-import { matrixCellId, matrixMembers, cellPose } from './matrixGeometry';
+import { matrixCellId, matrixSceneAdapter, type MatrixProjection, type MatrixScene } from './matrixGeometry';
 import { WorkbenchTree } from './WorkbenchTree';
 import { LibraryWorkspace, type LibraryModelStatus } from './LibraryWorkspace';
 import { InspectorSection } from './InspectorSection';
@@ -59,6 +59,7 @@ type Props = {
   libraryModelStatus?: LibraryModelStatus;
   onRequestCaseModels?: (boardId: string) => void;
   onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void;
+  onProjectMatrices?: (matrices: Matrix[]) => Promise<MatrixScene[] | undefined>;
   onModeChange?: (mode: Mode) => void;
   casePreview?: { positions: Float32Array; normals: Float32Array; revision: number };
   componentPreviews?: ComponentPreview[];
@@ -164,7 +165,7 @@ const systemColorScheme = (): 'light' | 'dark' => {
   }
 };
 
-const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onModeChange, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
+const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onProjectMatrices, onModeChange, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
   const [themePreference, setThemePreference] = useState<ThemePreference>(readThemePreference);
   const [systemScheme, setSystemScheme] = useState(systemColorScheme);
@@ -192,6 +193,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const [compiledPreview, setCompiledPreview] = useState<{ key: string; results: CompiledFootprint[]; error?: string; pending: boolean }>({ key: '', results: [], pending: false });
   const compileSequence = useRef(0);
   const [matrixGhost, setMatrixGhost] = useState<Matrix | null>(null);
+  const [matrixGhostScene, setMatrixGhostScene] = useState<MatrixScene | undefined>();
+  const matrixDraftSeq = useRef(0);
+  const matrixGhostProjection = useMemo(() => matrixSceneAdapter(matrixGhostScene), [matrixGhostScene]);
   const [snapFraction, setSnapFraction] = useState(0.25);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Vec2>({ x: 0, y: 0 });
@@ -421,21 +425,22 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const visibleParts = useMemo(() => [...parts.values()].filter((part) => boardPartIds.has(part.id)), [parts, boardPartIds]);
   const visibleMatrices = useMemo(() => document.matrices.filter((matrix) => matrix.boardId ? matrix.boardId === selectedBoardId : matrix.partIds.some((id) => boardPartIds.has(id)) || (!matrix.partIds.length && document.boards.length <= 1)), [document.matrices, selectedBoardId, boardPartIds, document.boards.length]);
   const matrixMap = useMemo(() => new Map(visibleMatrices.map((matrix) => [matrix.id, matrix])), [visibleMatrices]);
+  const matrixScenes = useMemo(() => new Map(scene.matrixScenes.map((item) => [item.matrixId, matrixSceneAdapter(item)])), [scene.matrixScenes]);
   const matrixCellOverrides = useMemo(() => new Map(visibleMatrices.map((matrix) => [
     matrix.id,
     new Map((matrix.cells ?? []).map((cell) => [`${cell.row}:${cell.column}`, cell])),
   ])), [visibleMatrices]);
-  const memberMaps = useMemo(() => new Map(visibleMatrices.map((matrix) => [matrix.id, matrixMembers(matrix)])), [visibleMatrices]);
+  const memberMaps = useMemo(() => new Map(visibleMatrices.map((matrix) => [matrix.id, matrixScenes.get(matrix.id)?.members ?? new Map<string, string>()])), [visibleMatrices, matrixScenes]);
   const matrixPartLookup = useMemo(() => {
     const lookup = new Map<string, { matrixId: string; row: number; column: number; assemblyId?: string }>();
     for (const matrix of visibleMatrices) {
-      for (let row = 0; row < matrix.rows; row += 1) {
-        for (let column = 0; column < matrix.columns; column += 1) {
-          lookup.set(memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column), { matrixId: matrix.id, row, column });
-          const cell = matrixCellOverrides.get(matrix.id)?.get(`${row}:${column}`);
-          for (const assembly of cell?.assemblies ?? []) lookup.set(`${memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column)}/${assembly.id}`, { matrixId: matrix.id, row, column, assemblyId: assembly.id });
-          if (matrix.diodes && cell?.diode !== false) lookup.set(`${memberMaps.get(matrix.id)?.get(`${row}:${column}`) ?? matrixCellId(matrix.id, row, column)}/diode`, { matrixId: matrix.id, row, column, assemblyId: 'diode' });
-        }
+      for (const projected of matrixScenes.get(matrix.id)?.scene?.cells ?? []) {
+        const { row, column, memberId } = projected;
+        if (!memberId) continue;
+        lookup.set(memberId, { matrixId: matrix.id, row, column });
+        const cell = matrixCellOverrides.get(matrix.id)?.get(`${row}:${column}`);
+        for (const assembly of cell?.assemblies ?? []) lookup.set(`${memberId}/${assembly.id}`, { matrixId: matrix.id, row, column, assemblyId: assembly.id });
+        if (matrix.diodes && cell?.diode !== false) lookup.set(`${memberId}/diode`, { matrixId: matrix.id, row, column, assemblyId: 'diode' });
       }
       for (const id of matrix.partIds) {
         if (lookup.has(id)) continue;
@@ -447,7 +452,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       }
     }
     return lookup;
-  }, [visibleMatrices, matrixCellOverrides, memberMaps]);
+  }, [visibleMatrices, matrixCellOverrides, matrixScenes]);
   const activeConstraint = activePart
     ? document.constraints.find((constraint) => constraint.targetPartId === activePart.id && boardPartIds.has(constraint.sourcePartId))
     : undefined;
@@ -465,7 +470,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const selectedBoardReadiness = selectedBoard ? scene.boardReadiness?.find((entry) => entry.boardId === selectedBoard.id) : undefined;
   const boardReady = selectedBoardReadiness?.pcb ?? (document.boards.length <= 1 ? scene.readiness.pcb : false);
   const caseReady = Boolean(activeCaseBody) && (selectedBoardReadiness?.case ?? (document.boards.length <= 1 ? scene.readiness.case : false));
-  const bounds = useMemo(() => getBounds(poses, visibleParts, visibleContours, visibleMatrices), [poses, visibleParts, visibleContours, visibleMatrices]);
+  const bounds = useMemo(() => getBounds(poses, visibleParts, visibleContours, visibleMatrices, matrixScenes), [poses, visibleParts, visibleContours, visibleMatrices, matrixScenes]);
   const viewBounds = useMemo(() => cameraBounds(dragRef.current?.bounds ?? bounds, zoom, pan), [bounds, zoom, pan]);
   const readiness = scene.readiness;
   const modeReady = mode === 'Design' ? (selectedBoardReadiness?.outline ?? readiness.outline) : mode === 'PCB' ? boardReady : mode === 'Case' ? caseReady : false;
@@ -490,6 +495,23 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     setSelected([]);
     setScope(null);
   }, [selectedBoardIdProp, selectedBoard?.id]);
+
+  useEffect(() => {
+    if (!matrixGhost || !onProjectMatrices) {
+      setMatrixGhostScene(undefined);
+      return;
+    }
+    const requestId = ++matrixDraftSeq.current;
+    const draft = { ...matrixGhost, origin: { x: 0, y: 0 } };
+    setMatrixGhostScene(undefined);
+    void onProjectMatrices([draft]).then((scenes) => {
+      if (requestId !== matrixDraftSeq.current) return;
+      setMatrixGhostScene(scenes?.find((item) => item.matrixId === draft.id));
+    }).catch(() => {
+      if (requestId === matrixDraftSeq.current) setMatrixGhostScene(undefined);
+    });
+    return () => { matrixDraftSeq.current += 1; };
+  }, [matrixGhost?.id, matrixGhost?.rows, matrixGhost?.columns, matrixGhost?.definitionId, matrixGhost?.pitch, matrixGhost?.edgeGap, matrixGhost?.rowOffsets, matrixGhost?.columnOffsets, matrixGhost?.columnSplays, matrixGhost?.columnStaggers, matrixGhost?.mirror, matrixGhost?.rotation, matrixGhost?.cells, document.revision, onProjectMatrices]);
 
   useEffect(() => {
     setExpandedTree((current) => {
@@ -717,9 +739,12 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
         onToggle: () => toggleTree(matrixKey),
         onSelect: () => selectScope({ kind: 'matrix', matrixId: matrix.id }),
       });
-      if (!isExpanded) continue;
-      const groupCount = treeGrouping === 'column' ? matrix.columns : matrix.rows;
-      const keyCount = treeGrouping === 'column' ? matrix.rows : matrix.columns;
+      const projection = matrixScenes.get(matrix.id)?.scene;
+      if (!isExpanded || !projection) continue;
+      const columnCount = projection.columns.length;
+      const rowCount = projection.cells.length / columnCount;
+      const groupCount = treeGrouping === 'column' ? columnCount : rowCount;
+      const keyCount = treeGrouping === 'column' ? rowCount : columnCount;
       for (let group = 0; group < groupCount; group++) {
         const groupKey = `${treeGrouping}:${matrix.id}:${group}`;
         const groupExpanded = expandedTree.has(groupKey);
@@ -787,7 +812,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       });
     }
     return rows;
-  }, [selectedBoardId, selectedBoard?.name, visibleMatrices, treeVisibleParts, expandedTree, scope, treeParts, definitions, matrixCellOverrides, selectScope, toggleTree, treeGrouping, memberMaps, document.matrices]);
+  }, [selectedBoardId, selectedBoard?.name, visibleMatrices, treeVisibleParts, expandedTree, scope, treeParts, definitions, matrixCellOverrides, selectScope, toggleTree, treeGrouping, memberMaps, matrixScenes, document.matrices]);
 
   const nudgePart = (event: React.KeyboardEvent<Element>, part: Part) => {
     if (!event.key.startsWith('Arrow') || part.locked) return;
@@ -1928,8 +1953,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
             <rect x={bounds.minX} y={-bounds.maxY} width={bounds.width} height={bounds.height} fill="url(#wb-grid-large)" />
             <g transform="scale(1,-1)" style={outlineActive || pendingPart ? { pointerEvents: 'none' } : undefined}>
               {visibleContours.map((contour, index) => <polygon key={`contour-${index}`} points={contour.points.map((point) => `${point.x},${point.y}`).join(' ')} className={`wb-outline-shape ${contour.hole ? 'is-hole' : ''}`} />)}
-              {mode === 'Design' && matrixGhost && <MatrixGhost matrix={matrixGhost} cells={new Map()} scope={null} ghost onSelect={() => undefined} onStagger={() => undefined} />}
-              {mode === 'Design' && visibleMatrices.map((matrix) => <MatrixGhost key={matrix.id} matrix={matrix} parts={parts} members={memberMaps.get(matrix.id)} definitions={definitions} cells={matrixCellOverrides.get(matrix.id) ?? new Map()} scope={scope} onSelect={(row, column) => selectScope({ kind: 'key', matrixId: matrix.id, row, column })} onStagger={(event, axis, index) => startStagger(event, matrix, axis, index)} />)}
+              {mode === 'Design' && matrixGhost && matrixGhostScene && <g transform={`translate(${matrixGhost.origin.x} ${matrixGhost.origin.y})`}><MatrixGhost matrix={{ ...matrixGhost, origin: { x: 0, y: 0 } }} projection={matrixGhostProjection} scope={null} ghost onSelect={() => undefined} onStagger={() => undefined} /></g>}
+              {mode === 'Design' && visibleMatrices.map((matrix) => <MatrixGhost key={matrix.id} matrix={matrix} projection={matrixScenes.get(matrix.id)} parts={parts} definitions={definitions} scope={scope} onSelect={(row, column) => selectScope({ kind: 'key', matrixId: matrix.id, row, column })} onStagger={(event, axis, index) => startStagger(event, matrix, axis, index)} />)}
               {visibleParts.map((part) => {
                 const definition = definitions.get(part.definitionId);
                 return <ScenePart key={part.id} part={part} definition={definition} active={selectedIds.has(part.id)} constrained={constrainedTargetIds.has(part.id)} handlers={sceneHandlers} />;
@@ -2031,19 +2056,15 @@ const definitionIssues = (definition: PartDefinition): string[] => {
   return issues;
 };
 
-const getBounds = (poses: Map<string, Part['pose']>, visibleParts: Part[], visibleContours: SceneDelta['contours'], matrices: Matrix[]) => {
+const getBounds = (poses: Map<string, Part['pose']>, visibleParts: Part[], visibleContours: SceneDelta['contours'], matrices: Matrix[], matrixScenes: Map<string, MatrixProjection>) => {
   const all = [...visibleContours.flatMap((contour) => contour.points)];
   for (const part of visibleParts) all.push(poses.get(part.id)?.at ?? part.pose.at);
-  const renderedParts = new Map(visibleParts.map((part) => [part.id, part]));
   for (const matrix of matrices) {
-    const members = matrixMembers(matrix);
-    const cells = new Map((matrix.cells ?? []).map((cell) => [`${cell.row}:${cell.column}`, cell]));
+    const projection = matrixScenes.get(matrix.id);
     const size = { x: matrix.pitch.x / 2, y: matrix.pitch.y / 2 };
-    for (let row = 0; row < matrix.rows; row += 1) {
-      for (let column = 0; column < matrix.columns; column += 1) {
-        const center = cellPose(matrix, row, column, cells.get(`${row}:${column}`), members, renderedParts).at;
-        all.push({ x: center.x - size.x, y: center.y - size.y }, { x: center.x + size.x, y: center.y + size.y });
-      }
+    for (const cell of projection?.scene?.cells ?? []) {
+      const center = cell.pose.at;
+      all.push({ x: center.x - size.x, y: center.y - size.y }, { x: center.x + size.x, y: center.y + size.y });
     }
   }
   all.push({ x: -35, y: -25 }, { x: 35, y: 25 });
@@ -2105,35 +2126,24 @@ const createPart = (definition: PartDefinition, parts: Part[]): Part => {
   };
 };
 
-const MatrixGhost = memo(({ matrix, cells, scope, onSelect, onStagger, ghost = false, parts = new Map(), members = new Map(), definitions = new Map() }: {
+const MatrixGhost = memo(({ matrix, scope, onSelect, onStagger, ghost = false, parts = new Map(), definitions = new Map(), projection }: {
   matrix: Matrix;
-  cells: Map<string, MatrixCell>;
   scope: SelectionScope | null;
   ghost?: boolean;
   parts?: Map<string, Part>;
-  members?: Map<string, string>;
   definitions?: Map<string, PartDefinition>;
+  projection?: MatrixProjection;
   onSelect: (row: number, column: number) => void;
   onStagger: (event: React.PointerEvent<SVGElement>, axis: 'row' | 'column', index: number) => void;
 }) => {
-  const handleOffset = (x: number, y: number, column = 0): Vec2 => {
-    const splay = (matrix.columnSplays ?? []).slice(0, column + 1).reduce((sum, angle) => sum + angle, 0) * Math.PI / 180;
-    [x, y] = [x * Math.cos(splay) - y * Math.sin(splay), x * Math.sin(splay) + y * Math.cos(splay)];
-    if (matrix.mirror === 'x') x *= -1;
-    if (matrix.mirror === 'y') y *= -1;
-    const angle = (matrix.rotation ?? 0) * Math.PI / 180;
-    return { x: x * Math.cos(angle) - y * Math.sin(angle), y: x * Math.sin(angle) + y * Math.cos(angle) };
-  };
+  if (!projection?.scene) return null;
   const keyWidth = Math.max(1, matrix.pitch.x - (matrix.edgeGap?.x ?? 1));
   const keyHeight = Math.max(1, matrix.pitch.y - (matrix.edgeGap?.y ?? 1));
   return <g className={`wb-matrix-ghost ${ghost ? 'is-placement-preview' : ''}`} aria-label={`Matrix ${matrix.rows} by ${matrix.columns}`}>
-    {Array.from({ length: matrix.rows }, (_, row) => Array.from({ length: matrix.columns }, (_, column) => {
-      const cell = cells.get(`${row}:${column}`);
-      const enabled = ghost || cell?.enabled !== false;
+    {projection?.scene?.cells.map(({ row, column, enabled, pose, memberId }) => {
       if (!enabled) return null;
-      const pose = cellPose(matrix, row, column, cell, members, parts);
       const center = pose.at;
-      const part = parts.get(members.get(`${row}:${column}`) ?? '');
+      const part = parts.get(memberId ?? '');
       const keycap = part?.keycap ?? definitions.get(part?.definitionId ?? matrix.definitionId)?.keycap;
       const selected = scope?.matrixId === matrix.id && scope.row === row && scope.column === column && ['key', 'component'].includes(scope.kind);
       const transform = `translate(${center.x} ${center.y}) rotate(${pose.rotation})`;
@@ -2159,17 +2169,23 @@ const MatrixGhost = memo(({ matrix, cells, scope, onSelect, onStagger, ghost = f
           onSelect(row, column);
         }}
       />;
-    }))}
-    {Array.from({ length: matrix.rows }, (_, row) => {
-      const point = cellPose(matrix, row, 0, cells.get(`${row}:0`), members, parts).at;
-      const offset = handleOffset(-matrix.pitch.x * 0.9, 0);
+    })}
+    {projection.scene.cells.filter((cell) => cell.column === 0).map(({ row }) => {
+      const point = projection?.pose(row, 0)?.at;
+      if (!point) return null;
+      const basis = projection?.basis(0);
+      if (!basis) return null;
+      const offset = { x: -matrix.pitch.x * 0.9 * basis.axisX.x, y: -matrix.pitch.x * 0.9 * basis.axisX.y };
       return <g key={`row-handle-${row}`} className="wb-stagger-handle is-row" transform={`translate(${point.x + offset.x} ${point.y + offset.y})`}>
         <rect width="1.2" height="2.8" x="-0.6" y="-1.4" rx="0.4" aria-label={`Stagger row ${row + 1}`} onPointerDown={(event) => onStagger(event, 'row', row)} />
       </g>;
     })}
-    {Array.from({ length: matrix.columns }, (_, column) => {
-      const point = cellPose(matrix, 0, column, cells.get(`0:${column}`), members, parts).at;
-      const offset = handleOffset(0, -matrix.pitch.y * 0.9, column);
+    {projection.scene.columns.map(({ column }) => {
+      const point = projection?.pose(0, column)?.at;
+      if (!point) return null;
+      const basis = projection?.basis(column);
+      if (!basis) return null;
+      const offset = { x: -matrix.pitch.y * 0.9 * basis.axisY.x, y: -matrix.pitch.y * 0.9 * basis.axisY.y };
       return <g key={`column-handle-${column}`} className="wb-stagger-handle is-column" transform={`translate(${point.x + offset.x} ${point.y + offset.y})`}>
         <rect width="2.8" height="1.2" x="-1.4" y="-0.6" rx="0.4" aria-label={`Stagger column ${column + 1}`} onPointerDown={(event) => onStagger(event, 'column', column)} />
       </g>;

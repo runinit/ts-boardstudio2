@@ -1,5 +1,6 @@
 import type { ArtifactReply, ArtifactRequest, CompiledFootprint, FootprintCompileJob } from '@boardstudio/v2-contracts';
-import type { ExportReply, ExportRequest } from './export.worker';
+import type { ExportReply, ExportRequest, ExportWorkerReply } from './export.worker';
+import type { ArchiveRequest, ArchiveReply } from './export.worker';
 
 type WithoutId<T> = T extends { id: string } ? Omit<T, 'id'> : never;
 type ArtifactOperation = WithoutId<ArtifactRequest>;
@@ -7,7 +8,7 @@ type ArtifactOperation = WithoutId<ArtifactRequest>;
 export class ExportClient {
   private worker: Worker;
   private pending = new Map<string, {
-    resolve: (reply: ExportReply | ArtifactReply) => void;
+    resolve: (reply: ExportWorkerReply) => void;
     reject: (error: Error) => void;
   }>();
   private compiled = new Map<string, Promise<CompiledFootprint[]>>();
@@ -18,7 +19,7 @@ export class ExportClient {
 
   private start(): Worker {
     const worker = new Worker(new URL('./export.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (event: MessageEvent<ExportReply | ArtifactReply>) => {
+    worker.onmessage = (event: MessageEvent<ExportWorkerReply>) => {
       const reply = event.data;
       const pending = this.pending.get(reply.id);
       if (!pending) return;
@@ -41,16 +42,36 @@ export class ExportClient {
   request(input: Omit<ExportRequest, 'id'>): Promise<Extract<ExportReply, { kind: 'file' }>> {
     const id = crypto.randomUUID();
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (reply: ExportReply | ArtifactReply) => void, reject });
-      const transfers = [...new Set(Object.values(input.files).map((bytes) => bytes.buffer))];
-      this.worker.postMessage({ ...input, id }, transfers);
+      this.pending.set(id, { resolve: resolve as (reply: ExportWorkerReply) => void, reject });
+      const files = Object.fromEntries(Object.entries(input.files).map(([name, bytes]) => [name, new Uint8Array(bytes)]));
+      const transfers = Object.values(files).map((bytes) => bytes.buffer);
+      try {
+        this.worker.postMessage({ ...input, files, id }, transfers);
+      } catch (error) {
+        this.pending.delete(id);
+        reject(error);
+      }
+    });
+  }
+
+  archive(input: Omit<ArchiveRequest, 'id'>): Promise<Extract<ArchiveReply, { kind: 'archive' }>> {
+    const id = crypto.randomUUID();
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve: resolve as (reply: ExportWorkerReply) => void, reject });
+      const buffers = input.buffers.map((bytes) => new Uint8Array(bytes));
+      try {
+        this.worker.postMessage({ ...input, id, buffers }, buffers.map((bytes) => bytes.buffer));
+      } catch (error) {
+        this.pending.delete(id);
+        reject(error);
+      }
     });
   }
 
   artifact(input: ArtifactOperation): Promise<ArtifactReply> {
     const id = crypto.randomUUID();
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (reply: ExportReply | ArtifactReply) => void, reject });
+      this.pending.set(id, { resolve: resolve as (reply: ExportWorkerReply) => void, reject });
       this.worker.postMessage({ id, kind: 'artifact', request: { ...input, id } });
     });
   }

@@ -1,4 +1,4 @@
-import type { CoreReply, CoreRequest, ProjectDoc } from '@boardstudio/v2-contracts';
+import type { CoreReply, CoreRequest, Matrix, ProjectDoc } from '@boardstudio/v2-contracts';
 
 export class CoreClient {
   private worker: Worker;
@@ -50,13 +50,16 @@ export class CoreClient {
 
   request(request: CoreRequest): Promise<CoreReply> {
     return new Promise((resolve) => {
-      const persist = request.kind === 'prepare-case'
-        ? false
-        : request.kind !== 'edit' || request.command.phase === 'commit';
+      const persist = request.kind !== 'prepare-case' && request.kind !== 'project-matrices'
+        && (request.kind !== 'edit' || request.command.phase === 'commit');
 
       this.pending.set(request.id, { resolve, persist });
       this.worker.postMessage(request);
     });
+  }
+
+  projectMatrices(id: string, baseRevision: number, matrices: Matrix[]): Promise<CoreReply> {
+    return this.request({ kind: 'project-matrices', id, baseRevision, matrices });
   }
 
   close(): void {

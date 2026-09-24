@@ -1,18 +1,19 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import type { ArtifactReply, PartDefinition } from '@boardstudio/v2-contracts';
+import type { PartDefinition } from '@boardstudio/v2-contracts';
 import { ExportClient } from './ExportClient';
+import type { ExportWorkerRequest, ExportWorkerReply } from './export.worker';
 
 const workers: FakeWorker[] = [];
 
 class FakeWorker {
-  onmessage: ((event: MessageEvent<ArtifactReply>) => void) | null = null;
+  onmessage: ((event: MessageEvent<ExportWorkerReply>) => void) | null = null;
   onerror: ((event: ErrorEvent) => void) | null = null;
-  sent: { id: string; request: { id: string } }[] = [];
+  sent: ExportWorkerRequest[] = [];
 
   constructor() { workers.push(this); }
-  postMessage(message: { id: string; request: { id: string } }): void { this.sent.push(message); }
+  postMessage(message: ExportWorkerRequest, transfer: Transferable[] = []): void { this.sent.push(structuredClone(message, { transfer })); }
   terminate(): void {}
-  reply(reply: ArtifactReply): void { this.onmessage?.({ data: reply } as MessageEvent<ArtifactReply>); }
+  reply(reply: ExportWorkerReply): void { this.onmessage?.({ data: reply } as MessageEvent<ExportWorkerReply>); }
 }
 
 const definition = (id: string): PartDefinition => ({ id, name: id, kind: 'custom', pads: [], courtyard: [] });
@@ -47,4 +48,18 @@ test('rejects pending artifact promises when the client closes', async () => {
   const pending = client.compile([job('first')]);
   client.close();
   await expect(pending).rejects.toThrow('Export worker was closed');
+});
+
+test('copies archive buffers before transfer and resolves archive replies', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  vi.stubGlobal('crypto', { randomUUID: () => 'archive' });
+  const client = new ExportClient();
+  const bytes = new Uint8Array([1, 2, 3]);
+  const pending = client.archive({ kind: 'archive', request: { kind: 'pack-files', entries: [{ path: 'a', bufferIndex: 0 }] }, buffers: [bytes] });
+  expect(workers[0].sent[0]).toMatchObject({ buffers: [new Uint8Array([1, 2, 3])] });
+  expect(bytes.byteLength).toBe(3);
+  expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
+  workers[0].reply({ id: 'archive', kind: 'archive', reply: { kind: 'packed', bytes } });
+  await expect(pending).resolves.toMatchObject({ reply: { kind: 'packed' } });
+  client.close();
 });

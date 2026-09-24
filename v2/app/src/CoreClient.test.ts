@@ -34,6 +34,7 @@ const scene: SceneDelta = {
   transactionId: 'test',
   changedIds: [],
   transforms: [],
+  matrixScenes: [],
   contours: [],
   boardContours: [],
   boardReadiness: [],
@@ -70,5 +71,17 @@ test('restores the committed document after a preview crashes the worker', async
   workers[0].fail();
 
   expect(workers[1].sent).toEqual([{ id: expect.any(String), kind: 'open', document: committed }]);
+  client.close();
+});
+
+test('projects matrix drafts without changing the client snapshot', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  const client = new CoreClient();
+  const matrix = emptyProject('project', 'Draft').matrices;
+  const pending = client.projectMatrices('draft', 7, matrix);
+  expect(workers[0].sent).toEqual([{ id: 'draft', kind: 'project-matrices', baseRevision: 7, matrices: matrix }]);
+  const reply: CoreReply = { id: 'draft', kind: 'matrix-projections', revision: 7, matrixScenes: [] };
+  workers[0].reply(reply);
+  await expect(pending).resolves.toEqual(reply);
   client.close();
 });

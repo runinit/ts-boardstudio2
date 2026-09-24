@@ -28,7 +28,8 @@
     "test:contracts:v2": "node v2/contracts/test/runtime-import.test.mjs",
     "generate:catalogue:v2": "node v2/kicad/scripts/catalog.mjs generate",
     "check:catalogue:v2": "node v2/kicad/scripts/catalog.mjs check",
-    "check:v2": "pnpm run check:contracts:v2 && pnpm run check:catalogue:v2 && pnpm run test:contracts:v2 && pnpm run test:v2 && pnpm run build:v2 && pnpm --dir v2/app test:e2e"
+    "check:boundaries:v2": "node v2/app/scripts/check-rust-boundaries.mjs",
+    "check:v2": "pnpm run check:contracts:v2 && pnpm run check:catalogue:v2 && pnpm run test:contracts:v2 && pnpm run test:v2 && pnpm run build:v2 && pnpm run check:boundaries:v2 && pnpm --dir v2/app test:e2e"
   },
   "workspaces": [
     "app",

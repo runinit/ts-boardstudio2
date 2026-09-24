@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
-import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, FootprintCompileJob, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
+import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, FootprintCompileJob, Matrix, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
+import type { MatrixScene } from './ui/matrixGeometry';
 import { builtinDefinitions } from '@boardstudio/v2-kicad';
 import { catalogue as ergogenCatalogue, isErgogen, modelBindings, normalizeDefinition } from '@boardstudio/v2-ergogen';
 import type { StepModel } from '@boardstudio/v2-cad';
@@ -25,6 +26,7 @@ const EMPTY_SCENE: SceneDelta = {
   transactionId: 'initial',
   changedIds: [],
   transforms: [],
+  matrixScenes: [],
   contours: [],
   boardContours: [],
   boardReadiness: [],
@@ -129,8 +131,14 @@ function App() {
   const committedScene = useRef(scene);
   const queue = useRef<Promise<void>>(Promise.resolve());
 
+  function ensureExportClient(): ExportClient {
+    exportClient.current ??= new ExportClient();
+    return exportClient.current;
+  }
+
   async function accept(reply: CoreReply, mode: 'open' | 'commit' | 'preview'): Promise<void> {
     if (reply.kind === 'case-prepared') return;
+    if (reply.kind === 'matrix-projections') return;
     if (reply.kind === 'error') {
       throw new Error(reply.message);
     }
@@ -392,7 +400,7 @@ function App() {
         return;
       }
 
-      const document = await unpackProject(new Uint8Array(await file.arrayBuffer()));
+      const document = await unpackProject(new Uint8Array(await file.arrayBuffer()), ensureExportClient());
       const reply = await client.current.request({ id: crypto.randomUUID(), kind: 'open', document });
 
       await accept(reply, 'open');
@@ -578,7 +586,7 @@ function App() {
       }
 
       if (kind === 'project') {
-        const bytes = await packProject(document, { embedUsedModels });
+        const bytes = await packProject(document, { embedUsedModels }, ensureExportClient());
         download(`${document.name}.boardstudio`, bytes, 'application/zip');
         return;
       }
@@ -646,6 +654,15 @@ function App() {
     return exportClient.current.compile(jobs);
   }, []);
 
+  const projectMatrices = useCallback(async (matrices: Matrix[]): Promise<MatrixScene[] | undefined> => {
+    const core = client.current;
+    if (!core) return undefined;
+    const requestedRevision = projectRef.current.revision;
+    const reply = await core.projectMatrices(crypto.randomUUID(), requestedRevision, matrices);
+    if (reply.kind !== 'matrix-projections' || reply.revision !== requestedRevision || projectRef.current.revision !== requestedRevision) return undefined;
+    return reply.matrixScenes;
+  }, []);
+
   if (!ready) {
     return <div className="boot-status">Opening Board Studio…</div>;
   }
@@ -674,6 +691,7 @@ function App() {
       onImport={importProject}
       onNewProject={newProject}
       onDuplicateDesign={duplicateDesign}
+      onProjectMatrices={projectMatrices}
       onImportFootprint={importPart}
       onImportModel={importModel}
     />

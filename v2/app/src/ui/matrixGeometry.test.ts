@@ -1,77 +1,17 @@
 import { expect, test } from 'vitest';
-import { demoProject } from '../demo';
-import { cellPose, matrixMembers, matrixPosition } from './matrixGeometry';
-import type { Matrix, Part } from '../../../contracts/src/index';
+import { matrixSceneAdapter } from './matrixGeometry';
 
-test('starter metadata and every member agree without changing saved positions', () => {
-  const doc = demoProject();
-  const matrix = doc.matrices[0];
-  const members = matrixMembers(matrix);
-  const parts = new Map(doc.parts.map((part) => [part.id, part]));
-  for (let row = 0; row < matrix.rows; row++) for (let column = 0; column < matrix.columns; column++) {
-    const part = parts.get(members.get(`${row}:${column}`)!)!;
-    expect(matrixPosition(matrix, row, column)).toEqual(part.pose.at);
-    expect(cellPose(matrix, row, column, undefined, members, parts)).toEqual(part.pose);
-  }
+test('indexes Rust matrix scene cells and column bases', () => {
+  const pose = { at: { x: 12, y: -4 }, rotation: 17 };
+  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 1, column: 2, enabled: false, pose }], columns: [{ column: 2, axisX: { x: 0, y: 1 }, axisY: { x: -1, y: 0 } }] });
+  expect(adapter.pose(1, 2)).toEqual(pose);
+  expect(adapter.member(1, 2)).toBeUndefined();
+  expect(adapter.basis(2)?.axisY).toEqual({ x: -1, y: 0 });
+  expect(adapter.pose(0, 0)).toBeUndefined();
 });
 
-test('old projects resolve overlays against member poses rather than inconsistent metadata', () => {
-  const doc = demoProject();
-  delete doc.matrices[0].mirror;
-  const before = JSON.stringify(doc);
-  const matrix = doc.matrices[0];
-  const members = matrixMembers(matrix);
-  const parts = new Map(doc.parts.map((part) => [part.id, part]));
-  expect(cellPose(matrix, 2, 4, undefined, members, parts)).toEqual(doc.parts[14].pose);
-  expect(JSON.stringify(doc)).toBe(before);
-});
-
-test('transformed sparse matrices align moved members and disabled slots', () => {
-  const matrix: Matrix = { id: 'm', rows: 2, columns: 2, definitionId: 'switch', pitch: { x: 19, y: 19 }, origin: { x: 5, y: -8 }, rotation: 35, mirror: 'x', rowOffsets: [{ x: 0, y: 0 }, { x: 3, y: -2 }], columnOffsets: [{ x: 0, y: 4 }], cells: [{ row: 1, column: 1, enabled: false, offset: { x: 2, y: 1 }, rotation: 7 }], partIds: ['matrix/m/r0c0', 'matrix/m/r0c1', 'matrix/m/r1c0'] };
-  const members = matrixMembers(matrix);
-  const parts = new Map<string, Part>();
-  for (const [key, id] of members) {
-    const [row, column] = key.split(':').map(Number);
-    parts.set(id, { id, definitionId: 'switch', reference: id, side: 'front', pose: { at: matrixPosition(matrix, row, column), rotation: 35 } });
-  }
-  const disabled = matrix.cells![0];
-  expect(cellPose(matrix, 1, 1, disabled, members, parts)).toEqual({ at: matrixPosition(matrix, 1, 1, disabled), rotation: 42 });
-  parts.get('matrix/m/r0c0')!.pose = { at: { x: 28, y: 17 }, rotation: 83 };
-  expect(cellPose(matrix, 0, 0, undefined, members, parts)).toEqual(parts.get('matrix/m/r0c0')!.pose);
-});
-
-test('mixed legacy and generated members retain row-major identity after resizing', () => {
-  const matrix = demoProject().matrices[0];
-  matrix.columns = 6;
-  matrix.partIds = ['switch-0-0', 'switch-0-1', 'switch-0-2', 'switch-0-3', 'switch-0-4', 'matrix/matrix/r0c5', ...matrix.partIds.slice(5, 10), 'matrix/matrix/r1c5', ...matrix.partIds.slice(10), 'matrix/matrix/r2c5'];
-  expect(matrixMembers(matrix).get('1:0')).toBe('switch-1-0');
-  expect(matrixMembers(matrix).get('2:5')).toBe('matrix/matrix/r2c5');
-});
-
-test('disabled rows in old negative-Y projects interpolate the saved member frame', () => {
-  const doc = demoProject();
-  const matrix = doc.matrices[0];
-  delete matrix.mirror;
-  matrix.cells = Array.from({ length: 5 }, (_, column) => ({ row: 1, column, enabled: false }));
-  matrix.partIds = matrix.partIds.filter((id) => !id.startsWith('switch-1-'));
-  const parts = new Map(doc.parts.filter((part) => matrix.partIds.includes(part.id)).map((part) => [part.id, part]));
-  expect(cellPose(matrix, 1, 2, matrix.cells[2], matrixMembers(matrix), parts).at).toEqual({ x: 38.1, y: -19.05 });
-});
-
-test('column stagger and splay carry into following columns before mirroring', () => {
-  const matrix = { id: 'splayed', rows: 2, columns: 3, definitionId: 'switch', pitch: { x: 20, y: 20 }, origin: { x: 0, y: 0 }, partIds: [], columnStaggers: [0, 5], columnSplays: [0, 90] };
-  expect(matrixPosition(matrix, 1, 1).x).toBeCloseTo(0);
-  expect(matrixPosition(matrix, 1, 1).y).toBeCloseTo(5);
-  expect(matrixPosition(matrix, 0, 2).x).toBeCloseTo(20);
-  expect(matrixPosition(matrix, 0, 2).y).toBeCloseTo(25);
-  const mirrored = { ...matrix, mirror: 'y' as const };
-  expect(cellPose(mirrored, 0, 2, undefined, new Map(), new Map()).rotation).toBe(-90);
-});
-
-test('successive splays carry the next pivot and combine with cell transforms', () => {
-  const matrix: Matrix = { id: 'splayed', rows: 2, columns: 3, definitionId: 'switch', pitch: { x: 20, y: 20 }, origin: { x: 3, y: 4 }, partIds: [], columnStaggers: [0, 5], columnSplays: [0, 90, -90], rotation: 90 };
-  const pose = cellPose(matrix, 1, 2, { row: 1, column: 2, enabled: false, rotation: 7 }, new Map(), new Map());
-  expect(pose.at.x).toBeCloseTo(-42);
-  expect(pose.at.y).toBeCloseTo(24);
-  expect(pose.rotation).toBe(97);
+test('keeps member identities and disabled cell poses from Rust', () => {
+  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 0, column: 0, enabled: true, memberId: 'legacy-key', pose: { at: { x: 1, y: 2 }, rotation: 0 } }, { row: 0, column: 1, enabled: false, pose: { at: { x: 20, y: 2 }, rotation: 5 } }], columns: [] });
+  expect(adapter.member(0, 0)).toBe('legacy-key');
+  expect(adapter.pose(0, 1)?.at).toEqual({ x: 20, y: 2 });
 });

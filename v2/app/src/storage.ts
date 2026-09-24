@@ -1,18 +1,12 @@
 import type { ProjectDoc } from '@boardstudio/v2-contracts';
 import { isErgogen, modelAssetIds } from '@boardstudio/v2-ergogen';
-import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { bundledModel, bundledModelBytes } from './bundledModels';
+import type { ArchiveRequest, ArchiveReply } from './export.worker';
 
 const DB_NAME = 'boardstudio-v2';
 const PROJECT_STORE = 'projects';
 const ASSET_STORE = 'assets';
 const ACTIVE_PROJECT_KEY = 'boardstudio-v2-active-project';
-const MIB = 1024 * 1024;
-const MAX_ARCHIVE_BYTES = 128 * MIB;
-const MAX_PROJECT_BYTES = 8 * MIB;
-const MAX_ASSET_BYTES = 64 * MIB;
-const MAX_UNPACKED_BYTES = 256 * MIB;
-const MAX_ARCHIVE_ENTRIES = 256;
 
 export function activeProjectId(fallback: string): string {
   return localStorage.getItem(ACTIVE_PROJECT_KEY) ?? fallback;
@@ -85,6 +79,10 @@ export async function saveAsset(sha256: string, bytes: Uint8Array): Promise<void
   });
 }
 
+export type ArchiveTransport = {
+  archive(input: Omit<ArchiveRequest, 'id'>): Promise<Omit<Extract<ArchiveReply, { kind: 'archive' }>, 'id'>>;
+};
+
 export async function loadAsset(sha256: string): Promise<Uint8Array | undefined> {
   const db = await openDb();
 
@@ -111,11 +109,10 @@ export type ProjectPackOptions = {
  * Pack a project for download. Local assets always travel with the document;
  * the optional setting controls copies of models from the bundled catalogue.
  */
-export async function packProject(doc: ProjectDoc, options: ProjectPackOptions = {}): Promise<Uint8Array> {
+export async function packProject(doc: ProjectDoc, options: ProjectPackOptions = {}, archiveClient: ArchiveTransport): Promise<Uint8Array> {
   const embedAssets = options.embedUsedModels !== false;
-  const entries: Record<string, Uint8Array> = {};
   const embeddedAssets = [...doc.assets];
-  entries['archive.json'] = strToU8(JSON.stringify({ embedUsedModels: embedAssets }));
+  const files = new Map<string, Uint8Array>();
 
   if (embedAssets) {
     const bundledIds = new Set(doc.definitions.flatMap((definition) => {
@@ -131,12 +128,11 @@ export async function packProject(doc: ProjectDoc, options: ProjectPackOptions =
       const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(bytes));
       const sha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
       embeddedAssets.push({ id, name: bundled.filename, mediaType: /\.wrl$/i.test(bundled.filename) ? 'model/vrml' : 'model/step', sha256, source: 'bundled Ergogen library' });
-      entries[`assets/${sha256}`] = bytes;
+      files.set(`assets/${sha256}`, bytes);
     }
   }
 
   const packedDoc = embeddedAssets.length === doc.assets.length ? doc : { ...doc, assets: embeddedAssets };
-  entries['project.json'] = strToU8(JSON.stringify(packedDoc));
 
   for (const asset of doc.assets) {
     const bytes = await loadAsset(asset.sha256);
@@ -145,62 +141,43 @@ export async function packProject(doc: ProjectDoc, options: ProjectPackOptions =
       throw new Error(`Missing asset: ${asset.name}`);
     }
 
-    entries[`assets/${asset.sha256}`] = bytes;
+    files.set(`assets/${asset.sha256}`, bytes);
   }
-
-  return zipSync(entries);
+  const entries = [...files].map(([path, bytes]) => ({ path, bytes }));
+  const result = await archiveClient.archive({ kind: 'archive', request: { kind: 'pack-project', projectJson: JSON.stringify(packedDoc), archiveJson: JSON.stringify({ embedUsedModels: embedAssets }), assets: entries.map((entry, bufferIndex) => ({ path: entry.path, bufferIndex })) }, buffers: entries.map((entry) => entry.bytes) });
+  if (result.kind !== 'archive' || result.reply.kind !== 'packed') throw new Error('Expected packed project archive');
+  return result.reply.bytes;
 }
 
-export async function unpackProject(bytes: Uint8Array): Promise<ProjectDoc> {
-  if (bytes.length > MAX_ARCHIVE_BYTES) {
-    throw new Error('Project archive exceeds size limit');
-  }
-
-  let unpackedBytes = 0;
-  let entries = 0;
-  const files = unzipSync(bytes, { filter: (file) => {
-    entries += 1;
-    const limit = file.name === 'project.json' ? MAX_PROJECT_BYTES : MAX_ASSET_BYTES;
-    const known = file.name === 'project.json' || file.name === 'archive.json' || /^assets\/[a-f0-9]{64}$/u.test(file.name);
-
-    if (!known || entries > MAX_ARCHIVE_ENTRIES || !Number.isSafeInteger(file.originalSize)
-      || file.originalSize < 0 || file.originalSize > limit) {
-      throw new Error('Project archive exceeds size limit or contains an unknown entry');
-    }
-
-    unpackedBytes += file.originalSize;
-    if (unpackedBytes > MAX_UNPACKED_BYTES) {
-      throw new Error('Project archive exceeds size limit');
-    }
-
-    return true;
-  } });
-  const projectBytes = files['project.json'];
-
-  if (!projectBytes) {
-    throw new Error('Archive has no project.json');
-  }
-
-  const doc = JSON.parse(strFromU8(projectBytes)) as ProjectDoc;
+export async function unpackProject(bytes: Uint8Array, archiveClient: ArchiveTransport): Promise<ProjectDoc> {
+  const result = await archiveClient.archive({ kind: 'archive', request: { kind: 'unpack-project' }, buffers: [bytes] });
+  if (result.kind !== 'archive' || result.reply.kind !== 'unpacked') throw new Error('Expected unpacked project archive');
+  const doc = JSON.parse(result.reply.projectJson) as ProjectDoc;
   if (doc.format !== 'boardstudio/v2' || !Array.isArray(doc.parts) || !Array.isArray(doc.boards)) {
     throw new Error('Unsupported project format');
   }
 
+  const verified = new Map(result.reply.assets.map((asset) => [asset.sha256, asset.bytes]));
   for (const asset of doc.assets) {
-    const assetBytes = files[`assets/${asset.sha256}`];
-
-    if (!assetBytes) {
-      throw new Error(`Archive has no asset: ${asset.name}`);
-    }
-
-    const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(assetBytes));
-    const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-
-    if (hex !== asset.sha256) {
-      throw new Error(`Asset hash mismatch: ${asset.name}`);
-    }
-
-    await saveAsset(asset.sha256, assetBytes);
+    if (!verified.has(asset.sha256)) throw new Error(`Archive has no asset: ${asset.name}`);
+  }
+  if (verified.size === 0) return doc;
+  const db = await openDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(ASSET_STORE, 'readwrite');
+      transaction.oncomplete = () => resolve();
+      transaction.onabort = () => reject(transaction.error ?? new Error('Asset import transaction was aborted'));
+      transaction.onerror = () => reject(transaction.error ?? new Error('Asset import transaction failed'));
+      try {
+        for (const [hash, bytes] of verified) transaction.objectStore(ASSET_STORE).put(bytes, hash);
+      } catch (error) {
+        transaction.abort();
+        reject(error);
+      }
+    });
+  } finally {
+    db.close();
   }
 
   return doc;

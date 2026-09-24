@@ -1,22 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
+import { createHash } from 'node:crypto';
+import 'fake-indexeddb/auto';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { catalogue, modelAssetIds } from '@boardstudio/v2-ergogen';
 import { demoProject } from './demo';
-import { packProject, unpackProject } from './storage';
+import { loadAsset, saveAsset, packProject, unpackProject, type ArchiveTransport } from './storage';
+import { nativeArchiveTransport } from './test/nativeArchive';
+
+const archiveTransport: ArchiveTransport = nativeArchiveTransport();
 
 describe('v2 project archive', () => {
   it('round trips the document without old format conversion', async () => {
     const project = demoProject();
-    const archive = await packProject(project);
+    const archive = await packProject(project, {}, archiveTransport);
 
-    expect(await unpackProject(archive)).toEqual(project);
+    expect(await unpackProject(archive, archiveTransport)).toEqual(project);
   });
 
   it('can omit bundled models for catalog backed projects', async () => {
     const project = demoProject();
-    const archive = await packProject(project, { embedUsedModels: false });
+    const archive = await packProject(project, { embedUsedModels: false }, archiveTransport);
 
-    expect(await unpackProject(archive)).toEqual(project);
+    expect(await unpackProject(archive, archiveTransport)).toEqual(project);
   });
 
   it('embeds used bundled models by default', async () => {
@@ -31,14 +36,14 @@ describe('v2 project archive', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, arrayBuffer: async () => bytes.buffer })));
 
     try {
-      const archive = await packProject(project);
+      const archive = await packProject(project, {}, archiveTransport);
       const files = unzipSync(archive);
       const saved = JSON.parse(strFromU8(files['project.json'])) as typeof project;
       const asset = saved.assets.find((item) => item.id === modelId);
       expect(asset).toBeDefined();
       expect(files[`assets/${asset!.sha256}`]).toEqual(bytes);
 
-      const withoutBundle = await packProject(project, { embedUsedModels: false });
+      const withoutBundle = await packProject(project, { embedUsedModels: false }, archiveTransport);
       const unbundled = JSON.parse(strFromU8(unzipSync(withoutBundle)['project.json'])) as typeof project;
       expect(unbundled.assets.some((item) => item.id === modelId)).toBe(false);
 
@@ -52,12 +57,81 @@ describe('v2 project archive', () => {
       'project.json': strToU8(JSON.stringify({ format: 'ergogen/v1', parts: [], boards: [] })),
     });
 
-    await expect(unpackProject(archive)).rejects.toThrow('Unsupported project format');
+    await expect(unpackProject(archive, archiveTransport)).rejects.toThrow('Unsupported project format');
   });
 
   it('rejects an oversized project before expanding its archive', async () => {
     const archive = zipSync({ 'project.json': strToU8('x'.repeat(9 * 1024 * 1024)) });
 
-    await expect(unpackProject(archive)).rejects.toThrow('Project archive exceeds size limit');
+    await expect(unpackProject(archive, archiveTransport)).rejects.toThrow('Project archive exceeds size limit');
   });
+
+  it('does not persist any assets when validation returns an incomplete asset set', async () => {
+    const project = demoProject();
+    const asset = { id: 'asset', name: 'asset.step', mediaType: 'model/step', sha256: 'a'.repeat(64), source: 'test' };
+    project.assets = [asset];
+    const transport: ArchiveTransport = {
+      async archive() {
+        return { kind: 'archive', reply: { kind: 'unpacked', projectJson: JSON.stringify(project), assets: [] } };
+      },
+    };
+
+    await expect(unpackProject(new Uint8Array([1]), transport)).rejects.toThrow('Archive has no asset');
+    await expect(loadAsset(asset.sha256)).resolves.toBeUndefined();
+  });
+});
+
+const assetFixture = (label: string) => {
+  const bytes = strToU8(label);
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  return { bytes, asset: { id: label, name: `${label}.step`, mediaType: 'model/step', sha256, source: 'test' } };
+};
+
+it('packs a single entry for shared asset references and preserves their identities', async () => {
+  const { bytes, asset } = assetFixture('shared asset');
+  await saveAsset(asset.sha256, bytes);
+  const project = { ...demoProject(), assets: [asset, { ...asset, id: 'second identity' }] };
+  const packed = await packProject(project, { embedUsedModels: false }, archiveTransport);
+  expect(Object.keys(unzipSync(packed)).filter((path) => path.startsWith('assets/'))).toEqual([`assets/${asset.sha256}`]);
+  expect(await unpackProject(packed, archiveTransport)).toEqual(project);
+});
+
+it('validates all hashes before persisting any imported asset', async () => {
+  const first = assetFixture('verified but not persisted');
+  const second = assetFixture('hash failure');
+  const project = { ...demoProject(), assets: [first.asset, second.asset] };
+  const packed = zipSync({ 'project.json': strToU8(JSON.stringify(project)), [`assets/${first.asset.sha256}`]: first.bytes, [`assets/${second.asset.sha256}`]: strToU8('corrupted') });
+  await expect(unpackProject(packed, archiveTransport)).rejects.toThrow('Asset hash mismatch');
+  await expect(loadAsset(first.asset.sha256)).resolves.toBeUndefined();
+  await expect(loadAsset(second.asset.sha256)).resolves.toBeUndefined();
+});
+
+it('rolls back every asset if the IndexedDB import transaction aborts', async () => {
+  const first = assetFixture('rollback first');
+  const second = assetFixture('rollback second');
+  const project = { ...demoProject(), assets: [first.asset, second.asset] };
+  const packed = zipSync({ 'project.json': strToU8(JSON.stringify(project)), [`assets/${first.asset.sha256}`]: first.bytes, [`assets/${second.asset.sha256}`]: second.bytes });
+  const put = IDBObjectStore.prototype.put;
+  const spy = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function (this: IDBObjectStore, value: unknown, key?: IDBValidKey) {
+    const request = put.call(this, value, key);
+    if (key === second.asset.sha256) this.transaction.abort();
+    return request;
+  });
+  try {
+    await expect(unpackProject(packed, archiveTransport)).rejects.toThrow();
+  } finally {
+    spy.mockRestore();
+  }
+  await expect(loadAsset(first.asset.sha256)).resolves.toBeUndefined();
+  await expect(loadAsset(second.asset.sha256)).resolves.toBeUndefined();
+});
+
+it('rejects duplicate raw filenames before ZIP indexing', async () => {
+  const json = strToU8(JSON.stringify(demoProject()));
+  const bytes = zipSync({ 'project.json': json, 'archive.json': json });
+  const from = strToU8('archive.json');
+  for (let i = 0; i <= bytes.length - from.length; i++) {
+    if (from.every((value, j) => bytes[i + j] === value)) bytes.set(strToU8('project.json'), i);
+  }
+  await expect(unpackProject(bytes, archiveTransport)).rejects.toThrow('Duplicate');
 });
