@@ -1,0 +1,18 @@
+{
+  "repository": "42willow/tsuki",
+  "commit": "6ec3f66f3d0cb087d3a061690aaaaf412537c12d",
+  "files": {
+    "LICENSE": {
+      "local": "LICENSE",
+      "sha256": "4482e9ac9a0c6518b07f8327153cc90955a0dbaf27b281f90f004156df75fe38"
+    },
+    "README.md": {
+      "local": "README.md",
+      "sha256": "12329915f5fc62885b7abdd51ee79543f0133ceeab6548d00d5fd1ef3fd65302"
+    },
+    "assets/nrf52840.step": {
+      "local": "nrf52840.step",
+      "sha256": "c841576b727e83402939f7efa75149a68e9a9bd1f71e0315ca37b3bbc1a084b5"
+    }
+  }
+}

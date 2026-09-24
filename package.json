@@ -18,10 +18,10 @@
     "typecheck": "pnpm --dir app typecheck",
     "precommit": "pnpm --dir app precommit",
     "check": "pnpm run test:engine && pnpm run test:footprints && pnpm run test:release && pnpm run precommit && pnpm run build && pnpm run test:e2e",
-    "dev:v2": "pnpm run build:core && pnpm --dir v2/app dev",
+    "dev:v2": "pnpm --dir v2/ergogen prepare:catalog && pnpm run build:core && pnpm --dir v2/app dev",
     "build:core": "wasm-pack build v2/core --target web --out-dir pkg",
-    "build:v2": "pnpm run build:core && pnpm --dir v2/app build",
-    "test:v2": "cargo test --manifest-path v2/core/Cargo.toml && pnpm --dir v2/kicad test && pnpm --dir v2/cad test && pnpm --dir v2/app test",
+    "build:v2": "pnpm --dir v2/ergogen prepare:catalog && pnpm run build:core && pnpm --dir v2/app build",
+    "test:v2": "cargo test --manifest-path v2/core/Cargo.toml && pnpm --dir v2/ergogen test && pnpm --dir v2/kicad test && pnpm --dir v2/cad test && pnpm --dir v2/app test",
     "test:perf:v2": "pnpm run build:v2 && pnpm --dir v2/app test:perf",
     "check:v2": "pnpm run test:v2 && pnpm run build:v2 && pnpm --dir v2/app test:e2e"
   },

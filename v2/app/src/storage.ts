@@ -1,5 +1,7 @@
 import type { ProjectDoc } from '@boardstudio/v2-contracts';
+import { isErgogen, modelAssetIds } from '@boardstudio/v2-ergogen';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
+import { bundledModel, bundledModelBytes } from './bundledModels';
 
 const DB_NAME = 'boardstudio-v2';
 const PROJECT_STORE = 'projects';
@@ -100,10 +102,41 @@ export async function loadAsset(sha256: string): Promise<Uint8Array | undefined>
   });
 }
 
-export async function packProject(doc: ProjectDoc): Promise<Uint8Array> {
-  const entries: Record<string, Uint8Array> = {
-    'project.json': strToU8(JSON.stringify(doc)),
-  };
+export type ProjectPackOptions = {
+  /** Include referenced bundled Ergogen models. Defaults to true. */
+  embedUsedModels?: boolean;
+};
+
+/**
+ * Pack a project for download. Local assets always travel with the document;
+ * the optional setting controls copies of models from the bundled catalogue.
+ */
+export async function packProject(doc: ProjectDoc, options: ProjectPackOptions = {}): Promise<Uint8Array> {
+  const embedAssets = options.embedUsedModels !== false;
+  const entries: Record<string, Uint8Array> = {};
+  const embeddedAssets = [...doc.assets];
+  entries['archive.json'] = strToU8(JSON.stringify({ embedUsedModels: embedAssets }));
+
+  if (embedAssets) {
+    const bundledIds = new Set(doc.definitions.flatMap((definition) => {
+      if (!isErgogen(definition.generator?.source)) return [];
+      return doc.parts.filter((part) => part.definitionId === definition.id).flatMap((part) => modelAssetIds(definition, part));
+    }));
+
+    for (const id of bundledIds) {
+      if (embeddedAssets.some((asset) => asset.id === id)) continue;
+      const bundled = bundledModel(id);
+      if (!bundled) throw new Error(`Bundled Ergogen model is unavailable: ${id}`);
+      const bytes = await bundledModelBytes(id);
+      const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(bytes));
+      const sha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+      embeddedAssets.push({ id, name: bundled.filename, mediaType: /\.wrl$/i.test(bundled.filename) ? 'model/vrml' : 'model/step', sha256, source: 'bundled Ergogen library' });
+      entries[`assets/${sha256}`] = bytes;
+    }
+  }
+
+  const packedDoc = embeddedAssets.length === doc.assets.length ? doc : { ...doc, assets: embeddedAssets };
+  entries['project.json'] = strToU8(JSON.stringify(packedDoc));
 
   for (const asset of doc.assets) {
     const bytes = await loadAsset(asset.sha256);
@@ -128,7 +161,7 @@ export async function unpackProject(bytes: Uint8Array): Promise<ProjectDoc> {
   const files = unzipSync(bytes, { filter: (file) => {
     entries += 1;
     const limit = file.name === 'project.json' ? MAX_PROJECT_BYTES : MAX_ASSET_BYTES;
-    const known = file.name === 'project.json' || /^assets\/[a-f0-9]{64}$/u.test(file.name);
+    const known = file.name === 'project.json' || file.name === 'archive.json' || /^assets\/[a-f0-9]{64}$/u.test(file.name);
 
     if (!known || entries > MAX_ARCHIVE_ENTRIES || !Number.isSafeInteger(file.originalSize)
       || file.originalSize < 0 || file.originalSize > limit) {
@@ -149,7 +182,6 @@ export async function unpackProject(bytes: Uint8Array): Promise<ProjectDoc> {
   }
 
   const doc = JSON.parse(strFromU8(projectBytes)) as ProjectDoc;
-
   if (doc.format !== 'boardstudio/v2' || !Array.isArray(doc.parts) || !Array.isArray(doc.boards)) {
     throw new Error('Unsupported project format');
   }

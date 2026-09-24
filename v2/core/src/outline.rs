@@ -129,7 +129,13 @@ pub(super) fn envelope(
     let selected: Vec<_> = doc
         .parts
         .iter()
-        .filter(|p| members.contains(&p.id) && !p.outline.as_ref().is_some_and(|o| o.excluded))
+        .filter(|p| {
+            members.contains(&p.id)
+                && !p.outline.as_ref().is_some_and(|o| o.excluded)
+                && defs
+                    .get(&p.definition_id)
+                    .is_some_and(|definition| definition.kind != PartKind::Utility)
+        })
         .collect();
     let boards: BTreeSet<_> = doc
         .boards

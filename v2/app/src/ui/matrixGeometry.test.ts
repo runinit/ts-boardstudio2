@@ -57,3 +57,21 @@ test('disabled rows in old negative-Y projects interpolate the saved member fram
   const parts = new Map(doc.parts.filter((part) => matrix.partIds.includes(part.id)).map((part) => [part.id, part]));
   expect(cellPose(matrix, 1, 2, matrix.cells[2], matrixMembers(matrix), parts).at).toEqual({ x: 38.1, y: -19.05 });
 });
+
+test('column stagger and splay carry into following columns before mirroring', () => {
+  const matrix = { id: 'splayed', rows: 2, columns: 3, definitionId: 'switch', pitch: { x: 20, y: 20 }, origin: { x: 0, y: 0 }, partIds: [], columnStaggers: [0, 5], columnSplays: [0, 90] };
+  expect(matrixPosition(matrix, 1, 1).x).toBeCloseTo(0);
+  expect(matrixPosition(matrix, 1, 1).y).toBeCloseTo(5);
+  expect(matrixPosition(matrix, 0, 2).x).toBeCloseTo(20);
+  expect(matrixPosition(matrix, 0, 2).y).toBeCloseTo(25);
+  const mirrored = { ...matrix, mirror: 'y' as const };
+  expect(cellPose(mirrored, 0, 2, undefined, new Map(), new Map()).rotation).toBe(-90);
+});
+
+test('successive splays carry the next pivot and combine with cell transforms', () => {
+  const matrix: Matrix = { id: 'splayed', rows: 2, columns: 3, definitionId: 'switch', pitch: { x: 20, y: 20 }, origin: { x: 3, y: 4 }, partIds: [], columnStaggers: [0, 5], columnSplays: [0, 90, -90], rotation: 90 };
+  const pose = cellPose(matrix, 1, 2, { row: 1, column: 2, enabled: false, rotation: 7 }, new Map(), new Map());
+  expect(pose.at.x).toBeCloseTo(-42);
+  expect(pose.at.y).toBeCloseTo(24);
+  expect(pose.rotation).toBe(97);
+});

@@ -1,6 +1,7 @@
-import type { Pad, PartDefinition, Vec2 } from '../../contracts/src/index.ts';
+import type { JsonValue, Pad, PartDefinition, Vec2 } from '../../contracts/src/index.ts';
 import { builtinGeometry } from './builtins.ts';
 import type { LocalTrace, LocalVia } from './builtins.ts';
+import { geometry as ergogenGeometry, isErgogen, render as renderErgogen } from '@boardstudio/v2-ergogen';
 
 export type FootprintPad = Readonly<Omit<Pad, 'netId'>>;
 export type FootprintIR = Readonly<{
@@ -14,7 +15,7 @@ export type FootprintIR = Readonly<{
 const cache = new Map<string, FootprintIR>();
 const MAX_CACHE_ENTRIES = 256;
 
-const sortedParameters = (parameters: Record<string, number | string | boolean>) =>
+const sortedParameters = (parameters: Record<string, JsonValue>) =>
   Object.fromEntries(Object.entries(parameters).sort(([left], [right]) => left.localeCompare(right)));
 
 // Placement and net labels are applied after geometry compilation.
@@ -23,18 +24,25 @@ export function compileFootprint(definition: PartDefinition, side: 'front' | 'ba
   if (generator?.source.startsWith('builtin:') && generator.version !== '1') {
     throw new Error(`Unsupported built-in footprint version: ${generator.version}`);
   }
-  const generated = generator ? builtinGeometry(generator.source, generator.parameters) : undefined;
+  const generated = generator?.source.startsWith('builtin:')
+    ? builtinGeometry(generator.source, generator.parameters as Record<string, number | string | boolean>)
+    : undefined;
   if (generator?.source.startsWith('builtin:') && !generated) {
     throw new Error(`Unknown built-in footprint: ${generator.source}`);
   }
-  const geometry = generated ?? { pads: definition.pads, courtyard: definition.courtyard, traces: [], vias: [] };
+  const ergogen = isErgogen(generator?.source);
+  if (generator && /^(?:ceoloide|infused-kim)\//u.test(generator.source) && !ergogen) {
+    throw new Error(`Unknown Ergogen footprint: ${generator.source}`);
+  }
+  const generatedErgogen = ergogen ? ergogenGeometry(renderErgogen(definition)) : undefined;
+  const geometry = generated ?? (generatedErgogen && { ...generatedErgogen, traces: [], vias: [] }) ?? { pads: definition.pads, courtyard: definition.courtyard, traces: [], vias: [] };
   const key = JSON.stringify({
     source: generator?.source ?? definition.id,
     version: generator?.version ?? 'authored',
     parameters: sortedParameters(generator?.parameters ?? {}),
     side,
-    courtyard: generated ? undefined : geometry.courtyard,
-    pads: generated ? undefined : geometry.pads.map(({ netId: _netId, ...pad }) => pad),
+    courtyard: generated || ergogen ? undefined : geometry.courtyard,
+    pads: generated || ergogen ? undefined : geometry.pads.map(({ netId: _netId, ...pad }) => pad),
   });
   const previous = cache.get(key);
   if (previous) {

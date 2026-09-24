@@ -24,6 +24,18 @@ export function matrixMembers(matrix: Matrix): Map<string, string> {
 export function matrixPosition(matrix: Matrix, row: number, column: number, cell?: MatrixCell): Vec2 {
   let x = column * matrix.pitch.x + (matrix.columnOffsets?.[column]?.x ?? 0) + (matrix.rowOffsets?.[row]?.x ?? 0) + (cell?.offset?.x ?? 0);
   let y = row * matrix.pitch.y + (matrix.columnOffsets?.[column]?.y ?? 0) + (matrix.rowOffsets?.[row]?.y ?? 0) + (cell?.offset?.y ?? 0);
+  y += (matrix.columnStaggers ?? []).slice(0, column + 1).reduce((sum, value) => sum + value, 0);
+  // Apply later rotations first: earlier splays carry their subsequent pivots too.
+  for (let index = Math.min(column, (matrix.columnSplays?.length ?? 0) - 1); index >= 0; index--) {
+    const angle = matrix.columnSplays![index] * Math.PI / 180;
+    if (!angle) continue;
+    const pivotX = index * matrix.pitch.x;
+    const pivotY = (matrix.columnStaggers ?? []).slice(0, index + 1).reduce((sum, value) => sum + value, 0);
+    const dx = x - pivotX;
+    const dy = y - pivotY;
+    x = pivotX + dx * Math.cos(angle) - dy * Math.sin(angle);
+    y = pivotY + dx * Math.sin(angle) + dy * Math.cos(angle);
+  }
   if (matrix.mirror === 'x') x *= -1;
   if (matrix.mirror === 'y') y *= -1;
   const angle = (matrix.rotation ?? 0) * Math.PI / 180;
@@ -54,5 +66,5 @@ export function cellPose(matrix: Matrix, row: number, column: number, cell: Matr
     const t = (row - nearest[0]) / (nearest[1] - nearest[0]);
     residual = { x: residual.x + t * (other.x - residual.x), y: residual.y + t * (other.y - residual.y) };
   }
-  return { at: { x: at.x + residual.x, y: at.y + residual.y }, rotation: (matrix.rotation ?? 0) + (cell?.rotation ?? 0) };
+  return { at: { x: at.x + residual.x, y: at.y + residual.y }, rotation: (matrix.rotation ?? 0) + (matrix.mirror === 'x' || matrix.mirror === 'y' ? -1 : 1) * (matrix.columnSplays ?? []).slice(0, column + 1).reduce((sum, angle) => sum + angle, 0) + (cell?.rotation ?? 0) };
 }

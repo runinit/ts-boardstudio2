@@ -129,7 +129,6 @@ body { overflow: hidden; }
 .wb-project-title { display: flex; align-items: center; gap: 9px; margin-left: 37px; color: var(--wb-ink); font-size: 12px; }
 .wb-project-title input { width: min(200px, 23vw); min-width: 70px; padding: 3px 0; border: 0; border-bottom: 1px solid transparent; outline: 0; color: inherit; background: transparent; font-size: 12px; }
 .wb-project-title input:hover, .wb-project-title input:focus { border-bottom-color: var(--wb-accent); }
-.wb-project-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--wb-surface-strong); }
 .wb-revision { padding: 2px 5px; color: var(--wb-subtle); font: 10px var(--wb-mono); border: 1px solid var(--wb-rule-strong); border-radius: 3px; }
 .wb-top-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .wb-save-state { display: flex; align-items: center; gap: 7px; margin-right: 8px; color: var(--wb-ink); font-size: 11px; }
@@ -220,7 +219,6 @@ body { overflow: hidden; }
 .wb-snap-control select { max-width: 49px; height: 28px; padding: 0 3px; border: 1px solid var(--wb-rule); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font: 9px var(--wb-mono); }
 .wb-matrix-cell { fill: color-mix(in srgb, var(--wb-geometry-fill-muted) 45%, transparent); stroke: var(--wb-geometry-outline); stroke-width: 1; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .12s ease, stroke .12s ease; }
 .wb-matrix-cell.is-enabled { fill: color-mix(in srgb, var(--wb-geometry-fill) 55%, transparent); stroke-dasharray: none; }
-.wb-matrix-cell.is-empty { fill: color-mix(in srgb, var(--wb-panel) 70%, transparent); }
 .wb-matrix-cell:hover, .wb-matrix-cell.is-selected { fill: color-mix(in srgb, var(--wb-accent) 28%, transparent); stroke: var(--wb-accent); stroke-width: 1.5; }
 .wb-stagger-handle rect { fill: var(--wb-geometry-key); stroke: var(--wb-panel); stroke-width: .12; vector-effect: non-scaling-stroke; cursor: grab; }
 .wb-stagger-handle:hover rect { fill: var(--wb-accent-dark); }
@@ -488,6 +486,13 @@ body { overflow: hidden; }
 .wb-model-vector legend { padding: 0 4px; color: var(--wb-muted); font: 8px var(--wb-mono); }
 .wb-model-vector > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .wb-export-row { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 9px; min-height: 48px; border-bottom: 1px solid var(--wb-rule); }
+.wb-export-option { display: flex; align-items: flex-start; gap: 9px; padding: 12px 0; color: var(--wb-ink); }
+.wb-export-option > span { display: grid; gap: 3px; }
+.wb-export-option input { margin-top: 2px; accent-color: var(--wb-accent); }
+.wb-anchor-row { grid-template-columns: 1fr 1fr 1fr; align-items: end; }
+.wb-anchor-row > span { grid-column: 1 / -1; }
+.wb-anchor-row label { display: grid; gap: 3px; color: var(--wb-subtle); font-size: 9px; }
+.wb-anchor-row input { min-width: 0; width: 100%; }
 .wb-export-row .wb-ready-dot { align-self: start; margin-top: 5px; }
 .wb-export-action { width: 100%; justify-content: space-between; margin-top: 12px; }
 .wb-secondary { display: inline-flex; align-items: center; justify-content: space-between; min-height: 33px; padding: 0 12px; border: 1px solid var(--wb-rule); border-radius: 4px; color: var(--wb-ink); background: transparent; font-size: 10px; font-weight: 600; cursor: pointer; }
@@ -609,3 +614,19 @@ body { overflow: hidden; }
 .wb-tree-actions > button:hover { background: var(--wb-selection-surface); }
 .wb-matrix-cell-actions select { min-height: 30px; padding: 4px 6px; border: 1px solid var(--wb-rule-strong); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); }
 .wb-keycap-boundary { fill: none; stroke: var(--wb-geometry-key); stroke-width: 1.25; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+.wb-column-layout { margin-top: 16px; }
+.wb-column-layout .wb-empty-note { margin-top: 8px; }
+.wb-object-name, .wb-object-actions label, .wb-matrix-setup label { display: grid; gap: 6px; margin-bottom: 12px; font-size: 11px; }
+.wb-object-name input, .wb-object-actions input, .wb-matrix-setup input, .wb-matrix-setup select { min-width: 0; width: 100%; height: 32px; border: 1px solid var(--wb-rule-strong); border-radius: 3px; background: var(--wb-panel); color: var(--wb-ink); padding: 4px 8px; }
+.wb-object-actions { margin-bottom: 18px; }
+.wb-matrix-setup { padding: 14px; border-bottom: 1px solid var(--wb-rule); overflow-y: auto; flex-shrink: 0; max-height: 60%; }
+.wb-matrix-setup h3 { margin: 0 0 14px; font-size: 14px; }
+.wb-matrix-setup p { font-size: 11px; color: var(--wb-muted); }
+.wb-matrix-setup button, .wb-add-matrix { padding: 7px 10px; margin: 4px 4px 0 0; border: 1px solid var(--wb-rule-strong); border-radius: 4px; background: var(--wb-panel); color: var(--wb-ink); cursor: pointer; }
+.wb-matrix-setup button:disabled { opacity: .5; cursor: default; }
+.wb-scene-part:hover .wb-part-courtyard, .wb-scene-part:hover .wb-keycap-boundary { stroke: var(--wb-geometry-key); stroke-width: 2; }
+.wb-scene-part.is-selected .wb-part-courtyard, .wb-scene-part.is-selected .wb-keycap-boundary { stroke: var(--wb-accent); stroke-width: 2; }
+.wb-root .wb-scope-outline { fill: none; stroke: var(--wb-accent); stroke-width: 2.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+.wb-root .wb-scope-outline.is-hover { stroke: var(--wb-geometry-key); stroke-width: 2; stroke-dasharray: 5 3; }
+.wb-canvas.is-placing-matrix .wb-scene-part, .wb-canvas.is-placing-matrix .wb-matrix-ghost:not(.is-placement-preview) { pointer-events: none; }

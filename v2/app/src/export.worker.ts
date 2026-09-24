@@ -25,8 +25,18 @@ function build(request: ExportRequest): ExportReply {
   }
 
   if (request.kind === 'footprints') {
+    const boardUtilities: string[] = [];
     for (const definition of request.document.definitions) {
-      const exported = exportFootprintFile(definition, paths);
+      let exported;
+      try {
+        exported = exportFootprintFile(definition, paths);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('emits board objects and must be exported on a board')) {
+          boardUtilities.push(definition.name);
+          continue;
+        }
+        throw error;
+      }
       const path = `BoardStudio.pretty/${exported.filename}`;
       if (files[path]) {
         throw new Error(`Footprint filename repeats: ${exported.filename}`);
@@ -35,6 +45,9 @@ function build(request: ExportRequest): ExportReply {
     }
 
     files['fp-lib-table'] = strToU8('(fp_lib_table (lib (name "BoardStudio") (type "KiCad") (uri "${KIPRJMOD}/BoardStudio.pretty") (options "") (descr "")))\n');
+    if (boardUtilities.length) {
+      files['BOARD-UTILITIES.txt'] = strToU8(`These generators emit board objects and are included when exporting a placed board:\n${boardUtilities.join('\n')}\n`);
+    }
     return { id: request.id, kind: 'file', filename: `${request.document.name}-footprints.zip`, bytes: zipSync(files), mediaType: 'application/zip' };
   }
 

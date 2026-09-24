@@ -33,7 +33,12 @@ fn definition(id: &str, pads: Vec<Pad>) -> PartDefinition {
         ],
         pads,
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     }
 }
@@ -97,6 +102,7 @@ fn guided_matrix_preview() {
         .collect();
     let matrix = Matrix {
         id: "main".into(),
+        name: None,
         rows: 6,
         columns: 5,
         pitch: Vec2 {
@@ -114,6 +120,8 @@ fn guided_matrix_preview() {
         diode_direction: None,
         row_offsets: vec![],
         column_offsets: vec![],
+        column_staggers: vec![],
+        column_splays: vec![],
         cells,
     };
     assert!(matches!(

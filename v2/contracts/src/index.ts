@@ -2,6 +2,7 @@
 export type Id = string;
 export type Vec2 = { x: number; y: number };
 export type Vec3 = { x: number; y: number; z: number };
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export type Pose2 = { at: Vec2; rotation: number };
 
 export type Material = {
@@ -26,15 +27,23 @@ export type Pad = {
 export type PartDefinition = {
   id: Id;
   name: string;
-  kind: 'switch' | 'controller' | 'connector' | 'encoder' | 'passive' | 'custom';
+  kind: 'switch' | 'controller' | 'connector' | 'encoder' | 'passive' | 'custom' | 'utility';
   keycap?: Vec2;
+  /** Tracks whether automatically derived definition envelopes may follow generator edits. */
+  envelopeSource?: { courtyard?: 'generated' | 'authored'; keycap?: 'generated' | 'authored' };
+  /** Generator net parameter names grouped by stable footprint pad IDs. */
+  terminals?: Record<string, Id[]>;
+  /** Logical matrix row and column terminals for keyboard switch definitions. */
+  matrixTerminals?: { row: string; column: string };
+  envelopeNotice?: string;
   courtyard: Vec2[];
   pads: Pad[];
   model?: { assetId: Id; offset: Vec3; rotation: Vec3; scale: Vec3 };
+  models?: { assetId: Id; offset: Vec3; rotation: Vec3; scale: Vec3 }[];
   generator?: {
     source: string;
     version: string;
-    parameters: Record<string, number | string | boolean>;
+    parameters: Record<string, JsonValue>;
   };
 };
 
@@ -48,6 +57,7 @@ export type Part = {
   side: 'front' | 'back';
   locked?: boolean;
   properties?: Record<string, string | number>;
+  generatorParameters?: Record<string, JsonValue>;
 };
 
 export type Net = { id: Id; name: string; pins: { partId: Id; padId: Id }[] };
@@ -68,6 +78,7 @@ export type CopperVia = {
 };
 export type Matrix = {
   id: Id;
+  name?: string;
   boardId?: Id;
   rows: number;
   columns: number;
@@ -82,6 +93,8 @@ export type Matrix = {
   diodeDirection?: 'row2col' | 'col2row';
   rowOffsets?: Vec2[];
   columnOffsets?: Vec2[];
+  columnStaggers?: number[];
+  columnSplays?: number[];
   cells?: MatrixCell[];
 };
 
@@ -186,6 +199,7 @@ export type EditOperation =
   | { kind: 'set-outline'; feature: OutlineFeature }
   | { kind: 'add-part'; part: Part; boardId?: Id }
   | { kind: 'remove-parts'; ids: Id[] }
+  | { kind: 'remove-matrix'; id: Id }
   | { kind: 'set-net'; net: Net }
   | { kind: 'set-case'; body: CaseBody }
   | { kind: 'set-matrix'; matrix: Matrix; definitions?: PartDefinition[] }

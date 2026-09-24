@@ -8,12 +8,14 @@
     "build": "tsc --noEmit && vite build && node scripts/write-sw.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:dev": "playwright test --config playwright.dev.config.ts",
     "test:perf": "node scripts/run-performance.mjs"
   },
   "dependencies": {
     "@boardstudio/v2-contracts": "workspace:*",
     "@boardstudio/v2-cad": "workspace:*",
     "@boardstudio/v2-kicad": "workspace:*",
+    "@boardstudio/v2-ergogen": "workspace:*",
     "fflate": "0.8.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",

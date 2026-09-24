@@ -63,6 +63,57 @@ fn deleting_corner_creates_notch_and_retains_neighbors() {
     assert!(contains(&after.contours, 0.0, 19.05));
 }
 
+#[test]
+fn automatic_part_envelopes_exclude_nonphysical_utilities() {
+    let mut doc = document();
+    doc.definitions.push(PartDefinition {
+        id: "utility".into(),
+        name: "Board note".into(),
+        kind: PartKind::Utility,
+        keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
+        courtyard: vec![
+            Vec2 { x: -10.0, y: -10.0 },
+            Vec2 { x: 10.0, y: -10.0 },
+            Vec2 { x: 10.0, y: 10.0 },
+            Vec2 { x: -10.0, y: 10.0 },
+        ],
+        pads: vec![],
+        model: None,
+        models: None,
+        generator: None,
+    });
+    doc.parts.push(Part {
+        id: "label".into(),
+        definition_id: "utility".into(),
+        reference: "TXT".into(),
+        pose: Pose2 {
+            at: Vec2 { x: 100.0, y: 0.0 },
+            rotation: 0.0,
+        },
+        side: Side::Front,
+        keycap: None,
+        outline: None,
+        locked: None,
+        properties: None,
+        generator_parameters: None,
+    });
+    doc.boards[0].part_ids.push("label".into());
+    if let OutlineFeature::PartEnvelope { part_ids, .. } = &mut doc.outline[0] {
+        part_ids.push("label".into());
+    }
+    let mut core = CoreEngine::new();
+    let resolved = scene(core.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    }));
+    assert!(contains(&resolved.contours, 19.05, 0.0));
+    assert!(!contains(&resolved.contours, 100.0, 0.0));
+}
+
 fn commit(core: &mut CoreEngine, revision: u64, operation: serde_json::Value) -> SceneDelta {
     scene(core.handle(CoreRequest::Edit {
         id: "edit".into(),

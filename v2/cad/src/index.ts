@@ -24,7 +24,10 @@ async function getKernel(): Promise<OpenCascadeInstance> {
       }
       const wasm = await import('libcascade/single/wasm?url');
       return createInstance({ locateFile: () => wasm.default });
-    })();
+    })().catch((cause) => {
+      instance = undefined;
+      throw cause;
+    });
   }
 
   return instance;

@@ -1,3 +1,4 @@
+import { configureMatrix } from './matrix-setup';
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { strToU8, zipSync } from 'fflate';
@@ -139,20 +140,20 @@ test('deleted matrix corners remain empty after resizing and rotation follows th
   await page.goto('/');
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: 'New project' }).click();
-  await page.getByRole('button', { name: 'New Matrix' }).first().click();
+  await configureMatrix(page);
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
   await page.getByRole('button', { name: 'Key', exact: true }).click();
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(58);
-  await expect(page.getByRole('button', { name: 'Place key, row 1, column 1' })).toBeVisible();
+  await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
   await page.getByRole('button', { name: 'Matrix', exact: true }).click();
   const columns = page.getByRole('spinbutton', { name: /Columns/ });
   await columns.fill('6');
   await columns.blur();
   await expect(page.locator('.wb-scene-part')).toHaveCount(70);
-  await expect(page.getByRole('button', { name: 'Place key, row 1, column 1' })).toBeVisible();
+  await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
   const rotation = page.getByRole('spinbutton', { name: 'Rotation °', exact: true });
   await rotation.fill('30');
   await rotation.blur();
@@ -189,6 +190,7 @@ test('a newly introduced library definition joins the board automatic envelope',
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('option', { name: /^Choc switch/ }).click();
   await page.getByRole('button', { name: 'Place component', exact: true }).click();
+  await page.keyboard.press('Enter');
   await expect(page.locator('.wb-scene-part')).toHaveCount(1);
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   expect(contains(await contours(page), { x: 0, y: 0 })).toBe(true);

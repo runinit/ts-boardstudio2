@@ -491,6 +491,7 @@ fn affects_outline(op: &EditOperation) -> bool {
             | EditOperation::SetOutline { .. }
             | EditOperation::AddPart { .. }
             | EditOperation::RemoveParts { .. }
+            | EditOperation::RemoveMatrix { .. }
             | EditOperation::SetMatrix { .. }
             | EditOperation::SetConstraint { .. }
             | EditOperation::RemoveConstraint { .. }
@@ -587,6 +588,30 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             doc.parts.push(part.clone());
             Ok(vec![part.id.clone()])
         }
+        EditOperation::RemoveMatrix { id } => {
+            let ids = doc
+                .matrices
+                .iter()
+                .find(|matrix| matrix.id == *id)
+                .ok_or("Matrix does not exist")?
+                .part_ids
+                .clone();
+            let mut changed = apply(doc, &EditOperation::RemoveParts { ids })?;
+            doc.matrices.retain(|matrix| matrix.id != *id);
+            let prefix = format!("matrix/{id}/net/");
+            let empty_owned: std::collections::BTreeSet<_> = doc
+                .nets
+                .iter()
+                .filter(|net| net.id.starts_with(&prefix) && net.pins.is_empty())
+                .map(|net| net.id.clone())
+                .collect();
+            doc.nets.retain(|net| !empty_owned.contains(&net.id));
+            for board in &mut doc.boards {
+                board.net_ids.retain(|id| !empty_owned.contains(id));
+            }
+            changed.push(id.clone());
+            Ok(changed)
+        }
         EditOperation::RemoveParts { ids } => {
             let ids = matrix::removed_members(doc, ids);
             doc.constraints.retain(|constraint| {
@@ -638,13 +663,7 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             let mut changed = vec![];
             let mut provided = BTreeSet::new();
             for definition in definitions.iter().flatten() {
-                if definition.id.is_empty()
-                    || !definition
-                        .id
-                        .bytes()
-                        .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
-                    || !provided.insert(&definition.id)
-                {
+                if definition.id.trim().is_empty() || !provided.insert(&definition.id) {
                     return Err("Matrix definition ID is invalid or duplicated".into());
                 }
                 if let Some(existing) = doc.definitions.iter().find(|item| item.id == definition.id)

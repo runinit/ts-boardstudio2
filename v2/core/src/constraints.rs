@@ -140,6 +140,7 @@ mod tests {
             keycap: None,
             outline: None,
             properties: None,
+            generator_parameters: None,
         }
     }
 

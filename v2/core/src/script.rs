@@ -177,6 +177,7 @@ pub fn apply_scripts(doc: &mut ProjectDoc) -> Result<(), String> {
                         keycap: None,
                         outline: None,
                         properties: None,
+                        generator_parameters: None,
                     });
                 }
                 Emission::Rect {

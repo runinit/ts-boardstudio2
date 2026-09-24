@@ -12,6 +12,8 @@ import type {
   Vec2,
 } from '../../contracts/src/index.ts';
 import { compileFootprint } from './footprint.ts';
+import { isErgogen } from '@boardstudio/v2-ergogen';
+import { exportErgogenForms } from './ergogen.ts';
 
 const FILE_VERSION = 20241229;
 const EDGE_WIDTH = 0.05;
@@ -171,17 +173,15 @@ const courtyardText = (points: readonly Readonly<Vec2>[], scope: string, back = 
 };
 
 const modelText = (definition: PartDefinition, models: ReadonlyMap<Id, string>): string => {
-  if (!definition.model) {
-    return '';
-  }
+  return [...(definition.model ? [definition.model] : []), ...(definition.models ?? [])].map((model) => {
+    const path = models.get(model.assetId);
+    if (!path || path.startsWith('/') || path.includes('..') || path.includes('\\') || /^[a-z]+:/iu.test(path)) {
+      throw new KiCadError(`Model ${model.assetId} needs a safe relative path`);
+    }
 
-  const path = models.get(definition.model.assetId);
-  if (!path || path.startsWith('/') || path.includes('..') || path.includes('\\') || /^[a-z]+:/iu.test(path)) {
-    throw new KiCadError(`Model ${definition.model.assetId} needs a safe relative path`);
-  }
-
-  const { offset, rotation, scale } = definition.model;
-  return `(model ${quote(`\${KIPRJMOD}/${path}`)} (offset (xyz ${num(offset.x)} ${num(-offset.y)} ${num(offset.z)})) (scale (xyz ${num(scale.x)} ${num(scale.y)} ${num(scale.z)})) (rotate (xyz ${num(rotation.x)} ${num(rotation.y)} ${num(-rotation.z)})))`;
+    const { offset, rotation, scale } = model;
+    return `(model ${quote(`\${KIPRJMOD}/${path}`)} (offset (xyz ${num(offset.x)} ${num(-offset.y)} ${num(offset.z)})) (scale (xyz ${num(scale.x)} ${num(scale.y)} ${num(scale.z)})) (rotate (xyz ${num(rotation.x)} ${num(rotation.y)} ${num(-rotation.z)})))`;
+  }).join('\n    ');
 };
 
 const footprintText = (
@@ -233,6 +233,13 @@ export const exportFootprint = (
   definition: PartDefinition,
   models: ReadonlyMap<Id, string> = new Map(),
 ): string => {
+  if (isErgogen(definition.generator?.source)) {
+    const output = exportErgogenForms(definition, undefined, models);
+    if (output.footprints.length !== 1 || output.objects.length) {
+      throw new KiCadError(`${definition.name} emits board objects and must be exported on a board`);
+    }
+    return `${output.footprints[0]}\n`;
+  }
   return `${footprintText(definition, `definition:${definition.id}`, undefined, new Map(), models)}\n`;
 };
 
@@ -334,11 +341,54 @@ export const exportBoard = (
     netIndex.set(id, { index: index + 1, name: net.name });
   });
 
+  const generatedObjects: string[] = [];
+  const generatedNetIndexes = new Map<string, number[]>();
+  for (const net of netIndex.values()) generatedNetIndexes.set(net.name, [...(generatedNetIndexes.get(net.name) ?? []), net.index]);
+  let nextGeneratedNetIndex = Math.max(0, ...[...netIndex.values()].map((net) => net.index)) + 1;
+  const generatedNetIndex = (name: string): number => {
+    const existing = generatedNetIndexes.get(name);
+    if (existing?.length === 1) return existing[0];
+    if (existing && existing.length > 1) throw new KiCadError(`Net name is ambiguous on board: ${name}`);
+    const next = nextGeneratedNetIndex++;
+    generatedNetIndexes.set(name, [next]);
+    return next;
+  };
+
+  const boardNetByName = (name: string): Net | undefined => {
+    const matches = board.netIds.map((id) => allNets.get(id)!).filter((net) => net.name === name);
+    if (matches.length > 1) throw new KiCadError(`Net name is ambiguous on board: ${name}`);
+    return matches[0];
+  };
+
   const footprints = board.partIds.map((id) => {
     const part = parts.get(id);
     const definition = part && definitions.get(part.definitionId);
     if (!part || !definition) {
       throw new KiCadError(`Missing part or definition: ${id}`);
+    }
+
+    if (isErgogen(definition.generator?.source)) {
+      const generatorParameters = { ...(part.generatorParameters ?? {}) };
+      const consumed = new Set<string>();
+      for (const [terminal, pads] of Object.entries(definition.terminals ?? {})) {
+        const assigned = [...new Set(pads.map((padId) => pinNets.get(`${id}\u0000${padId}`)).filter((netId): netId is Id => Boolean(netId)))];
+        if (assigned.length > 1) throw new KiCadError(`Terminal ${id}/${terminal} has conflicting pad net assignments`);
+        const current = generatorParameters[terminal] ?? definition.generator?.parameters[terminal];
+        const explicitName = typeof current === 'string' && current.trim() ? current : undefined;
+        const explicitNet = explicitName ? boardNetByName(explicitName) : undefined;
+        if (explicitName && !explicitNet) throw new KiCadError(`Terminal ${id}/${terminal} references a net outside board: ${explicitName}`);
+        const assignedNet = assigned[0] ? allNets.get(assigned[0]) : undefined;
+        if (explicitNet && assignedNet && explicitNet.id !== assignedNet.id) throw new KiCadError(`Terminal ${id}/${terminal} has conflicting explicit and document net assignments`);
+        const effective = assignedNet ?? explicitNet;
+        if (effective) generatorParameters[terminal] = effective.name;
+        for (const padId of pads) consumed.add(`${id}\u0000${padId}`);
+      }
+      for (const key of pinNets.keys()) {
+        if (key.startsWith(`${id}\u0000`) && !consumed.has(key)) throw new KiCadError(`Net references an unmappable Ergogen pad on part ${id}`);
+      }
+      const output = exportErgogenForms(definition, { ...part, generatorParameters }, models, generatedNetIndex);
+      generatedObjects.push(...output.objects);
+      return output.footprints.join('\n');
     }
 
     const map = new Map<string, { index: number; name: string }>();
@@ -374,6 +424,7 @@ export const exportBoard = (
   for (const id of board.partIds) {
     const part = parts.get(id)!;
     const definition = definitions.get(part.definitionId)!;
+    if (isErgogen(definition.generator?.source)) continue;
     const geometry = compileFootprint(definition, part.side);
     const angle = part.pose.rotation * Math.PI / 180;
     const at = (point: Vec2): Vec2 => {
@@ -393,10 +444,7 @@ export const exportBoard = (
     }
   }
   const copper = copperText({ ...board, traces: [...(board.traces ?? []), ...generatedTraces], vias: [...(board.vias ?? []), ...generatedVias] }, netIndex);
-  const nets = board.netIds.map((id) => {
-    const net = netIndex.get(id)!;
-    return `(net ${net.index} ${quote(net.name)})`;
-  });
+  const nets = [...generatedNetIndexes].map(([name, index]) => `(net ${index} ${quote(name)})`);
 
   const content = `(kicad_pcb (version ${FILE_VERSION}) (generator "BoardStudio")
   (general (thickness ${num(board.thickness)}))
@@ -405,6 +453,7 @@ export const exportBoard = (
   (net 0 "")
   ${nets.join('\n  ')}
   ${footprints.join('\n  ')}
+  ${generatedObjects.join('\n  ')}
   ${copper.join('\n  ')}
   ${edges.join('\n  ')}
 )\n`;

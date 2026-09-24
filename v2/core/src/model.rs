@@ -64,12 +64,51 @@ pub struct PartDefinition {
     pub kind: PartKind,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keycap: Option<Vec2>,
+    #[serde(
+        rename = "envelopeSource",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub envelope_source: Option<EnvelopeSource>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub terminals: BTreeMap<String, Vec<String>>,
+    #[serde(
+        rename = "matrixTerminals",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub matrix_terminals: Option<MatrixTerminals>,
+    #[serde(
+        rename = "envelopeNotice",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub envelope_notice: Option<String>,
     pub courtyard: Vec<Vec2>,
     pub pads: Vec<Pad>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<PartModel>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub models: Option<Vec<PartModel>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generator: Option<PartGenerator>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct EnvelopeSource {
+    pub courtyard: Option<EnvelopeOrigin>,
+    pub keycap: Option<EnvelopeOrigin>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum EnvelopeOrigin {
+    Generated,
+    Authored,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct MatrixTerminals {
+    pub row: String,
+    pub column: String,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PartGenerator {
@@ -86,6 +125,7 @@ pub enum PartKind {
     Encoder,
     Passive,
     Custom,
+    Utility,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Part {
@@ -103,6 +143,11 @@ pub struct Part {
     pub locked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<BTreeMap<String, serde_json::Value>>,
+    #[serde(
+        rename = "generatorParameters",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub generator_parameters: Option<BTreeMap<String, serde_json::Value>>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -126,6 +171,8 @@ pub struct Net {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Matrix {
     pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     pub rows: u32,
     pub columns: u32,
     pub pitch: Vec2,
@@ -154,6 +201,18 @@ pub struct Matrix {
         skip_serializing_if = "Vec::is_empty"
     )]
     pub column_offsets: Vec<Vec2>,
+    #[serde(
+        rename = "columnStaggers",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub column_staggers: Vec<f64>,
+    #[serde(
+        rename = "columnSplays",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub column_splays: Vec<f64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub cells: Vec<MatrixCell>,
 }
@@ -487,6 +546,9 @@ pub enum EditOperation {
         part: Part,
         #[serde(rename = "boardId", skip_serializing_if = "Option::is_none")]
         board_id: Option<String>,
+    },
+    RemoveMatrix {
+        id: String,
     },
     RemoveParts {
         ids: Vec<String>,

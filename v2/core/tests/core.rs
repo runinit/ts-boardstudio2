@@ -51,7 +51,12 @@ fn preview_does_not_commit_and_stale_edit_fails() {
         courtyard: vec![],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -67,6 +72,7 @@ fn preview_does_not_commit_and_stale_edit_fails() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     engine.handle(CoreRequest::Open {
         id: "open".into(),
@@ -249,6 +255,7 @@ fn mechanical_holes_do_not_need_pad_numbers() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     let mut engine = CoreEngine::new();
     let (scene, _) = scene(engine.handle(CoreRequest::Open {
@@ -280,7 +287,12 @@ fn part_envelope_tracks_committed_move() {
         ],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -296,6 +308,7 @@ fn part_envelope_tracks_committed_move() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
         id: "boundary".into(),
@@ -339,7 +352,12 @@ fn scripts_emit_stable_ids_and_keep_visual_pose() {
         courtyard: vec![],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.scripts.push(Script {
@@ -403,7 +421,12 @@ fn added_part_joins_board_and_envelope_then_removes_cleanly() {
         ],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
@@ -440,6 +463,7 @@ fn added_part_joins_board_and_envelope_then_removes_cleanly() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     };
     let (added, doc) = scene(engine.handle(edit(
         0,
@@ -507,6 +531,7 @@ fn add_part_targets_board_and_removal_cleans_both_boards() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     };
     let op = EditOperation::AddPart {
         part: part.clone(),
@@ -591,7 +616,12 @@ fn pcb_readiness_checks_pads_outlines_and_thickness() {
             net_id: None,
         }],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -607,6 +637,7 @@ fn pcb_readiness_checks_pads_outlines_and_thickness() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     doc.nets.push(Net {
         id: "row".into(),
@@ -682,6 +713,7 @@ fn invalid_definition_geometry_blocks_own_board() {
             keycap: None,
             outline: None,
             properties: None,
+            generator_parameters: None,
         });
         doc.definitions.push(PartDefinition {
             id: format!("{id}-def"),
@@ -701,7 +733,12 @@ fn invalid_definition_geometry_blocks_own_board() {
                 net_id: None,
             }],
             model: None,
+            models: None,
             keycap: None,
+            envelope_source: None,
+            terminals: Default::default(),
+            matrix_terminals: None,
+            envelope_notice: None,
             generator: None,
         });
     }
@@ -736,7 +773,6 @@ fn invalid_definition_geometry_blocks_own_board() {
         "pad:p1:drill",
         "pad:p1:position",
         "pad:p1:duplicate-id",
-        "pad:p1:duplicate-number",
     ] {
         assert!(
             scene.findings.iter().any(|finding| finding.id
@@ -769,7 +805,12 @@ fn empty_definition_and_pad_ids_are_reported() {
             net_id: None,
         }],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -785,12 +826,13 @@ fn empty_definition_and_pad_ids_are_reported() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     let (scene, _) = scene(engine.handle(CoreRequest::Open {
         id: "open".into(),
         document: doc,
     }));
-    for suffix in ["id", "pad:0:id", "pad:0:number", "pad:0:drill"] {
+    for suffix in ["id", "pad:0:id", "pad:0:drill"] {
         assert!(
             scene
                 .findings
@@ -825,7 +867,12 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
             net_id: None,
         }],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.parts.push(Part {
@@ -841,6 +888,7 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     for id in ["a", "b"] {
         doc.nets.push(Net {
@@ -1132,7 +1180,12 @@ fn matrix_doc() -> ProjectDoc {
         ],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     doc.outline.push(OutlineFeature::PartEnvelope {
@@ -1158,6 +1211,7 @@ fn matrix_doc() -> ProjectDoc {
 fn matrix(rows: u32, columns: u32) -> Matrix {
     Matrix {
         id: "main".into(),
+        name: None,
         rows,
         columns,
         pitch: Vec2 { x: 19.0, y: 19.0 },
@@ -1172,6 +1226,8 @@ fn matrix(rows: u32, columns: u32) -> Matrix {
         diode_direction: None,
         row_offsets: vec![],
         column_offsets: vec![],
+        column_staggers: vec![],
+        column_splays: vec![],
         cells: vec![],
     }
 }
@@ -1388,6 +1444,7 @@ fn failed_matrix_preview_restores_document() {
         keycap: None,
         outline: None,
         properties: None,
+        generator_parameters: None,
     });
     let mut engine = CoreEngine::new();
     let (_, original) = scene(engine.handle(CoreRequest::Open {
@@ -2030,6 +2087,7 @@ fn constraint_preview_commit_and_undo() {
             keycap: None,
             outline: None,
             properties: None,
+            generator_parameters: None,
         });
     }
     doc.constraints.push(Constraint::Offset {
@@ -2095,4 +2153,246 @@ fn constraint_preview_commit_and_undo() {
         )),
         CoreReply::Error { revision: 2, .. }
     ));
+}
+
+#[test]
+fn matrix_cumulative_stagger_splay_survive_growth_and_serialization() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut value = matrix(2, 3);
+    value.pitch = Vec2 { x: 20.0, y: 20.0 };
+    value.column_staggers = vec![0.0, 5.0];
+    value.column_splays = vec![0.0, 90.0];
+    let (_, doc) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    let key = doc
+        .parts
+        .iter()
+        .find(|p| p.id == "matrix/main/r1c1")
+        .unwrap();
+    assert!(key.pose.at.x.abs() < 1e-9);
+    assert!((key.pose.at.y - 5.0).abs() < 1e-9);
+    assert_eq!(key.pose.rotation, 90.0);
+    let reopened: ProjectDoc = serde_json::from_str(&serde_json::to_string(&doc).unwrap()).unwrap();
+    assert_eq!(reopened.matrices[0].column_splays, vec![0.0, 90.0]);
+    let mut value = reopened.matrices[0].clone();
+    value.columns = 4;
+    value.mirror = Some(Mirror::Y);
+    let (_, grown) = scene(engine.handle(edit(
+        1,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    let key = grown
+        .parts
+        .iter()
+        .find(|p| p.id == "matrix/main/r0c3")
+        .unwrap();
+    assert!((key.pose.at.x - 20.0).abs() < 1e-9);
+    assert!((key.pose.at.y + 45.0).abs() < 1e-9);
+    assert_eq!(key.pose.rotation, -90.0);
+    let mut value = grown.matrices[0].clone();
+    value.columns = 1;
+    let (_, shrunk) = scene(engine.handle(edit(
+        2,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: value,
+            definitions: None,
+        },
+    )));
+    assert_eq!(shrunk.matrices[0].column_staggers, vec![0.0]);
+    assert_eq!(shrunk.matrices[0].column_splays, vec![0.0]);
+}
+
+#[test]
+fn matrix_wires_all_pads_in_ergogen_terminals() {
+    let definition: PartDefinition = serde_json::from_value(serde_json::json!({
+        "id": "ergogen:switch_mx",
+        "name": "MX switch",
+        "kind": "switch",
+        "courtyard": [{"x": -5.0, "y": -5.0}, {"x": 5.0, "y": -5.0}, {"x": 5.0, "y": 5.0}, {"x": -5.0, "y": 5.0}],
+        "pads": [
+            {"id": "pad-0", "number": "1", "at": {"x": -2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "from"},
+            {"id": "pad-1", "number": "2", "at": {"x": 2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "to"},
+            {"id": "pad-2", "number": "1", "at": {"x": -3.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "from"},
+            {"id": "pad-3", "number": "2", "at": {"x": 3.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "to"}
+        ],
+        "terminals": {"from": ["pad-0", "pad-2"], "to": ["pad-1", "pad-3"]},
+        "matrixTerminals": {"row": "from", "column": "to"},
+        "generator": {"source": "ceoloide/switch_mx", "version": "bundled-1", "parameters": {}}
+    })).unwrap();
+    let mut doc = matrix_doc();
+    doc.definitions.push(definition.clone());
+    let mut diode = doc.definitions[0].clone();
+    diode.id = "matrix-diode".into();
+    diode.pads = vec![
+        Pad {
+            id: "anode".into(),
+            number: "1".into(),
+            at: Vec2::default(),
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Circle,
+            drill: None,
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        },
+        Pad {
+            id: "cathode".into(),
+            number: "2".into(),
+            at: Vec2::default(),
+            size: Vec2 { x: 1.0, y: 1.0 },
+            shape: PadShape::Circle,
+            drill: None,
+            plated: None,
+            side: None,
+            rotation: None,
+            net_id: None,
+        },
+    ];
+    doc.definitions.push(diode);
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let mut incoming = matrix(1, 1);
+    incoming.definition_id = definition.id.clone();
+    incoming.diodes = Some(true);
+    let reply = engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: incoming,
+            definitions: None,
+        },
+    ));
+    let (_, generated) = scene(reply);
+    let switch_id = "matrix/main/r0c0";
+    let row_link = generated
+        .nets
+        .iter()
+        .find(|net| net.name == "main_LINK_R0_C0")
+        .unwrap();
+    assert_eq!(
+        row_link
+            .pins
+            .iter()
+            .filter(|pin| pin.part_id == switch_id)
+            .count(),
+        2
+    );
+    let column = generated
+        .nets
+        .iter()
+        .find(|net| net.name == "main_COL0")
+        .unwrap();
+    assert_eq!(
+        column
+            .pins
+            .iter()
+            .filter(|pin| pin.part_id == switch_id)
+            .count(),
+        2
+    );
+}
+
+#[test]
+fn matrix_accepts_stable_ergogen_catalogue_ids() {
+    let definition: PartDefinition = serde_json::from_value(serde_json::json!({
+        "id": "ergogen:ceoloide/switch_mx",
+        "name": "MX switch",
+        "kind": "switch",
+        "courtyard": [{"x": -5.0, "y": -5.0}, {"x": 5.0, "y": -5.0}, {"x": 5.0, "y": 5.0}, {"x": -5.0, "y": 5.0}],
+        "pads": [{"id": "pad-0", "number": "1", "at": {"x": -2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect"}, {"id": "pad-1", "number": "2", "at": {"x": 2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect"}],
+        "matrixTerminals": {"row": "from", "column": "to"},
+        "generator": {"source": "ceoloide/switch_mx", "version": "bundled-1", "parameters": {}}
+    })).unwrap();
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let mut incoming = matrix(1, 1);
+    incoming.definition_id = definition.id.clone();
+    let reply = engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: incoming,
+            definitions: Some(vec![definition]),
+        },
+    ));
+    let (_, generated) = scene(reply);
+    assert_eq!(
+        generated.matrices[0].definition_id,
+        "ergogen:ceoloide/switch_mx"
+    );
+}
+
+#[test]
+fn deleting_matrix_removes_its_container_and_parts_in_one_edit() {
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: matrix_doc(),
+    });
+    let (_, before) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(2, 2),
+            definitions: None,
+        },
+    )));
+    let operation: EditOperation =
+        serde_json::from_value(serde_json::json!({"kind":"remove-matrix", "id":"main"})).unwrap();
+    let (_, removed) = scene(engine.handle(edit(before.revision, EditPhase::Commit, operation)));
+    assert!(removed.matrices.is_empty());
+    assert!(
+        !removed
+            .parts
+            .iter()
+            .any(|part| before.matrices[0].part_ids.contains(&part.id))
+    );
+    let (_, restored) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(restored.matrices, before.matrices);
+    assert_eq!(restored.parts, before.parts);
+    let (_, deleted_again) = scene(engine.handle(CoreRequest::Redo { id: "redo".into() }));
+    assert!(deleted_again.matrices.is_empty());
+    let (_, restored) = scene(engine.handle(CoreRequest::Undo {
+        id: "restore".into(),
+    }));
+    let (_, empty) = scene(engine.handle(edit(
+        restored.revision,
+        EditPhase::Commit,
+        EditOperation::RemoveParts {
+            ids: restored.matrices[0].part_ids.clone(),
+        },
+    )));
+    assert!(empty.matrices[0].part_ids.is_empty());
+    let (_, removed_empty) = scene(engine.handle(edit(
+        empty.revision,
+        EditPhase::Commit,
+        EditOperation::RemoveMatrix { id: "main".into() },
+    )));
+    assert!(removed_empty.matrices.is_empty());
+    let (_, restored_empty) = scene(engine.handle(CoreRequest::Undo {
+        id: "undo-empty".into(),
+    }));
+    assert_eq!(restored_empty.matrices, empty.matrices);
 }

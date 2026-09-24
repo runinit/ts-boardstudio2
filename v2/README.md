@@ -11,12 +11,34 @@ The existing application and its deployment remain separate during v2 work.
 | `contracts` | Millimetre Y-up document and revisioned worker protocol |
 | `core` | Rust document transactions, outline geometry, constraints, scripts, matrix groups, undo/redo and WASM boundary |
 | `kicad` | KiCad 10 board and footprint serialization, footprint import and validation |
+| `ergogen` | Bundled generator sources, model assets, provenance, and the trusted Ergogen runtime adapter |
 | `cad` | Lazy OpenCascade case solids, mesh preview and STEP export |
 | `app` | Keyboard workbench, browser persistence, workers and file packaging |
 
 The app calls its worker, the worker calls the core, and exporters consume a
 committed snapshot. Exporters must reject a stale revision. The same resolved
 contours feed the 2D canvas, PCB edge, DXF and case construction.
+
+## Ergogen library
+
+Parts includes all 39 bundled Ergogen generators from the v1 `footprints/`
+library. The complete source and vendor bundle is copied byte for byte to
+`v2/ergogen/library/`; `pnpm --dir v2/ergogen test` checks its 188 files and
+the generated runtime module against the source. `pnpm build:v2` regenerates
+the trusted browser catalogue. User supplied JavaScript generators are not
+executed.
+
+Generator settings stay on part definitions. Net and anchor bindings can vary
+per placed part. Utility generators that emit zones, routing, or text become
+KiCad board objects when their parts are placed; they cannot be represented as
+standalone `.kicad_mod` files. A footprint-library export lists these entries
+in `BOARD-UTILITIES.txt`, while board export includes their output. Unsupported
+or missing model paths fail export explicitly. Model previews load STEP/STP
+files on demand; WRL is kept for KiCad export and STL sources are retained.
+
+Project export offers **Embed used models**, enabled by default. It includes
+only bundled models used by placed parts. Turning it off leaves bundled models
+linked to the installed catalogue; imported local assets remain embedded.
 
 ## Run and validate
 
@@ -33,7 +55,8 @@ pnpm test:perf:v2
 `dev:v2` builds the Rust WASM core and starts Vite. `check:v2` runs native core,
 KiCad and CAD tests, app unit tests, the app build, and Chromium browser tests.
 Install Playwright Chromium with `pnpm --dir v2/app exec playwright install
-chromium` if needed. Set `BOARDSTUDIO_CHROMIUM=/usr/bin/chromium` to use a local
+chromium` if needed. Run the development-server CAD regression with
+`pnpm --dir v2/app test:e2e:dev`. Set `BOARDSTUDIO_CHROMIUM=/usr/bin/chromium` to use a local
 Chromium binary.
 
 `test:perf:v2` rebuilds WASM and the app before five serial, same-host
@@ -70,7 +93,9 @@ including PCB Edge.Cuts, SVG/DXF and case/plate construction.
 
 ## Design workbench
 
-**Add Part** searches the shared catalog and starts a standalone cursor preview.
+**Add** offers a matrix setup flow and a searchable component catalog. Choose a
+matrix’s rows, columns, and key assembly before placing it; choosing a component
+starts a standalone cursor preview.
 Click to place on the active board using the selected snap increment; Alt bypasses
 snapping. Arrow keys move the preview and Enter places it. Escape cancels without
 changing the project. Detailed footprint editing and models live in **Parts**;
@@ -79,8 +104,19 @@ changing the project. Detailed footprint editing and models live in **Parts**;
 The tree defaults to Board → Matrix → Columns → Keys → Components. Its local
 Columns/Rows preference changes presentation only, and summaries count enabled
 keys. Empty slots remain selectable for restoration. The inspector follows the
-selected matrix, row, column, key, or component; an unselected board offers
-**New Matrix**. Canvas scope and Snap controls stay fixed during pan and zoom.
+selected matrix, row, column, key, or component. Rename boards and matrices in
+their inspectors. **Delete matrix** removes the container and its members in one
+undoable edit, including an empty matrix. Hover and selection outlines follow the
+current scope. Canvas scope and Snap controls stay fixed during pan and zoom.
+
+In **Parts**, the left library groups searchable **Key Assemblies** and
+**Components** by category. The right inspector edits the selected definition.
+The center switches between compiled **2D footprint** geometry and an attached
+**3D model**; missing models have an explicit import prompt. Interactive preview
+uses STEP; WRL attachments remain available for export and show that limitation.
+Bundled model previews report missing files or download failures with a retry
+action. Imported generator settings are grouped into dimensions, footprint
+options, identification, connections, model placement, and advanced parameters.
 
 Project → Appearance selects System, Light, or Dark and persists locally.
 Keycap overlays follow saved member poses, including old row-major projects,
@@ -90,12 +126,19 @@ retains their existing switch identities and net references.
 
 ## Current handoff
 
-The app can create a v2 project with multiple boards and place a 6 × 5
-matrix in one click. Each cell gets a switch and diode; MX/Choc, solder,
+The app can create a v2 project with multiple boards and place matrices with
+user-selected dimensions. Each cell gets a switch and diode; MX/Choc, solder,
 hotswap, and RGB presets change the assembly. Presets can update a matrix or
 create a separate design. A matrix can map its diode row-to-column or
 column-to-row. The CAD tree selects matrices, rows, columns, keys,
-and components; dragging rows/columns sets stagger. The editor has fractional
+and components; dragging rows/columns sets independent offsets. The column
+inspector also exposes cumulative **Stagger** (mm) and **Splay** (degrees): stagger
+shifts this and following columns; splay rotates them around this column’s
+nominal first-key anchor, carrying later column pivots. Matrix mirror and
+rotation apply afterward. These are stored as optional `columnStaggers` and
+`columnSplays` arrays, defaulting to zero for existing projects.
+Deleted keys disappear from the canvas; restore them by selecting their empty
+slot in the tree and checking **Enabled** in the key inspector. The editor has fractional
 pitch snapping, Alt bypass, wheel zoom, Space-pan, and fit-to-design. The
 Parts workspace previews compiled 2D footprints in the workspace as
 generator settings change and loads attached 3D
@@ -107,8 +150,9 @@ supports keyboard movement of focused parts at 0.1 mm or 1 mm steps, with
 one undo step per keypress. Project ZIP imports bound their expanded size.
 It exports board outlines as SVG/DXF, placed KiCad boards and a KiCad footprint
 library with relative model paths, and analytic case STEP. KiCad
-board export is a placement handoff for routing in KiCad; it does not create
-copper traces. Browser storage and the app shell work offline after the first
+board export includes placed parts and any tracks, vias, zones, and keepouts
+emitted by bundled Ergogen utilities. Remaining routing is done in KiCad.
+Browser storage and the app shell work offline after the first
 load. The CAD kernel loads when a case preview, imported STEP component mesh,
 or case STEP is requested.
 

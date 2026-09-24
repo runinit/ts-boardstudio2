@@ -18,6 +18,36 @@ const DIODE_OFFSET: Vec2 = Vec2 { x: 6.0, y: -10.0 };
 const LED_DEFINITION: &str = "rgb-led";
 const LED_PAD_IDS: [&str; 4] = ["vdd", "gnd", "din", "dout"];
 
+fn matrix_terminal_pad_ids(definition: &crate::model::PartDefinition, row: bool) -> Vec<String> {
+    let ids = if let Some(terminals) = &definition.matrix_terminals {
+        let name = if row {
+            &terminals.row
+        } else {
+            &terminals.column
+        };
+        definition.terminals.get(name).cloned().unwrap_or_default()
+    } else {
+        let legacy = if row {
+            SWITCH_ROW_PAD
+        } else {
+            SWITCH_COLUMN_PAD
+        };
+        if definition.pads.iter().any(|pad| pad.id == legacy) {
+            vec![legacy.into()]
+        } else {
+            vec![]
+        }
+    };
+    ids.into_iter()
+        .filter(|id| definition.pads.iter().any(|pad| &pad.id == id))
+        .collect()
+}
+
+fn has_matrix_terminals(definition: &crate::model::PartDefinition) -> bool {
+    !matrix_terminal_pad_ids(definition, true).is_empty()
+        && !matrix_terminal_pad_ids(definition, false).is_empty()
+}
+
 fn member_id(matrix: &str, row: u32, column: u32) -> String {
     format!("matrix/{matrix}/r{row}c{column}")
 }
@@ -163,6 +193,8 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
     }
     if matrix.row_offsets.len() > matrix.rows as usize
         || matrix.column_offsets.len() > matrix.columns as usize
+        || matrix.column_staggers.len() > matrix.columns as usize
+        || matrix.column_splays.len() > matrix.columns as usize
     {
         return Err("Matrix offsets exceed dimensions".into());
     }
@@ -187,6 +219,14 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
         .any(|point| !finite(point))
     {
         return Err("Matrix offsets must be finite".into());
+    }
+    if matrix
+        .column_staggers
+        .iter()
+        .chain(&matrix.column_splays)
+        .any(|value| !value.is_finite())
+    {
+        return Err("Matrix stagger and splay must be finite".into());
     }
     let mut cells = BTreeSet::new();
     for cell in &matrix.cells {
@@ -254,12 +294,7 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
                 .iter()
                 .find(|def| &def.id == definition_id)
                 .unwrap();
-            if !definition.pads.iter().any(|pad| pad.id == SWITCH_ROW_PAD)
-                || !definition
-                    .pads
-                    .iter()
-                    .any(|pad| pad.id == SWITCH_COLUMN_PAD)
-            {
+            if !has_matrix_terminals(definition) {
                 return Err("Matrix switch pads are missing".into());
             }
         }
@@ -270,12 +305,7 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
             .iter()
             .find(|def| def.id == matrix.definition_id)
             .unwrap();
-        if !definition.pads.iter().any(|pad| pad.id == SWITCH_ROW_PAD)
-            || !definition
-                .pads
-                .iter()
-                .any(|pad| pad.id == SWITCH_COLUMN_PAD)
-        {
+        if !has_matrix_terminals(definition) {
             return Err("Matrix switch pads are missing".into());
         }
     }
@@ -296,6 +326,30 @@ fn location(matrix: &Matrix, row: u32, column: u32, cell: Option<&MatrixCell>) -
     let cell_offset = cell.and_then(|cell| cell.offset).unwrap_or_default();
     let mut x = column as f64 * matrix.pitch.x + row_offset.x + column_offset.x + cell_offset.x;
     let mut y = row as f64 * matrix.pitch.y + row_offset.y + column_offset.y + cell_offset.y;
+    y += matrix
+        .column_staggers
+        .iter()
+        .take(column as usize + 1)
+        .sum::<f64>();
+    // Earlier splays transform the pivots of every later column.
+    for index in (0..(column as usize + 1).min(matrix.column_splays.len())).rev() {
+        let angle = matrix
+            .column_splays
+            .get(index)
+            .copied()
+            .unwrap_or(0.0)
+            .to_radians();
+        if angle == 0.0 {
+            continue;
+        }
+        let pivot_x = index as f64 * matrix.pitch.x;
+        let pivot_y = matrix.column_staggers.iter().take(index + 1).sum::<f64>();
+        let (sin, cos) = angle.sin_cos();
+        let dx = x - pivot_x;
+        let dy = y - pivot_y;
+        x = pivot_x + dx * cos - dy * sin;
+        y = pivot_y + dx * sin + dy * cos;
+    }
     match matrix.mirror.unwrap_or(Mirror::None) {
         Mirror::X => x = -x,
         Mirror::Y => y = -y,
@@ -306,6 +360,19 @@ fn location(matrix: &Matrix, row: u32, column: u32, cell: Option<&MatrixCell>) -
     Vec2 {
         x: matrix.origin.x + x * cos - y * sin,
         y: matrix.origin.y + x * sin + y * cos,
+    }
+}
+
+fn column_rotation(matrix: &Matrix, column: u32) -> f64 {
+    let angle = matrix
+        .column_splays
+        .iter()
+        .take(column as usize + 1)
+        .sum::<f64>();
+    if matches!(matrix.mirror, Some(Mirror::X | Mirror::Y)) {
+        -angle
+    } else {
+        angle
     }
 }
 
@@ -333,6 +400,12 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                 .retain(|cell| cell.row < resized.rows || cell.row >= before.rows);
         }
         if resized.columns < before.columns {
+            if resized.column_staggers.len() <= before.columns as usize {
+                resized.column_staggers.truncate(resized.columns as usize);
+            }
+            if resized.column_splays.len() <= before.columns as usize {
+                resized.column_splays.truncate(resized.columns as usize);
+            }
             if resized.column_offsets.len() <= before.columns as usize {
                 resized.column_offsets.truncate(resized.columns as usize);
             }
@@ -411,6 +484,7 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
             let mut pose = Pose2 {
                 at: location(incoming, row, column, cell),
                 rotation: incoming.rotation.unwrap_or(0.0)
+                    + column_rotation(incoming, column)
                     + cell.and_then(|cell| cell.rotation).unwrap_or(0.0),
             };
             if id != member_id(&incoming.id, row, column) {
@@ -421,7 +495,8 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                         .find(|cell| cell.row == row && cell.column == column);
                     let expected = location(before, row, column, old_cell);
                     let actual = doc.parts[index].pose;
-                    let angle = -before.rotation.unwrap_or(0.0).to_radians();
+                    let angle = -(before.rotation.unwrap_or(0.0) + column_rotation(before, column))
+                        .to_radians();
                     let (sin, cos) = angle.sin_cos();
                     let dx = actual.at.x - expected.x;
                     let dy = actual.at.y - expected.y;
@@ -439,11 +514,15 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                     if incoming.mirror == Some(Mirror::Y) {
                         y = -y;
                     }
-                    let (sin, cos) = incoming.rotation.unwrap_or(0.0).to_radians().sin_cos();
+                    let (sin, cos) = (incoming.rotation.unwrap_or(0.0)
+                        + column_rotation(incoming, column))
+                    .to_radians()
+                    .sin_cos();
                     pose.at.x += x * cos - y * sin;
                     pose.at.y += x * sin + y * cos;
                     pose.rotation += actual.rotation
                         - before.rotation.unwrap_or(0.0)
+                        - column_rotation(before, column)
                         - old_cell.and_then(|cell| cell.rotation).unwrap_or(0.0);
                 }
             }
@@ -549,6 +628,7 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                         keycap: None,
                         outline: None,
                         properties: (!properties.is_empty()).then_some(properties),
+                        generator_parameters: None,
                     });
                 }
                 next.part_ids.push(id.clone());
@@ -626,7 +706,7 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
         &cells,
         &next_members,
         &mut changed,
-    );
+    )?;
     changed.extend(removed);
     Ok(changed)
 }
@@ -638,7 +718,7 @@ fn sync_nets(
     cells: &BTreeMap<(u32, u32), &MatrixCell>,
     members: &BTreeMap<(u32, u32), String>,
     changed: &mut Vec<String>,
-) {
+) -> Result<(), String> {
     let prefix = format!("matrix/{}/net/", matrix.id);
     changed.extend(
         doc.nets
@@ -678,6 +758,18 @@ fn sync_nets(
                     .cloned()
                     .unwrap_or_else(|| member_id(&matrix.id, row, column));
                 let diode = cell.is_none_or(|cell| cell.diode != Some(false));
+                let switch_part = doc
+                    .parts
+                    .iter()
+                    .find(|part| part.id == switch)
+                    .ok_or("Matrix switch part is missing")?;
+                let switch_definition = doc
+                    .definitions
+                    .iter()
+                    .find(|definition| definition.id == switch_part.definition_id)
+                    .ok_or("Matrix switch definition is missing")?;
+                let row_pads = matrix_terminal_pad_ids(switch_definition, true);
+                let column_pads = matrix_terminal_pad_ids(switch_definition, false);
                 if diode {
                     let diode_id = format!("{switch}/{DIODE_MEMBER}");
                     let (row_pad, switch_pad) =
@@ -692,27 +784,30 @@ fn sync_nets(
                     links.push(Net {
                         id: format!("{prefix}link/r{row}c{column}"),
                         name: format!("{}_LINK_R{row}_C{column}", matrix.id),
-                        pins: vec![
-                            Pin {
-                                part_id: diode_id,
-                                pad_id: switch_pad.into(),
-                            },
-                            Pin {
-                                part_id: switch.clone(),
-                                pad_id: SWITCH_ROW_PAD.into(),
-                            },
-                        ],
+                        pins: std::iter::once(Pin {
+                            part_id: diode_id,
+                            pad_id: switch_pad.into(),
+                        })
+                        .chain(row_pads.iter().map(|pad_id| Pin {
+                            part_id: switch.clone(),
+                            pad_id: pad_id.clone(),
+                        }))
+                        .collect(),
                     });
                 } else {
-                    row_nets[row as usize].pins.push(Pin {
-                        part_id: switch.clone(),
-                        pad_id: SWITCH_ROW_PAD.into(),
-                    });
+                    row_nets[row as usize]
+                        .pins
+                        .extend(row_pads.iter().map(|pad_id| Pin {
+                            part_id: switch.clone(),
+                            pad_id: pad_id.clone(),
+                        }));
                 }
-                column_nets[column as usize].pins.push(Pin {
-                    part_id: switch,
-                    pad_id: SWITCH_COLUMN_PAD.into(),
-                });
+                column_nets[column as usize]
+                    .pins
+                    .extend(column_pads.into_iter().map(|pad_id| Pin {
+                        part_id: switch.clone(),
+                        pad_id,
+                    }));
             }
         }
         nets.extend(row_nets.into_iter().chain(column_nets).chain(links));
@@ -724,6 +819,7 @@ fn sync_nets(
         }
         doc.nets.push(net);
     }
+    Ok(())
 }
 
 fn led_nets(

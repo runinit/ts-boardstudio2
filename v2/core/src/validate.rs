@@ -62,7 +62,6 @@ pub fn validate(doc: &ProjectDoc) -> Vec<Finding> {
             report("courtyard".into(), "Courtyard points must be finite");
         }
         let mut pad_ids = BTreeSet::new();
-        let mut pad_numbers = BTreeSet::new();
         for (index, pad) in def.pads.iter().enumerate() {
             let key = if pad.id.is_empty() {
                 index.to_string()
@@ -72,17 +71,8 @@ pub fn validate(doc: &ProjectDoc) -> Vec<Finding> {
             if pad.id.trim().is_empty() {
                 report(format!("pad:{key}:id"), "Pad ID must not be empty");
             }
-            if pad.number.trim().is_empty() && pad.plated != Some(false) {
-                report(format!("pad:{key}:number"), "Pad number must not be empty");
-            }
             if !pad_ids.insert(&pad.id) {
                 report(format!("pad:{key}:duplicate-id"), "Pad IDs must be unique");
-            }
-            if !pad.number.is_empty() && !pad_numbers.insert(&pad.number) {
-                report(
-                    format!("pad:{key}:duplicate-number"),
-                    "Pad numbers must be unique",
-                );
             }
             if !pad.at.x.is_finite() || !pad.at.y.is_finite() {
                 report(format!("pad:{key}:position"), "Pad position must be finite");

@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
-import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
+import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
 import { builtinDefinitions, importFootprint } from '@boardstudio/v2-kicad';
+import { catalogue as ergogenCatalogue, isErgogen, modelBindings, normalizeDefinition } from '@boardstudio/v2-ergogen';
 import type { StepModel } from '@boardstudio/v2-cad';
 import { CoreClient } from './CoreClient';
 import { CaseClient } from './CaseClient';
 import { ExportClient } from './ExportClient';
 import { demoProject } from './demo';
 import { outlineDxf, outlineSvg } from './outlineExport';
-import { activeProjectId, loadAsset, loadProject, saveAsset, saveProject, unpackProject } from './storage';
+import { activeProjectId, loadAsset, loadProject, packProject, saveAsset, saveProject, unpackProject } from './storage';
+import { bundledModelBytes, bundledModel } from './bundledModels';
 import { Workbench, matrixWithPreset } from './ui/Workbench';
 import type { ComponentPreview } from './ui/CasePreview';
+import type { LibraryModelStatus } from './ui/LibraryWorkspace';
 
 const STARTER_ID = 'starter';
+const ERGOGEN_DEFINITIONS = ergogenCatalogue();
 
 const EMPTY_SCENE: SceneDelta = {
   revision: 0,
@@ -50,25 +54,50 @@ function caseAssembly(document: ProjectDoc, scene: SceneDelta, boardId: string):
   };
 }
 
-async function modelFiles(document: ProjectDoc, definitions: PartDefinition[]): Promise<{ paths: Map<string, string>; files: Record<string, Uint8Array> }> {
+function bindings(definition: PartDefinition, part?: Part): NonNullable<PartDefinition['models']> {
+  let generated: NonNullable<PartDefinition['models']> = [];
+  if (isErgogen(definition.generator?.source)) {
+    try {
+      generated = modelBindings(definition, part);
+    } catch (cause) {
+      generated = [{ assetId: `invalid-generator-model:${encodeURIComponent(String(cause))}`, offset: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } }];
+    }
+  }
+  return [
+    ...(definition.model ? [definition.model] : []),
+    ...(definition.models ?? []),
+    ...generated,
+  ];
+}
+
+async function modelFiles(document: ProjectDoc, definitions: PartDefinition[], parts: Part[] = []): Promise<{ paths: Map<string, string>; files: Record<string, Uint8Array> }> {
   const paths = new Map<string, string>();
   const files: Record<string, Uint8Array> = {};
 
-  for (const id of new Set(definitions.flatMap((definition) => definition.model ? [definition.model.assetId] : []))) {
+  const modelIds = definitions.flatMap((definition) => {
+    const instances = parts.filter((part) => part.definitionId === definition.id);
+    return (instances.length ? instances : [undefined]).flatMap((part) => bindings(definition, part).map((model) => model.assetId));
+  });
+
+  for (const id of new Set(modelIds)) {
     const asset = document.assets.find((item) => item.id === id);
-    const extension = asset?.name.match(/\.(step|stp|wrl)$/i)?.[1]?.toLowerCase();
+    const bundled = !asset ? bundledModel(id) : undefined;
+    const name = asset?.name ?? bundled?.filename;
+    const extension = name?.match(/\.(step|stp|wrl)$/i)?.[1]?.toLowerCase();
 
     if (!asset || !extension) {
-      throw new Error(`Model asset ${id} needs a STEP or WRL filename`);
+      if (!bundled || !extension) throw new Error(`Model asset ${id} needs a STEP, STP, or WRL filename`);
     }
 
-    const bytes = await loadAsset(asset.sha256);
+    const bytes = asset ? await loadAsset(asset.sha256) : await bundledModelBytes(id);
 
     if (!bytes) {
-      throw new Error(`Model asset ${asset.name} is missing`);
+      throw new Error(`Model asset ${name ?? id} is missing`);
     }
 
-    const path = `models/${asset.sha256}.${extension}`;
+    const digest = asset?.sha256 ?? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(bytes))),
+      (byte) => byte.toString(16).padStart(2, '0')).join('');
+    const path = `models/${digest}.${extension}`;
 
     paths.set(id, path);
     files[path] = bytes;
@@ -84,8 +113,10 @@ function App() {
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
   const [casePreview, setCasePreview] = useState<CaseResult | undefined>();
+  const [modelErrors, setModelErrors] = useState<Record<string, string>>({});
   const [modelMeshes, setModelMeshes] = useState<Record<string, StepModel>>({});
   const [libraryDefinitionId, setLibraryDefinitionId] = useState('');
+  const [embedUsedModels, setEmbedUsedModels] = useState(true);
   const [activeMode, setActiveMode] = useState<'Design' | 'PCB' | 'Case' | 'Library' | 'Export'>('Design');
   const client = useRef<CoreClient | null>(null);
   const caseClient = useRef<CaseClient | null>(null);
@@ -97,7 +128,7 @@ function App() {
   const committedScene = useRef(scene);
   const queue = useRef<Promise<void>>(Promise.resolve());
 
-  function accept(reply: CoreReply, mode: 'open' | 'commit' | 'preview'): void {
+  async function accept(reply: CoreReply, mode: 'open' | 'commit' | 'preview'): Promise<void> {
     if (reply.kind === 'error') {
       throw new Error(reply.message);
     }
@@ -118,6 +149,7 @@ function App() {
       setLibraryDefinitionId('');
     }
 
+    await saveProject(reply.document);
     projectRef.current = reply.document;
     setProject(reply.document);
     setScene(reply.scene);
@@ -125,10 +157,7 @@ function App() {
       ? current
       : reply.document.boards[0]?.id ?? '');
 
-    if (mode !== 'preview') {
-      committedScene.current = reply.scene;
-      void saveProject(reply.document).catch((cause) => setError(String(cause)));
-    }
+    committedScene.current = reply.scene;
   }
 
   function schedule(work: () => Promise<void>): void {
@@ -141,10 +170,11 @@ function App() {
     client.current = core;
     schedule(async () => {
       const saved = await loadProject(activeProjectId(STARTER_ID));
-      const document = saved ?? demoProject();
+      const loaded = saved ?? demoProject();
+      const document = { ...loaded, definitions: loaded.definitions.map((definition) => normalizeDefinition(definition)) };
       const reply = await core.request({ id: crypto.randomUUID(), kind: 'open', document });
 
-      accept(reply, 'open');
+      await accept(reply, 'open');
       setReady(true);
     });
 
@@ -199,43 +229,54 @@ function App() {
     return () => clearTimeout(timer);
   }, [activeMode, ready, project, scene, selectedBoardId]);
 
-  const requestModels = useCallback((definitionIds: string[]) => {
+  const requestModels = useCallback((definitionIds: string[], instances: Part[] = []) => {
     const document = projectRef.current;
-    const definitions = new Map(document.definitions.map((item) => [item.id, item]));
+    const definitions = new Map([...ERGOGEN_DEFINITIONS, ...document.definitions].map((item) => [item.id, item]));
     const assets = new Map(document.assets.map((item) => [item.id, item]));
 
     for (const id of definitionIds) {
-      const asset = assets.get(definitions.get(id)?.model?.assetId ?? '');
+      const definition = definitions.get(id);
+      const used = instances.filter((part) => part.definitionId === id);
+      const modelIds = definition ? (used.length ? used : [undefined]).flatMap((part) => bindings(definition, part).map((model) => model.assetId)) : [];
 
-      if (!asset || !/\.(step|stp)$/i.test(asset.name) || modelCache.current.has(asset.sha256)) {
-        continue;
-      }
+      for (const modelId of modelIds) {
+        const asset = assets.get(modelId);
+        const bundled = !asset ? bundledModel(modelId) : undefined;
 
-      const task = loadAsset(asset.sha256).then(async (bytes) => {
+        if ((!asset && !bundled) || (!/\.(step|stp)$/i.test(asset?.name ?? bundled?.filename ?? ''))
+          || modelCache.current.has(asset?.sha256 ?? modelId)) {
+          continue;
+        }
+
+        const cacheKey = asset?.sha256 ?? modelId;
+        setModelErrors((current) => { const next = { ...current }; delete next[cacheKey]; return next; });
+        const task = (asset ? loadAsset(asset.sha256) : bundledModelBytes(modelId)).then(async (bytes) => {
         if (!bytes) {
-          throw new Error(`Model asset ${asset.name} is missing`);
+          throw new Error(`Model asset ${asset?.name ?? bundled?.filename ?? modelId} is missing`);
         }
 
         caseClient.current ??= new CaseClient();
         return caseClient.current.requestModel(bytes);
       });
 
-      const epoch = modelEpoch.current;
-      modelCache.current.set(asset.sha256, task);
-      void task.then((mesh) => {
+        const epoch = modelEpoch.current;
+        modelCache.current.set(cacheKey, task);
+        void task.then((mesh) => {
         if (epoch !== modelEpoch.current) {
           return;
         }
 
-        setModelMeshes((current) => ({ ...current, [asset.sha256]: mesh }));
-      }).catch((cause) => {
+        setModelMeshes((current) => ({ ...current, [cacheKey]: mesh }));
+        }).catch((cause) => {
         if (epoch !== modelEpoch.current) {
           return;
         }
 
-        modelCache.current.delete(asset.sha256);
-        setError(String(cause));
-      });
+        modelCache.current.delete(cacheKey);
+        setModelErrors((current) => ({ ...current, [cacheKey]: String(cause) }));
+        if (instances.length) setError(String(cause));
+        });
+      }
     }
   }, []);
 
@@ -248,7 +289,8 @@ function App() {
     }
 
     const parts = new Map(document.parts.map((item) => [item.id, item]));
-    requestModels([...new Set(board.partIds.map((id) => parts.get(id)?.definitionId).filter((id): id is string => Boolean(id)))]);
+    const instances = board.partIds.map((id) => parts.get(id)).filter((part): part is Part => Boolean(part));
+    requestModels([...new Set(instances.map((part) => part.definitionId))], instances);
   }, [requestModels]);
 
   const selectLibraryModel = useCallback((definitionId: string) => {
@@ -267,7 +309,7 @@ function App() {
       return [];
     }
 
-    const definitions = new Map(project.definitions.map((item) => [item.id, item]));
+    const definitions = new Map([...ERGOGEN_DEFINITIONS, ...project.definitions].map((item) => [item.id, item]));
     const parts = new Map(project.parts.map((item) => [item.id, item]));
     const poses = new Map(scene.transforms.map((item) => [item.id, item.pose]));
     const assets = new Map(project.assets.map((item) => [item.id, item]));
@@ -275,37 +317,42 @@ function App() {
     return board.partIds.flatMap((id) => {
       const part = parts.get(id);
       const definition = part && definitions.get(part.definitionId);
-      const model = definition?.model;
-      const asset = model && assets.get(model.assetId);
-      const mesh = asset && modelMeshes[asset.sha256]?.mesh;
-
-      if (!part || !model || !mesh) {
-        return [];
-      }
-
-      return [{ id, reference: part.reference, pose: poses.get(id) ?? part.pose, side: part.side, model, mesh }];
+      if (!part || !definition) return [];
+      return bindings(definition, part).flatMap((model, index) => {
+        const asset = assets.get(model.assetId);
+        const mesh = modelMeshes[asset?.sha256 ?? model.assetId]?.mesh;
+        return mesh ? [{ id: `${id}:${index}`, reference: part.reference, pose: poses.get(id) ?? part.pose, side: part.side, model, mesh }] : [];
+      });
     });
   }, [activeMode, project.boards, project.definitions, project.parts, project.assets, selectedBoardId, scene.transforms, modelMeshes]);
 
-  const libraryModelPreview = useMemo<ComponentPreview | undefined>(() => {
-    const definition = project.definitions.find((item) => item.id === libraryDefinitionId);
-    const model = definition?.model;
-    const asset = project.assets.find((item) => item.id === model?.assetId);
-    const mesh = asset && modelMeshes[asset.sha256]?.mesh;
-
-    if (!definition || !model || !mesh) {
-      return undefined;
-    }
-
-    return {
-      id: definition.id,
-      reference: definition.name,
-      pose: { at: { x: 0, y: 0 }, rotation: 0 },
-      side: 'front',
-      model,
-      mesh,
-    };
+  const libraryModelPreviews = useMemo<ComponentPreview[]>(() => {
+    const definition = project.definitions.find((item) => item.id === libraryDefinitionId) ?? ERGOGEN_DEFINITIONS.find((item) => item.id === libraryDefinitionId);
+    if (!definition) return [];
+    return bindings(definition).flatMap((model, index) => {
+      const asset = project.assets.find((item) => item.id === model.assetId);
+      const mesh = modelMeshes[asset?.sha256 ?? model.assetId]?.mesh;
+      return mesh ? [{ id: `${definition.id}:${index}`, reference: definition.name, pose: { at: { x: 0, y: 0 }, rotation: 0 }, side: 'front' as const, model, mesh }] : [];
+    });
   }, [project.definitions, project.assets, libraryDefinitionId, modelMeshes]);
+
+  const libraryModelStatus = useMemo<LibraryModelStatus>(() => {
+    const definition = project.definitions.find((item) => item.id === libraryDefinitionId) ?? ERGOGEN_DEFINITIONS.find((item) => item.id === libraryDefinitionId);
+    const result = (state: LibraryModelStatus['state'], message?: string): LibraryModelStatus => ({ definitionId: libraryDefinitionId, state, message });
+    const models = definition ? bindings(definition) : [];
+    if (!models.length) return result('empty');
+    const resolved = models.map((model) => {
+      const asset = project.assets.find((item) => item.id === model.assetId);
+      const bundled = bundledModel(model.assetId);
+      return { key: asset?.sha256 ?? model.assetId, name: asset?.name ?? bundled?.filename };
+    });
+    if (resolved.some((model) => !model.name)) return result('error', 'The attached model file is missing. Attach it again in the inspector.');
+    const supported = resolved.filter((model) => /\.(step|stp)$/i.test(model.name!));
+    if (!supported.length) return result('unsupported');
+    const failed = supported.find((model) => modelErrors[model.key]);
+    if (failed) return result('error', `Could not load ${failed.name}. Check the file or retry.`);
+    return result(supported.every((model) => modelMeshes[model.key]) ? 'ready' : 'loading');
+  }, [project.definitions, project.assets, libraryDefinitionId, modelMeshes, modelErrors]);
 
   function edit(command: EditCommand): void {
     schedule(async () => {
@@ -324,7 +371,7 @@ function App() {
       };
       const reply = await client.current.request(request);
 
-      accept(reply, command.phase);
+      await accept(reply, command.phase);
     });
   }
 
@@ -336,7 +383,7 @@ function App() {
 
       const reply = await client.current.request({ id: crypto.randomUUID(), kind });
 
-      accept(reply, 'commit');
+      await accept(reply, 'commit');
     });
   }
 
@@ -349,7 +396,7 @@ function App() {
       const document = await unpackProject(new Uint8Array(await file.arrayBuffer()));
       const reply = await client.current.request({ id: crypto.randomUUID(), kind: 'open', document });
 
-      accept(reply, 'open');
+      await accept(reply, 'open');
     });
   }
 
@@ -370,7 +417,7 @@ function App() {
 
       const reply = await client.current.request({ id: crypto.randomUUID(), kind: 'open', document });
 
-      accept(reply, 'open');
+      await accept(reply, 'open');
     });
   }
 
@@ -417,7 +464,7 @@ function App() {
         throw new Error(changed.kind === 'error' ? changed.message : 'Expected variant snapshot');
       }
 
-      accept(changed, 'open');
+      await accept(changed, 'open');
     });
   }
 
@@ -450,11 +497,11 @@ function App() {
         },
       });
 
-      accept(reply, 'commit');
+      await accept(reply, 'commit');
     });
   }
 
-  function importModel(file: File, definitionId: string): void {
+  function importModel(file: File, definitionId: string, parameter?: string): void {
     schedule(async () => {
       const extension = file.name.match(/\.(step|stp|wrl)$/i)?.[1]?.toLowerCase();
 
@@ -463,7 +510,8 @@ function App() {
       }
 
       const current = projectRef.current;
-      const definition = current.definitions.find((item) => item.id === definitionId);
+      const definition = current.definitions.find((item) => item.id === definitionId)
+        ?? ERGOGEN_DEFINITIONS.find((item) => item.id === definitionId);
 
       if (!definition) {
         throw new Error('Part definition is missing');
@@ -480,16 +528,20 @@ function App() {
         sha256,
         source: 'local file',
       };
-      const model = {
-        assetId,
-        offset: { x: 0, y: 0, z: 0 },
-        rotation: { x: 0, y: 0, z: 0 },
-        scale: { x: 1, y: 1, z: 1 },
+      const updatedDefinition = parameter && definition.generator ? {
+        ...definition,
+        generator: { ...definition.generator, parameters: { ...definition.generator.parameters, [parameter]: `boardstudio-asset:${assetId}` } },
+      } : {
+        ...definition,
+        model: { assetId, offset: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } },
       };
+      const nextDefinitions = current.definitions.some((item) => item.id === definitionId)
+        ? current.definitions.map((item) => item.id === definitionId ? updatedDefinition : item)
+        : [...current.definitions, updatedDefinition];
       const document: ProjectDoc = {
         ...current,
         assets: [...current.assets, asset],
-        definitions: current.definitions.map((item) => item.id === definitionId ? { ...item, model } : item),
+        definitions: nextDefinitions,
       };
 
       await saveAsset(sha256, bytes);
@@ -510,7 +562,7 @@ function App() {
         },
       });
 
-      accept(reply, 'commit');
+      await accept(reply, 'commit');
     });
   }
 
@@ -524,17 +576,8 @@ function App() {
       }
 
       if (kind === 'project') {
-        const files: Record<string, Uint8Array> = {};
-        for (const asset of document.assets) {
-          const bytes = await loadAsset(asset.sha256);
-          if (!bytes) {
-            throw new Error(`Missing asset: ${asset.name}`);
-          }
-          files[`assets/${asset.sha256}`] = bytes;
-        }
-        exportClient.current ??= new ExportClient();
-        const result = await exportClient.current.request({ kind: 'project', document, paths: [], files });
-        download(result.filename, result.bytes, result.mediaType);
+        const bytes = await packProject(document, { embedUsedModels });
+        download(`${document.name}.boardstudio`, bytes, 'application/zip');
         return;
       }
 
@@ -585,7 +628,8 @@ function App() {
 
       const usedDefinitions = document.definitions
         .filter((definition) => board.partIds.some((id) => document.parts.find((part) => part.id === id)?.definitionId === definition.id))
-      const { paths, files } = await modelFiles(document, usedDefinitions);
+      const usedParts = board.partIds.map((id) => document.parts.find((part) => part.id === id)).filter((part): part is Part => Boolean(part));
+      const { paths, files } = await modelFiles(document, usedDefinitions, usedParts);
 
       const contours = resolved.boardContours.find((entry) => entry.boardId === board.id)?.contours ?? [];
       exportClient.current ??= new ExportClient();
@@ -605,7 +649,8 @@ function App() {
       scene={scene}
       casePreview={casePreview && { revision: casePreview.revision, ...casePreview.mesh }}
       componentPreviews={componentPreviews}
-      libraryModelPreview={libraryModelPreview}
+      libraryModelPreviews={libraryModelPreviews}
+      libraryModelStatus={libraryModelStatus}
       onSelectLibraryModel={selectLibraryModel}
       onRequestCaseModels={requestCaseModels}
       onModeChange={setActiveMode}
@@ -613,6 +658,8 @@ function App() {
       onUndo={() => history('undo')}
       onRedo={() => history('redo')}
       onExport={exportFile}
+      embedUsedModels={embedUsedModels}
+      onEmbedUsedModelsChange={setEmbedUsedModels}
       selectedBoardId={selectedBoardId}
       onSelectBoard={setSelectedBoardId}
       onImport={importProject}

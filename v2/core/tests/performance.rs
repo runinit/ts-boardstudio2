@@ -20,7 +20,12 @@ fn fixture(keys: usize) -> ProjectDoc {
         ],
         pads: vec![],
         model: None,
+        models: None,
         keycap: None,
+        envelope_source: None,
+        terminals: Default::default(),
+        matrix_terminals: None,
+        envelope_notice: None,
         generator: None,
     });
     for index in 0..keys {
@@ -40,6 +45,7 @@ fn fixture(keys: usize) -> ProjectDoc {
             keycap: None,
             outline: None,
             properties: None,
+            generator_parameters: None,
         });
     }
     doc.outline.push(OutlineFeature::PartEnvelope {

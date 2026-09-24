@@ -323,6 +323,9 @@ importers:
       '@boardstudio/v2-contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@boardstudio/v2-ergogen':
+        specifier: workspace:*
+        version: link:../ergogen
       '@boardstudio/v2-kicad':
         specifier: workspace:*
         version: link:../kicad
@@ -385,7 +388,13 @@ importers:
 
   v2/contracts: {}
 
-  v2/kicad: {}
+  v2/ergogen: {}
+
+  v2/kicad:
+    dependencies:
+      '@boardstudio/v2-ergogen':
+        specifier: workspace:*
+        version: link:../ergogen
 
 packages:
 

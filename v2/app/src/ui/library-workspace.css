@@ -13,5 +13,59 @@
 .wb-generator-number { display: grid; gap: 4px; }
 .wb-generator-number input { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--wb-rule); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font-size: 11px; }
 .wb-generator-number input:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
+.wb-generator-json { display: grid; gap: 4px; }
+.wb-generator-json textarea { width: 100%; min-height: 72px; resize: vertical; padding: 7px 8px; border: 1px solid var(--wb-rule); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font: 10px/1.5 var(--wb-mono); }
+.wb-generator-json textarea:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
 .wb-generator-error { margin: 2px 0; color: var(--wb-status-error); font-size: 10px; line-height: 1.5; }
 @media (max-width: 700px) { .wb-library-workspace { padding: 24px 18px 20px; } .wb-library-workspace-title { display: grid; gap: 4px; } }
+.wb-root .wb-library-workspace-geometry svg { stroke: none; stroke-width: 0; width: min(100%, 470px); height: min(100%, 480px); }
+.wb-library-workspace-geometry .wb-preview-pad { fill: var(--wb-geometry-part); stroke: none; }
+.wb-library-workspace-geometry .wb-preview-drill { fill: var(--wb-canvas); stroke: none; }
+.wb-library-workspace-geometry .wb-preview-courtyard, .wb-library-workspace-geometry .wb-preview-keycap { fill: none; stroke: var(--wb-geometry-outline); stroke-width: .12; stroke-dasharray: .6 .4; }
+.wb-library-workspace-geometry .wb-preview-copper { stroke: var(--wb-geometry-part); }
+.wb-library-workspace-geometry .wb-preview-via { fill: var(--wb-canvas); stroke: var(--wb-geometry-part); stroke-width: .15; }
+.wb-library-workspace-geometry .wb-preview-pad-label { fill: var(--wb-ink); stroke: none; font: .6px var(--wb-mono); text-anchor: middle; }
+.wb-library-workspace-title [role='group'] { display: flex; gap: 4px; }
+.wb-library-workspace-title button { padding: 7px 10px; border: 1px solid var(--wb-rule-strong); border-radius: 4px; background: var(--wb-panel); color: var(--wb-ink); cursor: pointer; }
+.wb-library-workspace-title button[aria-pressed='true'] { border-color: var(--wb-accent); color: var(--wb-accent); }
+.wb-library-workspace-title button:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 2px; }
+.wb-library-workspace-scale { font: 11px var(--wb-display); text-align: center; justify-self: center; border: 0; }
+.wb-parts-catalog { display: flex; flex-direction: column; min-height: 0; flex: 1; padding: 16px 12px; }
+.wb-parts-catalog h2 { margin: 0 0 16px; font-size: 15px; }
+.wb-catalog-scroll { overflow: auto; margin-top: 12px; }
+.wb-parts-catalog summary { padding: 10px 0; cursor: pointer; font-weight: 600; }
+.wb-parts-catalog summary small { color: var(--wb-muted); margin-left: 6px; }
+.wb-parts-catalog h3 { margin: 14px 0 4px; color: var(--wb-muted); font-size: 11px; }
+.wb-parts-catalog [role='option'] { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 34px; padding: 7px 8px; border: 1px solid transparent; border-radius: 3px; color: var(--wb-ink); background: transparent; text-align: left; cursor: pointer; font-size: 12px; }
+.wb-parts-catalog [role='option'] small { color: var(--wb-muted); font-size: 10px; }
+.wb-parts-catalog [role='option']:hover { background: var(--wb-raised); }
+.wb-parts-catalog [role='option'][aria-selected='true'] { background: var(--wb-selection-surface); border-color: var(--wb-accent); }
+.wb-parts-catalog [role='option']:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: -2px; }
+
+.wb-library-workspace-geometry .wb-preview-drill.is-mechanical { stroke: var(--wb-geometry-outline); stroke-width: .1; }
+.wb-ergogen-line { fill: none; stroke: var(--wb-preview-line, #527d76); stroke-width: .22; vector-effect: non-scaling-stroke; }
+.wb-ergogen-zone { fill: rgba(91, 143, 132, .12); stroke: #5b8f84; stroke-width: .22; stroke-dasharray: .7 .45; vector-effect: non-scaling-stroke; }
+.wb-ergogen-keepout { fill: rgba(191, 91, 91, .1); stroke: #bf5b5b; stroke-width: .28; stroke-dasharray: .5 .35; vector-effect: non-scaling-stroke; }
+.wb-ergogen-text { fill: #a67bc5; font-size: 1.4px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+
+.wb-generator-settings { min-width: 0; margin: 12px 0; padding: 0; border: 0; }
+.wb-generator-settings > legend { padding: 0; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
+.wb-generator-group { border-top: 1px solid var(--wb-rule); }
+.wb-generator-group > summary { padding: 13px 0; font-size: 12px; font-weight: 600; cursor: pointer; }
+.wb-generator-group > summary:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 2px; }
+.wb-generator-fields { display: grid; gap: 12px; padding: 2px 0 16px; min-width: 0; }
+.wb-generator-fields.is-dimensions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.wb-generator-field { display: grid; gap: 6px; min-width: 0; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.wb-generator-field input, .wb-generator-field textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid var(--wb-rule-strong); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); font: 12px var(--wb-body); }
+.wb-generator-field input { height: 32px; }
+.wb-generator-field textarea { resize: vertical; font-family: var(--wb-mono); }
+.wb-generator-field :is(input, textarea):focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 1px; }
+.wb-generator-fields.is-options { gap: 0; }
+.wb-generator-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; font-size: 11px; line-height: 1.4; cursor: pointer; }
+.wb-generator-toggle input { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; accent-color: var(--wb-accent); }
+.wb-generator-settings > button { margin-top: 12px; width: 100%; }
+.wb-model-message { margin: auto; max-width: 360px; text-align: center; color: var(--wb-muted); font-size: 13px; line-height: 1.5; }
+.wb-library-model-workspace > p { max-width: 360px; text-align: center; font-size: 13px; line-height: 1.5; }
+.wb-library-model-workspace { position: relative; min-height: 0; }
+.wb-library-model-workspace .wb-case-preview { position: relative; }
+.wb-library-model-workspace .wb-case-preview-label, .wb-library-model-workspace .wb-case-preview-disclaimer { display: none; }

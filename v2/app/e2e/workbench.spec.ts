@@ -1,10 +1,11 @@
+import { configureMatrix } from './matrix-setup';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync } from 'fflate';
 import { buildCase } from '@boardstudio/v2-cad';
 
 const placeGuidedMatrix = async (page: import('@playwright/test').Page) => {
-  await page.getByRole('button', { name: 'New Matrix' }).first().click();
+  await configureMatrix(page);
   const ghost = page.getByRole('button', { name: 'Ghost key, row 1, column 1' });
   await expect(ghost).toBeVisible();
   await ghost.click();
@@ -13,7 +14,7 @@ const placeGuidedMatrix = async (page: import('@playwright/test').Page) => {
 
 test('opens the starter workbench and exports a KiCad board', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Add Part', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Export' }).click();
 
@@ -24,11 +25,11 @@ test('opens the starter workbench and exports a KiCad board', async ({ page }) =
 
 test('reopens offline after the app shell is cached', async ({ page, context }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Add Part', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Add Part', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeVisible();
 });
 
 test('updates the outline during a part drag and keeps one undo step', async ({ page }) => {
@@ -155,7 +156,7 @@ test('builds a new keyboard from a matrix and previews its outline', async ({ pa
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.getByRole('button', { name: 'New project' }).click();
   await expect(page.getByRole('treeitem', { name: /0 parts/ }).first()).toBeVisible();
-  await page.getByRole('button', { name: 'New Matrix' }).first().click();
+  await configureMatrix(page);
   await expect(page.locator('.wb-matrix-cell')).toHaveCount(30);
   await expect(page.getByRole('button', { name: /^Ghost key, row 1, column 1/ })).toBeVisible();
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
@@ -203,9 +204,9 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   const zoom = page.locator('.wb-footer-zoom span');
   await canvas.hover();
   await page.mouse.wheel(0, -360);
-  await expect(zoom).not.toHaveText('100%');
+  await expect(zoom).not.toHaveText('Zoom 100%');
   await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(zoom).toHaveText('100%');
+  await expect(zoom).toHaveText('Zoom 100%');
 });
 
 test('canvas drags follow the selected matrix, row, and column scope', async ({ page }) => {
@@ -350,6 +351,7 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
   await page.goto('/');
   const firstPart = page.getByRole('button', { name: /^SW1, MX switch/ });
   const dragThreeMm = async (alt: boolean) => {
+    const revision = await page.locator('.wb-revision').textContent();
     const box = await firstPart.boundingBox();
     expect(box).not.toBeNull();
     const dx = await page.evaluate(() => {
@@ -364,6 +366,7 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
     await page.mouse.move(x + dx, y, { steps: 3 });
     await page.mouse.up();
     if (alt) await page.keyboard.up('Alt');
+    await expect(page.locator('.wb-revision')).not.toHaveText(revision!);
   };
 
   await dragThreeMm(false);
@@ -383,13 +386,13 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
   await page.keyboard.up('Space');
   await expect.poll(() => canvas.getAttribute('viewBox')).not.toBe(initialView);
   await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(page.locator('.wb-footer-zoom span')).toHaveText('100%');
+  await expect(page.locator('.wb-footer-zoom span')).toHaveText('Zoom 100%');
 });
 
 test('previews a library footprint and keeps generator geometry in sync', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.locator('.wb-library-list').getByRole('option', { name: /MX hotswap socket/ }).click();
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /MX hotswap socket/ }).click();
   const preview = page.getByRole('region', { name: 'Parts canvas' }).getByRole('img', { name: 'Footprint preview' });
   await expect(preview).toBeVisible();
   const before = await preview.innerHTML();
