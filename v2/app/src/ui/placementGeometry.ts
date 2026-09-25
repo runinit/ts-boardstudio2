@@ -60,3 +60,33 @@ export function snapPart(part: Part, targets: Part[], definitions: Map<string, P
   }
   return best;
 }
+
+/** Snap a transform origin to physical geometry, including rotated edge segments. */
+export function snapOrigin(point: Vec2, targets: Part[], definitions: Map<string, PartDefinition>, tolerance: number): Snap | undefined {
+  let best: Snap | undefined;
+  let distance = tolerance;
+  const consider = (to: Vec2, label: string) => {
+    const next = Math.hypot(point.x - to.x, point.y - to.y);
+    if (next > distance) return;
+    distance = next;
+    best = { at: to, from: point, to, label };
+  };
+  for (const part of targets) {
+    const polygon = selectionOutline([part], definitions);
+    // Landmarks take precedence over a nearby arbitrary point on an edge.
+    for (const to of landmarks(polygon, part.pose.at)) consider(to, `${part.reference} · origin / corner / midpoint`);
+  }
+  if (best) return best;
+  for (const part of targets) {
+    const polygon = selectionOutline([part], definitions);
+    polygon.forEach((a, index) => {
+      const b = polygon[(index + 1) % polygon.length];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const length = dx * dx + dy * dy;
+      if (!length) return;
+      const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / length));
+      consider({ x: a.x + t * dx, y: a.y + t * dy }, `${part.reference} · edge`);
+    });
+  }
+  return best;
+}

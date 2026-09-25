@@ -16,3 +16,16 @@ test('does not interpret rotated bounding boxes as physical edges for gap snappi
 test('aligns unequal-sized bounds to a fixed reference', () => {
   expect(alignmentDelta([{ x: 10, y: 3 }, { x: 20, y: 8 }], [{ x: -4, y: -2 }, { x: 4, y: 2 }], 'x', 'center')).toEqual({ x: -15, y: 0 });
 });
+
+test('origin snapping finds off-grid origins, corners and rotated physical edges', async () => {
+  const { snapOrigin } = await import('./placementGeometry');
+  const fixed = part('target', 2.3, 30);
+  expect(snapOrigin({ x: 2.4, y: .1 }, [fixed], definitions, .5)?.at).toEqual(fixed.pose.at);
+  const corner = { x: 2.3 + 9 * Math.cos(Math.PI / 6) - 9 * Math.sin(Math.PI / 6), y: 9 * Math.sin(Math.PI / 6) + 9 * Math.cos(Math.PI / 6) };
+  const snap = snapOrigin({ x: corner.x + .1, y: corner.y }, [fixed], definitions, .5);
+  expect(snap?.at.x).toBeCloseTo(corner.x);
+  expect(snap?.at.y).toBeCloseTo(corner.y);
+  const edge = snapOrigin({ x: 3, y: 9.1 }, [part('target', 0)], definitions, .3);
+  expect(edge?.at).toEqual({ x: 3, y: 9 });
+  expect(edge?.label).toContain('edge');
+});

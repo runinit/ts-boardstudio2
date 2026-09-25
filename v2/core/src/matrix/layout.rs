@@ -1,6 +1,9 @@
 use crate::{matrix, model::*};
 use std::collections::{BTreeMap, BTreeSet};
 
+const MIRRORED_COMPONENT_SOURCE: &str = "boardstudio.mirroredComponentSource";
+const MIRRORED_COMPONENT_SUBSTITUTE: &str = "boardstudio.mirroredComponentSubstitute";
+
 pub(crate) fn validate(doc: &ProjectDoc) -> Result<(), String> {
     if doc.layouts.is_empty() {
         return Ok(());
@@ -108,6 +111,8 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
     } else {
         Mirror::X
     });
+    result.diodes = source.diodes;
+    result.diode_direction = source.diode_direction;
     result.row_offsets = source.row_offsets.clone();
     result.column_offsets = source.column_offsets.clone();
     result.column_staggers = source.column_staggers.clone();
@@ -135,6 +140,7 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
             offset: None,
             rotation: None,
             assemblies: vec![],
+            assemblies_local: None,
         });
     }
     for (coordinate, cell) in &mut cells {
@@ -144,7 +150,27 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
         cell.rotation = source_cell
             .and_then(|cell| cell.rotation)
             .map(|angle| -angle);
-        // Definition, variant, diode and companions deliberately remain local.
+        cell.diode = source_cell.and_then(|cell| cell.diode);
+        if cell.assemblies_local != Some(true)
+            && !source_cell.is_some_and(|cell| cell.assemblies_local == Some(true))
+        {
+            cell.definition_id = source_cell.and_then(|cell| cell.definition_id.clone());
+            cell.variant = source_cell.and_then(|cell| cell.variant.clone());
+            cell.assemblies = source_cell
+                .map(|cell| {
+                    cell.assemblies
+                        .iter()
+                        .cloned()
+                        .map(|mut assembly| {
+                            assembly.offset.x = -assembly.offset.x;
+                            assembly.rotation = assembly.rotation.map(|rotation| -rotation);
+                            assembly
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+            cell.assemblies_local = None;
+        }
     }
     result.cells = cells.into_values().collect();
     Ok(result)
@@ -164,8 +190,92 @@ pub(crate) fn sync(doc: &mut ProjectDoc, matrix_id: &str) -> Result<Vec<String>,
         .iter()
         .find(|matrix| matrix.id == target_id)
         .ok_or("Linked matrix is missing")?;
-    let reflected = reflected(source, target, axis_x)?;
-    matrix::set_matrix(doc, &reflected)
+    let source_is_target = doc
+        .layouts
+        .iter()
+        .find(|layout| layout.matrix_id == matrix_id)
+        .is_some_and(|layout| layout.mirror_link.is_some());
+    let sizes: BTreeMap<_, _> = matrix::cell_members(source)
+        .into_iter()
+        .filter_map(|(cell, id)| {
+            doc.parts
+                .iter()
+                .find(|part| part.id == id)
+                .and_then(|part| part.keycap)
+                .map(|size| (cell, size))
+        })
+        .collect();
+    let mut reflected_matrix = reflected(source, target, axis_x)?;
+    if source_is_target {
+        let canonical_cells: BTreeMap<_, _> = target
+            .cells
+            .iter()
+            .map(|cell| ((cell.row, cell.column), cell))
+            .collect();
+        for cell in &mut reflected_matrix.cells {
+            if let Some(canonical) = canonical_cells.get(&(cell.row, cell.column)) {
+                if cell.assemblies_local != Some(true) {
+                    cell.definition_id = canonical.definition_id.clone();
+                    cell.variant = canonical.variant.clone();
+                    cell.assemblies = canonical.assemblies.clone();
+                    cell.assemblies_local = canonical.assemblies_local;
+                }
+            }
+        }
+    }
+    let mut changed = matrix::set_matrix(doc, &reflected_matrix)?;
+    let target = doc
+        .matrices
+        .iter()
+        .find(|matrix| matrix.id == target_id)
+        .ok_or("Linked matrix is missing")?;
+    for (cell, id) in matrix::cell_members(target) {
+        if let Some(size) = sizes.get(&cell) {
+            if let Some(part) = doc.parts.iter_mut().find(|part| part.id == id) {
+                part.keycap = Some(*size);
+            }
+        }
+    }
+    if source_is_target {
+        let canonical = doc
+            .matrices
+            .iter()
+            .find(|matrix| matrix.id == target_id)
+            .ok_or("Linked matrix is missing")?;
+        let mut local = doc
+            .matrices
+            .iter()
+            .find(|matrix| matrix.id == matrix_id)
+            .ok_or("Linked matrix is missing")?
+            .clone();
+        let canonical_cells: BTreeMap<_, _> = canonical
+            .cells
+            .iter()
+            .map(|cell| ((cell.row, cell.column), cell))
+            .collect();
+        for cell in &mut local.cells {
+            if cell.assemblies_local == Some(true) {
+                continue;
+            }
+            if let Some(canonical) = canonical_cells.get(&(cell.row, cell.column)) {
+                cell.assemblies = canonical
+                    .assemblies
+                    .iter()
+                    .cloned()
+                    .map(|mut assembly| {
+                        assembly.offset.x = -assembly.offset.x;
+                        assembly.rotation = assembly.rotation.map(|rotation| -rotation);
+                        assembly
+                    })
+                    .collect();
+            } else {
+                cell.assemblies.clear();
+            }
+            cell.assemblies_local = None;
+        }
+        changed.extend(matrix::set_matrix(doc, &local)?);
+    }
+    Ok(changed)
 }
 
 pub(crate) fn resolve(doc: &mut ProjectDoc) -> Result<(), String> {
@@ -184,7 +294,502 @@ pub(crate) fn resolve(doc: &mut ProjectDoc) -> Result<(), String> {
     for source in sources {
         sync(doc, &source)?;
     }
+    sync_components(doc)?;
     Ok(())
+}
+
+pub(crate) fn sync_components(doc: &mut ProjectDoc) -> Result<Vec<String>, String> {
+    let pairs: Vec<_> = doc
+        .layouts
+        .iter()
+        .filter_map(|target| {
+            let link = target.mirror_link.as_ref()?;
+            let source = doc
+                .layouts
+                .iter()
+                .find(|layout| layout.id == link.source_id)?;
+            Some((source.id.clone(), target.id.clone(), link.axis_x))
+        })
+        .collect();
+    let mut changed = Vec::new();
+    for (source_layout_id, target_layout_id, axis_x) in pairs {
+        adopt_unassigned_components(doc, &source_layout_id, axis_x, &mut changed)?;
+        let source_ids = doc
+            .layouts
+            .iter()
+            .find(|layout| layout.id == source_layout_id)
+            .ok_or("Linked component source layout is missing")?
+            .part_ids
+            .clone();
+        let target_layout_parts = doc
+            .layouts
+            .iter()
+            .find(|layout| layout.id == target_layout_id)
+            .ok_or("Linked component target layout is missing")?
+            .part_ids
+            .clone();
+
+        let orphaned: Vec<_> = target_layout_parts
+            .iter()
+            .filter_map(|target_id| {
+                let target = doc.parts.iter().find(|part| &part.id == target_id)?;
+                let source_id = target
+                    .properties
+                    .as_ref()?
+                    .get(MIRRORED_COMPONENT_SOURCE)?
+                    .as_str()?;
+                (!source_ids.iter().any(|id| id == source_id)).then(|| {
+                    (
+                        target_id.clone(),
+                        source_id.to_string(),
+                        doc.parts.iter().any(|part| part.id == source_id),
+                    )
+                })
+            })
+            .collect();
+        for (target_id, source_id, source_exists) in orphaned {
+            if source_exists {
+                if let Some(part) = doc.parts.iter_mut().find(|part| part.id == target_id) {
+                    clear_component_link(part);
+                    changed.push(target_id);
+                }
+            } else {
+                remove_component(doc, &target_id);
+                changed.extend([target_id, source_id]);
+            }
+        }
+
+        for source_id in source_ids {
+            let Some(mut source) = doc.parts.iter().find(|part| part.id == source_id).cloned()
+            else {
+                continue;
+            };
+            let target_id = doc.parts.iter().find_map(|target| {
+                (target
+                    .properties
+                    .as_ref()
+                    .and_then(|properties| properties.get(MIRRORED_COMPONENT_SOURCE))
+                    .and_then(serde_json::Value::as_str)
+                    == Some(source_id.as_str()))
+                .then(|| target.id.clone())
+            });
+            if source
+                .properties
+                .as_ref()
+                .and_then(|properties| properties.get(MIRRORED_COMPONENT_SUBSTITUTE))
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false)
+            {
+                changed.push(source_id.clone());
+                changed.extend(target_id);
+                continue;
+            }
+            if let Some(target_id) = target_id.as_ref().filter(|id| {
+                doc.parts
+                    .iter()
+                    .find(|part| &part.id == *id)
+                    .and_then(|part| part.properties.as_ref())
+                    .and_then(|properties| properties.get(MIRRORED_COMPONENT_SUBSTITUTE))
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false)
+            }) {
+                changed.push(target_id.clone());
+                continue;
+            }
+
+            let target_id = match target_id {
+                Some(id) => id,
+                None => {
+                    let base = format!("{target_layout_id}::mirror::{source_id}");
+                    if doc.parts.iter().any(|part| part.id == base) {
+                        let mut suffix = 1;
+                        while doc
+                            .parts
+                            .iter()
+                            .any(|part| part.id == format!("{base}::{suffix}"))
+                        {
+                            suffix += 1;
+                        }
+                        format!("{base}::{suffix}")
+                    } else {
+                        base
+                    }
+                }
+            };
+            let mut target_pose = crate::model::Pose2 {
+                at: Vec2 {
+                    x: 2.0 * axis_x - source.pose.at.x,
+                    y: source.pose.at.y,
+                },
+                rotation: 180.0 - source.pose.rotation,
+            };
+            let target_exists = doc.parts.iter().any(|part| part.id == target_id);
+            if let Some(target) = doc
+                .parts
+                .iter()
+                .find(|part| part.id == target_id)
+                .filter(|_| {
+                    doc.constraints
+                        .iter()
+                        .any(|constraint| constraint.target() == target_id)
+                })
+            {
+                let source_pose = crate::model::Pose2 {
+                    at: Vec2 {
+                        x: 2.0 * axis_x - target.pose.at.x,
+                        y: target.pose.at.y,
+                    },
+                    rotation: 180.0 - target.pose.rotation,
+                };
+                set_component_pose(doc, &source_id, source_pose)?;
+                source = doc
+                    .parts
+                    .iter()
+                    .find(|part| part.id == source_id)
+                    .cloned()
+                    .ok_or("Mirrored component source is missing")?;
+                changed.push(source_id.clone());
+                target_pose = crate::model::Pose2 {
+                    at: Vec2 {
+                        x: 2.0 * axis_x - source.pose.at.x,
+                        y: source.pose.at.y,
+                    },
+                    rotation: 180.0 - source.pose.rotation,
+                };
+            }
+
+            let mut mirrored = source.clone();
+            mirrored.id = target_id.clone();
+            mirrored.reference = format!("{}_M", source.reference);
+            mirrored.pose = target_pose;
+            mirrored
+                .properties
+                .get_or_insert_with(BTreeMap::new)
+                .insert(
+                    MIRRORED_COMPONENT_SOURCE.into(),
+                    serde_json::json!(source_id),
+                );
+            mirrored
+                .properties
+                .as_mut()
+                .unwrap()
+                .remove(MIRRORED_COMPONENT_SUBSTITUTE);
+            if let Some(target) = doc.parts.iter_mut().find(|part| part.id == target_id) {
+                *target = mirrored;
+            } else {
+                doc.parts.push(mirrored);
+                if let Some(layout) = doc
+                    .layouts
+                    .iter_mut()
+                    .find(|layout| layout.id == target_layout_id)
+                {
+                    layout.part_ids.push(target_id.clone());
+                }
+                let board_id = doc
+                    .layouts
+                    .iter()
+                    .find(|layout| layout.id == target_layout_id)
+                    .map(|layout| layout.board_id.clone())
+                    .ok_or("Linked component target layout is missing")?;
+                for board in &mut doc.boards {
+                    if board.id == board_id && !board.part_ids.contains(&target_id) {
+                        board.part_ids.push(target_id.clone());
+                    }
+                }
+            }
+            sync_component_nets(doc, &source_id, &target_id);
+            for feature in &mut doc.outline {
+                if let crate::model::OutlineFeature::PartEnvelope { part_ids, .. } = feature {
+                    if part_ids.contains(&source_id) && !part_ids.contains(&target_id) {
+                        part_ids.push(target_id.clone());
+                    }
+                }
+            }
+            changed.extend([source_id, target_id]);
+            if !target_exists {
+                changed.push(target_layout_id.clone());
+            }
+        }
+    }
+    Ok(changed)
+}
+
+pub(crate) fn move_linked_component(
+    doc: &mut ProjectDoc,
+    id: &str,
+    at: Vec2,
+) -> Result<Option<Vec<String>>, String> {
+    let Some(target) = doc.parts.iter().find(|part| part.id == id) else {
+        return Ok(None);
+    };
+    let Some(properties) = target.properties.as_ref() else {
+        return Ok(None);
+    };
+    if properties
+        .get(MIRRORED_COMPONENT_SUBSTITUTE)
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false)
+    {
+        return Ok(None);
+    }
+    let Some(source_id) = properties
+        .get(MIRRORED_COMPONENT_SOURCE)
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+    else {
+        return Ok(None);
+    };
+    let target_id = target.id.clone();
+    let Some(source_layout) = doc
+        .layouts
+        .iter()
+        .find(|layout| layout.part_ids.contains(&source_id))
+    else {
+        return Ok(None);
+    };
+    let Some(target_layout) = doc.layouts.iter().find(|layout| {
+        layout
+            .mirror_link
+            .as_ref()
+            .is_some_and(|link| link.source_id == source_layout.id)
+    }) else {
+        return Ok(None);
+    };
+    let axis_x = target_layout
+        .mirror_link
+        .as_ref()
+        .ok_or("Linked component target layout is missing")?
+        .axis_x;
+    let rotation = 180.0 - target.pose.rotation;
+    set_component_pose(
+        doc,
+        &source_id,
+        crate::model::Pose2 {
+            at: Vec2 {
+                x: 2.0 * axis_x - at.x,
+                y: at.y,
+            },
+            rotation,
+        },
+    )?;
+    Ok(Some(vec![source_id, target_id]))
+}
+
+fn adopt_unassigned_components(
+    doc: &mut ProjectDoc,
+    source_layout_id: &str,
+    axis_x: f64,
+    changed: &mut Vec<String>,
+) -> Result<(), String> {
+    let source_layout = doc
+        .layouts
+        .iter()
+        .find(|layout| layout.id == source_layout_id)
+        .ok_or("Linked component source layout is missing")?;
+    let board_id = source_layout.board_id.clone();
+    let matrix_id = source_layout.matrix_id.clone();
+    let source_matrix = doc
+        .matrices
+        .iter()
+        .find(|matrix| matrix.id == matrix_id)
+        .ok_or("Linked component source matrix is missing")?;
+    let key_positions: Vec<_> = matrix::cell_members(source_matrix)
+        .values()
+        .filter_map(|id| doc.parts.iter().find(|part| &part.id == id))
+        .map(|part| part.pose.at.x)
+        .collect();
+    let source_center = if key_positions.is_empty() {
+        source_matrix.origin.x
+    } else {
+        key_positions.iter().sum::<f64>() / key_positions.len() as f64
+    };
+    if (source_center - axis_x).abs() <= f64::EPSILON {
+        return Ok(());
+    }
+    let source_is_left = source_center < axis_x;
+
+    let mut assigned: BTreeSet<_> = doc
+        .layouts
+        .iter()
+        .flat_map(|layout| layout.part_ids.iter().cloned())
+        .collect();
+    for matrix in &doc.matrices {
+        assigned.extend(matrix.part_ids.iter().cloned());
+        assigned.extend(matrix::cell_members(matrix).into_values());
+    }
+    let board_parts = doc
+        .boards
+        .iter()
+        .find(|board| board.id == board_id)
+        .ok_or("Linked component board is missing")?
+        .part_ids
+        .clone();
+    let unassigned: Vec<_> = board_parts
+        .into_iter()
+        .filter(|id| !assigned.contains(id))
+        .filter_map(|id| {
+            let part = doc.parts.iter().find(|part| part.id == id)?;
+            let on_source_side = if source_is_left {
+                part.pose.at.x < axis_x
+            } else {
+                part.pose.at.x > axis_x
+            };
+            on_source_side.then_some(id)
+        })
+        .collect();
+    if unassigned.is_empty() {
+        return Ok(());
+    }
+    if let Some(layout) = doc
+        .layouts
+        .iter_mut()
+        .find(|layout| layout.id == source_layout_id)
+    {
+        for id in unassigned {
+            if !layout.part_ids.contains(&id) {
+                layout.part_ids.push(id.clone());
+                changed.push(id);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn set_component_pose(
+    doc: &mut ProjectDoc,
+    id: &str,
+    pose: crate::model::Pose2,
+) -> Result<(), String> {
+    let current = doc
+        .parts
+        .iter()
+        .find(|part| part.id == id)
+        .ok_or("Mirrored component source is missing")?
+        .pose;
+    if let Some(constraint) = doc
+        .constraints
+        .iter_mut()
+        .find(|constraint| constraint.target() == id)
+    {
+        match constraint {
+            Constraint::Offset {
+                offset, rotation, ..
+            } => {
+                offset.x += pose.at.x - current.at.x;
+                offset.y += pose.at.y - current.at.y;
+                *rotation += pose.rotation - current.rotation;
+            }
+            Constraint::Mirror { .. } => Err(format!(
+                "Cannot move mirrored component because source {id} is controlled by a mirror constraint"
+            ))?,
+        }
+    }
+    let part = doc
+        .parts
+        .iter_mut()
+        .find(|part| part.id == id)
+        .ok_or("Mirrored component source is missing")?;
+    part.pose = pose;
+    Ok(())
+}
+
+fn sync_component_nets(doc: &mut ProjectDoc, source_id: &str, target_id: &str) {
+    for net in &mut doc.nets {
+        let source_pins: Vec<_> = net
+            .pins
+            .iter()
+            .filter(|pin| pin.part_id == source_id)
+            .cloned()
+            .collect();
+        net.pins.retain(|pin| pin.part_id != target_id);
+        net.pins.extend(source_pins.into_iter().map(|mut pin| {
+            pin.part_id = target_id.to_string();
+            pin
+        }));
+    }
+}
+
+fn clear_component_link(part: &mut Part) {
+    if let Some(properties) = part.properties.as_mut() {
+        properties.remove(MIRRORED_COMPONENT_SOURCE);
+        properties.remove(MIRRORED_COMPONENT_SUBSTITUTE);
+        if properties.is_empty() {
+            part.properties = None;
+        }
+    }
+}
+
+pub(crate) fn unlink_components(doc: &mut ProjectDoc, layout_id: &str) -> Vec<String> {
+    let Some((part_ids, matrix_id)) = doc
+        .layouts
+        .iter()
+        .find(|layout| layout.id == layout_id)
+        .map(|layout| (layout.part_ids.clone(), layout.matrix_id.clone()))
+    else {
+        return Vec::new();
+    };
+    let mut changed = Vec::new();
+    for id in part_ids {
+        if let Some(part) = doc.parts.iter_mut().find(|part| part.id == id) {
+            clear_component_link(part);
+            changed.push(id);
+        }
+    }
+    if let Some(matrix) = doc
+        .matrices
+        .iter_mut()
+        .find(|matrix| matrix.id == matrix_id)
+    {
+        for cell in &mut matrix.cells {
+            if cell.assemblies_local == Some(true) {
+                cell.assemblies_local = None;
+            }
+        }
+        changed.push(matrix_id);
+    }
+    changed
+}
+
+fn remove_component(doc: &mut ProjectDoc, id: &str) {
+    doc.parts.retain(|part| part.id != id);
+    doc.constraints
+        .retain(|constraint| constraint.source() != id && constraint.target() != id);
+    for board in &mut doc.boards {
+        board.part_ids.retain(|part_id| part_id != id);
+    }
+    for layout in &mut doc.layouts {
+        layout.part_ids.retain(|part_id| part_id != id);
+    }
+    for matrix in &mut doc.matrices {
+        matrix.part_ids.retain(|part_id| part_id != id);
+    }
+    for net in &mut doc.nets {
+        net.pins.retain(|pin| pin.part_id != id);
+    }
+    for feature in &mut doc.outline {
+        if let crate::model::OutlineFeature::PartEnvelope { part_ids, .. } = feature {
+            part_ids.retain(|part_id| part_id != id);
+        }
+    }
+}
+
+pub(crate) fn mirrored_component_ids(doc: &ProjectDoc, requested: &[String]) -> Vec<String> {
+    let mut ids: BTreeSet<_> = requested.iter().cloned().collect();
+    for target in &doc.parts {
+        let Some(source_id) = target
+            .properties
+            .as_ref()
+            .and_then(|properties| properties.get(MIRRORED_COMPONENT_SOURCE))
+            .and_then(serde_json::Value::as_str)
+        else {
+            continue;
+        };
+        if ids.contains(&target.id) || ids.contains(source_id) {
+            ids.insert(target.id.clone());
+            ids.insert(source_id.to_string());
+        }
+    }
+    ids.into_iter().collect()
 }
 
 pub(crate) fn remove_matrix(doc: &mut ProjectDoc, matrix_id: &str) {
@@ -194,6 +799,18 @@ pub(crate) fn remove_matrix(doc: &mut ProjectDoc, matrix_id: &str) {
         .filter(|layout| layout.matrix_id == matrix_id)
         .map(|layout| layout.id.clone())
         .collect();
+    let detached_parts: Vec<_> = doc
+        .layouts
+        .iter()
+        .filter(|layout| {
+            removed.contains(&layout.id)
+                || layout
+                    .mirror_link
+                    .as_ref()
+                    .is_some_and(|link| removed.contains(&link.source_id))
+        })
+        .flat_map(|layout| layout.part_ids.iter().cloned())
+        .collect();
     doc.layouts.retain(|layout| !removed.contains(&layout.id));
     for layout in &mut doc.layouts {
         if layout
@@ -202,6 +819,11 @@ pub(crate) fn remove_matrix(doc: &mut ProjectDoc, matrix_id: &str) {
             .is_some_and(|link| removed.contains(&link.source_id))
         {
             layout.mirror_link = None;
+        }
+    }
+    for id in detached_parts {
+        if let Some(part) = doc.parts.iter_mut().find(|part| part.id == id) {
+            clear_component_link(part);
         }
     }
 }
@@ -228,6 +850,24 @@ pub(crate) fn has_linked_positions(doc: &ProjectDoc, positions: &[Position]) -> 
     positions.iter().any(|position| {
         primary_member(doc, &position.id)
             .is_some_and(|(matrix, _, _)| partner(doc, &matrix.id).is_some())
+            || doc.parts.iter().any(|part| {
+                part.id == position.id
+                    && part.properties.as_ref().is_some_and(|properties| {
+                        properties.contains_key(MIRRORED_COMPONENT_SOURCE)
+                    })
+            })
+            || doc.parts.iter().any(|target| {
+                target
+                    .properties
+                    .as_ref()
+                    .and_then(|properties| properties.get(MIRRORED_COMPONENT_SOURCE))
+                    .and_then(serde_json::Value::as_str)
+                    == Some(position.id.as_str())
+            })
+            || doc.constraints.iter().any(|constraint| {
+                constraint.target() == position.id
+                    && matches!(constraint, Constraint::Offset { .. })
+            })
     })
 }
 
@@ -301,6 +941,7 @@ pub(crate) fn move_keys(
                     offset: None,
                     rotation: None,
                     assemblies: vec![],
+                    assemblies_local: None,
                 });
                 matrix.cells.len() - 1
             });

@@ -50,10 +50,10 @@ test('advanced generator options keep saved values while the normal inspector st
   await expect(trace).toBeHidden();
   await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   await trace.fill('0.47');
-  const revision = page.getByTitle('Saved document revision');
-  const before = await revision.textContent();
+  const revision = page.locator('.wb-root');
+  const before = await revision.getAttribute('data-revision');
   await page.getByRole('button', { name: 'Apply generator settings' }).click();
-  await expect(revision).not.toHaveText(before!);
+  await expect(revision).not.toHaveAttribute('data-revision', before!);
   await page.reload();
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');

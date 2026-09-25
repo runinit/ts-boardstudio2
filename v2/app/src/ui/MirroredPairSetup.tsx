@@ -32,7 +32,7 @@ export function MirroredPairSetup({ presets, onPreview, onCancel }: {
     if (valid) onPreview({ leftName: leftName.trim(), rightName: rightName.trim(), rows: Number(rows), columns: Number(columns), gap: Number(gap), preset });
   }}>
     <h2>Mirrored pair</h2>
-    <p>Linked key geometry, independent components.</p>
+    <p>Linked key assemblies, diode settings and components. Substitute a component on either half when needed.</p>
     <div className="wb-pair-fields">
       <label>Left layout<input autoFocus required aria-label="Left layout name" value={leftName} onChange={(event) => setLeftName(event.target.value)} /></label>
       <label>Right layout<input required aria-label="Right layout name" value={rightName} onChange={(event) => setRightName(event.target.value)} /></label>

@@ -27,14 +27,14 @@ test('origin changes preserve positions, splay is undoable and saved', async ({ 
   const before = await key.getAttribute('transform');
   const origin = page.getByRole('spinbutton', { name: 'Origin Y mm', exact: true });
   await origin.fill('-30'); await origin.press('Enter');
-  await expect(page.locator('.wb-revision')).toHaveText('r1');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
   await expect(key).toHaveAttribute('transform', before!);
   await page.getByRole('combobox', { name: 'Splay affects' }).selectOption('column');
   const other = page.getByRole('button', { name: /^SW4, MX switch/ });
   const otherBefore = await other.getAttribute('transform');
   const angle = page.getByRole('spinbutton', { name: 'Splay °', exact: true });
   await angle.fill('12'); await angle.press('Enter');
-  await expect(page.locator('.wb-revision')).toHaveText('r2');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '2');
   await expect(other).toHaveAttribute('transform', otherBefore!);
   await expect(key).not.toHaveAttribute('transform', before!);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
@@ -60,13 +60,15 @@ test('labeled commands expose scope, snap and context actions with focus recover
   await expect(page.getByRole('button', { name: 'Snap', exact: true })).toBeFocused();
   await expect(page.getByRole('button', { name: 'Grid off', exact: true })).toBeVisible();
   await expect(page.getByText('Geometry snap off', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Add column', exact: true })).toBeVisible();
 });
 
 test('origin and splay handles preview, cancel and commit as one undo step', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 3 3 keys', exact: true }).click();
+  await page.getByRole('button', { name: 'Transform', exact: true }).click();
+  await page.getByRole('button', { name: 'Splay', exact: true }).click();
   const key = page.getByRole('button', { name: /^SW8, MX switch/ });
   const before = await key.getAttribute('transform');
   const origin = page.getByRole('button', { name: 'Move splay origin', exact: true });
@@ -78,7 +80,7 @@ test('origin and splay handles preview, cancel and commit as one undo step', asy
   await expect(origin).not.toHaveAttribute('transform', originBefore!);
   await expect(key).toHaveAttribute('transform', before!);
   await page.mouse.up();
-  await expect(page.locator('.wb-revision')).toHaveText('r1');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(origin).toHaveAttribute('transform', originBefore!);
 
@@ -89,11 +91,11 @@ test('origin and splay handles preview, cancel and commit as one undo step', asy
   await page.mouse.down();
   await page.mouse.move(start.x + 35, start.y + 8, { steps: 5 });
   await expect(key).not.toHaveAttribute('transform', before!);
-  const revision = await page.locator('.wb-revision').textContent();
+  const revision = await page.locator('.wb-root').getAttribute('data-revision');
   await page.keyboard.press('Escape');
   await page.mouse.up();
   await expect(key).toHaveAttribute('transform', before!);
-  await expect(page.locator('.wb-revision')).toHaveText(revision!);
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', revision!);
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await page.mouse.move(start.x + 35, start.y + 8, { steps: 5 });
@@ -117,6 +119,8 @@ test('dark comp, desktop and narrow layouts retain the canvas and usable control
   await page.setViewportSize({ width: 1672, height: 941 });
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 3 3 keys', exact: true }).click();
+  await page.getByRole('button', { name: 'Transform', exact: true }).click();
+  await page.getByRole('button', { name: 'Splay', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Move splay origin' })).toBeVisible();
   const capture = path.resolve('.impeccable/review');
   await mkdir(capture, { recursive: true });

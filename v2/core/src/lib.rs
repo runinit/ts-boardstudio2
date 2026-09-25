@@ -112,6 +112,15 @@ impl CoreEngine {
                 if let Err(message) = constraints::resolve(&mut document) {
                     return self.error(id, &message);
                 }
+                if let Err(message) = layout::sync_components(&mut document) {
+                    return self.error(id, &message);
+                }
+                if let Err(message) = constraints::resolve(&mut document) {
+                    return self.error(id, &message);
+                }
+                if let Err(message) = layout::sync_components(&mut document) {
+                    return self.error(id, &message);
+                }
                 self.document = document;
                 self.undo.clear();
                 self.redo.clear();
@@ -206,6 +215,18 @@ impl CoreEngine {
             Ok(ids) => changed.extend(ids),
             Err(message) => return self.error(id, &message),
         }
+        match layout::sync_components(&mut next) {
+            Ok(ids) => changed.extend(ids),
+            Err(message) => return self.error(id, &message),
+        }
+        match constraints::resolve(&mut next) {
+            Ok(ids) => changed.extend(ids),
+            Err(message) => return self.error(id, &message),
+        }
+        match layout::sync_components(&mut next) {
+            Ok(ids) => changed.extend(ids),
+            Err(message) => return self.error(id, &message),
+        }
         changed.sort();
         changed.dedup();
         let (cache, contours, findings) = if affects_outline(&command.operation) {
@@ -258,6 +279,9 @@ impl CoreEngine {
         let result = apply(&mut self.document, &command.operation).and_then(|mut changed| {
             layout::validate(&self.document)?;
             changed.extend(constraints::resolve(&mut self.document)?);
+            changed.extend(layout::sync_components(&mut self.document)?);
+            changed.extend(constraints::resolve(&mut self.document)?);
+            changed.extend(layout::sync_components(&mut self.document)?);
             changed.sort();
             changed.dedup();
             Ok(changed)
@@ -609,22 +633,45 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
                 if handled.contains(&position.id) {
                     continue;
                 }
-                let Some(part) = doc.parts.iter_mut().find(|p| p.id == position.id) else {
+                let Some(index) = doc.parts.iter().position(|part| part.id == position.id) else {
                     return Err(format!("Unknown part {}", position.id));
                 };
-                if part.locked == Some(true) {
-                    return Err(format!("Part {} is locked", part.id));
-                }
-                if doc
-                    .constraints
-                    .iter()
-                    .any(|constraint| constraint.target() == part.id)
-                {
-                    return Err(format!("Part {} is controlled by a constraint", part.id));
+                if doc.parts[index].locked == Some(true) {
+                    return Err(format!("Part {} is locked", position.id));
                 }
                 if !position.at.x.is_finite() || !position.at.y.is_finite() {
                     return Err("Position must be finite".into());
                 }
+                let delta = Vec2 {
+                    x: position.at.x - doc.parts[index].pose.at.x,
+                    y: position.at.y - doc.parts[index].pose.at.y,
+                };
+                if let Some(constraint) = doc
+                    .constraints
+                    .iter_mut()
+                    .find(|constraint| constraint.target() == position.id)
+                {
+                    match constraint {
+                        Constraint::Offset { offset, .. } => {
+                            offset.x += delta.x;
+                            offset.y += delta.y;
+                            changed.push(position.id.clone());
+                            continue;
+                        }
+                        Constraint::Mirror { .. } => {
+                            return Err(format!(
+                                "Part {} is controlled by a mirror constraint and cannot be dragged",
+                                position.id
+                            ));
+                        }
+                    }
+                }
+                if let Some(linked) = layout::move_linked_component(doc, &position.id, position.at)?
+                {
+                    changed.extend(linked);
+                    continue;
+                }
+                let part = &mut doc.parts[index];
                 part.pose.at = position.at;
                 if doc
                     .matrices
@@ -725,7 +772,8 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
                 .filter(|matrix| matrix.part_ids.iter().any(|id| ids.contains(id)))
                 .map(|matrix| matrix.id.clone())
                 .collect();
-            let ids = matrix::removed_members(doc, ids);
+            let ids = layout::mirrored_component_ids(doc, ids);
+            let ids = matrix::removed_members(doc, &ids);
             doc.constraints.retain(|constraint| {
                 !ids.iter()
                     .any(|id| id == constraint.source() || id == constraint.target())
@@ -880,9 +928,30 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
             if current.board_id != incoming.board_id || current.matrix_id != incoming.matrix_id {
                 return Err("Layout ownership cannot be reassigned".into());
             }
+            let was_linked_target = current.mirror_link.is_some() && incoming.mirror_link.is_none();
+            let source_layout_id = was_linked_target
+                .then(|| {
+                    current
+                        .mirror_link
+                        .as_ref()
+                        .map(|link| link.source_id.clone())
+                })
+                .flatten();
             *current = incoming.clone();
+            let mut detached = if was_linked_target {
+                layout::unlink_components(doc, &incoming.id)
+            } else {
+                Vec::new()
+            };
+            if let Some(source_layout_id) = source_layout_id {
+                detached.extend(layout::unlink_components(doc, &source_layout_id));
+            }
             layout::resolve(doc)?;
-            Ok(vec![incoming.id.clone(), incoming.matrix_id.clone()])
+            Ok([
+                vec![incoming.id.clone(), incoming.matrix_id.clone()],
+                detached,
+            ]
+            .concat())
         }
         EditOperation::SetConstraint { constraint } => {
             if let Some(current) = doc

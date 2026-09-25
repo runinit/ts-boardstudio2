@@ -42,10 +42,12 @@ type Props = {
   compact: boolean;
   open: boolean;
   onClose: () => void;
+  toolbar?: React.ReactNode;
+  primaryAction?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export function WorkspacePanel({ side, label, settings, compact, open, onClose, children }: Props) {
+export function WorkspacePanel({ side, label, settings, compact, open, onClose, toolbar, primaryAction, children }: Props) {
   const name = side === 'left' ? 'objects' : 'inspector';
   const id = side === 'left' ? 'wb-inventory' : 'wb-inspector';
   const panel = useRef<HTMLElement>(null);
@@ -54,8 +56,10 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
   const hovered = useRef(false);
   const resizing = useRef(false);
   const [revealed, setRevealed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useRef<HTMLDivElement>(null);
   const [measuredWidth, setMeasuredWidth] = useState<number>();
-  const visible = compact ? open : settings.mode === 'pinned' || settings.mode === 'autohide' && revealed;
+  const visible = compact ? open : settings.mode === 'pinned' || revealed;
   const clearHide = () => { clearTimeout(timer.current); };
   const hideWhenIdle = () => {
     clearHide();
@@ -64,6 +68,14 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
     }, 280);
   };
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !menu.current?.contains(event.target)) setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    return () => document.removeEventListener('pointerdown', closeOutside);
+  }, [menuOpen]);
   useEffect(() => { if (panel.current) panel.current.inert = !visible; }, [visible]);
   useEffect(() => {
     if (!panel.current) return;
@@ -76,10 +88,11 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
     return () => observer.disconnect();
   }, []);
   const collapse = () => {
+    setMenuOpen(false);
     if (compact) onClose();
     else settings.setMode('collapsed');
     setRevealed(false);
-    document.getElementById(`wb-${name}-toggle`)?.focus();
+    requestAnimationFrame(() => (compact ? document.getElementById(`wb-${name}-toggle`) : rail.current)?.focus());
   };
   const resize = (width: number) => {
     const other = document.getElementById(side === 'left' ? 'wb-inspector' : 'wb-inventory');
@@ -87,18 +100,25 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
     settings.setWidth(Math.min(width, innerWidth - otherWidth - 280));
   };
   return <>
-    {!compact && settings.mode === 'autohide' && <button ref={rail} className={`wb-panel-rail is-${side}`} aria-label={`Show ${name}`} aria-expanded={revealed} aria-controls={id} title={`Show ${name}`}
+    {!compact && settings.mode !== 'pinned' && <button ref={rail} className={`wb-panel-rail is-${side}`} aria-label={`Show ${name}`} aria-expanded={revealed} aria-controls={id} title={`Show ${name}`}
       onPointerEnter={(event) => { if (event.pointerType !== 'touch') { clearHide(); setRevealed(true); } }}
-      onPointerLeave={hideWhenIdle} onFocus={() => { clearHide(); setRevealed(true); }} onBlur={hideWhenIdle}
-      onClick={() => setRevealed(true)}><PanelIcon side={side} /></button>}
+      onPointerLeave={hideWhenIdle} onBlur={hideWhenIdle}
+      onClick={() => settings.mode === 'collapsed' ? settings.setMode('pinned') : setRevealed(true)}><PanelIcon side={side} /><span>{side === 'left' ? 'Objects' : 'Inspect'}</span></button>}
     <aside ref={panel} id={id} className={`${side === 'left' ? 'wb-inventory' : 'wb-inspector'} wb-dock is-${side} ${visible ? 'is-open' : 'is-hidden'} ${compact ? 'is-compact' : ''}`} data-panel-mode={settings.mode} aria-label={label} aria-hidden={!visible}
       onPointerEnter={() => { hovered.current = true; clearHide(); }} onPointerLeave={() => { hovered.current = false; hideWhenIdle(); }}
       onFocusCapture={clearHide} onBlurCapture={hideWhenIdle}
-      onKeyDown={(event) => { if (event.key === 'Escape' && (compact || settings.mode === 'autohide')) { event.stopPropagation(); if (compact) onClose(); setRevealed(false); document.getElementById(`wb-${name}-toggle`)?.focus(); } }}>
+      onKeyDown={(event) => { if (event.key === 'Escape' && (compact || settings.mode !== 'pinned')) { event.stopPropagation(); if (compact) onClose(); setRevealed(false); (compact ? document.getElementById(`wb-${name}-toggle`) : rail.current)?.focus(); } }}>
       <div className="wb-panel-actions">
-        {!compact && <button aria-label={`Auto-hide ${name}`} aria-pressed={settings.mode === 'autohide'} title={settings.mode === 'autohide' ? `Pin ${name}` : `Auto-hide ${name}`} onClick={() => { setRevealed(true); settings.setMode(settings.mode === 'autohide' ? 'pinned' : 'autohide'); }}><PinIcon /></button>}
-        <button aria-label={`Collapse ${name}`} title={`Collapse ${name}`} onClick={collapse}><PanelIcon side={side} collapse /></button>
+        <div className="wb-panel-toolbar">{toolbar ?? <span className="wb-panel-title">Inspect</span>}</div>
+        <div className="wb-panel-menu" ref={menu}>
+          <button aria-label={`${side === 'left' ? 'Objects' : 'Inspector'} options`} aria-expanded={menuOpen} aria-controls={`wb-${name}-options`} title={`${side === 'left' ? 'Objects' : 'Inspector'} options`} onClick={() => setMenuOpen((current) => !current)}><MoreIcon /></button>
+          {menuOpen && <div id={`wb-${name}-options`} className="wb-panel-menu-content" role="group" aria-label={`${side === 'left' ? 'Objects' : 'Inspector'} panel options`} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setMenuOpen(false); menu.current?.querySelector('button')?.focus(); } }}>
+            {!compact && <button onClick={() => { setMenuOpen(false); setRevealed(true); settings.setMode(settings.mode === 'autohide' ? 'pinned' : 'autohide'); }}>{settings.mode === 'autohide' ? `Pin ${name}` : `Auto-hide ${name}`}</button>}
+            <button onClick={collapse}>{compact ? `Close ${name}` : `Collapse ${name}`}</button>
+          </div>}
+        </div>
       </div>
+      {primaryAction && <div className="wb-panel-primary-action">{primaryAction}</div>}
       {!compact && <div className={`wb-panel-resize is-${side}`} role="separator" aria-label={`Resize ${name}`} aria-orientation="vertical" tabIndex={0} aria-valuenow={measuredWidth ?? settings.width ?? (side === 'left' ? 260 : 360)} aria-valuemin={limits[side].min} aria-valuemax={limits[side].max}
         onKeyDown={(event) => {
           if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -118,4 +138,4 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
 export function PanelIcon({ side, collapse = false }: { side: PanelSide; collapse?: boolean }) {
   return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 3h14v14H3Z" /><path d={side === 'left' ? 'M7 3v14' : 'M13 3v14'} />{collapse && <path d={side === 'left' ? 'm13 7-3 3 3 3' : 'm7 7 3 3-3 3'} />}</svg>;
 }
-const PinIcon = () => <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 3 6 0-1 5 3 3H5l3-3ZM10 11v7" /></svg>;
+const MoreIcon = () => <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="4" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="10" cy="16" r="1" /></svg>;

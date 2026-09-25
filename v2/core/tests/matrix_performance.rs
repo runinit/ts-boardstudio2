@@ -83,6 +83,7 @@ fn guided_matrix_preview() {
     let cells = (0..6)
         .flat_map(|row| {
             (0..5).map(move |column| MatrixCell {
+            assemblies_local: None,
                 row,
                 column,
                 enabled: true,

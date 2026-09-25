@@ -13,6 +13,21 @@ const coords = (node: Expression[] | undefined): { x: number; y: number } | unde
   return Number.isFinite(x) && Number.isFinite(y) ? { x, y: -y } : undefined;
 };
 const findForms = (node: Expression[], names: string[]): Expression[][] => node.flatMap((item) => Array.isArray(item) ? [ ...(names.includes(String(item[0])) ? [item] : []), ...findForms(item, names) ] : []);
+const graphicKinds = ['fp_line', 'gr_line', 'fp_arc', 'gr_arc', 'fp_rect', 'gr_rect', 'fp_circle', 'gr_circle', 'fp_poly', 'gr_poly', 'fp_text', 'gr_text', 'zone'];
+const graphicLayer = (form: Expression[]): string => {
+  const layer = child(form, 'layer')?.[1];
+  return typeof layer === 'string' ? value(layer) : 'Other graphics';
+};
+const previewDefinition = (definition: PartDefinition, hideKeycap: boolean): PartDefinition => {
+  if (!hideKeycap || !definition.generator) return definition;
+  const generator = definition.generator;
+  const keycapToggle = generator.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
+  return { ...definition, generator: { ...generator, parameters: { ...generator.parameters, [keycapToggle]: false } } };
+};
+export const ergogenPreviewLayers = (definition: PartDefinition, hideKeycap = false): string[] => {
+  if (!isErgogen(definition.generator?.source)) return [];
+  try { return [...new Set(findForms(render(previewDefinition(definition, hideKeycap)), graphicKinds).map(graphicLayer))]; } catch { return []; }
+};
 const arcPoints = (form: Expression[]): [{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }] | undefined => {
   const nativeStart = coords(child(form, 'start'));
   const nativeMid = coords(child(form, 'mid'));
@@ -42,24 +57,22 @@ export const ergogenPreviewPoints = (definition: PartDefinition): { x: number; y
   } catch { return []; }
 };
 
-export const Ergogen2DPreview = ({ definition, at = { x: 0, y: 0 }, hideKeycap = false }: { definition: PartDefinition; at?: { x: number; y: number }; hideKeycap?: boolean }) => {
+export const Ergogen2DPreview = ({ definition, at = { x: 0, y: 0 }, hideKeycap = false, hiddenLayers }: { definition: PartDefinition; at?: { x: number; y: number }; hideKeycap?: boolean; hiddenLayers?: ReadonlySet<string> }) => {
   if (!isErgogen(definition.generator?.source)) return null;
   let forms: Expression[][];
-  const generator = definition.generator!;
-  const keycapToggle = generator.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
   // The workspace draws its own keycap guide from the resolved envelope, including
   // authored overrides. Avoid a second, potentially different generator guide.
-  const drawing = hideKeycap ? { ...definition, generator: { ...generator, parameters: { ...generator.parameters, [keycapToggle]: false } } } : definition;
-  try { forms = render(drawing); } catch { return null; }
-  const graphics = findForms(forms, ['fp_line', 'gr_line', 'fp_arc', 'gr_arc', 'fp_rect', 'gr_rect', 'fp_circle', 'gr_circle', 'fp_poly', 'gr_poly', 'fp_text', 'gr_text', 'zone']);
+  try { forms = render(previewDefinition(definition, hideKeycap)); } catch { return null; }
+  const graphics = findForms(forms, graphicKinds);
   const line = (form: Expression[], i: number) => {
     const start = coords(child(form, 'start'));
     const end = coords(child(form, 'end'));
     if (!start || !end) return null;
-    return <line key={i} x1={start.x + at.x} y1={-start.y - at.y} x2={end.x + at.x} y2={-end.y - at.y} className="wb-ergogen-line" />;
+    return <line key={i} data-layer={graphicLayer(form)} x1={start.x + at.x} y1={-start.y - at.y} x2={end.x + at.x} y2={-end.y - at.y} className="wb-ergogen-line" />;
   };
   return <g className="wb-ergogen-drawing" aria-label={`${definition.name} graphics and text`}>
     {graphics.map((form, index) => {
+      if (hiddenLayers?.has(`graphics:${graphicLayer(form)}`)) return null;
       const kind = String(form[0]);
       if (kind.endsWith('_line')) return line(form, index);
       if (kind.endsWith('_arc')) {
@@ -68,32 +81,32 @@ export const Ergogen2DPreview = ({ definition, at = { x: 0, y: 0 }, hideKeycap =
         const [start, mid, end] = points;
         const controlX = 2 * mid.x - (start.x + end.x) / 2;
         const controlY = 2 * mid.y - (start.y + end.y) / 2;
-        return <path key={index} d={`M ${start.x + at.x} ${-start.y - at.y} Q ${controlX + at.x} ${-controlY - at.y} ${end.x + at.x} ${-end.y - at.y}`} className="wb-ergogen-line" />;
+        return <path key={index} data-layer={graphicLayer(form)} d={`M ${start.x + at.x} ${-start.y - at.y} Q ${controlX + at.x} ${-controlY - at.y} ${end.x + at.x} ${-end.y - at.y}`} className="wb-ergogen-line" />;
       }
       if (kind.endsWith('_rect')) {
         const start = coords(child(form, 'start'));
         const end = coords(child(form, 'end'));
         if (!start || !end) return null;
-        return <rect key={index} x={Math.min(start.x, end.x) + at.x} y={-Math.max(start.y, end.y) - at.y} width={Math.abs(end.x - start.x)} height={Math.abs(end.y - start.y)} className="wb-ergogen-line" />;
+        return <rect key={index} data-layer={graphicLayer(form)} x={Math.min(start.x, end.x) + at.x} y={-Math.max(start.y, end.y) - at.y} width={Math.abs(end.x - start.x)} height={Math.abs(end.y - start.y)} className="wb-ergogen-line" />;
       }
       if (kind.endsWith('_circle')) {
         const center = coords(child(form, 'center'));
         const end = coords(child(form, 'end'));
         if (!center || !end) return null;
-        return <circle key={index} cx={center.x + at.x} cy={-center.y - at.y} r={Math.hypot(end.x - center.x, end.y - center.y)} className="wb-ergogen-line" />;
+        return <circle key={index} data-layer={graphicLayer(form)} cx={center.x + at.x} cy={-center.y - at.y} r={Math.hypot(end.x - center.x, end.y - center.y)} className="wb-ergogen-line" />;
       }
       if (kind.endsWith('_poly') || kind === 'zone') {
         const pts = child(form, 'pts') ?? findForms([form], ['pts'])[0];
         const points = pts ? children(pts, 'xy').map((xy) => coords(xy)).filter((point): point is { x: number; y: number } => Boolean(point)) : [];
         if (points.length < 3) return null;
         const keepout = Boolean(child(form, 'keepout'));
-        return <polygon key={index} points={points.map((point) => `${point.x + at.x},${-point.y - at.y}`).join(' ')} className={keepout ? 'wb-ergogen-keepout' : 'wb-ergogen-zone'} />;
+        return <polygon key={index} data-layer={graphicLayer(form)} points={points.map((point) => `${point.x + at.x},${-point.y - at.y}`).join(' ')} className={keepout ? 'wb-ergogen-keepout' : 'wb-ergogen-zone'} />;
       }
       if (kind.endsWith('_text')) {
         const position = coords(child(form, 'at'));
         const text = typeof form[1] === 'string' ? value(form[1]) : '';
         if (!position || !text) return null;
-        return <text key={index} x={position.x + at.x} y={-position.y - at.y} className="wb-ergogen-text">{text}</text>;
+        return <text key={index} data-layer={graphicLayer(form)} x={position.x + at.x} y={-position.y - at.y} className="wb-ergogen-text">{text}</text>;
       }
       return null;
     })}

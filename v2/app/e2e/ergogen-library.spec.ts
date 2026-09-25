@@ -69,10 +69,10 @@ test('keycap outline resizes with settings, survives undo and reload, and leaves
   await expect(page.locator('.wb-library-workspace-scale')).toContainText('Keycap 23.0 × 19.0 mm');
   await page.getByRole('checkbox', { name: 'include_keycap', exact: true }).uncheck();
   await expect(page.locator('.wb-preview-keycap')).toHaveCount(0);
-  const savedRevision = page.getByTitle('Saved document revision');
-  const previousRevision = await savedRevision.textContent();
+  const savedRevision = page.locator('.wb-root');
+  const previousRevision = await savedRevision.getAttribute('data-revision');
   await page.getByRole('button', { name: 'Apply generator settings' }).click();
-  await expect(savedRevision).not.toHaveText(previousRevision!);
+  await expect(savedRevision).not.toHaveAttribute('data-revision', previousRevision!);
   await page.reload();
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await search.fill('ceoloide/switch_mx');

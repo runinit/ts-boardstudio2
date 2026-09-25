@@ -78,7 +78,7 @@ test('cancelled and superseded draft replies cannot restore an obsolete ghost', 
 });
 
 test('paired drafts share one request and translate together', async ({ page }) => {
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Mirrored pair…', exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Rows per half', exact: true }).fill('2');
   await page.getByRole('spinbutton', { name: 'Columns per half', exact: true }).fill('3');

@@ -16,11 +16,11 @@ test('starter keycap overlays align with their switch members', async ({ page })
 });
 
 async function editNumber(page: import('@playwright/test').Page, name: string, value: string) {
-  const revision = Number((await page.locator('.wb-revision').textContent())!.slice(1));
+  const revision = Number(await page.locator('.wb-root').getAttribute('data-revision'));
   const field = page.getByRole('spinbutton', { name, exact: true });
   await field.fill(value);
   await field.blur();
-  await expect(page.locator('.wb-revision')).toHaveText(`r${revision + 1}`);
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', String(revision + 1));
 }
 
 test('selection-specific inspectors, group counts and grouping persistence', async ({ page }) => {
@@ -66,22 +66,22 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
 test('Add Part searches, cancels, and places a standalone snapped component in one undo step', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
   await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
   await expect(page.locator('#wb-add-part')).toHaveCount(0);
   await expect(page.locator('.wb-placement-preview')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.wb-placement-preview')).toHaveCount(0);
-  await expect(page.locator('.wb-revision')).toHaveText('r0');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '0');
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
   await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
   const canvas = page.locator('.wb-canvas');
   await canvas.focus();
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
-  await expect(page.locator('.wb-revision')).toHaveText('r1');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
   await expect(page.locator('.wb-scene-part')).toHaveCount(16);
   await expect(page.getByRole('button', { name: /^SW1, MX switch/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'S1', exact: true })).toBeVisible();
@@ -138,7 +138,7 @@ test('reopened legacy and transformed sparse matrices retain member alignment an
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(14);
   await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
-  await expect(page.locator('.wb-revision')).toHaveText('r2');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '2');
   await page.reload();
   await expect.poll(async () => page.getByRole('button', { name: 'Select key, row 2, column 2', exact: true }).getAttribute('transform')).toBe(await page.getByRole('button', { name: /^SW7, MX switch/ }).getAttribute('transform'));
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
@@ -160,7 +160,7 @@ test('generated overlays track rotation, mirroring, stagger and disabled slots',
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
   await editNumber(page, 'Rotation °', '37');
   await page.getByRole('combobox', { name: 'Mirror matrix' }).selectOption('x');
-  await expect(page.locator('.wb-revision')).toHaveText('r3');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '3');
   await page.getByRole('treeitem', { name: /^Column 2/ }).click();
   await page.getByText('Position & rotation', { exact: true }).click();
   await editNumber(page, 'Offset Y mm', '4');
@@ -184,18 +184,21 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
     await expect(page.getByRole('heading', { name: 'Matrix 1', exact: true })).toBeVisible();
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-desktop.png`) });
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByRole('button', { name: 'Add object', exact: true }).click();
     await expect(page.getByRole('searchbox', { name: 'Search parts' })).toBeFocused();
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-desktop-flyout.png`) });
     await page.keyboard.press('Escape');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Inspect', exact: true }).click();
     await expect(page.getByRole('button', { name: /^Select:/ })).toBeVisible();
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByRole('button', { name: 'Objects', exact: true }).click();
+    await page.getByRole('button', { name: 'Add object', exact: true }).click();
     await expect(page.getByRole('searchbox', { name: 'Search parts' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ animations: 'disabled', path: info.outputPath(`${theme}-narrow-flyout.png`) });
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Add', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Objects', exact: true }).click();
     await page.getByRole('button', { name: /^Select:/ }).click();
     await page.getByRole('button', { name: 'Key', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect', exact: true }).click();
@@ -210,13 +213,11 @@ for (const theme of ['light', 'dark'] as const) {
 
 test('mouse placement snaps a standalone part onto only the active board', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Project', exact: true }).click();
-  await page.getByRole('button', { name: '+ New', exact: true }).click();
-  await page.getByRole('button', { name: 'Project', exact: true }).click();
-  await expect(page.locator('.wb-revision')).toHaveText('r1');
+  await page.getByRole('button', { name: 'New board', exact: true }).click();
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
   await expect(page.locator('.wb-scene-part')).toHaveCount(0);
   await expect(page.locator('.wb-matrix-cell')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('MX switch');
   await page.locator('#wb-add-part').getByRole('button', { name: 'MX switch', exact: true }).click();
   const point = await page.locator('.wb-canvas').evaluate((node: SVGSVGElement) => {
@@ -224,7 +225,7 @@ test('mouse placement snaps a standalone part onto only the active board', async
     return { x: screen.x, y: screen.y };
   });
   await page.mouse.click(point.x, point.y);
-  await expect(page.locator('.wb-revision')).toHaveText('r2');
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '2');
   await expect(page.locator('.wb-scene-part')).toHaveCount(1);
   await expect(page.locator('.wb-scene-part')).toHaveAttribute('transform', 'translate(19.05 -9.525) rotate(0)');
   await page.getByRole('button', { name: 'Undo', exact: true }).click();

@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type Props = {
+  attached?: boolean;
   id: string;
   label: string;
   icon?: React.ReactNode;
@@ -11,8 +12,8 @@ type Props = {
   children: React.ReactNode;
 };
 
-/** A nonmodal command panel: portaled so canvas and drawer clipping cannot hide it. */
-export function CommandMenu({ id, label, icon, open, onOpenChange, triggerRef, children }: Props) {
+/** Command details can share the toolbar surface or escape clipping in a portal. */
+export function CommandMenu({ attached = false, id, label, icon, open, onOpenChange, triggerRef, children }: Props) {
   const ownTrigger = useRef<HTMLButtonElement>(null);
   const trigger = triggerRef ?? ownTrigger;
   const panel = useRef<HTMLDivElement>(null);
@@ -20,6 +21,7 @@ export function CommandMenu({ id, label, icon, open, onOpenChange, triggerRef, c
   useLayoutEffect(() => {
     if (!open) return;
     const place = () => {
+      if (attached) return;
       const anchor = trigger.current?.getBoundingClientRect();
       const popup = panel.current?.getBoundingClientRect();
       if (!anchor || !popup) return;
@@ -32,7 +34,7 @@ export function CommandMenu({ id, label, icon, open, onOpenChange, triggerRef, c
     (panel.current?.querySelector<HTMLElement>('input[type=search]') ?? panel.current?.querySelector<HTMLElement>('input, button:not(:disabled), select'))?.focus();
     window.addEventListener('resize', place);
     return () => window.removeEventListener('resize', place);
-  }, [open, trigger]);
+  }, [open, trigger, attached]);
   useEffect(() => {
     if (!open) return;
     const dismiss = (event: PointerEvent) => {
@@ -44,17 +46,19 @@ export function CommandMenu({ id, label, icon, open, onOpenChange, triggerRef, c
   const close = () => { onOpenChange(false); trigger.current?.focus(); };
   return <>
     <button ref={trigger} className="wb-command-trigger" aria-expanded={open} aria-controls={id} onClick={() => onOpenChange(!open)}>{icon}<span>{label}</span><ToolIcon name="chevron" /></button>
-    {open && createPortal(<div className="wb-command-panel" id={id} role="dialog" aria-label={label} ref={panel} style={position}
+    {open && <CommandPanel attached={attached}><div className={`wb-command-panel ${attached ? 'is-attached' : ''}`} id={id} role="dialog" aria-label={label} ref={panel} style={attached ? undefined : position}
       onKeyDown={(event) => {
         if (event.key === 'Escape') { event.stopPropagation(); close(); }
       }} onClick={(event) => { if ((event.target as Element).closest('[data-close-menu]')) close(); }}>
       {children}
-    </div>, document.body)}
+    </div></CommandPanel>}
   </>;
 }
 
-export function ToolIcon({ name }: { name: 'add' | 'select' | 'transform' | 'align' | 'snap' | 'chevron' | 'origin' | 'search' | 'warning' }) {
+export function ToolIcon({ name }: { name: 'stagger' | 'splay' | 'add' | 'select' | 'transform' | 'align' | 'snap' | 'chevron' | 'origin' | 'search' | 'warning' }) {
   const paths = {
+    stagger: 'M5 3v14M2 6l3-3 3 3M12 4h5v5h-5zM12 12h5v5h-5z',
+    splay: 'M3 17h14M3 17 7 3M3 17 15 7M7 8q5 0 7 4',
     add: 'M10 3v14M3 10h14',
     select: 'M4 2v15l4-4 3 5 3-2-3-5 6-1Z',
     transform: 'M10 1v18M1 10h18M7 4l3-3 3 3M7 16l3 3 3-3M4 7l-3 3 3 3M16 7l3 3-3 3',
@@ -66,4 +70,8 @@ export function ToolIcon({ name }: { name: 'add' | 'select' | 'transform' | 'ali
     warning: 'M10 2 1 18h18ZM10 7v5M10 15v.1',
   };
   return <svg viewBox="0 0 20 20" aria-hidden="true"><path d={paths[name]} /></svg>;
+}
+
+function CommandPanel({ attached, children }: { attached: boolean; children: React.ReactNode }) {
+  return attached ? <>{children}</> : createPortal(children, document.body);
 }

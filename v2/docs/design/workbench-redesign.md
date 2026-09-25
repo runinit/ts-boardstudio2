@@ -53,15 +53,16 @@ and [refreshed dark mode](../../app/.impeccable/mocks/decision/unified-design-da
 They represent the same implemented local structure with the existing persisted System
 theme option.
 
-- **Global header:** project menu, Design, Parts, Export, save state, undo/redo.
+- **Global header:** Design and Parts on the left; Export, undo/redo, and the
+  project menu on the right.
   PCB and Case leave the global navigation. Appearance remains in project settings.
 - **Left navigator:** Main board contains Layout, PCB, and Case branches. Layout
   contains matrices and keys. PCB currently exposes board and parts; nets and
   layers are planned. Case currently exposes bodies; feature editing is planned.
   The sidebar is for navigation and selection,
   with no second inspector stacked beneath it.
-- **Compact canvas toolbar:** five groups, **Add · Select · Transform · Align ·
-  Snap**. Select names the current scope. Each group has a labeled menu; avoid
+- **Compact canvas toolbar:** four groups, **Select · Transform · Align · Snap**.
+  Add opens a create view in Objects. Select names the current scope. Each group has a labeled menu; avoid
   rendering every subcommand as a separate permanent button. Fit and zoom join
   the view/status controls. Relevant direct-manipulation handles remain visible.
 - **Right inspector:** a resizable dock uses the available screen height. Its
@@ -86,7 +87,7 @@ inspector can be resized from 300–480px on desktop. Wide screens use the 60px 
 
 | Group | Contents and contextual behavior |
 | --- | --- |
-| Add | Matrix/part when nothing is selected; relevant key/row/column insertion for the current selection |
+| Add in Objects | Matrix/part when nothing is selected; relevant key/row/column insertion for the current selection |
 | Select: current scope | Named scopes appropriate to the active branch; current scope remains readable with the menu closed |
 | Transform | Move, rotate, stagger, splay and origin when applicable; active tool opens the corresponding inspector section |
 | Align | Pick source/reference geometry, align once, distribute, or retain a relationship |
@@ -97,7 +98,7 @@ inspector, not a permanent global toolbar. Direct insertion markers and transfor
 handles remain available on the selected canvas geometry. A user should not have
 to reopen a menu for each drag. Prefer plain labeled menu triggers and separators
 to a run of equally emphasized boxed buttons. Show one Add entry point in the
-command strip; do not duplicate it as another primary action above the tree.
+Objects panel.
 Report the same warning count once in the status line; opening it reveals details.
 
 ### Linked views within Design

@@ -91,7 +91,59 @@ fn feature_geometry(doc: &ProjectDoc, feature: &OutlineFeature) -> FeatureGeomet
             margin,
             settings,
             ..
-        } => return automatic::envelope(doc, part_ids, *margin, settings),
+        } => {
+            let mut axes: Vec<f64> = doc
+                .layouts
+                .iter()
+                .filter_map(|layout| {
+                    let link = layout.mirror_link.as_ref()?;
+                    let board = doc.boards.iter().find(|board| board.id == layout.board_id);
+                    if board
+                        .is_some_and(|board| !part_ids.iter().any(|id| board.part_ids.contains(id)))
+                    {
+                        return None;
+                    }
+                    Some(link.axis_x)
+                })
+                .collect();
+            axes.sort_by(f64::total_cmp);
+            axes.dedup();
+            if axes.is_empty() {
+                return automatic::envelope(doc, part_ids, *margin, settings);
+            }
+            // Build each physical half independently so automatic bridges never cross a split.
+            let mut groups: BTreeMap<Vec<bool>, Vec<String>> = BTreeMap::new();
+            for id in part_ids {
+                let Some(part) = doc.parts.iter().find(|part| &part.id == id) else {
+                    continue;
+                };
+                let owner = doc.layouts.iter().find(|layout| {
+                    layout.part_ids.contains(id)
+                        || doc.matrices.iter().any(|matrix| {
+                            matrix.id == layout.matrix_id && matrix.part_ids.contains(id)
+                        })
+                });
+                let x = owner
+                    .and_then(|layout| {
+                        doc.matrices
+                            .iter()
+                            .find(|matrix| matrix.id == layout.matrix_id)
+                    })
+                    .map_or(part.pose.at.x, |matrix| matrix.origin.x);
+                groups
+                    .entry(axes.iter().map(|axis| x < *axis).collect())
+                    .or_default()
+                    .push(id.clone());
+            }
+            let mut shapes = vec![];
+            let mut warnings = vec![];
+            for ids in groups.values() {
+                let (half, notices) = automatic::envelope(doc, ids, *margin, settings)?;
+                shapes.extend(half);
+                warnings.extend(notices);
+            }
+            return Ok((shapes, warnings));
+        }
     };
     if !automatic::simple(&path) {
         return Err(
@@ -103,6 +155,7 @@ fn feature_geometry(doc: &ProjectDoc, feature: &OutlineFeature) -> FeatureGeomet
 }
 #[derive(Clone, Default)]
 pub struct OutlineCache {
+    layouts: Vec<crate::model::Layout>,
     paths: BTreeMap<String, (OutlineFeature, FeatureGeometry)>,
 }
 pub fn outlines(
@@ -110,9 +163,13 @@ pub fn outlines(
     previous: Option<&OutlineCache>,
     moved: &[String],
 ) -> (OutlineCache, Vec<Contour>, Vec<Finding>) {
-    let mut cache = OutlineCache::default();
+    let mut cache = OutlineCache {
+        layouts: doc.layouts.clone(),
+        ..Default::default()
+    };
     for feature in &doc.outline {
         let paths = previous
+            .filter(|old| old.layouts == doc.layouts)
             .and_then(|old| old.paths.get(feature.id()))
             .filter(|(old_feature, _)| old_feature == feature && !depends_on(feature, moved))
             .map(|(_, paths)| paths.clone())
@@ -285,6 +342,30 @@ mod tests {
     use super::*;
     use crate::model::{PartDefinition, PartKind, Pose2, Side};
     use std::time::Instant;
+
+    #[test]
+    fn linked_halves_do_not_bridge_automatic_envelopes() {
+        let mut doc = fixture(2);
+        doc.parts[1].pose.at.x = 40.0;
+        doc.outline.truncate(1);
+        if let OutlineFeature::PartEnvelope {
+            part_ids, settings, ..
+        } = &mut doc.outline[0]
+        {
+            *part_ids = vec!["key-0".into(), "key-1".into()];
+            settings.bridge_width = 10.0;
+        }
+        doc.layouts = serde_json::from_value(serde_json::json!([
+            {"id":"left","name":"Left","boardId":"board","matrixId":"left-matrix","partIds":["key-0"]},
+            {"id":"right","name":"Right","boardId":"board","matrixId":"right-matrix","partIds":["key-1"],"mirrorLink":{"sourceId":"left","axisX":20.0}}
+        ])).unwrap();
+        let (shapes, _) = feature_geometry(&doc, &doc.outline[0]).unwrap();
+        assert_eq!(
+            shapes.len(),
+            2,
+            "split halves must retain separate outlines"
+        );
+    }
 
     const SAMPLES: usize = 100;
     const WARMUP: usize = 10;

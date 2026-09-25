@@ -359,8 +359,7 @@ and keep precise values available alongside direct manipulation.
 The application owns the viewport height (100dvh). The 48px header, 44px
 command toolbar, and 34px footer frame independently scrolling navigator,
 canvas, and right inspector panels. At 1440px and above these become 60px,
-64px, and 60px. A shared 36px context ribbon holds the board/view breadcrumbs
-and Objects/Inspect toggles. The center expands to absorb available width.
+64px, and 60px. The center expands to absorb available width.
 
 | Width | Implemented arrangement |
 | --- | --- |
@@ -376,11 +375,12 @@ and the inspector at 370px, each bounded by 92vw, with a scrim.
 
 Both desktop panels support pinned, collapsed, and opt-in auto-hide modes.
 Widths (navigator 200–420px, inspector 280–480px) and modes persist locally.
-Collapsed panels release their full column and reopen from the context ribbon.
-Auto-hide leaves a small reveal control and opens the panel over the canvas;
+Collapsed panels release their full column and reopen from narrow edge controls.
+Auto-hide leaves the same reveal control and opens the panel over the canvas;
 pointer presence, keyboard focus, and resizing prevent dismissal. Reveals use
 a short slide, removed under reduced motion. Narrow screens use explicit drawers
-instead of hover behavior. Resizing supports pointer dragging and arrow keys.
+opened from the header instead of hover behavior. Resizing supports pointer
+dragging and arrow keys. Add opens a create view within the Objects panel.
 
 Recurring spacing uses compact 4px gaps, 8px inline separation, 12px field gaps,
 16px inspector insets, and 20px section endings. These are extracted repeated
@@ -451,14 +451,20 @@ bottom rule, stronger text, and weight 700. The Parts preview uses two small
 outlined buttons with pressed state, switching between 2D footprint and 3D model.
 
 Add groups Layouts, contextual matrix actions, Parts, and Board geometry into
-named sections. A short common-parts list expands through search, while Browse
-all parts opens the library. Mirrored pair opens a focused setup over the canvas,
+named sections. Components prioritizes power/reset hardware; Controllers, Displays,
+and Encoders have separate disclosures. Search includes keyboard switches and
+sockets, while Browse all parts opens the library. Mirror existing half links
+one or all unpaired matrices without moving the original keys; independent
+hardware stays local. Y-mirrored frames and constrained keys must be resolved
+before linking. Mirrored pair opens a focused setup over the canvas,
 then previews both halves and a centre axis before a single placement action.
 The halves become named layouts beneath the board. Their key geometry is linked
 in both editing directions; switch choices and components remain local. The
 inspector names the partner and offers Unlink halves. Add provides a layout
 destination for extra components, which can also be reassigned in the inspector.
-Board outline, PCB, and case settings remain shared at board level.
+Left half and Right half group their layouts beneath the board. Automatic
+perimeters are built separately across linked split axes, including for exports;
+PCB and case settings remain shared at board level.
 
 ### Catalog rows and metadata tags
 
@@ -468,6 +474,13 @@ Action blue border. Revision tags are small outlined mono labels (10px) with
 2px 5px padding; they are metadata rather than action chips.
 
 ### Inspector disclosures
+
+Keys, rows, and columns expose width and height sliders in quarter-unit steps
+from 1u to 7u. Wide/Tall swaps the dimensions; a row or column applies the change
+to all selected keys in one edit. Units use matrix pitch minus the configured
+edge gap. Explicit cap dimensions stay linked across paired halves. Key Assembly
+names the key definition selector; diode composition belongs to the assembly,
+not a separate key checkbox.
 
 The inspector starts with the selected object, description, and primary edit or
 action. Optional groups use native disclosures with a drawn chevron, a quiet top
@@ -480,9 +493,28 @@ rule, and an optional trailing detail. Summary rows have a 46px minimum height
 
 Board outlines and component boundaries remain separate from the slate field.
 Pads are filled violet; drill holes expose the canvas. Keycap and courtyard
-boundaries remain dashed. Footprint labels and the dimension footer identify
-what is shown. Missing or failed model previews use explicit text and a retry
-or import action instead of a perpetual loading state.
+guides in the Parts preview remain dashed. The Layout canvas offers a separate
+keycap overlay with a rounded outer envelope and inset top face, using the
+resolved key dimensions and existing geometry/selection tokens. Matrix membership
+identifies keys even when their definition is a socket; pitch minus edge gap
+supplies missing key dimensions. Keys and Components have independent visibility. Layer swatches distinguish
+Action blue keys, amber components, neutral keycaps, violet footprints, and
+teal boards using the existing theme tokens.
+Selection types have direct icon shortcuts. Stagger, Splay, and Origin activate
+explicit canvas tools; handles remain hidden outside those tools. Origin snapping
+uses component origins, corners, midpoints, and physical edges before the grid. PCB draws pad
+shapes and drills at their authored positions and rotations, plus supported
+bundled footprint graphics. Its collapsible Layers list groups the available
+copper and technical layers separately from object visibility. View toggles do
+not modify the document or exports. Command details expand inside the floating
+pill’s shared surface; at narrow widths the toolbar docks and the layer list
+starts collapsed. Footprint labels and the dimension footer identify
+what is shown. The 2D preview has a compact, collapsible Layers legend with
+visibility controls for named footprint graphics layers, copper, guides, drill
+marks, pad numbers, and each previewed part. These controls affect only the
+preview; they do not edit the component or export. Missing or failed model
+previews use explicit text and a retry or import action instead of a perpetual
+loading state.
 
 ### Motion and browser surfaces
 

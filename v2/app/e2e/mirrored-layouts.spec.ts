@@ -11,7 +11,10 @@ async function newProject(page: Page) {
 }
 
 async function openSetup(page: Page) {
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  if (await page.getByRole('button', { name: 'Objects', exact: true }).isVisible()) {
+    await page.getByRole('button', { name: 'Objects', exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Mirrored pair…', exact: true }).click();
   return page.getByRole('form', { name: 'New mirrored pair' });
 }
@@ -44,11 +47,11 @@ test('mirrored creation is cancellable, atomic and edits either half', async ({ 
   await newProject(page);
   await openSetup(page);
   await page.screenshot({ path: testInfo.outputPath('dark-pair-setup.png'), animations: 'disabled' });
-  const revision = await page.locator('.wb-revision').textContent();
+  const revision = await page.locator('.wb-root').getAttribute('data-revision');
   await page.getByRole('button', { name: 'Preview placement', exact: true }).click();
   await page.locator('.wb-canvas').press('Escape');
   await expect(page.locator('.wb-matrix-ghost.is-placement-preview')).toHaveCount(0);
-  await expect(page.locator('.wb-revision')).toHaveText(revision!);
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', revision!);
   await createPair(page);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(0);
@@ -62,7 +65,7 @@ test('mirrored creation is cancellable, atomic and edits either half', async ({ 
   await expect(page.locator('.wb-scene-part')).toHaveCount(36);
   await page.getByRole('treeitem', { name: 'Left half Linked', exact: true }).click();
   await expect(rows).toHaveValue('3');
-  await expect(page.getByRole('navigation', { name: 'Workspace location' })).toContainText('Left half');
+  await expect(page.locator('#wb-inventory')).toContainText('Left half');
   await page.screenshot({ path: testInfo.outputPath('dark-linked-halves.png'), animations: 'disabled' });
   const saved = (await archive(page)).document;
   const pcbDownload = page.waitForEvent('download');
@@ -86,7 +89,7 @@ test('independent components keep their half through save, reopen and geometry e
   await newProject(page);
   await createPair(page);
   await page.getByRole('treeitem', { name: 'Left half Linked', exact: true }).click();
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   const destination = page.getByRole('combobox', { name: 'Part placement layout', exact: true });
   await expect(destination.locator('option:checked')).toHaveText('Left half');
   await page.getByRole('searchbox', { name: 'Search parts', exact: true }).fill('encoder');
@@ -95,7 +98,7 @@ test('independent components keep their half through save, reopen and geometry e
   await expect(page.locator('.wb-scene-part')).toHaveCount(25);
   await expect(page.getByRole('combobox', { name: 'Component layout', exact: true }).locator('option:checked')).toHaveText('Left half');
   await page.getByRole('treeitem', { name: 'Right half Linked', exact: true }).click();
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Part placement layout', exact: true }).locator('option:checked')).toHaveText('Right half');
   await page.getByRole('searchbox', { name: 'Search parts', exact: true }).fill('RGB LED');
   await page.getByRole('dialog', { name: 'Add', exact: true }).getByRole('button', { name: 'RGB LED', exact: true }).click();
@@ -150,7 +153,7 @@ test('light setup fits a narrow viewport and retains keyboard cancellation', asy
   await page.screenshot({ path: testInfo.outputPath('light-narrow-pair-setup.png'), animations: 'disabled' });
   await setup.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(setup).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Objects', exact: true })).toBeFocused();
 });
 
 

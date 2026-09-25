@@ -30,7 +30,7 @@ test('Parts uses a searchable categorized catalogue and a selected component ins
 
 test('matrix creation asks for dimensions and deletion removes its container with undo', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Matrix…' }).click();
   await expect(page.getByRole('spinbutton', { name: 'New matrix rows' })).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Continue to placement' })).toBeDisabled();

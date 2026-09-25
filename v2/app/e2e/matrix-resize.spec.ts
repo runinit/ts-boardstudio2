@@ -11,7 +11,7 @@ async function createMatrix(page: Page): Promise<void> {
 }
 
 async function drag(page: Page, target: ReturnType<Page['locator']>, dx: number): Promise<void> {
-  const revision = Number((await page.locator('.wb-revision').textContent())?.slice(1));
+  const revision = Number(await page.locator('.wb-root').getAttribute('data-revision'));
   const box = await target.boundingBox();
   expect(box).not.toBeNull();
   const x = box!.x + box!.width / 2;
@@ -22,7 +22,7 @@ async function drag(page: Page, target: ReturnType<Page['locator']>, dx: number)
   await page.mouse.move(x + dx, y, { steps: 4 });
   await page.mouse.up();
   // Resize the committed layout, not an intermediate drag preview.
-  await expect(page.locator('.wb-revision')).toHaveText(`r${revision + 1}`);
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', String(revision + 1));
 }
 
 async function shrinkRows(page: Page, expectedParts: number): Promise<void> {
@@ -39,7 +39,13 @@ async function shrinkRows(page: Page, expectedParts: number): Promise<void> {
 
 test('shrinks a matrix after staggering its last row', async ({ page }) => {
   await createMatrix(page);
-  await drag(page, page.getByLabel('Stagger row 6'), 20);
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
+  await page.keyboard.press('Escape');
+  await page.getByRole('treeitem', { name: /^Row 6/ }).click();
+  const offset = page.getByRole('spinbutton', { name: 'Offset X mm', exact: true });
+  await offset.fill('4');
+  await offset.blur();
   await shrinkRows(page, 50);
 
   await page.getByRole('button', { name: 'Undo' }).click();

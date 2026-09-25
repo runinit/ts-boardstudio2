@@ -45,7 +45,7 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
   await page.getByRole('button', { name: 'Redo', exact: true }).click();
   await expect.poll(() => contours(page)).toEqual(deleted);
 
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.getByLabel('Outline corners').selectOption('chamfer');
   await expect.poll(() => contours(page)).not.toEqual(deleted);
@@ -72,7 +72,7 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
 test('draws additions and persistent cutouts without duplicate double-click vertices', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.getByLabel('Outline corners').selectOption('sharp');
   await page.getByRole('button', { name: 'Draw addition' }).click();
@@ -125,7 +125,7 @@ test('part inclusion and margin controls survive save and affect the contour', a
 test('outline settings fit desktop and mobile and invalid drawings block exports', async ({ page }, info) => {
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('button', { name: 'Board outline…', exact: true }).click();
   await page.screenshot({ path: info.outputPath('outline-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });

@@ -27,7 +27,7 @@ test('lazily loads CAD and prepares a current case preview and STEP export offli
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => wasmRequests.size).toBeGreaterThan(wasmBeforeCase);
   await page.getByRole('combobox', { name: 'Body type' }).selectOption('tray');
-  await expect(page.getByText('r1', { exact: true })).toBeVisible();
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
 
   const requests = await page.evaluate(() => (window as typeof window & { __casePreparationRequests: unknown[] }).__casePreparationRequests);

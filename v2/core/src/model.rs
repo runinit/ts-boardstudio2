@@ -358,6 +358,12 @@ pub struct MatrixCell {
     )]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub assemblies: Vec<MatrixAssembly>,
+    #[serde(
+        rename = "assembliesLocal",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub assemblies_local: Option<bool>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]

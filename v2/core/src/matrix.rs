@@ -120,6 +120,7 @@ pub(crate) fn removed_members(doc: &mut ProjectDoc, requested: &[String]) -> Vec
                             offset: None,
                             rotation: None,
                             assemblies: vec![],
+                            assemblies_local: None,
                         });
                         matrix.cells.len() - 1
                     });
@@ -657,6 +658,7 @@ mod projection_tests {
                 offset: Some(Vec2 { x: 2.0, y: -1.0 }),
                 rotation: Some(7.0),
                 assemblies: vec![],
+                assemblies_local: None,
             }],
         }
     }
