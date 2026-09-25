@@ -4,7 +4,7 @@ test('CAD kernel loads its glue and builds a case preview', async ({ page }) => 
   test.setTimeout(60_000);
   const failed: string[] = [];
   page.on('response', (response) => {
-    if (response.status() >= 400 && /opencascade|libcascade/.test(response.url())) failed.push(response.url());
+    if (response.status() >= 400 && /cadrum|\.wasm(?:$|\?)/i.test(response.url())) failed.push(response.url());
   });
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);

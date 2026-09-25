@@ -58,7 +58,7 @@ test('transfers a private copy when importing a STEP model', async () => {
   client.close();
 });
 
-test('rejects pending CAD work when its worker fails and starts a replacement', async () => {
+test('rejects pending CAD work when its worker fails and serves later work on the replacement', async () => {
   vi.stubGlobal('Worker', FakeWorker);
   const client = new CaseClient();
   const pending = client.request({ revision: 4, bodies: [] } as PreparedCaseAssemblyIR);
@@ -66,5 +66,12 @@ test('rejects pending CAD work when its worker fails and starts a replacement', 
 
   await expect(pending).rejects.toThrow('CAD worker failed and restarted');
   expect(workers).toHaveLength(2);
+
+  const later = client.request({ revision: 5, bodies: [] } as PreparedCaseAssemblyIR);
+  const nextRequest = workers[1].sent[0].message as { id: string; kind: string; ir: PreparedCaseAssemblyIR };
+  expect(nextRequest).toMatchObject({ kind: 'case', ir: { revision: 5 } });
+  const result = { revision: 5 } as CaseResult;
+  workers[1].reply({ id: nextRequest.id, kind: 'case', result });
+  await expect(later).resolves.toBe(result);
   client.close();
 });

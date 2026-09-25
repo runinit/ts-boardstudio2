@@ -5,8 +5,6 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   base: './',
   plugins: [react()],
-  // The CAD loader resolves its glue relative to import.meta.url. Keep them together.
-  optimizeDeps: { exclude: ['libcascade'] },
   build: {
     target: 'es2022',
     rollupOptions: {

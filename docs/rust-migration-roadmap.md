@@ -2,79 +2,53 @@
 
 Planning baseline: `b7b7c3d` (`Reconcile UI layouts with Rust matrix
 projections`). The matrix projection and project archive migrations are complete
-on this revision. This plan covers the next two proposed milestones only. It
-does not adopt a CAD crate, UI framework, or build tool.
+on this revision. This roadmap now records the completed CAD adapter migration
+and the remaining, separate Rust UI/build evaluation.
 
-The two efforts can be investigated independently. Keep their production
-cutovers separate: a CAD kernel change and a full UI/build rewrite need
-independent evidence and rollback points.
+The CAD adapter cutover is complete. A full UI/build rewrite and any replacement
+of the C++ kernel remain separate efforts with independent evidence and
+rollback points.
 
-## Milestone 3: prototype Rust CAD in the browser
+## Milestone 3: move the CAD adapter to Rust/WASM — complete
 
 ### Goal and boundary
 
-Compare Rust interfaces to OpenCascade with a Rust-native B-rep kernel before
-choosing an implementation. Preserve project data, case request semantics, and
-the Three.js mesh consumer. The options and their current evidence are recorded
-in [CAD kernel options](cad-kernel-options.md).
+Use Cadrum 0.8.20 with OpenCascade 8.0.1 for case construction, STEP handling,
+and mesh preparation. Preserve project data, case request semantics, and the
+Three.js mesh consumer. Kernel alternatives remain documented in
+[CAD kernel options](cad-kernel-options.md).
 
 The intended boundary is:
 
 ```text
 Rust core: revisioned request and prepared contours
-  -> lazy CAD worker: chosen Rust case API + OCCT or a Rust-native kernel
+  -> lazy CAD worker: Cadrum Rust/WASM bridge + OCCT
   -> STEP bytes and mesh buffers
   -> existing CaseClient and Three.js preview
 ```
 
-Rust `i_overlay` remains responsible for planar contour preparation. The
-prototype must preserve its offset behavior and must not move case work into the
-interactive layout core's initial download. Cadrum and an updated
-`opencascade-rs` keep the C++ OCCT kernel; Monstertruck is a separate,
-higher-risk kernel-replacement path.
+Rust `i_overlay` remains responsible for planar contour preparation. CAD stays
+lazy in its worker and outside the interactive layout core's initial download.
+Cadrum moves the adapter to Rust but retains the C++ OpenCascade kernel.
 
-### Work sequence
+### Delivered and verified
 
-1. **Set the objective.** Decide whether removing the C++ kernel is required.
-   If preserving OCCT behavior is the goal, compare Cadrum with an
-   `opencascade-rs` fork targeting OCCT 8.0.1. Test Monstertruck as its own
-   kernel-replacement path only if removing OCCT is in scope.
-2. **Build a common native fixture runner.** Pass the same prepared contours,
-   case settings, and STEP bytes into each candidate. Start with the seven
-   fixtures in `v2/cad/test/case.test.mjs`, then add touching/coplanar features,
-   split offsets, thin walls, and transformed component STEP files. Compare
-   solid count, volume, bounds, normals, and STEP reimport, not STEP text or
-   triangle ordering. Stop a candidate early if it cannot meet the geometry
-   contract natively.
-3. **Pin and prove the browser-worker ABI for finalists.** Pin candidate and
-   kernel revisions, Rust/C++ toolchains, WASM glue, build containers, and
-   downloaded artifacts. Build the kernel lazily into a worker, produce a holed
-   plate mesh and STEP file, read the STEP back, report invalid input, and
-   replace the worker after a trap. Preserve request identity and revision
-   rejection.
-4. **Exercise deployed-browser conditions.** Check every currently supported
-   browser, offline reload, relative/subpath asset loading, repeated case
-   operations, stale replies, and worker recovery. Measure artifact size, cold
-   start, peak memory, and operation time; the current adapter remains the
-   behavior reference.
-5. **Make a go/no-go decision.** Set CAD-specific size, initialization, memory,
-   and latency limits before measurement. The layout performance gate is not a
-   substitute for CAD measurements. Record fixture results, differences, and
-   unresolved cases in a separate assessment.
-
-### Gate to production migration
-
-Proceed only if the pinned build is reproducible, all seven case fixtures and
-the transformed-import checks pass, STEP roundtrips preserve required geometry,
-invalid requests and worker traps recover, and the recorded size/memory/latency
-limits are met. Then migrate `buildCase`, `buildAssembly`, and `readStepModel`
-behind the existing case-worker client contract. Remove the old adapter only
-after all three paths pass on the integrated application. Review each
-candidate's distribution terms before shipping its artifact.
-
-If a gate fails, keep the current CAD path and record the failure and whether a
-bounded upstream fix or another candidate could address it. Do not infer success
-from an upstream demo or test suite.
+- The bridge exposes `buildCase`, `buildAssembly`, and `readStepModel` behind
+  the existing TypeScript API and case-worker protocol. Request IDs, revisions,
+  queue/restart behavior, and transferable buffers remain unchanged.
+- Cadrum, OCCT archives, the builder image, wasi-sdk, Rust, wasm-pack, and
+  wasm-bindgen-cli are pinned. OCCT downloads are SHA-256 verified, and the
+  same `pnpm run build:cad` step is used by validation and Pages workflows.
+- All 11 original CAD integration fixtures pass on optimized WASM, covering
+  STEP roundtrips, cutouts, concave regions, tray/lid cavities, mounts, gasket
+  grooves, multi-body assemblies, battery stacks, integrated frames, and
+  component-local openings. A transformed 63-solid component STEP import test
+  also passes placement, bounds, millimeter units, mesh, and normal checks.
+- Malformed STEP input rejects. The worker failure test verifies pending work
+  rejects and a replacement worker completes a later request.
+- Five serial performance samples are recorded in
+  [the Cadrum assessment](cadrum-assessment.md). They are diagnostic; geometry
+  and deployment parity are the cutover gates.
 
 ### Not in this milestone
 
@@ -83,6 +57,10 @@ from an upstream demo or test suite.
 - Treating an OCCT wrapper migration and a kernel replacement as the same
   project. They have different goals, geometry risks, and go/no-go decisions.
 - Rewriting React, Vite, or the application shell.
+
+The production Chromium preview/export suite and Pages subpath/offline suite
+passed; their commands and outcomes are recorded in the
+[assessment](cadrum-assessment.md).
 
 ## Milestone 4: evaluate a Rust UI and Vite exit
 
@@ -174,23 +152,18 @@ Node removal a separate goal with its own dependency and CI inventory.
 
 ## Suggested order and outputs
 
-Start with the CAD worker prototype because it has a bounded API and seven
-existing geometry fixtures. In parallel, the UI effort can complete its build
-inventory and parity checklist; begin the Leptos vertical slice after agreeing
-on the worker and packaging boundary. Keep both prototypes isolated from the
-current app. Each should end with a short evidence report and a go/no-go
-decision before production migration begins.
+The CAD worker migration is implemented and has its own evidence report. The UI
+effort can complete its build inventory and parity checklist before a Leptos
+vertical slice begins. Keep that work separate from the CAD boundary.
 
-Expected planning artifacts are a kernel choice and pinned prototype
-specification with recorded measurement limits, and one UI feature/build
-inventory with an agreed vertical-slice boundary. This roadmap defines the
-questions and gates; it does not claim either migration has started or passed.
+The completed CAD output is the pinned production adapter and integration
+assessment. The remaining planning artifact is a UI feature/build inventory
+with an agreed vertical-slice boundary.
 
 ## References checked 2026-09-24
 
-- [Cadrum upstream build and browser notes](https://github.com/lzpel/cadrum):
-  confirm the exact version, WASM exception and toolchain requirements again
-  when pinning the prototype.
+- [Pinned Cadrum source](https://github.com/lzpel/cadrum/tree/8788df70c60b986b5ab387edb75a2f6f341a8c7a):
+  production bridge API and WASM exception details.
 - [Cadrum browser example](https://github.com/lzpel/opencascade-wasm32-unknown-unknown-example):
   useful build reference, not evidence of Board Studio fixture parity.
 - [Leptos CSR deployment](https://book.leptos.dev/deployment/csr.html) and

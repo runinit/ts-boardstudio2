@@ -7,11 +7,12 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "pnpm --dir ergogen prepare:catalog && pnpm run build:core && pnpm --dir app dev",
+    "dev": "pnpm --dir ergogen prepare:catalog && pnpm run build:core && pnpm run build:cad && pnpm --dir app dev",
     "start": "pnpm run dev",
     "build:core": "wasm-pack build core --target web --out-dir pkg",
-    "build": "pnpm --dir ergogen prepare:catalog && pnpm run build:core && pnpm --dir app build",
-    "typecheck": "pnpm --dir app exec tsc --noEmit && pnpm --dir cad check",
+    "build": "pnpm --dir ergogen prepare:catalog && pnpm run build:core && pnpm run build:cad && pnpm --dir app build",
+    "build:cad": "pnpm --dir cad run build:wasm",
+    "typecheck": "pnpm run build:cad && pnpm --dir app exec tsc --noEmit && pnpm --dir cad exec tsc --noEmit -p tsconfig.json",
     "precommit": "pnpm run build:core && pnpm run typecheck",
     "test": "cargo test --manifest-path core/Cargo.toml --locked && pnpm --dir ergogen test && pnpm --dir kicad test && pnpm --dir cad test && pnpm --dir app test",
     "test:e2e": "pnpm --dir app test:e2e",

@@ -1,149 +1,130 @@
-# Cadrum assessment for v2
+# Cadrum integration assessment
 
-Researched 2026-09-24, America/Toronto. Cadrum source inspected at
+Updated 2026-09-25 after the production bridge and acceptance checks. The
+production CAD backend is Cadrum 0.8.20 at
 [`8788df70c60b986b5ab387edb75a2f6f341a8c7a`](https://github.com/lzpel/cadrum/tree/8788df70c60b986b5ab387edb75a2f6f341a8c7a),
-dated 2026-09-13, declaring version 0.8.20. Board Studio baseline is HEAD
-`e43145f` with existing uncommitted v2 changes.
+using OpenCascade 8.0.1. This moves case construction, STEP handling, and mesh
+preparation to Rust/WASM. Cadrum still uses the C++ OpenCascade kernel.
 
-**Recommendation:** prototype Cadrum first for the broader Rust CAD migration.
-It has stronger evidence for our browser deployment than the inspected
-opencascade-rs example: an explicit `wasm32-unknown-unknown` build, stream-based
-STEP APIs, and a working browser demonstration. This is a candidate preference,
-not an adopted dependency or proof of compatibility with Board Studio.
+## Integration boundary
 
-Scope follow-up: if the objective includes removing the C++ kernel itself,
-see the [pure Rust assessment](pure-rust-cad-assessment.md). It shortlists
-Monstertruck and brepkit for evaluation. Cadrum remains the preferred candidate
-among the two OCCT wrappers inspected here.
-
-Cadrum is primarily a Rust library around statically linked C++ OpenCascade.
-The related browser application is a separate example. Moving to it could put
-our solid construction, STEP handling, and mesh extraction in Rust. It retains
-the C++ kernel; the advertised `pure` Cargo feature has no implemented backend
-in the inspected [library source](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/lib.rs).
-
-## What to reuse
-
-| Upstream capability | Application in v2 | Adaptation needed |
-| --- | --- | --- |
-| Rust/CXX/OCCT build for `wasm32-unknown-unknown` | Separate, lazily loaded Rust CAD worker artifact | Pin and reproduce the toolchain; keep OCCT out of the layout core download |
-| `Solid::read_step` / `write_step` over Rust streams | STEP bytes in and out of the existing worker | Validate assemblies, transforms, errors, and memory use |
-| Extrusion, primitives, booleans, volume and bounds | Port plate/tray/lid, mounts and assembly construction | Preserve holes, disconnected regions, elevations, and result checks |
-| Indexed vertices/normals and tessellation settings | Feed our existing Three.js preview | Expand indices into current non-indexed `Float32Array` buffers initially |
-| Rust DOM + Trunk browser example | Concrete reference for eventually removing Vite | Preserve workers, offline assets, subdirectory URLs and app interactions |
-
-Prefer using a pinned crate behind our own small CAD interface over copying the
-whole library. The build and initialization recipe is the most valuable part
-to study if a fork or another wrapper later becomes necessary. Cadrum's
-[MIT license](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/LICENSE)
-requires retaining its notice when copying substantial code; OCCT retains its
-separate license and notices.
-
-The [stream implementation](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/occt/io.rs)
-bridges Rust `Read`/`Write` to C++ streams and returns imported solids. This fits
-`readStepModel(bytes)` and our transferable STEP result without adding a virtual
-filesystem. Public [mesh data](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/common/mesh.rs)
-includes indexed double-precision vertices and normals. Keep our existing
-browser contract initially; changing to indexed rendering is separate work.
-
-Set [tessellation options](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/traits.rs)
-explicitly to `deflection_linear: 0.1`, `deflection_angular: 0.5`, and
-`relative_linear: false`. Cadrum defaults to relative linear deflection 0.004;
-using the default would change current preview behavior.
-
-## Browser evidence and build requirements
-
-Opened the [live browser demo](https://lzpel.github.io/opencascade-wasm32-unknown-unknown-example/)
-in Codex's in-app browser. It successfully generated and visibly rendered the
-default drum model, reporting 373,408 GLB bytes. The browser log query returned
-no warning/error entries. No file was uploaded and STEP import was not exercised.
-
-Inspected the [demo source](https://github.com/lzpel/opencascade-wasm32-unknown-unknown-example/tree/d7eded8c52e985f11eea4c89a03fbd3af60dec03)
-at `d7eded8c52e985f11eea4c89a03fbd3af60dec03`. Its lockfile pins Cadrum 0.8.17,
-whereas the library source above is 0.8.20. The served artifact was not
-fingerprinted against either revision. The demo source generates geometry in
-Rust, meshes it to GLB, and connects it to a JavaScript `model-viewer` element.
-It also contains an in-memory STEP-to-GLB entry point.
-
-The [WASM Dockerfile](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/docker/Dockerfile_wasm32-unknown-unknown)
-uses wasi-sdk 33, compiles C++ with WASM exceptions, and rebuilds the WASI sysroot
-for legacy exception encoding. The final Rust target is
-`wasm32-unknown-unknown`; the C++ compilation uses `wasm32-wasip1` and statically
-linked runtime libraries. This is a concrete alternative to the Emscripten
-experiment proposed for opencascade-rs, but still a specialized C++ toolchain.
-
-Initialization anchors Cadrum's
-[WASI stubs](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/wasi_stub.rs)
-and runs C++ global constructors. These stubs provide limited environment,
-stdio, and timing behavior, reject filesystem operations, and trap on longjmp.
-They are specific to the in-memory CAD path, not a general WASI environment.
-Test malformed input and worker recovery rather than assuming every failure
-can be returned as a Rust `Result`.
-
-The [build script](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/build.rs)
-selects OCCT 8.0.1, matching the kernel version reported by our libcascade 3.0.2
-package. It normally downloads target-specific prebuilt OCCT archives and also
-supports a source build or supplied `OCCT_ROOT`. Pin the crate, toolchain/container,
-and archive checksum for a reproducible prototype. The inspected download path
-does not verify a content digest, and the demo recipe uses a `latest` image.
-Matching OCCT versions alone does not prove identical patches or geometry.
-
-## How this changes the migration plan
-
-| Question | Cadrum | Previously inspected opencascade-rs |
-| --- | --- | --- |
-| Full CAD kernel in a browser | Working related demo; local reproduction pending | Supplied WASM example calls a native Wasmtime host |
-| Rust browser build target | Documented `wasm32-unknown-unknown` recipe | Emscripten integration still needs investigation |
-| Bundled kernel | OCCT 8.0.1 | OCCT 7.8.1 |
-| STEP boundary | Rust streams | Paths in the inspected public API |
-| Mesh controls | Linear, angular, absolute/relative | One tolerance in the inspected high-level mesher |
-
-Keep the [contour preparation proposal](rust-migration-research.md#first-migration-case-contour-preparation):
-Rust `i_overlay` prepares deterministic planar rings and can remove ClipperLib.
-Cadrum would own the next stage, constructing solids and producing STEP/mesh
-outputs. Neither wrapper establishes a drop-in replacement for our offset
-rounding, winding, miter limits, or split-region behavior.
-
-Proposed boundary:
+The existing TypeScript exports and worker protocol remain in place:
 
 ```text
-Rust core: case request + prepared rings + revision
-  -> lazily loaded CAD worker: Rust case logic + Cadrum + OCCT
-  -> transferable STEP bytes + mesh buffers
-  -> existing downloads and Three.js preview
+case.worker.ts -> cad/src/index.ts -> lazy local Cadrum WASM
+                                  -> STEP bytes + mesh buffers
+                                  -> existing export and Three.js preview
 ```
 
-The demo proves a small Rust-authored browser application can use Trunk here.
-It does not port our React UI, and its CDN-loaded viewer is unsuitable as an
-unchanged offline deployment recipe. Keep our renderer and worker boundary for
-the CAD prototype. The demo's synchronous CAD calls execute on the UI thread;
-`spawn_local` around file reading does not move that computation into a worker.
+The WASM is loaded only when the case worker first requests CAD. Vite bundles
+the glue and WASM locally, including under the Pages `/boardstudio/` base path;
+there is no CDN dependency or runtime fallback. Cadrum MIT and OpenCascade LGPL
+with exception notices are shipped in the app's local `licenses` directory.
+The existing `CaseResult` and `StepModel` shapes, request IDs, revisions, queue,
+worker replacement, and transferable-buffer contracts remain unchanged.
+Cadrum indexed meshes are expanded to the current
+non-indexed `Float32Array` positions and normals. Coordinates remain in
+millimeters and imported model bounds are retained.
 
-## Proposed prototype and acceptance evidence
+The bridge builds prepared contours, holes, cavities, gasket grooves, mounting
+features, openings, disconnected regions, and multi-body assemblies. It writes
+and reads STEP through Cadrum streams, with a 32 MiB input limit and finite
+mesh/bounds checks. Tessellation uses absolute 0.1 mm linear and 0.5 rad angular
+deflection. The bridge invokes both `cadrum::__anchor_wasi_stub()` and
+`__wasm_call_ctors()` at WASM startup; the latter is required to initialize
+OpenCascade globals in this build.
 
-1. Reproduce a pinned Cadrum build in a separate browser worker. Return STEP
-   bytes and mesh buffers for an extruded plate with a hole; reimport the STEP.
-2. Adapt the seven existing [CAD fixtures](../cad/test/case.test.mjs), covering
-   cutouts, concave offsets, cavities, mounts, gasket geometry and multiple
-   vertically offset bodies. Compare volume, bounds and topology, not STEP text
-   or triangle ordering. Keep the existing adapter available for comparison.
-3. Import representative transformed component STEP files; verify placement,
-   normals, solid count and unit handling. Exercise invalid inputs and restart
-   the worker after a trap. Preserve request IDs and revision filtering.
-4. Measure compressed download size, cold initialization, repeated-operation
-   memory and request latency. Check offline reload, subdirectory deployment
-   and supported browsers' WASM exception behavior.
+## Pinned and reproducible build
 
-If this passes, port `buildCase`, `buildAssembly`, and `readStepModel` behind the
-existing [case worker](../app/src/case.worker.ts). That could remove v2's
-libcascade TypeScript adapter dependency as well as ClipperLib after contour
-migration. It would not by itself remove React, Three.js, Vite, or browser glue.
+- Cadrum is pinned to `=0.8.20` in Cargo, with `Cargo.lock` checked in.
+- Cadrum's OCCT 8.0.1 `rev2` WASM and native archives are downloaded by
+  `cad/scripts/prepare-cadrum-occt.mjs` and checked against SHA-256 before
+  extraction. The WASM archive digest is
+  `8149e781acdbd21507cfb29937e48e5fdbe628ee5c37007f720dcf5d4000e6ad`; the
+  Linux x86_64 native archive digest is
+  `95e068936c0cb4ba2668707c0dca209d3396103dfc1db85eb72d192badfb4143`.
+- The builder image is pinned by OCI digest
+  `sha256:737535e2e75a90303fb2b9783c03002c1b8623264e2c853297e9a965a6b6d795`.
+  It verifies wasi-sdk 33 source commit
+  `c10c0507deb3e5aad506f1f9f32084e49a21834b`, builds its exception-enabled
+  sysroot, and pins Rust 1.98.0, wasm-pack 0.15.0, and wasm-bindgen-cli 0.2.128.
+- `pnpm run build:cad` performs the same locked build used by validation and
+  Pages workflows. The generated glue and WASM are local build outputs, not
+  checked-in binaries.
 
-## Validation limits
+## Geometry and worker evidence
 
-This research inspected pinned sources and the live demo. Context7 had no entry
-for Cadrum, so upstream source was used. No Cadrum build, Board Studio integration,
-STEP import trial, performance comparison, or cross-browser test was performed.
-The earlier seven passing Board Studio CAD tests validate the existing adapter.
-Only research documents were changed; no dependencies or production code were
-modified by this research.
+All 11 integration fixtures from the previous adapter pass through the
+optimized Cadrum WASM artifact. They cover STEP roundtrips, cutouts, concave
+regions, tray/lid cavities, mounts, gasket grooves, multi-body assemblies,
+battery-stack geometry, integrated frames, and component-local openings. A
+twelfth test imports the transformed, multi-solid TrackPoint STEP component.
+The suite compares reimported solids, volume, bounds, mesh validity, placement,
+units, and normals rather than STEP text or triangle order. The independent
+`libcascade` reader remains in `cad` development dependencies as a STEP
+reimport oracle; it is not imported by the production adapter and is not a
+runtime fallback.
+
+Native bridge tests passed for a holed plate and the 63-solid transformed
+component. The component bounds and mesh are verified in millimeters. The
+malformed-input test rejects invalid STEP data. The client worker failure test
+verifies that pending work rejects after worker failure, the worker is replaced,
+and a later request succeeds.
+
+## Performance sample
+
+Five fresh serial Node processes each measured one first plate-with-hole CAD
+request followed by five warm requests. Cold time includes the lazy module load
+and WASM initialization, but excludes contour preparation. Warm latency is the
+median of each process's five requests, then the median across processes.
+Memory figures are process RSS; retained delta compares RSS after the first
+result is collected with RSS after five more requests and collections. WASM
+sizes use Brotli quality 11. These are local diagnostics, not acceptance
+thresholds.
+
+| Measurement | Previous `libcascade` adapter | Cadrum 0.8.20 bridge |
+| --- | ---: | ---: |
+| WASM raw | 42,691,285 B | 12,821,079 B |
+| WASM Brotli q11 | 8,558,254 B | 3,025,027 B |
+| Glue Brotli q11 | 23,195 B | 4,253 B |
+| Combined compressed artifact | 8,581,449 B | 3,029,280 B |
+| Median cold first request | 677.6 ms | 135.5 ms |
+| Median warm request | 12.42 ms | 9.27 ms |
+| Median peak process RSS | 485.7 MiB | 236.2 MiB |
+| Median retained RSS delta after five warm requests | -21.6 MiB | +47.7 MiB |
+
+The Cadrum sample is smaller and faster for this fixture. Its positive retained
+RSS delta means memory grew during the measured sequence, so repeat-operation
+memory should continue to be monitored in browser workloads. Neither the
+improvement nor that RSS sample replaces geometry and deployment checks.
+
+## Cutover checks
+
+The cutover checks passed:
+
+- `pnpm test`: core, Ergogen, KiCad, CAD, and app test suites passed. This
+  includes 12 CAD integration tests and 101 app unit tests.
+- `pnpm run build`: production TypeScript and Vite build passed with the local
+  Cadrum WASM and bundled STEP models.
+- `BOARDSTUDIO_CHROMIUM=/usr/bin/chromium pnpm run test:e2e`: all 115 Chromium
+  tests passed, including lazy CAD loading, preview, and STEP export.
+- `BOARDSTUDIO_CHROMIUM=/usr/bin/chromium pnpm run test:e2e:pages`: the
+  `/boardstudio/` deployment test passed, including Cadrum WASM path, bundled
+  models, service-worker scope, offline reload, preview, and STEP export.
+- The production-build WASM and subsequent validation-build WASM have the same
+  SHA-256 (`6386c8222f7c01a149827674109884fcb8dad00e8730a60ad7ddcd4cc9085e59`);
+  the generated JS glue hash also matched
+  (`b958ed15042d49aabab2b93fab96cd489c34bff70f41f775dc2b645ecd47d8ed`). Both
+  workflows invoke `pnpm run build:cad`, using the same pinned,
+  checksum-verified build path.
+
+The approach preserves OpenCascade and its C++ runtime. Removing that kernel
+would require a separate kernel migration, such as a Rust-native B-rep
+implementation, and is outside this adapter replacement.
+
+## Upstream references
+
+- [Pinned Cadrum source](https://github.com/lzpel/cadrum/tree/8788df70c60b986b5ab387edb75a2f6f341a8c7a)
+- [Cadrum STEP stream API](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/lib.rs)
+- [Cadrum tessellation settings](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/traits.rs)
+- [Cadrum WASI stub](https://github.com/lzpel/cadrum/blob/8788df70c60b986b5ab387edb75a2f6f341a8c7a/src/wasi_stub.rs)

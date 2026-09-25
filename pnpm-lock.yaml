@@ -64,14 +64,13 @@ importers:
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.1)(jiti@2.6.1)(jsdom@29.1.1)(supports-color@8.1.1)(terser@5.44.1)(yaml@2.9.0)
 
   cad:
-    dependencies:
-      libcascade:
-        specifier: 3.0.2
-        version: 3.0.2
     devDependencies:
       '@boardstudio/v2-contracts':
         specifier: workspace:*
         version: link:../contracts
+      libcascade:
+        specifier: 3.0.2
+        version: 3.0.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

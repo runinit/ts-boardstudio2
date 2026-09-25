@@ -1,24 +1,31 @@
 # v2 CAD
 
 The CAD package consumes Rust-prepared case geometry. The core worker handles
-`CaseAssemblyIR` through `prepare-case` and returns a revision-matched
-`PreparedCaseAssemblyIR` with outer regions, holes, cavities, gasket grooves,
-and mounts. This preparation is stateless and validates the supplied snapshot.
-The native offset engine uses `i_overlay` on a 0.001 mm coordinate grid; it is
-the source of contour cleanup, offsets, containment, and derived regions.
+`CaseAssemblyIR` through `prepare-case` and returns revision-matched
+`PreparedCaseAssemblyIR` regions with contours, holes, cavities, gasket grooves,
+and mounts. The native offset engine uses `i_overlay` on a 0.001 mm coordinate
+grid and remains the source for contour cleanup, offsets, containment, and
+derived regions.
 
-`buildCase(PreparedCaseIR)` and `buildAssembly(PreparedCaseAssemblyIR)` lazily
-load single-thread libcascade. They extrude prepared rings, apply the specified
-case booleans, and export STEP plus a triangle mesh from the same BRep. Call
-them in a dedicated worker and discard results whose revision is no longer
-current. `readStepModel(Uint8Array)` imports a STEP file up to 32 MiB and
-returns its triangle mesh and millimeter bounds. It rejects unreadable or
-empty shapes and removes temporary kernel files after each attempt.
+`buildCase(PreparedCaseIR)`, `buildAssembly(PreparedCaseAssemblyIR)`, and
+`readStepModel(Uint8Array)` preserve the existing TypeScript API while calling a
+locally bundled Rust/WASM bridge. The bridge pins Cadrum 0.8.20 and OCCT 8.0.1,
+uses absolute 0.1 mm linear and 0.5 rad angular tessellation settings, and
+expands indexed Cadrum meshes into the existing non-indexed `Float32Array`
+buffers. STEP imports are limited to 32 MiB and return millimeter bounds.
+Operations remain in the dedicated lazy CAD worker; request IDs, revisions,
+worker restarts, and transferable buffers are unchanged.
 
-The CAD test suite compiles the native `prepare_case` driver once and sends raw
-case fixtures through the public core request protocol before exercising CAD.
-This keeps geometry tests on the production preparation path.
+`pnpm --dir cad test` builds the native core preparation driver, runs native
+Cadrum bridge tests, builds the WASM artifact through the pinned WASI SDK
+container, and runs the 11 case integration fixtures plus transformed
+multi-solid STEP import coverage. `libcascade` is a development-only
+independent STEP reimport oracle. The browser build uses the same WASM artifact
+builder and bundles its glue and binary locally for offline and GitHub Pages
+subpath use.
 
-`pnpm --dir cad check` typechecks. `pnpm --dir cad test` reimports STEP
-for plate, tray, lid, and a two-body assembly, then checks solid volume and
-bounds.
+The first build downloads target-specific OCCT 8.0.1 archives and verifies their
+SHA-256 digests before extraction. The WASM build requires Podman or Docker;
+the native fixture validation uses the verified Linux x86_64 archive. The
+toolchain pins and integration evidence are recorded in the
+[Cadrum assessment](../docs/cadrum-assessment.md).

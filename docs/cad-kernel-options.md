@@ -1,8 +1,9 @@
 # CAD kernel options for v2
 
-Compared 2026-09-24 against Board Studio `b7b7c3d`. This is a source-based
-comparison, not an implementation result. No candidate has been built or tested
-against the Board Studio CAD fixtures in this comparison.
+Compared 2026-09-24 against Board Studio `b7b7c3d`; decision updated
+2026-09-25 against the Cadrum implementation at baseline `fd991be3`. Cadrum is
+the production CAD backend for v2. The comparison below remains as context for
+future kernel work; it is no longer a candidate-selection plan.
 
 ## First separate the choices
 
@@ -27,16 +28,17 @@ decision, not an OCCT-version upgrade.
 
 | Option | Geometry kernel | What moves to Rust | Browser evidence | Main uncertainty for Board Studio |
 | --- | --- | --- | --- | --- |
-| Keep `libcascade` 3.0.2 | OCCT 8.0.1 | Nothing new | Already integrated in the lazy CAD worker | Existing adapter remains TypeScript |
-| Cadrum | OCCT 8.0.1 | Case construction, STEP handling, mesh preparation | Upstream has a `wasm32-unknown-unknown` build and a browser example | Fixture parity, artifact size, memory, and worker recovery |
+| Keep `libcascade` 3.0.2 | OCCT 8.0.1 | Nothing new | Kept as a development-only STEP reimport oracle | TypeScript production adapter removed |
+| Cadrum 0.8.20 | OCCT 8.0.1 | Case construction, STEP handling, mesh preparation | Production Rust/WASM bridge in the lazy case worker | See [integration assessment](cadrum-assessment.md) for fixture, browser, and measurement evidence |
 | Fork/update `opencascade-rs` to OCCT 8.0.1 | Target OCCT 8.0.1 | Same operations through a wrapper we can extend | Upstream repository does not demonstrate an in-browser OCCT worker | Updating bindings/build glue and creating the browser build path |
 | Monstertruck | Rust B-rep kernel | Kernel and case operations | Upstream has STEP and wasm/JS crates; Board Studio integration is untested | Boolean and STEP behavior against our case and component corpus |
 | `occt-wasm` control | OCCT 8.x | Nothing; TypeScript API | Upstream provides a worker API | It does not advance Rust ownership, and its browser feature baseline needs checking |
 
-These are capability statements from upstream sources, not measured compatibility
-or performance. Cadrum’s current changelog lists 0.8.20 and records its OCCT
-8.0.1 update in 0.8.17. Its recent WASM build changes make exact version and
-toolchain pinning part of the first experiment. Monstertruck 0.4.1 documents
+The Cadrum row reflects the implemented backend; the other browser and kernel
+statements remain candidate capabilities, not measured Board Studio
+compatibility. Cadrum’s changelog lists 0.8.20 and records its OCCT 8.0.1 update
+in 0.8.17. Its WASM build changes required exact version and toolchain pinning.
+Monstertruck 0.4.1 documents
 solid booleans, STEP read/write, assemblies, meshing, and a WASM bindings crate;
 those features still need testing on our inputs.
 
@@ -44,19 +46,18 @@ those features still need testing on our inputs.
 
 ### Cadrum
 
-Cadrum is the shortest path to a Rust-owned CAD adapter while keeping the same
-kernel family and the already-used OCCT 8.0.1 version. It has a Rust API for
-solids, booleans, STEP streams, meshes, volume, and bounds. Its repository
-documents a browser WASM build and a small browser STEP-to-mesh example. It
-still links C++ OpenCascade, so the kernel license and C++ initialization,
-binary, and memory costs remain.
+Cadrum is the production Rust-owned CAD adapter, pinned at 0.8.20 with OCCT
+8.0.1. It implements `buildCase`, `buildAssembly`, and `readStepModel` behind the
+existing TypeScript and worker contracts. Prepared contours, booleans, STEP
+streams, and mesh extraction run through the Rust/WASM bridge. The case worker
+stays lazy and Three.js remains the mesh consumer. The 11 former-adapter
+fixtures, transformed component import, malformed input, worker restart,
+Chromium preview/export, and Pages deployment evidence are recorded in the
+[integration assessment](cadrum-assessment.md).
 
-For v2 the work is mainly to express `buildCase`, `buildAssembly`, and
-`readStepModel` through Cadrum while matching the existing worker output. The
-case worker stays lazy and Three.js remains the mesh consumer. This is the best
-first Rust-wrapper prototype if the priority is **move application logic to
-Rust while preserving OCCT behavior**. It is not evidence that our booleans,
-imported models, or browser memory use will match the current adapter.
+Cadrum still links C++ OpenCascade, so its license and C++ initialization,
+binary, and memory costs remain. This adapter migration does not claim a
+kernel replacement.
 
 ### Modified `opencascade-rs`
 
@@ -95,7 +96,7 @@ reverted an upstream boolean rewrite after regressions on punched and adjacent
 cubes. That is useful evidence of active regression work, and a direct reason
 to test through-holes, adjacent features, nearly touching walls, and split
 regions before investing in its browser integration. Its upstream passing tests
-are not a substitute for our seven case fixtures or vendor STEP corpus.
+are not a substitute for our 11 case fixtures or vendor STEP corpus.
 
 Monstertruck is the right first **pure-Rust kernel experiment** only if removing
 the C++ kernel is a real requirement. If that is not a requirement, its kernel
@@ -131,39 +132,36 @@ settings, case units, solids and assembly transforms. Convert an indexed mesh if
 necessary at the worker boundary; do not change the Three.js API as part of the
 kernel comparison.
 
-Use the seven tests in [`cad/test/case.test.mjs`](../cad/test/case.test.mjs) as
-the initial fixture set: imported STEP mesh/bounds, a holed plate, concave
-clearance, tray and lid insets, cavities and mounting geometry, vertically
-offset multi-body STEP, and authored cutouts. Add touching/coplanar features,
-thin walls, disconnected offset regions, and transformed component STEP files.
-Compare solid count, volume, bounds, mesh normals, and STEP reimport. Do not
-compare textual STEP output or triangle ordering. The existing `libcascade`
-results remain the reference during comparison.
+The retained integration suite in [`cad/test/case.test.mjs`](../cad/test/case.test.mjs)
+contains all 11 original case fixtures plus transformed multi-solid component
+STEP import. It checks STEP reimport volume and bounds, mesh validity, component
+placement and units, and worker recovery. The development-only `libcascade`
+reader remains an independent oracle. Do not compare textual STEP output or
+triangle ordering. Add touching/coplanar features and thin-wall fixtures if a
+future geometry change creates a specific coverage need.
 
-Measure five serial runs per candidate on the same host: compressed artifact
-size, cold initialization, repeated-operation memory, and case latency. Set
-acceptable CAD-specific limits before collecting results; the matrix performance
-gate measures a different workload. The current application’s lazy-load behavior
-means initial layout startup and CAD cold-start should be reported separately.
+The Cadrum assessment records five serial measurements against the prior
+backend on the same host: Brotli-compressed WASM size, cold first request, warm
+case latency, and repeated-operation process memory. These are diagnostics,
+while geometry and deployment parity gate cutover. The app's lazy loading keeps
+CAD cold-start separate from layout startup.
 
 ## Recommendation and decision gates
 
 The options answer different goals:
 
-| Goal | First option to prototype | Why |
+| Goal | Current choice | Why |
 | --- | --- | --- |
-| Put case logic in Rust and keep OCCT | Cadrum | Same OCCT 8.0.1 family with an upstream browser build path |
+| Put case logic in Rust and keep OCCT | Cadrum | Same OCCT 8.0.1 family; production worker bridge and deployment are verified in the assessment |
 | Own a narrow binding and C++ build | `opencascade-rs` fork on OCCT 8.0.1 | More control over the Rust boundary, but browser support must be built and proven |
 | Remove the C++ kernel | Monstertruck | Rust-native B-rep, boolean, STEP, mesh, and wasm/JS components |
-| Keep lowest migration risk | Current `libcascade` | Already integrated, lazy-loaded, and used by the passing Board Studio case path |
+| Keep an independent regression oracle | `libcascade` in devDependencies | Reimports generated STEP during integration tests without becoming a runtime fallback |
 
-Do not decide these by assigning one score to all goals. First record whether
-removing C++/OCCT is required. If not, compare Cadrum and the updated
-`opencascade-rs` wrapper against the same fixtures; Cadrum is the more direct
-browser prototype, while the fork is the more customizable route. If yes, test
-Monstertruck separately as a kernel replacement. A passing native geometry run
-is only the first gate; the selected option must also pass the worker, STEP,
-offline, memory, and browser checks before replacing production code.
+Cadrum moves case construction, STEP import/export, and mesh preparation to
+Rust while retaining the C++ OCCT kernel. Replacing that kernel remains a
+separate project; Monstertruck is still the Rust-native option if that becomes
+a requirement. `opencascade-rs` remains a possible future wrapper if Cadrum
+needs capabilities its public API does not expose.
 
 ## Sources checked
 

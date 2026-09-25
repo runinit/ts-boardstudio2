@@ -3,8 +3,10 @@ import { expect, test } from '@playwright/test';
 test('Pages subpath loads workers, CAD, models and offline exports', async ({ page, context }) => {
   test.setTimeout(90_000);
   const failed: string[] = [];
+  const wasmRequests: string[] = [];
   page.on('response', (response) => {
     if (response.status() >= 400) failed.push(`${response.status()} ${response.url()}`);
+    if (/\.wasm(?:$|\?)/i.test(response.url())) wasmRequests.push(response.url());
   });
   await page.goto('./');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
@@ -14,8 +16,11 @@ test('Pages subpath loads workers, CAD, models and offline exports', async ({ pa
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText('2 / 2 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 45_000 });
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
+  const wasmBeforeCad = wasmRequests.length;
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
+  await expect.poll(() => wasmRequests.length).toBeGreaterThan(wasmBeforeCad);
+  expect(wasmRequests.some((url) => /cadrum/i.test(url) && new URL(url).pathname.startsWith('/boardstudio/'))).toBe(true);
   const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope);
   expect(new URL(scope).pathname).toBe('/boardstudio/');
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);

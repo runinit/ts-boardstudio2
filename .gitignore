@@ -1,9 +1,12 @@
 node_modules/
 **/dist/
+**/target/
 **/coverage/
 **/.generated/
 **/test-results/
 **/playwright-report/
+cad/.cache/
+cad/wasm/pkg/
 .env.local
 
 # Local AI agents, skills, indexes, and memory.

@@ -1,0 +1,38 @@
+FROM ghcr.io/webassembly/wasi-sdk@sha256:737535e2e75a90303fb2b9783c03002c1b8623264e2c853297e9a965a6b6d795
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git python3 gcc g++ cmake ninja-build make \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=gcc CXX=g++ AR=ar RANLIB=ranlib LD=ld
+
+RUN git clone --depth 1 --recurse-submodules --shallow-submodules \
+      --branch wasi-sdk-33 https://github.com/WebAssembly/wasi-sdk /tmp/wasi-sdk \
+    && test "$(git -C /tmp/wasi-sdk rev-parse HEAD)" = "c10c0507deb3e5aad506f1f9f32084e49a21834b" \
+    && sed -i 's/-wasm-use-legacy-eh=false/-wasm-use-legacy-eh=true/' /tmp/wasi-sdk/cmake/wasi-sdk-sysroot.cmake \
+    && rm -rf /opt/wasi-sdk/share/wasi-sysroot \
+    && cmake -G Ninja -B /tmp/wasi-sdk-build -S /tmp/wasi-sdk \
+      -DCMAKE_TOOLCHAIN_FILE=/opt/wasi-sdk/share/cmake/wasi-sdk.cmake \
+      -DCMAKE_C_COMPILER_WORKS=ON -DCMAKE_CXX_COMPILER_WORKS=ON \
+      -DCMAKE_INSTALL_PREFIX=/opt/wasi-sdk \
+      -DWASI_SDK_TARGETS=wasm32-wasip1 -DWASI_SDK_EXCEPTIONS=DUAL \
+      -DWASI_SDK_INCLUDE_TESTS=OFF \
+    && cmake --build /tmp/wasi-sdk-build --target install \
+    && rm -rf /tmp/wasi-sdk /tmp/wasi-sdk-build
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- \
+      -y --default-toolchain 1.98.0 --profile minimal
+ENV PATH=/opt/wasi-sdk/bin:/root/.cargo/bin:$PATH
+RUN rustup target add wasm32-unknown-unknown \
+    && cargo install wasm-pack --locked --version 0.15.0 \
+    && cargo install wasm-bindgen-cli --locked --version 0.2.128
+
+ENV SYSROOT=/opt/wasi-sdk/share/wasi-sysroot \
+    CC_wasm32_unknown_unknown=clang \
+    CXX_wasm32_unknown_unknown=clang++ \
+    CXXSTDLIB=c++ \
+    CFLAGS_wasm32_unknown_unknown="--target=wasm32-wasip1 --sysroot=/opt/wasi-sdk/share/wasi-sysroot -D_WASI_EMULATED_PROCESS_CLOCKS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_GETPID" \
+    CXXFLAGS_wasm32_unknown_unknown="--target=wasm32-wasip1 --sysroot=/opt/wasi-sdk/share/wasi-sysroot -fwasm-exceptions -fexceptions -D_WASI_EMULATED_PROCESS_CLOCKS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_GETPID" \
+    CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS="-L native=/opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1/eh -L native=/opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1 -l static=c++abi -l static=unwind -l static=c"
+
+WORKDIR /workspace/cad

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createInstance } from 'libcascade/single/init';
 import { buildAssembly, buildCase, readStepModel } from '../src/index.ts';
@@ -23,9 +24,30 @@ test('imports a generated STEP with mesh and bounds', async () => {
   const model = await readStepModel(result.step);
   assert.ok(model.mesh.positions.length > 0);
   assert.equal(model.mesh.positions.length, model.mesh.normals.length);
-  assert.deepEqual(model.bounds.min.map(Math.round), [0, 0, 0]);
-  assert.deepEqual(model.bounds.max.map(Math.round), [20, 20, 2]);
+  assertBounds(model.bounds.min, [0, 0, 0], 1e-5);
+  assertBounds(model.bounds.max, [20, 20, 2], 1e-5);
   await assert.rejects(readStepModel(new Uint8Array([1, 2, 3])), /STEP import failed/);
+});
+
+test('imports a transformed multi-solid component STEP in millimeters', async () => {
+  const path = new URL('../../ergogen/library/vendor/infused-kim/3d_models/trackpoint/TP_Red_T460S_platform_z_offset_+0.0_pcb_offset_-2.0.step', import.meta.url);
+  const bytes = new Uint8Array(await readFile(path));
+  const reference = await inspectStep(bytes);
+  const imported = await readStepModel(bytes);
+
+  assert.equal(reference.solidCount, 63, 'the selected vendor component contains multiple solids');
+  assertBounds(imported.bounds.min, [-6.25, -21.7, -5.1]);
+  assertBounds(imported.bounds.max, [37.8205, 12.5, 1.2]);
+  assert.equal(imported.mesh.positions.length, imported.mesh.normals.length);
+  assert.ok(imported.mesh.positions.length > 10_000);
+  assert.ok([...imported.mesh.positions].every(Number.isFinite));
+  const meshBounds = boundsOfMesh(imported.mesh.positions);
+  assertBounds(meshBounds.min, imported.bounds.min, 0.15);
+  assertBounds(meshBounds.max, imported.bounds.max, 0.15);
+  for (let index = 0; index < imported.mesh.normals.length; index += 3) {
+    const length = Math.hypot(imported.mesh.normals[index], imported.mesh.normals[index + 1], imported.mesh.normals[index + 2]);
+    assert.ok(Number.isFinite(length) && Math.abs(length - 1) < 0.001, `normal ${index / 3} has unit length`);
+  }
 });
 
 test('exports a holed plate as a readable STEP and mesh', async () => {
@@ -100,10 +122,44 @@ async function inspectStep(bytes) {
   using shape = reader.OneShape();
   using mass = new oc.GProp_GProps();
   using bounds = new oc.Bnd_Box();
+  using solids = new oc.TopExp_Explorer(shape, oc.TopAbs_ShapeEnum.TopAbs_SOLID);
   oc.BRepGProp.VolumeProperties(shape, mass, true, true, false);
   oc.BRepBndLib.AddOptimal(shape, bounds, false, false);
+  let solidCount = 0;
+  while (solids.More()) {
+    solidCount += 1;
+    solids.Next();
+  }
   oc.FS.unlink(path);
-  return { volume: mass.Mass(), minZ: bounds.GetZMin(), maxZ: bounds.GetZMax() };
+  return {
+    volume: mass.Mass(),
+    solidCount,
+    minZ: bounds.GetZMin(),
+    maxZ: bounds.GetZMax(),
+    bounds: {
+      min: [bounds.GetXMin(), bounds.GetYMin(), bounds.GetZMin()],
+      max: [bounds.GetXMax(), bounds.GetYMax(), bounds.GetZMax()],
+    },
+  };
+}
+
+function assertBounds(actual, expected, tolerance = 0.01) {
+  assert.equal(actual.length, expected.length);
+  for (let index = 0; index < expected.length; index += 1) {
+    assert.ok(Math.abs(actual[index] - expected[index]) <= tolerance, `bound ${index}: expected ${expected[index]}, got ${actual[index]}`);
+  }
+}
+
+function boundsOfMesh(positions) {
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  for (let index = 0; index < positions.length; index += 3) {
+    for (let axis = 0; axis < 3; axis += 1) {
+      min[axis] = Math.min(min[axis], positions[index + axis]);
+      max[axis] = Math.max(max[axis], positions[index + axis]);
+    }
+  }
+  return { min, max };
 }
 
 test('tray and lid form cavities and honor mounting geometry', async () => {
