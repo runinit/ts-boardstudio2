@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { BoardReference, PcbPreview } from '@boardstudio/v2-contracts';
+import type { BoardReference, Contour, MechanicalAssembly, MechanicalConfiguration, PcbPreview } from '@boardstudio/v2-contracts';
 import type { ModelMesh } from '../modelMesh';
+import { mechanicalExplodedOffset } from './mechanicalExplode';
 import {
   boardObject,
   disposeScene,
@@ -13,19 +14,29 @@ import './assembly-preview.css';
 
 export type LoadedModel = { id: string; mesh: ModelMesh };
 export type AssemblyBody = { id: string; name: string; mesh: ModelMesh };
+type AssemblyView = 'assembled' | 'exploded' | 'section';
+
 export function AssemblyScene({
   board,
   models,
   bodies = [],
+  mechanical,
+  mechanicalConfiguration,
+  selectedLayer = '',
   reference,
   onSelect,
+  onSelectLayer,
   colorScheme,
 }: {
   board: PcbPreview;
   models: LoadedModel[];
   bodies?: AssemblyBody[];
+  mechanical?: MechanicalAssembly;
+  mechanicalConfiguration?: MechanicalConfiguration;
+  selectedLayer?: string;
   reference?: BoardReference;
   onSelect?: (reference: string) => void;
+  onSelectLayer?: (id: string) => void;
   colorScheme: 'light' | 'dark';
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -40,11 +51,16 @@ export function AssemblyScene({
   const [ready, setReady] = useState(false),
     [error, setError] = useState(''),
     [hidden, setHidden] = useState<Set<string>>(new Set()),
-    [selected, setSelected] = useState('');
+    [selected, setSelected] = useState(''),
+    [view, setView] = useState<AssemblyView>('assembled');
   const interacted = useRef(false);
   const fittedModels = useRef(false);
   const selectRef = useRef(onSelect);
   selectRef.current = onSelect;
+  const selectLayerRef = useRef(onSelectLayer);
+  selectLayerRef.current = onSelectLayer;
+  const mechanicalRef = useRef(mechanical);
+  mechanicalRef.current = mechanical;
   useEffect(() => {
     if (!canvas.current) return;
     let renderer: THREE.WebGLRenderer;
@@ -60,6 +76,7 @@ export function AssemblyScene({
     }
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.localClippingEnabled = true;
     const scene = new THREE.Scene(),
       camera = new THREE.PerspectiveCamera(34, 1, 0.01, 10000);
     camera.up.set(0, 0, 1);
@@ -155,6 +172,7 @@ export function AssemblyScene({
         while (p && !p.userData.reference) p = p.parent;
         const label = p?.userData.reference ?? 'PCB';
         setSelected(label);
+        if (mechanicalRef.current?.stack.some((layer) => layer.id === label)) selectLayerRef.current?.(label);
         selectRef.current?.(label);
       }
     };
@@ -190,7 +208,22 @@ export function AssemblyScene({
       pcb.rotation.z = (reference.pose.rotation * Math.PI) / 180;
     }
     try {
-      pcb.add(boardObject(board, hidden));
+      const pcbLayerIndex = mechanical?.stack.findIndex((layer) => layer.id === 'pcb') ?? -1;
+      if (mechanical) pcb.position.z += -board.thickness + (view === 'exploded' ? mechanicalExplodedOffset(pcbLayerIndex) : 0);
+      const boardGeometry = boardObject(board, hidden);
+      if (mechanical) boardGeometry.userData.reference = 'pcb';
+      if (selectedLayer === 'pcb') {
+        boardGeometry.traverse((child) => {
+          if (!(child instanceof THREE.Mesh) || !child.material) return;
+          for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+            if (material instanceof THREE.MeshStandardMaterial) {
+              material.emissive.set('#604613');
+              material.emissiveIntensity = 0.3;
+            }
+          }
+        });
+      }
+      pcb.add(boardGeometry);
       const cache = new Map<ModelMesh, THREE.BufferGeometry>();
       for (const loaded of models) {
         const model = board.models.find((m) => m.id === loaded.id);
@@ -215,17 +248,52 @@ export function AssemblyScene({
           !(/keycap/i.test(model.path) && hidden.has('Keycaps'));
         pcb.add(object);
       }
+      const layerOrder = new Map((mechanical?.stack ?? []).map((layer, index) => [layer.id, index]));
       for (const body of bodies) {
+        const layerIndex = layerOrder.get(body.id);
+        const isMechanical = layerIndex !== undefined;
+        const isSelectedLayer = isMechanical && selectedLayer === body.id;
+        const isFoam = /foam|gasket/i.test(body.id);
         const object = new THREE.Mesh(
           meshGeometry(body.mesh),
           new THREE.MeshStandardMaterial({
-            color: colorScheme === 'dark' ? '#a2aaba' : '#adb6c3',
+            color: isSelectedLayer ? '#d8a63d' : isFoam ? '#8e5aa5' : isMechanical && /plate/i.test(body.id) ? '#559077' : colorScheme === 'dark' ? '#a2aaba' : '#adb6c3',
             roughness: 0.68,
+            transparent: isFoam,
+            opacity: isFoam ? 0.62 : 1,
+            emissive: isSelectedLayer ? '#604613' : '#000000',
           }),
         );
-        object.userData.reference = body.name;
+        object.position.z = isMechanical && view === 'exploded' ? mechanicalExplodedOffset(layerIndex ?? -1) : 0;
+        object.userData.reference = body.id;
         object.visible = !hidden.has(body.id);
         root.add(object);
+      }
+      if (mechanical) {
+        const battery = mechanicalConfiguration?.battery;
+        if (battery) {
+          const object = new THREE.Mesh(new THREE.BoxGeometry(battery.size.x, battery.size.y, battery.size.z), new THREE.MeshStandardMaterial({ color: selectedLayer === 'battery' ? '#d8a63d' : '#c77d45', roughness: 0.7, emissive: selectedLayer === 'battery' ? '#604613' : '#000000' }));
+          const batteryLayer = mechanical.stack.find((layer) => layer.id === 'battery');
+          object.position.set(battery.at.x, battery.at.y, batteryLayer ? batteryLayer.z + batteryLayer.thickness / 2 : battery.size.z / 2);
+          if (view === 'exploded') object.position.z += mechanicalExplodedOffset(layerOrder.get('battery') ?? -1);
+          object.userData.reference = 'battery';
+          object.visible = !hidden.has('battery');
+          root.add(object);
+          const cable = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(battery.at.x, battery.at.y, object.position.z), new THREE.Vector3(battery.cableExit.x, battery.cableExit.y, object.position.z)]), new THREE.LineBasicMaterial({ color: '#cf5b4d' }));
+          cable.userData.reference = 'battery';
+          cable.visible = !hidden.has('battery');
+          root.add(cable);
+        }
+      }
+      if (view === 'section') {
+        const points = board.contours.flatMap((contour) => contour.points);
+        const centreX = points.length ? (Math.min(...points.map((point) => point.x)) + Math.max(...points.map((point) => point.x))) / 2 : 0;
+        const plane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), centreX);
+        root.traverse((object) => {
+          const mesh = object as THREE.Mesh;
+          if (!mesh.material) return;
+          for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.clippingPlanes = [plane];
+        });
       }
       const previous = rt.root;
       rt.scene.add(root);
@@ -245,7 +313,7 @@ export function AssemblyScene({
       disposeScene(root);
       setError(String(cause));
     }
-  }, [ready, board, models, bodies, reference, hidden, colorScheme]);
+  }, [ready, board, models, bodies, reference, hidden, colorScheme, mechanical, mechanicalConfiguration, selectedLayer, view]);
   const toggle = (id: string) =>
     setHidden((old) => {
       const next = new Set(old);
@@ -259,7 +327,8 @@ export function AssemblyScene({
     ['Models', 'Models'],
     ['Keycaps', 'Keycaps'],
     ...bodies.map((b) => [b.id, b.name]),
-  ];
+    ...(mechanical?.stack ?? []).map((layer) => layer.id === 'pcb' ? ['PCB', 'PCB'] : [layer.id, layer.id]),
+  ].filter(([id], index, all) => all.findIndex(([candidate]) => candidate === id) === index);
   return (
     <div
       className="wb-assembly-scene"
@@ -313,6 +382,13 @@ export function AssemblyScene({
         </button>
         <button onClick={() => runtime.current?.fit()}>Isometric</button>
       </div>
+      {mechanical && <div className="wb-mechanical-view-controls" role="group" aria-label="Mechanical assembly view">
+        <button aria-pressed={view === 'assembled'} onClick={() => setView('assembled')}>Assembled</button>
+        <button aria-pressed={view === 'exploded'} onClick={() => setView('exploded')}>Exploded</button>
+        <button aria-pressed={view === 'section'} onClick={() => setView('section')}>Section</button>
+      </div>}
+      {mechanical && <output role="status" className="wb-mechanical-preview-status">{bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length === mechanical.case.bodies.length ? `Generated CAD solids · ${mechanical.case.bodies.length} parts at revision ${mechanical.revision}` : `Building generated solids… ${bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length}/${mechanical.case.bodies.length} parts at revision ${mechanical.revision}`}</output>}
+      {view === 'section' && <output className="wb-mechanical-section-label">Section at board centre · half removed</output>}
       <output className="wb-assembly-caption">
         {selected ||
           `${models.length} / ${board.models.length} models · ${board.thickness} mm PCB`}

@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 
 type Props = {
   attached?: boolean;
+  triggerClassName?: string;
+  panelClassName?: string;
   id: string;
   label: string;
   icon?: React.ReactNode;
@@ -13,7 +15,7 @@ type Props = {
 };
 
 /** Command details can share the toolbar surface or escape clipping in a portal. */
-export function CommandMenu({ attached = false, id, label, icon, open, onOpenChange, triggerRef, children }: Props) {
+export function CommandMenu({ attached = false, triggerClassName = '', panelClassName = '', id, label, icon, open, onOpenChange, triggerRef, children }: Props) {
   const ownTrigger = useRef<HTMLButtonElement>(null);
   const trigger = triggerRef ?? ownTrigger;
   const panel = useRef<HTMLDivElement>(null);
@@ -45,8 +47,8 @@ export function CommandMenu({ attached = false, id, label, icon, open, onOpenCha
   }, [open, onOpenChange, trigger]);
   const close = () => { onOpenChange(false); trigger.current?.focus(); };
   return <>
-    <button ref={trigger} className="wb-command-trigger" aria-expanded={open} aria-controls={id} onClick={() => onOpenChange(!open)}>{icon}<span>{label}</span><ToolIcon name="chevron" /></button>
-    {open && <CommandPanel attached={attached}><div className={`wb-command-panel ${attached ? 'is-attached' : ''}`} id={id} role="dialog" aria-label={label} ref={panel} style={attached ? undefined : position}
+    <button ref={trigger} className={`wb-command-trigger ${triggerClassName}`} aria-expanded={open} aria-controls={id} onClick={() => onOpenChange(!open)}>{icon}<span>{label}</span><ToolIcon name="chevron" /></button>
+    {open && <CommandPanel attached={attached}><div className={`wb-command-panel ${panelClassName} ${attached ? 'is-attached' : ''}`} id={id} role="dialog" aria-label={label} ref={panel} style={attached ? undefined : position}
       onKeyDown={(event) => {
         if (event.key === 'Escape') { event.stopPropagation(); close(); }
       }} onClick={(event) => { if ((event.target as Element).closest('[data-close-menu]')) close(); }}>

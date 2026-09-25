@@ -1,3 +1,6 @@
+import { FindingList } from './FindingList';
+import { presentedFindings, findingTarget } from './findings';
+import { getBounds, cameraBounds, aspectBounds, fitCamera } from './canvasBounds';
 import { KeySizeControls } from './KeySizeControls';
 import React, { lazy, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
@@ -10,6 +13,11 @@ import type {
   Layout,
   MatrixCell,
   MatrixSplayChange,
+  MechanicalAssembly,
+  MechanicalConfiguration,
+  MechanicalExtraction,
+  MechanicalPartProfile,
+  MechanicalPurposeMapping,
   OutlineFeature,
   Part,
   PartDefinition,
@@ -21,6 +29,7 @@ import type {
 import { matrixWithAssembly } from './sampleAssembly';
 import { assemblyPreset } from './assemblyPresets';
 import { componentPoseSvgTransform } from './CasePreview';
+import { MechanicalAssemblyPanel } from './MechanicalAssemblyPanel';
 import type { ComponentPreview } from './CasePreview';
 import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
 import { defaultOutlineSettings } from '../../../contracts/src/index';
@@ -58,7 +67,9 @@ const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ defau
 type Mode = 'Design' | 'PCB' | 'Case' | 'Library' | 'Export';
 type ExportKind = 'project' | 'kicad' | 'footprints' | 'case-step' | 'svg' | 'dxf';
 type Props = {
+  projectSession?: number;
   document: ProjectDoc;
+  saveStatus?: 'saving' | 'saved' | 'failed';
   scene: SceneDelta;
   onEdit: (command: EditCommand) => void;
   onUndo: () => void;
@@ -75,6 +86,11 @@ type Props = {
   libraryModelPreviews?: ComponentPreview[];
   libraryModelStatus?: LibraryModelStatus;
   onRequestCaseModels?: (boardId: string) => void;
+  mechanicalAssembly?: MechanicalAssembly;
+  onResolveMechanical?: () => void;
+  onExportMechanical?: () => void;
+  onMechanicalProfile?: (definitionId: string, source: 'mx-switch' | 'mx-stab2u' | 'mx-stab625u', plateToPcb: number) => Promise<MechanicalPartProfile>;
+  onExtractMechanicalProfile?: (source: string, mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
   onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void;
   onProjectMatrices?: (matrices: Matrix[]) => Promise<MatrixScene[] | undefined>;
   onModeChange?: (mode: Mode) => void;
@@ -183,7 +199,7 @@ const systemColorScheme = (): 'light' | 'dark' => {
   }
 };
 
-const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onProjectMatrices, onModeChange, caseBodies, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
+const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, mechanicalAssembly, onResolveMechanical, onExportMechanical, onMechanicalProfile, onExtractMechanicalProfile, onDuplicateDesign, onProjectMatrices, onModeChange, caseBodies, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
   const [lastDesignMode, setLastDesignMode] = useState<Mode>('Design');
   const [commandMenu, setCommandMenu] = useState<string | null>(null);
@@ -229,6 +245,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const [library3dOpen, setLibrary3dOpen] = useState(false);
   const [editingAssembly, setEditingAssembly] = useState<import('@boardstudio/v2-contracts').AssemblyDefinition | null>(null);
   const [assembly3d, setAssembly3d] = useState(false);
+  const [selectedMechanicalLayer, setSelectedMechanicalLayer] = useState('');
   const [libraryAssembly, setLibraryAssembly] = useState<MatrixPresetId | null>(null);
   const [matrixSetup, setMatrixSetup] = useState(false);
   const [pairSetup, setPairSetup] = useState(false);
@@ -541,9 +558,29 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     : scene.contours;
   const selectedBoardReadiness = selectedBoard ? scene.boardReadiness?.find((entry) => entry.boardId === selectedBoard.id) : undefined;
   const boardReady = selectedBoardReadiness?.pcb ?? (document.boards.length <= 1 ? scene.readiness.pcb : false);
-  const caseReady = Boolean(activeCaseBody) && (selectedBoardReadiness?.case ?? (document.boards.length <= 1 ? scene.readiness.case : false));
-  const bounds = useMemo(() => getBounds(poses, visibleParts, visibleContours, visibleMatrices, matrixScenes), [poses, visibleParts, visibleContours, visibleMatrices, matrixScenes]);
+  const authoredCaseReady = Boolean(activeCaseBody) && (selectedBoardReadiness?.case ?? (document.boards.length <= 1 ? scene.readiness.case : false));
+  const generatedCase = document.mechanical?.boardId === selectedBoardId;
+  const generatedCaseReady = generatedCase && mechanicalAssembly?.revision === document.revision && casePreview?.revision === document.revision && !mechanicalAssembly.diagnostics.some((finding) => finding.severity === 'error');
+  const caseReady = generatedCase ? generatedCaseReady : authoredCaseReady;
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width && entry.contentRect.height) setCanvasSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(svgRef.current);
+    return () => observer.disconnect();
+  }, []);
+  const bounds = useMemo(() => aspectBounds(getBounds(poses, visibleParts, visibleContours, visibleMatrices, matrixScenes, definitions, keyEnvelopes), canvasSize.width, canvasSize.height), [poses, visibleParts, visibleContours, visibleMatrices, matrixScenes, definitions, keyEnvelopes, canvasSize]);
   const viewBounds = useMemo(() => cameraBounds(dragRef.current?.bounds ?? splayDrag.current?.bounds ?? bounds, zoom, pan), [bounds, zoom, pan]);
+  const fitParts = (targetParts: Part[], contours: SceneDelta['contours'] = [], matrices: Matrix[] = []) => {
+    if (dragRef.current || splayDrag.current || staggerDragRef.current) return;
+    const target = getBounds(poses, targetParts, contours, matrices, matrixScenes, definitions, keyEnvelopes);
+    const toolbarHeight = svgRef.current?.closest('.wb-canvas-column')?.querySelector('.wb-canvas-toolbar')?.getBoundingClientRect().height ?? 48;
+    const layersHeight = svgRef.current?.parentElement?.querySelector('.wb-stage-layers')?.getBoundingClientRect().height ?? 0;
+    const camera = fitCamera(bounds, target, canvasSize.width, canvasSize.height, toolbarHeight + 24, layersHeight + 24);
+    setZoom(camera.zoom); setPan(camera.pan);
+  };
   const readiness = scene.readiness;
   const modeReady = mode === 'Design' ? (selectedBoardReadiness?.outline ?? readiness.outline) : mode === 'PCB' ? boardReady : mode === 'Case' ? caseReady : false;
 
@@ -947,7 +984,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       const groupKey = `half-group:${selectedBoardId}:${half.label}`;
       const open = !half.label || !expandedTree.has(groupKey);
       if (half.label && half.layouts.length) result.push({ id: groupKey, label: half.label, kind: 'layout', level: 1, expandable: true, expanded: open,
-        selected: false, onToggle: () => toggleTree(groupKey), onSelect: () => { changeMode('Design'); toggleTree(groupKey); } });
+        selected: half.layouts.some((layout) => layout.partIds.some((id) => selected.includes(id))), onToggle: () => toggleTree(groupKey), onSelect: () => { changeMode('Design'); setScope(null); setSelected([...new Set(half.layouts.flatMap((layout) => [...layout.partIds, ...(matrixMap.get(layout.matrixId)?.partIds ?? [])]))]); } });
       if (!open) continue;
       const halfComponents = half.layouts.flatMap((layout) => componentsByLayout.get(layout.id) ?? []);
       const componentGroupKey = `components:${selectedBoardId}:${half.label || 'layout'}`;
@@ -1881,6 +1918,33 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     ? `${activeLayout?.name || selectedMatrix.name?.trim() || `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}`}${scope?.kind === 'row' ? ` · Row ${(scope.row ?? 0) + 1}` : scope?.kind === 'column' ? ` · Column ${(scope.column ?? 0) + 1}` : scope?.kind === 'key' ? ` · Key ${(scope.row ?? 0) + 1}.${(scope.column ?? 0) + 1}` : ''}`
     : activePart?.reference ?? selectedBoard?.name ?? 'Board';
 
+  const [pendingFinding, setPendingFinding] = useState<SceneDelta['findings'][number] | null>(null);
+  const showFinding = (finding: SceneDelta['findings'][number]) => {
+    const target = findingTarget(finding, document, mechanicalAssembly);
+    if (target.mechanicalLayer) {
+      changeMode('Case'); setSelectedMechanicalLayer(target.mechanicalLayer.id); setShowFindings(false); setRightOpen(true);
+      return;
+    }
+    const board = target.board ?? document.boards.find((item) => target.part ? item.partIds.includes(target.part.id) : target.matrix ? target.matrix.partIds.some((id) => item.partIds.includes(id)) : target.body?.boardId === item.id);
+    if (board && board.id !== selectedBoardId) { setPendingFinding(finding); selectBoard(board.id); return; }
+    changeMode(target.body ? 'Case' : 'Design');
+    setScriptsOpen(false); setShowFindings(false); setInspectorTab('properties');
+    if (target.outline || (!target.part && !target.matrix && !target.body)) {
+      setOutlineSettingsOpen(true);
+      const ids = target.outline?.kind === 'part-envelope' ? target.outline.partIds : board?.partIds ?? [];
+      fitParts(document.parts.filter((part) => ids.includes(part.id)), board ? scene.boardContours.find((entry) => entry.boardId === board.id)?.contours ?? [] : scene.contours);
+    } else if (target.part) { selectScope({ kind: 'component', partId: target.part.id }); fitParts([target.part]); }
+    else if (target.matrix) { selectScope({ kind: 'matrix', matrixId: target.matrix.id }); fitParts(document.parts.filter((part) => target.matrix!.partIds.includes(part.id))); }
+    else if (target.body) setCaseBodyId(target.body.id);
+    setRightOpen(true);
+    if (!compactInspector) inspectorPanel.setMode('pinned');
+    requestAnimationFrame(() => globalThis.document.querySelector<HTMLElement>('#wb-inspector button, #wb-inspector input')?.focus());
+  };
+
+  useEffect(() => {
+    if (pendingFinding) { setPendingFinding(null); showFinding(pendingFinding); }
+  }, [selectedBoardId, pendingFinding]);
+
   const getModeDetails = () => {
     if (scriptsOpen) return <>
       <div className="wb-inspect-head"><h2>Geometry scripts</h2></div>
@@ -1894,13 +1958,13 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
           <label className="wb-script-source-label">Rhai source<textarea spellCheck={false} value={scriptSource} onChange={(event) => setScriptSource(event.target.value)} placeholder="// Describe generated geometry and component groups" /></label>
           <label className="wb-script-enabled"><input type="checkbox" checked={scriptEnabled} onChange={(event) => setScriptEnabled(event.target.checked)} /> Enable on Apply</label>
           <button className="wb-primary wb-script-apply" disabled={!scriptSource.trim()} onClick={applyScript}>Apply script <ArrowIcon /></button>
-          <div className="wb-script-diagnostics"><span>Core findings</span><FindingList findings={scene.findings} /></div>
+          <div className="wb-script-diagnostics"><span>Core findings</span><FindingList document={document} onShow={showFinding} findings={scene.findings} /></div>
         </div> : <p className="wb-empty-state">Scripts generate named geometry groups. Apply a script to run it in the core.</p>}
     </>;
 
     if (mode === 'Design' && outlineSettingsOpen) return <><OutlineInspector document={document} board={selectedBoard}
       onChange={(next, ids) => emit({ kind: 'replace-document', document: next }, ids)}
-      onDraw={(operation) => { setOutlineOperation(operation); setOutlineDraft([]); setOutlineActive(true); setRightOpen(false); }} /><div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3></div><FindingList findings={scene.findings} /></>;
+      onDraw={(operation) => { setOutlineOperation(operation); setOutlineDraft([]); setOutlineActive(true); setRightOpen(false); }} /><div className="wb-findings-head"><h3 className="wb-subtitle">Findings</h3></div><FindingList document={document} onShow={showFinding} findings={scene.findings} /></>;
 
     if (mode === 'PCB') {
       const assigned = boardNets.reduce((total, net) => total + net.pins.filter((pin) => selectedBoard?.partIds.includes(pin.partId) ?? true).length, 0);
@@ -1960,8 +2024,15 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       </>;
     }
     if (mode === 'Case') {
+      const configuredBoard = document.boards.find((board) => board.id === document.mechanical?.boardId);
+      const mechanicalPanel = document.mechanical && !generatedCase
+        ? <section className="wb-mechanical-panel"><h3>Mechanical stack belongs to {configuredBoard?.name ?? document.mechanical.boardId}</h3><p>One generated assembly is configured per project. This board shows its authored case bodies.</p><button className="wb-secondary" disabled={!configuredBoard} onClick={() => configuredBoard && selectBoard(configuredBoard.id)}>Show configured board</button></section>
+        : <MechanicalAssemblyPanel document={document} boardId={selectedBoardId} projectSession={projectSession} definitions={libraryDefinitions} configuration={document.mechanical} assembly={mechanicalAssembly} onChange={(configuration) => emit({ kind: 'set-mechanical', configuration }, [document.id])} onResolve={onResolveMechanical} onExport={onExportMechanical} onMechanicalProfile={onMechanicalProfile} onExtractMechanicalProfile={onExtractMechanicalProfile} onShowFinding={showFinding} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} />;
+      if (generatedCase) return <>{mechanicalPanel}<p className="wb-empty-note">Generated assembly preview · {document.caseBodies.filter((body) => body.boardId === selectedBoardId).length} authored case bodies remain saved. Disable the mechanical stack to preview and edit them.</p><p role="status">{generatedCaseReady ? 'Generated assembly ready' : 'Generated assembly requires review'}</p></>;
       const caseFindings = activeCaseBody ? scene.findings.filter((finding) => finding.scope === 'case' && (finding.targetIds.length === 0 || finding.targetIds.includes(activeCaseBody.id))) : [];
       return <>
+        {mechanicalPanel}
+        <div className="wb-panel-rule" />
         <div className="wb-inspect-head"><h2>Case stack</h2><button className="wb-case-new-body" onClick={addCaseBody} disabled={!selectedBoard}>+ New case body</button></div>
         <div className="wb-case-preview-state"><span className={`wb-ready-dot ${activeCaseBody && casePreview?.revision === scene.revision && caseReady ? 'is-ready' : ''}`} />
           <span><strong>{!activeCaseBody ? 'No case body on this board' : casePreview?.revision === scene.revision && caseReady ? 'Preview current' : 'Waiting for settled edit'}</strong><small>{activeCaseBody && casePreview ? `${Math.floor(casePreview.positions.length / 3)} mesh vertices · r${casePreview.revision}` : '3D preview builds after edits settle'}</small></span>
@@ -2010,7 +2081,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
           </div>}
           </InspectorSection>
         </>}
-        {caseFindings.length > 0 && <InspectorSection title="Clearance review" defaultOpen><FindingList findings={caseFindings} /></InspectorSection>}
+        {caseFindings.length > 0 && <InspectorSection title="Clearance review" defaultOpen><FindingList document={document} onShow={showFinding} findings={caseFindings} /></InspectorSection>}
       </>;
     }
     if (mode === 'Library') {
@@ -2095,7 +2166,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
         { label: 'KiCad footprints', ready: document.definitions.length > 0, detail: 'Component footprint library', kind: 'footprints' },
         { label: 'SVG board outline', ready: selectedBoardReadiness?.outline ?? readiness.outline, detail: 'Resolved board contour', kind: 'svg' },
         { label: 'DXF board outline', ready: selectedBoardReadiness?.outline ?? readiness.outline, detail: 'Resolved board contour', kind: 'dxf' },
-        { label: 'Case STEP', ready: caseReady, detail: 'Assembly solids', kind: 'case-step' },
+        { label: generatedCase ? 'Authored Case STEP' : 'Case STEP', ready: authoredCaseReady, detail: 'Saved authored case bodies', kind: 'case-step' },
       ];
       return <>
         <div className="wb-inspect-head"><h2>Export package</h2><span className="wb-mini-tag">v2</span></div>
@@ -2105,6 +2176,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
           <span><strong>{output.label}</strong><small>{output.detail}</small></span>
           <button className="wb-export-status wb-export-button" disabled={!output.ready} onClick={() => onExport(output.kind, selectedBoardId || undefined)}>{output.ready ? 'Export' : 'Needs work'}</button>
         </div>)}</div>
+        {generatedCase && <div className="wb-export-row"><span className={`wb-ready-dot ${generatedCaseReady ? 'is-ready' : ''}`} /><span><strong>Generated mechanical package</strong><small>STEP/STL parts, outlines, specifications and FR4 plate project</small></span><button className="wb-export-status wb-export-button" disabled={!generatedCaseReady} onClick={onExportMechanical}>{generatedCaseReady ? 'Export' : 'Needs work'}</button></div>}
         {onEmbedUsedModelsChange && <label className="wb-export-option"><input type="checkbox" aria-label="Embed used models" checked={embedUsedModels} onChange={(event) => onEmbedUsedModelsChange(event.target.checked)} /><span><strong>Embed used models</strong><small>Include attached 3D model files used in this project.</small></span></label>}
         <button className="wb-primary wb-export-action" onClick={() => onExport('project')}>Save .boardstudio project <ArrowIcon /></button>
       </>;
@@ -2233,21 +2305,25 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       <a className="wb-brand" href="#workbench" aria-label="Board Studio workbench">
         <span className="wb-brand-mark"><BrandMark /></span><span>BOARD<span className="wb-brand-light">STUDIO</span> <span className="wb-brand-version">v2</span></span>
       </a>
+      <span className="wb-compact-board" title={selectedBoard?.name ?? document.name}>{selectedBoard?.name ?? document.name}</span>
       <nav className="wb-modes" role="tablist" aria-label="Design stage">
         {modes.map((item) => <button key={item} role="tab" aria-selected={item === 'Design' ? designView : mode === item} className={`wb-mode ${(item === 'Design' ? designView : mode === item) ? 'is-active' : ''}`} onClick={() => changeMode(item === 'Design' ? lastDesignMode : item)}><span>{item === 'Library' ? 'Parts' : item}</span></button>)}
       </nav>
       <div className="wb-top-actions">
         {compactObjects && <button id="wb-objects-toggle" className="wb-icon-button wb-panel-toggle" aria-label="Objects" title="Objects" aria-expanded={leftOpen} aria-controls="wb-inventory" onClick={() => { setLeftOpen(!leftOpen); setRightOpen(false); }}><PanelIcon side="left" /></button>}
         {compactInspector && <button id="wb-inspector-toggle" className="wb-icon-button wb-panel-toggle" aria-label="Inspect" title="Inspect" aria-expanded={rightOpen} aria-controls="wb-inspector" onClick={() => { setRightOpen(!rightOpen); setLeftOpen(false); }}><PanelIcon side="right" /></button>}
-        <span className="wb-save-state"><span /> Saved locally</span>
-        <button className="wb-icon-button" aria-label="Undo" title="Undo (Ctrl+Z)" onClick={onUndo}><UndoIcon /></button>
-        <button className="wb-icon-button" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" onClick={onRedo}><RedoIcon /></button>
+        <details className={`wb-save-state is-${saveStatus ?? 'unknown'}`} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}><summary aria-label={saveStatus === 'saved' ? 'Saved locally' : saveStatus === 'saving' ? 'Saving locally' : saveStatus === 'failed' ? 'Local save failed' : 'Local save status unavailable'}><i aria-hidden="true" /><span>{saveStatus === 'saved' ? 'Saved locally' : saveStatus === 'saving' ? 'Saving…' : saveStatus === 'failed' ? 'Save failed' : 'Save status'}</span></summary><div role="status">{saveStatus === 'saved' ? 'Changes are saved in this browser. Use Save project copy for a portable backup.' : saveStatus === 'saving' ? 'Saving changes in this browser…' : saveStatus === 'failed' ? 'Changes could not be saved locally. Check available browser storage before editing further.' : 'Local save status is unavailable.'}</div></details>
+        <button className="wb-icon-button wb-history-action" aria-label="Undo" title="Undo (Ctrl+Z)" onClick={onUndo}><UndoIcon /></button>
+        <button className="wb-icon-button wb-history-action" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" onClick={onRedo}><RedoIcon /></button>
         <button className="wb-icon-button wb-export-trigger" aria-label="Export" title="Export" aria-pressed={mode === 'Export'} onClick={() => { changeMode('Export'); setRightOpen(true); if (!compactInspector) inspectorPanel.setMode('pinned'); }}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 12v5h12v-5M10 13V3M6 7l4-4 4 4" /></svg></button>
       <div className="wb-project-menu">
         <button ref={projectTriggerRef} className="wb-project-trigger" aria-expanded={projectMenuOpen} aria-controls="wb-project-dropdown" aria-label="Project" title={`Project menu — ${document.name}`} onClick={() => setProjectMenuOpen((open) => !open)}><ProjectIcon /></button>
         {projectMenuOpen && <div id="wb-project-dropdown" className="wb-project-dropdown" aria-label="Project menu">
           <label className="wb-project-title"><span>Project</span><input aria-label="Project name" title="Rename project" value={projectName} onChange={(event) => setProjectName(event.target.value)} onBlur={commitProjectName} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setProjectName(document.name); }} /></label>
           <div className="wb-project-actions">
+            <button className="wb-compact-action" onClick={() => { setProjectMenuOpen(false); onUndo(); }}>Undo</button>
+            <button className="wb-compact-action" onClick={() => { setProjectMenuOpen(false); onRedo(); }}>Redo</button>
+            <button className="wb-compact-action" onClick={() => { setProjectMenuOpen(false); changeMode('Export'); setRightOpen(true); }}>Export…</button>
             {onNewProject && <button onClick={() => { setProjectMenuOpen(false); onNewProject(); }}>New project</button>}
             {onImport && <button className="wb-open-project" onClick={() => projectFileRef.current?.click()}>Open project…</button>}
             <button onClick={() => { setProjectMenuOpen(false); onExport('project'); }}>Save project copy…</button>
@@ -2265,7 +2341,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     </header>
     <p className="wb-keyboard-status" role="status" aria-label="Keyboard movement" aria-live="polite">{keyboardStatus}</p>
     <section className="wb-workspace" id="workbench">
-      <WorkspacePanel side="left" label="Part inventory" settings={objectsPanel} compact={compactObjects} open={leftOpen} onClose={() => setLeftOpen(false)} toolbar={<>
+      <WorkspacePanel options={<label>Group objects<select aria-label="Tree grouping" value={treeGrouping} onChange={(event) => { const value = event.target.value as 'row' | 'column'; setTreeGrouping(value); try { localStorage.setItem('boardstudio:v2:tree-grouping', value); } catch { /* Session only. */ } }}><option value="column">Columns</option><option value="row">Rows</option></select></label>} side="left" label="Part inventory" settings={objectsPanel} compact={compactObjects} open={leftOpen} onClose={() => setLeftOpen(false)} toolbar={<>
         <span className="wb-panel-title">{mode === 'Library' ? 'Parts' : 'Objects'}</span>
       </>} primaryAction={(mode === 'Design' || mode === 'PCB') && <button ref={addPartRef} className="wb-add-trigger" aria-label="Add object" aria-expanded={addPartOpen} aria-controls="wb-add-part" onClick={() => { setAddPartOpen((open) => !open); setCommandMenu(null); }}><ToolIcon name="add" /> Add object</button>}>
 
@@ -2286,10 +2362,11 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       <section className="wb-canvas-column" aria-label={`${mode === 'Library' ? 'Parts' : mode} canvas`}>
         <div className={`wb-canvas-toolbar ${mode === 'Design' || mode === 'PCB' ? `is-floating ${commandMenu ? 'is-expanded' : ''}` : ''}`} role="toolbar" aria-label={`${viewLabel} commands`}>
           {mode === 'Design' || mode === 'PCB' ? <>
-            <div className="wb-scope-shortcuts" role="group" aria-label="Selection types">{(['key', 'row', 'column', 'matrix', 'component'] as const).map((kind) => <button key={kind} title={`Select ${kind === 'component' ? 'parts' : kind}`} aria-label={`Select ${kind}`} aria-pressed={scope?.kind === kind} disabled={!scope || (kind !== 'component' && !scope.matrixId)} onClick={() => changeScope(kind)}><ScopeIcon kind={kind} /></button>)}</div>
-            <CommandMenu attached id="wb-select-menu" label={`Select: ${scope ? scope.kind === 'component' ? 'Part' : scope.kind[0].toUpperCase() + scope.kind.slice(1) : 'Key'}`} icon={<ScopeIcon kind={scope?.kind ?? 'key'} />} open={commandMenu === 'select'} onOpenChange={(open) => { setCommandMenu(open ? 'select' : null); setAddPartOpen(false); }}>
-              <div role="group" aria-label="Selection scope">{(['matrix', 'row', 'column', 'key', 'component'] as const).map((kind) => <button key={kind} data-close-menu aria-pressed={scope?.kind === kind} disabled={!scope || (kind !== 'component' && !scope.matrixId)} onClick={() => changeScope(kind)}><ScopeIcon kind={kind} />{kind === 'component' ? 'Part' : kind[0].toUpperCase() + kind.slice(1)}</button>)}</div>
-              <label>Group objects<select aria-label="Tree grouping" value={treeGrouping} onChange={(event) => { const value = event.target.value as 'row' | 'column'; setTreeGrouping(value); try { localStorage.setItem('boardstudio:v2:tree-grouping', value); } catch { /* Session only. */ } }}><option value="column">Columns</option><option value="row">Rows</option></select></label>
+            <div className="wb-scope-shortcuts" role="group" aria-label="Selection types">{(['key', 'row', 'column', 'matrix', 'component'] as const).map((kind) => <button key={kind} title={!scope ? 'Select a key or component first' : kind !== 'component' && !scope.matrixId ? 'Select a matrix key first' : `Select ${kind === 'component' ? 'parts' : kind}`} aria-label={`Select ${kind}`} aria-pressed={scope?.kind === kind} aria-disabled={!scope || (kind !== 'component' && !scope.matrixId)} aria-description={!scope ? 'Select a key or component first.' : kind !== 'component' && !scope.matrixId ? 'Select a matrix key first.' : undefined} onClick={() => { if (scope && (kind === 'component' || scope.matrixId)) changeScope(kind); }}><ScopeIcon kind={kind} /></button>)}</div>
+            <CommandMenu triggerClassName="wb-compact-select" panelClassName="wb-compact-select-panel" attached id="wb-select-menu" label={`Select: ${scope ? scope.kind === 'component' ? 'Part' : scope.kind[0].toUpperCase() + scope.kind.slice(1) : 'Key'}`} icon={<ScopeIcon kind={scope?.kind ?? 'key'} />} open={commandMenu === 'select'} onOpenChange={(open) => { setCommandMenu(open ? 'select' : null); setAddPartOpen(false); }}>
+              <p>{!scope ? 'Select a key or component on the canvas or in Objects first.' : !scope.matrixId ? 'Select a matrix key to use row, column, or matrix selection.' : 'Choose the extent of your selection.'}</p>
+              <div role="group" aria-label="Selection scope">{(['matrix', 'row', 'column', 'key', 'component'] as const).map((kind) => <button key={kind} data-close-menu aria-pressed={scope?.kind === kind} aria-disabled={!scope || (kind !== 'component' && !scope.matrixId)} aria-description={!scope ? 'Select a key or component first.' : kind !== 'component' && !scope.matrixId ? 'Select a matrix key first.' : undefined} onClick={() => { if (scope && (kind === 'component' || scope.matrixId)) changeScope(kind); }}><ScopeIcon kind={kind} />{kind === 'component' ? 'Part' : kind[0].toUpperCase() + kind.slice(1)}</button>)}</div>
+
             </CommandMenu>
             <CommandMenu attached id="wb-transform-menu" label="Transform" icon={<ToolIcon name="transform" />} open={commandMenu === 'transform'} onOpenChange={(open) => setCommandMenu(open ? 'transform' : null)}>
               <p>Drag the selection to move it. Arrow keys move parts precisely.</p>
@@ -2367,7 +2444,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
           {pairSetup && mode === 'Design'  && <MirroredPairSetup presets={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id) }))} onPreview={(setup) => beginMatrixPlacement(setup.rows, setup.columns, setup.preset as MatrixPresetId, setup)} onCancel={() => { setPairSetup(false); (compactObjects && !leftOpen ? window.document.getElementById('wb-objects-toggle') : addPartRef.current)?.focus(); }} />}
           {mode === 'Library' && !editingAssembly && <LibraryWorkspace document={document} definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={value => { if (value && libraryAssembly) setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions)); else setLibrary3dOpen(value); }} colorScheme={colorScheme} />}
           {mode === 'Library' && editingAssembly && <React.Suspense fallback={<p>Loading assembly editor…</p>}><AssemblyEditor key={editingAssembly.id} document={document} initial={editingAssembly} matrixName={selectedMatrix ? selectedMatrix.name?.trim() || `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}` : 'selected matrix'} onApply={selectedMatrix ? assembly => { const prepared = matrixWithAssembly(selectedMatrix, assembly, libraryDefinitions, document.revision); emit({ kind: 'set-matrix', ...prepared }, [selectedMatrix.id]); } : undefined} definitions={libraryDefinitions} boardId={selectedBoard?.id} colorScheme={colorScheme} onChange={next => emit({ kind: 'replace-document', document: next }, [editingAssembly.id])} onClose={() => setEditingAssembly(null)} onPlace={next => { emit({ kind: 'replace-document', document: next }, []); setEditingAssembly(null); changeMode('Design'); setAssembly3d(true); }} /></React.Suspense>}
-          {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={document} boardId={selectedBoard.id} contours={visibleContours} bodies={casePreview?.revision === document.revision ? caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body })) : undefined} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
+          {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={document} boardId={selectedBoard.id} contours={visibleContours} bodies={casePreview?.revision === document.revision ? caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body })) : undefined} mechanical={mechanicalAssembly?.revision === document.revision ? mechanicalAssembly : undefined} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
           {mode !== 'Case' && mode !== 'Library' && !assembly3d && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
           {snapGuide && <div className="wb-canvas-hint" role="status">{snapGuide.label}</div>}
           {originPicking && <div className="wb-canvas-hint" role="status">Pick splay origin · Click the canvas · Esc cancels</div>}
@@ -2382,7 +2459,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
         <div className="wb-inspector-content" key={`${mode}:${scriptsOpen}:${mode === 'Library' ? libraryAssembly ?? selectedLibraryDefinition?.id : `${selectedBoardId}:${scope?.matrixId}:${scope?.kind}:${scope?.row}:${scope?.column}:${activePart?.id}`}`}>
           {(mode === 'Design' || mode === 'Case') && selectedBoard && <React.Suspense fallback={null}><BoardReferencePanel document={document} boardId={selectedBoard.id} onChange={next => emit({ kind: 'replace-document', document: next }, [selectedBoard.id])} /></React.Suspense>}
           {designView && !scriptsOpen && !outlineSettingsOpen && <>{mode === 'Design' && selectedMatrix && scope?.kind !== 'component' && <><div className="wb-inspect-head wb-selection-heading"><h2 aria-label={selectionTitle}>{selectionTitle.split(' · ').at(-1)}</h2></div><p className="wb-selection-summary">{scope?.kind === 'matrix' ? `${selectedMatrix.rows} rows · ${selectedMatrix.columns} columns` : `${activeParts.length} keys selected`}</p></>}<div className="wb-selection-breadcrumb">{selectedBoard?.name} / {viewLabel}{selectedMatrix ? ` / ${activeLayout?.name || selectedMatrix.name || selectionTitle.split(' · ')[0]}` : ''}</div><div className="wb-inspector-tabs" role="tablist" aria-label="Inspector details"><button role="tab" aria-selected={inspectorTab === 'properties'} onClick={() => setInspectorTab('properties')}>Properties</button><button role="tab" aria-selected={inspectorTab === 'relations'} onClick={() => setInspectorTab('relations')}>Relations</button></div></>}
-          {showFindings ? <><div className="wb-inspect-head"><h2>Findings</h2><button className="wb-secondary" onClick={() => setShowFindings(false)}>Back</button></div><FindingList findings={scene.findings} /></> : inspectorTab === 'relations' && designView && !scriptsOpen && !outlineSettingsOpen ? <><h2>Relationships</h2><p className="wb-empty-note">{partnerLayout ? `Key assemblies, diodes and components mirror with ${partnerLayout.name}. Replace a component on one half to keep it local.` : activeLayout ? 'This layout is independent. Its geometry and components can be edited separately.' : activeConstraint ? `${parts.get(activeConstraint.sourcePartId)?.reference} drives ${activePart?.reference}.` : 'No saved placement relationship on this selection.'}</p>{activePart && <button className="wb-secondary" onClick={() => { changeMode('Design'); setScope({ kind: 'component', partId: activePart.id }); setInspectorTab('properties'); }}>Edit placement relationship</button>}<p className="wb-empty-note">Matrix rows and columns share pitch, stagger and splay. Edit those in Properties.</p></> : getModeDetails()}
+          {showFindings ? <><div className="wb-inspect-head"><h2>Findings</h2><button className="wb-secondary" onClick={() => setShowFindings(false)}>Back</button></div><FindingList document={document} onShow={showFinding} findings={scene.findings} /></> : inspectorTab === 'relations' && designView && !scriptsOpen && !outlineSettingsOpen ? <><h2>Relationships</h2><p className="wb-empty-note">{partnerLayout ? `Key assemblies, diodes and components mirror with ${partnerLayout.name}. Replace a component on one half to keep it local.` : activeLayout ? 'This layout is independent. Its geometry and components can be edited separately.' : activeConstraint ? `${parts.get(activeConstraint.sourcePartId)?.reference} drives ${activePart?.reference}.` : 'No saved placement relationship on this selection.'}</p>{activePart && <button className="wb-secondary" onClick={() => { changeMode('Design'); setScope({ kind: 'component', partId: activePart.id }); setInspectorTab('properties'); }}>Edit placement relationship</button>}<p className="wb-empty-note">Matrix rows and columns share pitch, stagger and splay. Edit those in Properties.</p></> : getModeDetails()}
         </div>
       </WorkspacePanel>
       {((compactObjects && leftOpen) || (compactInspector && rightOpen)) && <button className="wb-drawer-scrim" aria-label="Close panels" onClick={() => { setLeftOpen(false); setRightOpen(false); }} />}
@@ -2394,9 +2471,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       </> : <>
       <div className="wb-footer-coords"><span>mm</span><span>X <b>{activePart?.pose.at.x.toFixed(2) ?? '0.00'}</b></span><span>Y <b>{activePart?.pose.at.y.toFixed(2) ?? '0.00'}</b></span></div>
       <div className="wb-footer-center"><button onClick={() => setCommandMenu('snap')} disabled={mode !== 'Design' && mode !== 'PCB'}>Grid {snapFraction === 0 ? 'off' : snapFraction === 1 ? '1u' : snapFraction === .5 ? '½u' : snapFraction === .125 ? '⅛u' : '¼u'}</button><span>{geometrySnap ? 'Geometry snap on' : 'Geometry snap off'}</span></div>
-      <div className="wb-footer-zoom"><button className="wb-view-button" aria-label="Fit view" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}><FitIcon /></button><button aria-label="Zoom out" onClick={() => zoomAt(window.innerWidth / 2, window.innerHeight / 2, Math.max(.25, zoom / 1.2))}>−</button><span>{Math.round(zoom * 100)}%</span><button aria-label="Zoom in" onClick={() => zoomAt(window.innerWidth / 2, window.innerHeight / 2, Math.min(4, zoom * 1.2))}>+</button></div>
+      <div className="wb-footer-zoom"><button className="wb-view-button" aria-label="Fit board" title="Fit entire board" onClick={() => fitParts(visibleParts, visibleContours, visibleMatrices)}><FitIcon />Fit board</button><button className="wb-view-button" disabled={!activeParts.length} onClick={() => fitParts(activeParts)}>Fit selection</button><button aria-label="Zoom out" onClick={() => zoomAt(window.innerWidth / 2, window.innerHeight / 2, Math.max(.25, zoom / 1.2))}>−</button><span>{Math.round(zoom * 100)}%</span><button aria-label="Zoom in" onClick={() => zoomAt(window.innerWidth / 2, window.innerHeight / 2, Math.min(4, zoom * 1.2))}>+</button></div>
       </>}
-      <button className="wb-findings-status" onClick={() => { setShowFindings(!showFindings); setRightOpen(true); }}><ToolIcon name="warning" />{scene.findings.length} findings</button>
+      <button className="wb-findings-status" onClick={() => { setShowFindings(!showFindings); setRightOpen(true); }}><ToolIcon name="warning" />{presentedFindings(scene.findings, document).length} findings</button>
     </footer>
   </main>;
 };
@@ -2458,40 +2535,6 @@ const definitionIssues = (definition: PartDefinition): string[] => {
     if (pad.drill !== undefined && (!Number.isFinite(pad.drill) || pad.drill <= 0)) issues.push(`Pad ${index + 1} drill must be positive.`);
   }
   return issues;
-};
-
-const getBounds = (poses: Map<string, Part['pose']>, visibleParts: Part[], visibleContours: SceneDelta['contours'], matrices: Matrix[], matrixScenes: Map<string, MatrixProjection>) => {
-  const all = [...visibleContours.flatMap((contour) => contour.points)];
-  for (const part of visibleParts) all.push(poses.get(part.id)?.at ?? part.pose.at);
-  for (const matrix of matrices) {
-    const projection = matrixScenes.get(matrix.id);
-    const size = { x: matrix.pitch.x / 2, y: matrix.pitch.y / 2 };
-    for (const cell of projection?.scene?.cells ?? []) {
-      const center = cell.pose.at;
-      all.push({ x: center.x - size.x, y: center.y - size.y }, { x: center.x + size.x, y: center.y + size.y });
-    }
-  }
-  all.push({ x: -35, y: -25 }, { x: 35, y: 25 });
-  const minX = Math.min(...all.map((point) => point.x)) - 12;
-  const maxX = Math.max(...all.map((point) => point.x)) + 12;
-  const minY = Math.min(...all.map((point) => point.y)) - 12;
-  const maxY = Math.max(...all.map((point) => point.y)) + 12;
-  return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
-};
-
-const cameraBounds = (bounds: ReturnType<typeof getBounds>, zoom: number, pan: Vec2) => {
-  const width = bounds.width / zoom;
-  const height = bounds.height / zoom;
-  const centerX = (bounds.minX + bounds.maxX) / 2 + pan.x;
-  const centerY = (bounds.minY + bounds.maxY) / 2 + pan.y;
-  return {
-    minX: centerX - width / 2,
-    maxX: centerX + width / 2,
-    minY: centerY - height / 2,
-    maxY: centerY + height / 2,
-    width,
-    height,
-  };
 };
 
 const withCell = (matrix: Matrix, row: number, column: number, changes: Partial<MatrixCell>): Matrix => {
@@ -2852,10 +2895,6 @@ const ModelVector = ({ title, value, unit: unitLabel, validation, onCommit }: { 
 </fieldset>;
 
 const Measure = ({ label, value }: { label: string; value: string }) => <div className="wb-measure"><dt>{label}</dt><dd>{value}</dd></div>;
-
-const FindingList = ({ findings }: { findings: SceneDelta['findings'] }) => findings.length ? <ul className="wb-findings">{findings.map((finding) => <li key={finding.id} className={`is-${finding.severity}`}>
-  <span className="wb-finding-mark" /><span>{finding.message}</span>
-</li>)}</ul> : <p className="wb-no-findings"><span>✓</span> No active findings</p>;
 
 const PartGlyph = ({ kind }: { kind: PartDefinition['kind'] }) => <svg viewBox="0 0 28 28" aria-hidden="true" className="wb-glyph-svg">
   {kind === 'switch' ? <><rect x="4" y="4" width="20" height="20" rx="4" /><circle cx="14" cy="14" r="4.3" /><path d="M14 2v4M14 22v4M2 14h4M22 14h4" /></>

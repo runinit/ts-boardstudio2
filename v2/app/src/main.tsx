@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
-import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, FootprintCompileJob, Matrix, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
+import type { CaseAssemblyIR, CaseResult, CoreReply, CoreRequest, EditCommand, FootprintCompileJob, Matrix, MechanicalAssembly, MechanicalBuiltinProfile, MechanicalExtraction, MechanicalPurposeMapping, MechanicalPartProfile, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
 import type { MatrixScene } from './ui/matrixGeometry';
 import { builtinDefinitions } from '@boardstudio/v2-kicad';
 import { catalogue as ergogenCatalogue, isErgogen, modelBindings, normalizeDefinition } from '@boardstudio/v2-ergogen';
@@ -9,7 +9,11 @@ import type { StepModel } from '@boardstudio/v2-cad';
 import { CoreClient } from './CoreClient';
 import { CaseClient } from './CaseClient';
 import { buildCasePreview } from './buildCasePreview';
+import { casePreviewContextMatches, currentCaseResult } from './casePreviewContext';
+import type { CasePreviewContext, ContextualCaseResult } from './casePreviewContext';
 import { prepareCase } from './prepareCase';
+import { resolveMechanical } from './resolveMechanical';
+import { exportMechanicalAssembly } from './exportMechanicalAssembly';
 import { ExportClient } from './ExportClient';
 import { demoProject } from './demo';
 import { activeProjectId, loadAsset, loadProject, packProject, saveAsset, saveProject, unpackProject } from './storage';
@@ -115,7 +119,9 @@ function App() {
   const [scene, setScene] = useState<SceneDelta>(EMPTY_SCENE);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
-  const [casePreview, setCasePreview] = useState<CaseResult | undefined>();
+  const [casePreview, setCasePreview] = useState<ContextualCaseResult<CaseResult> | undefined>();
+  const [mechanicalAssembly, setMechanicalAssembly] = useState<ContextualCaseResult<MechanicalAssembly> | undefined>();
+  const [mechanicalRefresh, setMechanicalRefresh] = useState(0);
   const [modelErrors, setModelErrors] = useState<Record<string, string>>({});
   const [modelMeshes, setModelMeshes] = useState<Record<string, StepModel>>({});
   const [libraryDefinitionId, setLibraryDefinitionId] = useState('');
@@ -127,8 +133,18 @@ function App() {
   const caseSeq = useRef(0);
   const modelEpoch = useRef(0);
   const modelCache = useRef(new Map<string, Promise<StepModel>>());
+  const [projectSession, setProjectSession] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'failed'>('saving');
   const projectRef = useRef(project);
   const committedScene = useRef(scene);
+  const previewContext: CasePreviewContext = {
+    documentId: project.id, boardId: selectedBoardId, revision: project.revision,
+    scene, committedScene: committedScene.current,
+  };
+  const currentPreviewContext = useRef(previewContext);
+  currentPreviewContext.current = previewContext;
+  const visibleCasePreview = currentCaseResult(casePreview, previewContext);
+  const visibleMechanicalAssembly = currentCaseResult(mechanicalAssembly, previewContext);
   const queue = useRef<Promise<void>>(Promise.resolve());
 
   function ensureExportClient(): ExportClient {
@@ -137,7 +153,7 @@ function App() {
   }
 
   async function accept(reply: CoreReply, mode: 'open' | 'commit' | 'preview'): Promise<void> {
-    if (reply.kind === 'case-prepared') return;
+    if (reply.kind === 'case-prepared' || reply.kind === 'mechanical-resolved' || reply.kind === 'mechanical-profile') return;
     if (reply.kind === 'matrix-projections') return;
     if (reply.kind === 'error') {
       throw new Error(reply.message);
@@ -159,7 +175,15 @@ function App() {
       setLibraryDefinitionId('');
     }
 
-    await saveProject(reply.document);
+    setSaveStatus('saving');
+    try {
+      await saveProject(reply.document);
+      setSaveStatus('saved');
+    } catch (cause) {
+      setSaveStatus('failed');
+      throw cause;
+    }
+    if (mode === 'open') setProjectSession((value) => value + 1);
     projectRef.current = reply.document;
     setProject(reply.document);
     setScene(reply.scene);
@@ -201,10 +225,16 @@ function App() {
 
   useEffect(() => {
     const sequence = ++caseSeq.current;
-
+    const context = currentPreviewContext.current;
+    const isCurrent = () => sequence === caseSeq.current && casePreviewContextMatches(context, {
+      ...currentPreviewContext.current, committedScene: committedScene.current,
+    });
     if (activeMode !== 'Case') {
       return;
     }
+
+    setCasePreview(undefined);
+    setMechanicalAssembly(undefined);
 
     const boardReady = scene.boardReadiness.find((entry) => entry.boardId === selectedBoardId);
 
@@ -212,29 +242,47 @@ function App() {
       return;
     }
 
-    if (!ready || !boardReady?.case) {
+    const generated = project.mechanical?.boardId === selectedBoardId;
+    if (!ready || !(generated ? boardReady?.outline : boardReady?.case)) {
+      setMechanicalAssembly(undefined);
       setCasePreview(undefined);
       return;
     }
 
     const timer = setTimeout(async () => {
       caseClient.current ??= new CaseClient();
-      const ir = caseAssembly(project, scene, selectedBoardId);
+      let ir = caseAssembly(project, scene, selectedBoardId);
 
       try {
-        const result = await buildCasePreview(client.current!, caseClient.current, ir, () => sequence === caseSeq.current);
-        if (result && sequence === caseSeq.current) {
-          setCasePreview(result);
+        if (generated) {
+          const contours = scene.boardContours.find((entry) => entry.boardId === selectedBoardId)?.contours ?? [];
+          const assembly = await resolveMechanical(client.current!, project, contours, isCurrent);
+          if (!assembly) return;
+          setMechanicalAssembly({ context, result: assembly });
+          if (assembly.diagnostics.some((finding) => finding.severity === 'error')) {
+            setCasePreview(undefined);
+            return;
+          }
+          ir = assembly.case;
+        } else {
+          setMechanicalAssembly(undefined);
+        }
+        const result = await buildCasePreview(client.current!, caseClient.current, ir, isCurrent);
+        if (result && isCurrent()) {
+          setCasePreview({ context, result });
         }
       } catch (cause) {
-        if (sequence === caseSeq.current) {
+        if (isCurrent()) {
           setError(String(cause));
         }
       }
     }, 350);
 
-    return () => clearTimeout(timer);
-  }, [activeMode, ready, project, scene, selectedBoardId]);
+    return () => {
+      clearTimeout(timer);
+      if (sequence === caseSeq.current) caseSeq.current += 1;
+    };
+  }, [activeMode, ready, project, scene, selectedBoardId, mechanicalRefresh]);
 
   const requestModels = useCallback((definitionIds: string[], instances: Part[] = []) => {
     const document = projectRef.current;
@@ -649,6 +697,43 @@ function App() {
     });
   }
 
+  const requestMechanicalProfile = useCallback(async (definitionId: string, source: MechanicalBuiltinProfile, plateToPcb: number): Promise<MechanicalPartProfile> => {
+    if (!client.current) throw new Error('The core worker is not ready');
+    const reply = await client.current.request({ id: crypto.randomUUID(), kind: 'mechanical-profile', definitionId, source, plateToPcb });
+    if (reply.kind === 'error') throw new Error(reply.message);
+    if (reply.kind !== 'mechanical-profile') throw new Error('Expected a library mechanical profile');
+    return reply.profile;
+  }, []);
+
+  const extractMechanicalProfile = useCallback(async (source: string, mappings: MechanicalPurposeMapping[]): Promise<MechanicalExtraction> => {
+    const reply = await ensureExportClient().artifact({ kind: 'extract-mechanical', source, mappings, maxDeviationMm: 0.005 });
+    if (reply.kind === 'error') throw new Error(reply.error.message);
+    if (reply.kind !== 'extract-mechanical') throw new Error('Expected extracted mechanical geometry');
+    return reply.result;
+  }, []);
+
+  function exportMechanical(): void {
+    schedule(async () => {
+      const document = projectRef.current;
+      const resolved = committedScene.current;
+      const configuration = document.mechanical;
+      if (!configuration || configuration.boardId !== selectedBoardId) {
+        throw new Error('Enable a mechanical assembly for the selected board before export');
+      }
+      if (resolved.revision !== document.revision) throw new Error('The committed scene is still resolving');
+      const contours = resolved.boardContours.find((entry) => entry.boardId === configuration.boardId)?.contours ?? [];
+      const isCurrent = () => projectRef.current.id === document.id && projectRef.current.revision === document.revision;
+      caseClient.current ??= new CaseClient();
+      const exporter = ensureExportClient();
+      const files = await exportMechanicalAssembly({ document, contours, core: client.current!, cad: caseClient.current, exporter, isCurrent });
+      const entries = Object.keys(files).map((path, bufferIndex) => ({ path, bufferIndex }));
+      const packed = await exporter.archive({ kind: 'archive', request: { kind: 'pack-files', entries }, buffers: Object.values(files) });
+      if (!isCurrent()) throw new Error('The assembly changed during export; export the current revision again');
+      if (packed.reply.kind !== 'packed') throw new Error('Expected a mechanical assembly archive');
+      download(`${document.name}-mechanical.zip`, packed.reply.bytes, 'application/zip');
+    });
+  }
+
   const compileFootprints = useCallback(async (jobs: FootprintCompileJob[]) => {
     exportClient.current ??= new ExportClient();
     return exportClient.current.compile(jobs);
@@ -670,10 +755,17 @@ function App() {
   return <>
     {error && <div className="app-error" role="alert" onClick={() => setError('')}>{error}</div>}
     <Workbench
+      saveStatus={saveStatus}
+      projectSession={projectSession}
       document={project}
       scene={scene}
-      casePreview={casePreview && { revision: casePreview.revision, ...casePreview.mesh }}
-      caseBodies={casePreview?.bodies}
+      casePreview={visibleCasePreview && { revision: visibleCasePreview.revision, ...visibleCasePreview.mesh }}
+      caseBodies={visibleCasePreview?.bodies}
+      mechanicalAssembly={project.mechanical?.boardId === selectedBoardId ? visibleMechanicalAssembly : undefined}
+      onResolveMechanical={() => setMechanicalRefresh((value) => value + 1)}
+      onExportMechanical={exportMechanical}
+      onMechanicalProfile={requestMechanicalProfile}
+      onExtractMechanicalProfile={extractMechanicalProfile}
       componentPreviews={componentPreviews}
       libraryModelPreviews={libraryModelPreviews}
       libraryModelStatus={libraryModelStatus}

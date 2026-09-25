@@ -4,6 +4,7 @@ import type { Constraint } from "./Constraint";
 import type { Layout } from "./Layout";
 import type { Matrix } from "./Matrix";
 import type { MatrixSplayChange } from "./MatrixSplayChange";
+import type { MechanicalConfiguration } from "./MechanicalConfiguration";
 import type { Net } from "./Net";
 import type { OutlineFeature } from "./OutlineFeature";
 import type { Part } from "./Part";
@@ -11,4 +12,4 @@ import type { PartDefinition } from "./PartDefinition";
 import type { Position } from "./Position";
 import type { ProjectDoc } from "./ProjectDoc";
 
-export type EditOperation = { "kind": "move-parts", positions: Array<Position>, } | { "kind": "set-outline", feature: OutlineFeature, } | { "kind": "add-part", part: Part, boardId?: string, } | { "kind": "remove-matrix", id: string, } | { "kind": "remove-parts", ids: Array<string>, } | { "kind": "set-net", net: Net, } | { "kind": "set-case", body: CaseBody, } | { "kind": "set-matrix", matrix: Matrix, definitions?: Array<PartDefinition> | null, } | { "kind": "set-matrix-splay", matrixId: string, column: number, change: MatrixSplayChange, } | { "kind": "set-constraint", constraint: Constraint, } | { "kind": "create-mirrored-pair", left: Layout, right: Layout, matrix: Matrix, definitions?: Array<PartDefinition> | null, } | { "kind": "set-layout", layout: Layout, } | { "kind": "remove-constraint", id: string, } | { "kind": "replace-document", document: ProjectDoc, };
+export type EditOperation = { "kind": "set-mechanical", configuration: MechanicalConfiguration | null, } | { "kind": "move-parts", positions: Array<Position>, } | { "kind": "set-outline", feature: OutlineFeature, } | { "kind": "add-part", part: Part, boardId?: string, } | { "kind": "remove-matrix", id: string, } | { "kind": "remove-parts", ids: Array<string>, } | { "kind": "set-net", net: Net, } | { "kind": "set-case", body: CaseBody, } | { "kind": "set-matrix", matrix: Matrix, definitions?: Array<PartDefinition> | null, } | { "kind": "set-matrix-splay", matrixId: string, column: number, change: MatrixSplayChange, } | { "kind": "set-constraint", constraint: Constraint, } | { "kind": "create-mirrored-pair", left: Layout, right: Layout, matrix: Matrix, definitions?: Array<PartDefinition> | null, } | { "kind": "set-layout", layout: Layout, } | { "kind": "remove-constraint", id: string, } | { "kind": "replace-document", document: ProjectDoc, };

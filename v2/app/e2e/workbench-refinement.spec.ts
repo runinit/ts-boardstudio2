@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { configureMatrix } from './matrix-setup';
 import { expect, test } from '@playwright/test';
 import { strToU8, zipSync, unzipSync, strFromU8 } from 'fflate';
@@ -48,7 +49,7 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).not.toBeChecked();
   await expect(page.getByRole('treeitem', { name: 'Column 1 2 keys', exact: true })).toBeVisible();
   await expect(page.getByRole('treeitem', { name: 'Key 2.1 Empty slot', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 2.1', exact: true })).toBeVisible();
@@ -57,7 +58,7 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).toBeChecked();
   await expect(page.getByRole('treeitem', { name: 'Row 2 5 keys', exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Tree grouping' })).toHaveValue('row');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Select key, row 2, column 1', exact: true })).toHaveAttribute('transform', /rotate\(20\)/);
@@ -95,7 +96,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
 
 test('command controls remain fixed through zoom and pan and both themes persist', async ({ page }) => {
   await page.goto('/');
-  const scope = page.getByRole('button', { name: /^Select:/ });
+  const scope = page.getByRole('group', { name: 'Selection types' });
   const snap = page.getByRole('button', { name: 'Snap', exact: true });
   const beforeScope = await scope.boundingBox();
   const beforeSnap = await snap.boundingBox();
@@ -132,8 +133,7 @@ test('reopened legacy and transformed sparse matrices retain member alignment an
   await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
   await editNumber(page, 'Rotation °', '30');
   await expect.poll(async () => overlay.getAttribute('transform')).toBe(await page.getByRole('button', { name: /^SW7, MX switch/ }).getAttribute('transform'));
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Key', exact: true }).click();
+  await chooseScope(page, 'key');
   await page.getByRole('button', { name: /^SW15, MX switch/ }).click();
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(14);
@@ -167,8 +167,7 @@ test('generated overlays track rotation, mirroring, stagger and disabled slots',
   const overlay = page.getByRole('button', { name: 'Select key, row 1, column 2', exact: true });
   const part = page.getByRole('button', { name: /^SW2, MX switch/ });
   await expect.poll(async () => overlay.getAttribute('transform')).toBe(await part.getAttribute('transform'));
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Key', exact: true }).click();
+  await chooseScope(page, 'key');
   await part.click();
   await page.getByRole('checkbox', { name: 'Key enabled' }).click();
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).not.toBeChecked();
@@ -199,8 +198,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Add', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Objects', exact: true }).click();
-    await page.getByRole('button', { name: /^Select:/ }).click();
-    await page.getByRole('button', { name: 'Key', exact: true }).click();
+    await chooseScope(page, 'key');
     await page.getByRole('button', { name: 'Inspect', exact: true }).click();
     await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
     await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 1.1' })).toBeVisible();

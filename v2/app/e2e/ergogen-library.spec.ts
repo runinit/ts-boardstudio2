@@ -134,7 +134,7 @@ test('attaching a model to an unsaved generator definition stays within the work
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).first().click();
   await page.locator('summary').filter({ hasText: '3D model placement' }).click();
-  await page.getByRole('group', { name: '3D model placement' }).getByLabel('Attach STEP / WRL').first().setInputFiles({ name: 'switch.step', mimeType: 'model/step', buffer: Buffer.from('not a valid STEP model') });
+  await page.getByRole('group', { name: '3D model placement' }).getByLabel('Attach STEP / STL / WRL').first().setInputFiles({ name: 'switch.step', mimeType: 'model/step', buffer: Buffer.from('not a valid STEP model') });
   await expect(page.getByRole('textbox', { name: 'switch_3dmodel_filename' })).toHaveValue(/^boardstudio-asset:/);
   await expect(page.getByRole('button', { name: 'Apply generator settings' })).toBeEnabled();
   await page.getByRole('button', { name: 'Undo' }).click();

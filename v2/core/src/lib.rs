@@ -4,6 +4,8 @@ mod case;
 mod constraints;
 mod geometry;
 mod matrix;
+pub mod mechanical;
+mod mechanical_checks;
 pub mod model;
 mod script;
 mod validate;
@@ -139,6 +141,27 @@ impl CoreEngine {
             CoreRequest::Edit { id, command } => self.edit(id, command),
             CoreRequest::Undo { id } => self.history(id, History::Undo),
             CoreRequest::Redo { id } => self.history(id, History::Redo),
+            CoreRequest::MechanicalProfile {
+                id,
+                definition_id,
+                source,
+                plate_to_pcb,
+            } => match mechanical::builtin_profile(definition_id, source, plate_to_pcb) {
+                Ok(profile) => CoreReply::MechanicalProfile { id, profile },
+                Err(message) => CoreReply::Error {
+                    id,
+                    message,
+                    revision: self.document.revision,
+                },
+            },
+            CoreRequest::ResolveMechanical {
+                id,
+                document,
+                contours,
+            } => CoreReply::MechanicalResolved {
+                id,
+                assembly: mechanical::resolve(&document, &contours),
+            },
             CoreRequest::PrepareCase { id, ir } => match case::prepare(&ir) {
                 Ok(ir) => CoreReply::CasePrepared { id, ir },
                 Err(message) => CoreReply::Error {
@@ -814,6 +837,10 @@ fn apply(doc: &mut ProjectDoc, op: &EditOperation) -> Result<Vec<String>, String
                 }
             }
             Ok(vec![net.id.clone()])
+        }
+        EditOperation::SetMechanical { configuration } => {
+            doc.mechanical = configuration.clone();
+            Ok(vec![])
         }
         EditOperation::SetCase { body } => {
             if let Some(current) = doc.case_bodies.iter_mut().find(|item| item.id == body.id) {

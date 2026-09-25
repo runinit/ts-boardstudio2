@@ -135,3 +135,11 @@ for (const theme of ['dark', 'light'] as const) {
     await page.screenshot({ path: testInfo.outputPath(`${theme}-narrow-add.png`), animations: 'disabled' });
   });
 }
+
+ test('panel menu actions fill their menu instead of inheriting icon dimensions', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
+  const menu = page.locator('#wb-objects-options');
+  const action = page.getByRole('button', { name: 'Auto-hide objects', exact: true });
+  expect((await action.boundingBox())!.width).toBeGreaterThan((await menu.boundingBox())!.width - 20);
+});

@@ -8,6 +8,7 @@ import type { Constraint } from "./Constraint";
 import type { Layout } from "./Layout";
 import type { Material } from "./Material";
 import type { Matrix } from "./Matrix";
+import type { MechanicalConfiguration } from "./MechanicalConfiguration";
 import type { Net } from "./Net";
 import type { OutlineFeature } from "./OutlineFeature";
 import type { Part } from "./Part";
@@ -15,4 +16,4 @@ import type { PartDefinition } from "./PartDefinition";
 import type { Script } from "./Script";
 import type { JsonValue } from "./serde_json/JsonValue";
 
-export type ProjectDoc = { boardReferences?: Array<BoardReference>, assemblies?: Array<AssemblyDefinition>, format: "boardstudio/v2", id: string, name: string, revision: number, parameters: { [key in string]: JsonValue }, definitions: Array<PartDefinition>, parts: Array<Part>, matrices: Array<Matrix>, layouts?: Array<Layout>, nets: Array<Net>, outline: Array<OutlineFeature>, boards: Array<Board>, caseBodies: Array<CaseBody>, materials: Array<Material>, assets: Array<Asset>, scripts: Array<Script>, constraints: Array<Constraint>, };
+export type ProjectDoc = { mechanical?: MechanicalConfiguration, boardReferences?: Array<BoardReference>, assemblies?: Array<AssemblyDefinition>, format: "boardstudio/v2", id: string, name: string, revision: number, parameters: { [key in string]: JsonValue }, definitions: Array<PartDefinition>, parts: Array<Part>, matrices: Array<Matrix>, layouts?: Array<Layout>, nets: Array<Net>, outline: Array<OutlineFeature>, boards: Array<Board>, caseBodies: Array<CaseBody>, materials: Array<Material>, assets: Array<Asset>, scripts: Array<Script>, constraints: Array<Constraint>, };

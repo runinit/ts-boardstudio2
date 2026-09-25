@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   BoardReference,
   Contour,
+  MechanicalAssembly,
   PcbPreview,
   ProjectDoc,
 } from '@boardstudio/v2-contracts';
@@ -27,6 +28,9 @@ export function AssemblyViewer({
   boardId,
   contours,
   bodies = noBodies,
+  mechanical,
+  selectedLayer,
+  onSelectLayer,
   onSelect,
   colorScheme,
   sample = false,
@@ -35,6 +39,9 @@ export function AssemblyViewer({
   boardId: string;
   contours: Contour[];
   bodies?: AssemblyBody[];
+  mechanical?: MechanicalAssembly;
+  selectedLayer?: string;
+  onSelectLayer?: (id: string) => void;
   onSelect?: (reference: string) => void;
   colorScheme: 'light' | 'dark';
   sample?: boolean;
@@ -187,6 +194,10 @@ export function AssemblyViewer({
           board={board}
           models={models}
           bodies={bodies}
+          mechanical={mechanical}
+          mechanicalConfiguration={document.mechanical}
+          selectedLayer={selectedLayer}
+          onSelectLayer={onSelectLayer}
           reference={shownReference}
           colorScheme={colorScheme}
           onSelect={onSelect}

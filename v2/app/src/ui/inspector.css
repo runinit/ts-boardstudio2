@@ -10,7 +10,7 @@
 .wb-inspector-section > summary::before { content: ''; flex: 0 0 6px; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); margin-right: 4px; }
 .wb-inspector-section[open] > summary::before { transform: rotate(45deg); margin-top: -4px; }
 .wb-inspector-section > summary > span { min-width: 0; }
-.wb-inspector-section > summary small { margin-left: auto; max-width: 46%; color: var(--wb-muted); font-size: 11px; font-weight: 400; text-align: right; overflow-wrap: anywhere; }
+.wb-inspector-section > summary small { margin-left: auto; max-width: 46%; color: var(--wb-muted); font-size: var(--wb-type-label); font-weight: 400; text-align: right; overflow-wrap: anywhere; }
 .wb-inspector-section > summary:hover { color: var(--wb-accent); }
 .wb-inspector-section-body { display: grid; gap: 12px; min-width: 0; padding: 0 0 20px; }
 .wb-inspector-section-body > .wb-panel-rule { display: none; }
@@ -23,7 +23,7 @@
 .wb-inspector-content :is(.wb-coordinate, .wb-case-number, .wb-script-select-label, .wb-constraint-form > label) { font: 12px/1.4 var(--wb-body); }
 .wb-inspector-content :is(.wb-coordinate-input, .wb-case-number-input) { min-height: 34px; }
 .wb-inspector-content :is(.wb-coordinate-input input, .wb-case-number-input input) { font-size: 12px; }
-.wb-inspector-content :is(.wb-coordinate-input small, .wb-case-number-input small) { font-size: 11px; }
+.wb-inspector-content :is(.wb-coordinate-input small, .wb-case-number-input small) { font-size: var(--wb-type-label); }
 .wb-inspector-content :is(.wb-subtitle, .wb-script-select-label select, .wb-constraint-form select, .wb-matrix-diodes) { font-size: 12px; }
 .wb-inspector-content .wb-empty-note { margin: 0 0 16px; font-size: 12px; }
 .wb-inspector-content .wb-inspector-section-body .wb-empty-note { margin: 0; }
@@ -57,3 +57,41 @@
   .wb-inspector { --inspector-space: 18px; }
   .wb-inspector-content .wb-inspector-section > summary { min-height: 48px; }
 }
+
+/* Stable type roles across object, library, geometry and relation inspectors. */
+.wb-unified .wb-inspector-content { font-size: var(--wb-type-body); line-height: var(--wb-leading-ui); }
+.wb-unified .wb-inspector-content :is(label, .wb-coordinate, .wb-case-number, .wb-script-select-label, .wb-constraint-number) {
+  font: 500 var(--wb-type-label)/var(--wb-leading-ui) var(--wb-body);
+}
+.wb-unified .wb-inspector-content :is(input:where(:not([type='checkbox'], [type='range'], [type='file'])), select, textarea) {
+  font: 400 var(--wb-type-body)/var(--wb-leading-ui) var(--wb-body);
+}
+.wb-unified .wb-inspector-content :is(.wb-coordinate-input input, .wb-case-number-input input, .wb-constraint-number input, input[type='number']) {
+  font: 400 var(--wb-type-label)/var(--wb-leading-ui) var(--wb-mono);
+  font-variant-numeric: tabular-nums;
+}
+.wb-unified .wb-inspector-content :is(.wb-script-source-label textarea, .wb-generator-json textarea) {
+  font: var(--wb-type-label)/var(--wb-leading-copy) var(--wb-mono);
+}
+.wb-unified .wb-inspector-content :is(.wb-coordinate-input small, .wb-case-number-input small, .wb-subtitle small, .wb-part-title span, .wb-inspector-section > summary small) {
+  font: 400 var(--wb-type-label)/var(--wb-leading-ui) var(--wb-body);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.wb-unified .wb-inspector-content :is(.wb-subtitle, .wb-inspector-section > summary, .wb-definition-dimensions > strong, .wb-model-transforms h4) {
+  font: 600 var(--wb-type-body)/var(--wb-leading-ui) var(--wb-body);
+}
+.wb-unified .wb-inspector-content :is(.wb-empty-note, .wb-inspector-description, .wb-model-bound, .wb-constraint-note, .wb-keyboard-help, .wb-matrix-derived, .wb-definition-validation, .wb-definition-error, .wb-case-field-error, .wb-empty-state, .wb-case-empty p, .wb-findings li) {
+  font: 400 var(--wb-type-label)/var(--wb-leading-copy) var(--wb-body);
+  overflow-wrap: anywhere;
+}
+.wb-unified .wb-inspector-content :is(.wb-measure dt, .wb-empty-measure, .wb-layer small, .wb-export-row small, .wb-library-item small, .wb-pad-row, .wb-net-row) {
+  font-size: var(--wb-type-label);
+  line-height: var(--wb-leading-ui);
+}
+.wb-unified .wb-inspector-content :is(.wb-measure dd, .wb-empty-measure strong) {
+  font: 400 var(--wb-type-label)/var(--wb-leading-ui) var(--wb-mono);
+}
+.wb-unified .wb-inspector-content button { font-size: var(--wb-type-body); line-height: var(--wb-leading-ui); }
+.wb-unified .wb-inspector-content :is(.wb-part-title, .wb-selection-breadcrumb) { line-height: var(--wb-leading-copy); overflow-wrap: anywhere; }
+.wb-unified .wb-inspector-content .wb-constraint-number input { height: auto; min-height: 34px; padding-block: 6px; }

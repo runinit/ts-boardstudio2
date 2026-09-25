@@ -179,7 +179,7 @@ export async function runWorkbenchBenchmark(keys: Size, scope: Scope, captureSta
       if (reply.kind === 'matrix-projections') {
         throw new Error('Unexpected matrix projection reply during benchmark');
       }
-      if (reply.kind === 'case-prepared') {
+      if (reply.kind === 'mechanical-profile' || reply.kind === 'mechanical-resolved' || reply.kind === 'case-prepared') {
         throw new Error('Unexpected case preparation reply during edit benchmark');
       }
 
@@ -291,7 +291,7 @@ export async function runMatrixBenchmark(keys: Size, scope: 'matrix' | 'row' | '
       if (reply.kind === 'matrix-projections') {
         throw new Error('Unexpected matrix projection reply during benchmark');
       }
-      if (reply.kind === 'case-prepared') {
+      if (reply.kind === 'mechanical-profile' || reply.kind === 'mechanical-resolved' || reply.kind === 'case-prepared') {
         throw new Error('Unexpected case preparation reply during matrix benchmark');
       }
 
@@ -367,7 +367,7 @@ export async function preparePointerBenchmark(keys: Size): Promise<{ parts: numb
       if (reply.kind === 'matrix-projections') {
         throw new Error('Unexpected matrix projection reply during benchmark');
       }
-      if (reply.kind === 'case-prepared') {
+      if (reply.kind === 'mechanical-profile' || reply.kind === 'mechanical-resolved' || reply.kind === 'case-prepared') {
         throw new Error('Unexpected case preparation reply during pointer benchmark');
       }
 

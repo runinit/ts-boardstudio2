@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createInstance } from 'libcascade/single/init';
 import { buildAssembly, buildCase, readStepModel } from '../src/index.ts';
-import { prepareAssembly, prepareCase } from './native-prepare.mjs';
+import { prepareAssembly, prepareCase, resolveMechanical } from './native-prepare.mjs';
 
 const rawCase = async (ir) => buildCase(prepareCase(ir));
 const rawAssembly = async (ir) => buildAssembly(prepareAssembly(ir));
@@ -171,4 +171,132 @@ test('plate construction retains a deleted corner and authored cutout', async ()
   const measured = await inspectStep(result.step);
   assert.equal(result.revision, 12);
   assert.ok(Math.abs(measured.volume - (30 * 30 - 10 * 10 - 5 * 5) * 2) < 0.1);
+});
+
+
+test('generated mechanical plate and battery stack roundtrip with nominal dimensions', async () => {
+  const document = mechanicalDocument();
+  const contours = [{ hole: false, points: square(0, 40) }, { hole: true, points: square(12, 26) }];
+  const assembly = resolveMechanical(document, contours);
+  assert.deepEqual(assembly.nominalPlateContours, assembly.plateContours);
+  assert.deepEqual(assembly.plateContours.filter(contour => contour.hole), contours.filter(contour => contour.hole));
+  const outer = assembly.plateContours.find(contour => !contour.hole).points;
+  assert.ok(Math.abs(Math.min(...outer.map(point => point.x)) + 2.2) < 0.001);
+  const plate = assembly.case.bodies.find(body => body.body.id === 'plate');
+  assert.deepEqual(plate.contours, assembly.plateContours);
+  const plateResult = await rawCase(plate);
+  const plateShape = await inspectStep(plateResult.step);
+  assert.ok(Math.abs(plateShape.volume - (polygonArea(outer) - 196 - Math.PI) * 1.5) < 0.1);
+  const full = await rawAssembly(assembly.case);
+  const model = await readStepModel(full.step);
+  const bottom = assembly.stack.find(layer => layer.id === 'bottom');
+  assert.ok(Math.abs(model.bounds.min[2] - bottom.z) < 0.01);
+  assert.ok(Math.abs(model.bounds.max[2] - 5) < 0.01);
+  assert.equal(full.revision, 21);
+  assert.ok(full.bodies.length >= 4);
+});
+
+test('integrated plate lid has downward frame and exact side-access subtraction', async () => {
+  const contours = [{ hole: false, points: square(0, 40) }];
+  const body = { id: 'plate-frame', name: 'plate-frame', boardId: 'board', kind: 'lid', thickness: 1.5, clearance: 0, z: -5, wallHeight: 8.5, wallThickness: 2 };
+  const plain = await rawCase({ revision: 30, body, contours });
+  const plainShape = await inspectStep(plain.step);
+  assert.ok(Math.abs(plainShape.volume - (1600 * 1.5 + (1600 - 36 * 36) * 8.5)) < 0.1);
+  assert.ok(Math.abs(plainShape.minZ + 5) < 0.01);
+  assert.ok(Math.abs(plainShape.maxZ - 5) < 0.01);
+  const cut = await rawCase({ revision: 30, contours, body: { ...body, openings: [{
+    points: [{ x: 12, y: -1 }, { x: 22, y: -1 }, { x: 22, y: 3 }, { x: 12, y: 3 }], z: -2, height: 3,
+  }] } });
+  const cutShape = await inspectStep(cut.step);
+  assert.ok(Math.abs(plainShape.volume - cutShape.volume - 10 * 2 * 3) < 0.1);
+  const imported = await readStepModel(cut.step);
+  assert.ok(imported.mesh.positions.length > 0);
+  await assert.rejects(rawCase({ revision: 30, contours, body: { ...body, openings: [{ points: square(0, 2), z: 0, height: -1 }] } }), /opening/);
+});
+
+
+function polygonArea(points) {
+  return Math.abs(points.reduce((area, point, index) => {
+    const next = points[(index + 1) % points.length];
+    return area + point.x * next.y - next.x * point.y;
+  }, 0)) / 2;
+}
+
+function mechanicalDocument() {
+  return {
+    format: 'boardstudio/v2', id: 'mechanical', name: 'Mechanical', revision: 21,
+    parameters: {}, definitions: [], parts: [], matrices: [], constraints: [], nets: [],
+    outline: [], caseBodies: [], assets: [], materials: [], scripts: [],
+    boards: [{ id: 'board', name: 'Board', outlineIds: [], partIds: [], netIds: [], thickness: 1.6, traces: [], vias: [] }],
+    mechanical: { boardId: 'board', method: 'printed', mount: 'rigid', plateThickness: 1.5,
+      plateFoamThickness: 1, pcbThickness: 1.6, bottomFoamThickness: 0.5, batteryHeight: 3,
+      bottomThickness: 2, plateToPcb: 3.5, wallThickness: 2, clearance: 0.2, profiles: [],
+      mounts: [{ id: 'hole', kind: 'hole', at: { x: 5, y: 5 }, holeDiameter: 2, bossDiameter: 5 }],
+    },
+  };
+}
+
+
+test('resolved allowance, integrated frame and gasket assemblies retain fit geometry through STEP', async () => {
+  const contours = [{ hole: false, points: square(0, 40) }, { hole: true, points: square(12, 26) }];
+  const doc = mechanicalDocument();
+  doc.mechanical.openingAllowance = 0.2;
+  const adjusted = resolveMechanical(doc, contours);
+  const nominalOpening = adjusted.nominalPlateContours.find(contour => contour.hole);
+  const actualOpening = adjusted.plateContours.find(contour => contour.hole);
+  assert.ok(Math.abs(polygonArea(nominalOpening.points) - 196) < 0.001);
+  assert.ok(Math.abs(polygonArea(actualOpening.points) - 14.4 ** 2) < 0.1);
+  const plate = adjusted.case.bodies.find(body => body.body.id === 'plate');
+  assert.deepEqual(plate.contours, adjusted.plateContours);
+  const actual = await inspectStep((await rawCase(plate)).step);
+  const outer = plate.contours.find(contour => !contour.hole);
+  assert.ok(Math.abs(actual.volume - (polygonArea(outer.points) - polygonArea(actualOpening.points) - Math.PI) * 1.5) < 0.1);
+  const foam = adjusted.case.bodies.find(body => body.body.id === 'plate-foam');
+  assert.ok(foam.contours.some(contour => contour.hole && Math.abs(polygonArea(contour.points) - 196) < 0.001));
+  for (const mount of ['rigid', 'gasket']) {
+    doc.mechanical.openingAllowance = 0;
+    doc.mechanical.integratedPlateFrame = mount === 'rigid';
+    doc.mechanical.mount = mount;
+    doc.mechanical.gasketTravel = mount === 'gasket' ? 0.5 : undefined;
+    doc.mechanical.gasket = mount === 'gasket' ? { inset: 0.5, width: 1, depth: 0.5 } : undefined;
+    const resolved = resolveMechanical(doc, contours);
+    const plateBody = resolved.case.bodies.find(body => body.body.id === 'plate').body;
+    assert.equal(plateBody.kind, mount === 'rigid' ? 'lid' : 'plate');
+    if (mount === 'gasket') {
+      const bottom = resolved.case.bodies.find(body => body.body.id === 'bottom');
+      const gasket = resolved.case.bodies.find(body => body.body.id === 'gasket');
+      const ring = await inspectStep((await rawCase(gasket)).step);
+      const tray = await inspectStep((await rawCase(bottom)).step);
+      const plateShape = await inspectStep((await rawCase(resolved.case.bodies.find(body => body.body.id === 'plate'))).step);
+      assert.ok(Math.abs(tray.maxZ - 3.0) < 0.01, 'rigid rim stays below the plate');
+      assert.ok(Math.abs(ring.minZ - 2.5) < 0.01, 'gasket seats in the machined groove');
+      assert.ok(Math.abs(ring.maxZ - 3.5) < 0.01, 'gasket reaches plate underside');
+      assert.ok(Math.abs(plateShape.minZ - ring.maxZ) < 0.01, 'plate meets gasket without rigid rim contact');
+      assert.ok(ring.volume > 0);
+    }
+    const result = await rawAssembly(resolved.case);
+    const imported = await readStepModel(result.step);
+    assert.ok(imported.mesh.positions.length > 0);
+    assert.ok(Math.abs(imported.bounds.max[2] - 5) < 0.01);
+  }
+});
+
+test('component-local connector access transforms into a real side-wall opening', async () => {
+  const contours = [{ hole: false, points: square(0, 40) }];
+  const document = mechanicalDocument();
+  const original = resolveMechanical(document, contours);
+  const originalBottom = original.case.bodies.find(body => body.body.id === 'bottom');
+  document.parts = [{ id: 'connector', definitionId: 'connector', reference: 'J1', side: 'front', pose: { at: { x: 0, y: 20 }, rotation: 90 } }];
+  document.boards[0].partIds = ['connector'];
+  document.mechanical.profiles = [{ definitionId: 'connector', source: 'Explicit connector datasheet fixture', cutouts: [], plateToPcb: 3.5, openings: [{
+    points: [{ x: -5, y: -1 }, { x: 5, y: -1 }, { x: 5, y: 4 }, { x: -5, y: 4 }], z: -2, height: 3,
+  }] }];
+  const resolved = resolveMechanical(document, contours);
+  const bottom = resolved.case.bodies.find(body => body.body.id === 'bottom');
+  assert.equal(bottom.body.openings.length, 1);
+  assert.ok(Math.abs(bottom.body.openings[0].points[0].x - 1) < 0.001);
+  assert.ok(Math.abs(bottom.body.openings[0].points[0].y - 15) < 0.001);
+  const before = await inspectStep((await rawCase(originalBottom)).step);
+  const after = await inspectStep((await rawCase(bottom)).step);
+  assert.ok(Math.abs(before.volume - after.volume - 60) < 0.1);
 });

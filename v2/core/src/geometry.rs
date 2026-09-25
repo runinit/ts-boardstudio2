@@ -198,7 +198,9 @@ fn compose<'a>(
     let mut shapes: Shapes = vec![];
     let mut findings = vec![];
     let mut finishing = None;
+    let mut target_ids = Vec::new();
     for feature in features {
+        target_ids.push(feature.id().to_owned());
         if let OutlineFeature::PartEnvelope { settings, .. } = feature {
             finishing.get_or_insert(settings);
         }
@@ -264,7 +266,7 @@ fn compose<'a>(
             scope: Scope::Outline,
             message: "Outline becomes invalid at 0.001 mm precision; increase narrow features"
                 .into(),
-            target_ids: vec![],
+            target_ids: target_ids.clone(),
         });
     }
     if let Some(settings) = finishing {
@@ -272,7 +274,7 @@ fn compose<'a>(
             Ok((finished, reduced)) => {
                 shapes = finished;
                 if let Some(actual) = reduced {
-                    findings.push(Finding {id:"outline:corners:fitted".into(),severity:Severity::Warning,scope:Scope::Outline,message:format!("Corner size reduced from {} mm to as little as {:.3} mm to fit nearby edges",settings.size,actual),target_ids:vec![]});
+                    findings.push(Finding {id:"outline:corners:fitted".into(),severity:Severity::Warning,scope:Scope::Outline,message:format!("Corner size reduced from {} mm to as little as {:.3} mm to fit nearby edges",settings.size,actual),target_ids:target_ids.clone()});
                 }
             }
             Err(message) => findings.push(Finding {
@@ -280,7 +282,7 @@ fn compose<'a>(
                 severity: Severity::Error,
                 scope: Scope::Outline,
                 message,
-                target_ids: vec![],
+                target_ids: target_ids.clone(),
             }),
         }
     }
@@ -423,6 +425,26 @@ mod tests {
             });
         }
         doc
+    }
+
+    #[test]
+    fn finishing_findings_retain_outline_targets() {
+        let mut doc = fixture(1);
+        if let OutlineFeature::PartEnvelope { settings, .. } = &mut doc.outline[0] {
+            settings.size = 100.0;
+            settings.corners = crate::model::CornerStyle::Fillet;
+        }
+        let (cache, _, findings) = outlines(&doc, None, &[]);
+        let fitted = findings
+            .iter()
+            .find(|finding| finding.id == "outline:corners:fitted")
+            .expect("oversized corners should be fitted");
+        assert_eq!(fitted.target_ids, vec!["edge-0"]);
+        let (_, _, cached) = outlines(&doc, Some(&cache), &[]);
+        assert_eq!(
+            serde_json::to_value(findings).unwrap(),
+            serde_json::to_value(cached).unwrap()
+        );
     }
 
     #[test]

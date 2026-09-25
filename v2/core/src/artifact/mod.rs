@@ -1,9 +1,11 @@
 pub mod builtins;
 pub mod compile;
 pub mod kicad;
+pub mod mechanical_extract;
+mod mechanical_plate;
 pub mod outline;
-mod sexpr;
 mod preview;
+mod sexpr;
 mod source;
 mod source_geometry;
 
@@ -54,7 +56,44 @@ pub fn builtin_catalogue() -> Result<Vec<CompiledFootprint>, ArtifactError> {
 
 fn handle(request: ArtifactRequest) -> ArtifactReply {
     match request {
-        ArtifactRequest::PreviewBoard { id, source, revision } => match preview::board(&source, revision) {
+        ArtifactRequest::ExportMechanicalPlate {
+            id,
+            document,
+            contours,
+        } => match mechanical_plate::export(&document, &contours) {
+            Ok(result) => ArtifactReply::ExportMechanicalPlate { id, result },
+            Err(error) => ArtifactReply::Error { id, error },
+        },
+        ArtifactRequest::ExtractMechanical {
+            id,
+            source,
+            mappings,
+            max_deviation_mm,
+        } => {
+            match mechanical_extract::extract(&source, &mappings).and_then(|geometry| {
+                let plate_cutouts =
+                    mechanical_extract::plate_cutout_contours(&geometry, max_deviation_mm)?;
+                let clearance_envelopes =
+                    mechanical_extract::clearance_envelopes(&geometry, max_deviation_mm)?;
+                let pcb_holes = mechanical_extract::pcb_mounting_holes(&geometry)?;
+                let source_geometry = mechanical_extract::profile_source(&source, &mappings)?;
+                Ok(crate::model::MechanicalExtraction {
+                    geometry,
+                    plate_cutouts,
+                    clearance_envelopes,
+                    pcb_holes,
+                    source_geometry,
+                })
+            }) {
+                Ok(result) => ArtifactReply::ExtractMechanical { id, result },
+                Err(error) => ArtifactReply::Error { id, error },
+            }
+        }
+        ArtifactRequest::PreviewBoard {
+            id,
+            source,
+            revision,
+        } => match preview::board(&source, revision) {
             Ok(result) => ArtifactReply::PreviewBoard { id, result },
             Err(error) => ArtifactReply::Error { id, error },
         },

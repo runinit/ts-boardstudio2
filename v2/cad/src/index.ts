@@ -112,6 +112,10 @@ function makeRegion(oc: OpenCascadeInstance, body: PreparedCaseIR['body'], regio
     shape = cutShape(oc, shape, makeCylinder(oc, mount.at, baseZ, mount.holeDiameter, totalHeight));
   }
 
+  for (const opening of body.openings ?? []) {
+    shape = cutShape(oc, shape, makePrism(oc, opening.points, opening.z, opening.height));
+  }
+
   return shape;
 }
 

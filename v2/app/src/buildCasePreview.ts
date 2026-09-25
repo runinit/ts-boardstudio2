@@ -13,5 +13,7 @@ export async function buildCasePreview(
   if (!isCurrent()) return undefined;
 
   const result = await cad.request(prepared);
-  return isCurrent() ? result : undefined;
+  if (!isCurrent()) return undefined;
+  if (result.revision !== ir.revision) throw new Error('CAD returned a different case revision');
+  return result;
 }

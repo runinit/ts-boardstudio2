@@ -17,3 +17,11 @@ export function prepareCase(ir) {
   const prepared = prepareAssembly({ revision: ir.revision, bodies: [ir] });
   return prepared.bodies[0];
 }
+
+export function resolveMechanical(document, contours) {
+  const output = execFileSync(driver, { input: `${JSON.stringify({ id: 'mechanical-cad-test', kind: 'resolve-mechanical', document, contours })}\n`, encoding: 'utf8' });
+  const reply = JSON.parse(output);
+  if (reply.kind !== 'mechanical-resolved') throw new Error(reply.message ?? `Mechanical resolution failed: ${reply.kind}`);
+  if (reply.assembly.diagnostics.some(finding => finding.severity === 'error')) throw new Error(JSON.stringify(reply.assembly.diagnostics));
+  return reply.assembly;
+}

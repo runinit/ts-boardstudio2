@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../assets/fonts/source-sans-3-upright.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('../assets/fonts/source-code-pro-upright.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   --wb-selection-ink: #253EAC;
@@ -39,9 +55,18 @@
   --wb-geometry-graphic: #397568;
   --wb-geometry-zone: #ddebe5;
   --wb-geometry-text: #8E5AA5;
-  --wb-mono: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
-  --wb-body: 'Aptos', 'Segoe UI', sans-serif;
-  --wb-display: 'Aptos Display', 'Segoe UI', sans-serif;
+  --wb-mono: 'Source Code Pro', Consolas, monospace;
+  --wb-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --wb-display: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --wb-type-title: 23px;
+  --wb-type-body: 13px;
+  --wb-type-label: 12px;
+  --wb-leading-ui: 1.45;
+  --wb-leading-copy: 1.55;
+  --wb-motion-feedback: 120ms;
+  --wb-motion-reveal: 180ms;
+  --wb-motion-panel: 220ms;
+  --wb-ease-out: cubic-bezier(.16, 1, .3, 1);
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
@@ -101,7 +126,7 @@ body { overflow: hidden; }
   overflow: hidden;
   color: var(--wb-ink);
   background: var(--wb-paper);
-  font: 13px/1.4 var(--wb-body);
+  font: var(--wb-type-body)/var(--wb-leading-ui) var(--wb-body);
   font-feature-settings: 'tnum' 1;
   accent-color: var(--wb-accent);
 }
@@ -607,8 +632,7 @@ body { overflow: hidden; }
   .wb-inventory, .wb-inspector { position: fixed; bottom: 27px; }
   .wb-canvas-stage > .wb-selection-pills { right: 6px; }
 }
-/* Fit view leaves room for the fixed scope and snap controls. */
-.wb-root .wb-canvas { width: calc(100% - 64px); height: calc(100% - 56px); }
+/* Camera fitting reserves space for canvas controls without shrinking the SVG. */
 .wb-tree-actions > button { min-height: 30px; border: 1px solid var(--wb-rule-strong); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); cursor: pointer; }
 .wb-tree-actions > button:hover { background: var(--wb-selection-surface); }
 .wb-matrix-cell-actions select { min-height: 30px; padding: 4px 6px; border: 1px solid var(--wb-rule-strong); border-radius: 3px; color: var(--wb-ink); background: var(--wb-panel); }

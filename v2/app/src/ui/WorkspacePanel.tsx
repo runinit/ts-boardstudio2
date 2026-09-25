@@ -44,10 +44,11 @@ type Props = {
   onClose: () => void;
   toolbar?: React.ReactNode;
   primaryAction?: React.ReactNode;
+  options?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export function WorkspacePanel({ side, label, settings, compact, open, onClose, toolbar, primaryAction, children }: Props) {
+export function WorkspacePanel({ side, label, settings, compact, open, onClose, toolbar, primaryAction, options, children }: Props) {
   const name = side === 'left' ? 'objects' : 'inspector';
   const id = side === 'left' ? 'wb-inventory' : 'wb-inspector';
   const panel = useRef<HTMLElement>(null);
@@ -110,9 +111,12 @@ export function WorkspacePanel({ side, label, settings, compact, open, onClose, 
       onKeyDown={(event) => { if (event.key === 'Escape' && (compact || settings.mode !== 'pinned')) { event.stopPropagation(); if (compact) onClose(); setRevealed(false); (compact ? document.getElementById(`wb-${name}-toggle`) : rail.current)?.focus(); } }}>
       <div className="wb-panel-actions">
         <div className="wb-panel-toolbar">{toolbar ?? <span className="wb-panel-title">Inspect</span>}</div>
-        <div className="wb-panel-menu" ref={menu}>
+        <div className="wb-panel-menu" ref={menu} onKeyDown={(event) => {
+          if (menuOpen && event.key === 'Escape') { event.stopPropagation(); setMenuOpen(false); menu.current?.querySelector('button')?.focus(); }
+        }}>
           <button aria-label={`${side === 'left' ? 'Objects' : 'Inspector'} options`} aria-expanded={menuOpen} aria-controls={`wb-${name}-options`} title={`${side === 'left' ? 'Objects' : 'Inspector'} options`} onClick={() => setMenuOpen((current) => !current)}><MoreIcon /></button>
           {menuOpen && <div id={`wb-${name}-options`} className="wb-panel-menu-content" role="group" aria-label={`${side === 'left' ? 'Objects' : 'Inspector'} panel options`} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setMenuOpen(false); menu.current?.querySelector('button')?.focus(); } }}>
+            {options}
             {!compact && <button onClick={() => { setMenuOpen(false); setRevealed(true); settings.setMode(settings.mode === 'autohide' ? 'pinned' : 'autohide'); }}>{settings.mode === 'autohide' ? `Pin ${name}` : `Auto-hide ${name}`}</button>}
             <button onClick={collapse}>{compact ? `Close ${name}` : `Collapse ${name}`}</button>
           </div>}

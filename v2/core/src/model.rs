@@ -527,6 +527,8 @@ pub struct CopperVia {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct CaseBody {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub openings: Option<Vec<CaseOpening>>,
     pub id: String,
     pub name: String,
     #[serde(rename = "boardId")]
@@ -683,11 +685,23 @@ pub struct LayoutMirrorLink {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct ProjectDoc {
-    #[serde(rename = "boardReferences", default, skip_serializing_if = "Vec::is_empty")]
-    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<BoardReference>>", optional))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mechanical: Option<MechanicalConfiguration>,
+    #[serde(
+        rename = "boardReferences",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<Vec<BoardReference>>", optional)
+    )]
     pub board_references: Vec<BoardReference>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<AssemblyDefinition>>", optional))]
+    #[cfg_attr(
+        feature = "export-types",
+        ts(as = "Option<Vec<AssemblyDefinition>>", optional)
+    )]
     pub assemblies: Vec<AssemblyDefinition>,
     #[cfg_attr(feature = "export-types", ts(type = "\"boardstudio/v2\""))]
     pub format: String,
@@ -715,6 +729,7 @@ pub struct ProjectDoc {
 impl ProjectDoc {
     pub fn empty(id: &str, name: &str) -> Self {
         Self {
+            mechanical: None,
             board_references: vec![],
             assemblies: vec![],
             format: "boardstudio/v2".into(),
@@ -762,6 +777,9 @@ pub enum MatrixSplayChange {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum EditOperation {
+    SetMechanical {
+        configuration: Option<MechanicalConfiguration>,
+    },
     MoveParts {
         positions: Vec<Position>,
     },
@@ -1017,6 +1035,21 @@ pub struct MatrixColumnBasis {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreRequest {
+    #[serde(rename = "mechanical-profile")]
+    MechanicalProfile {
+        id: String,
+        #[serde(rename = "definitionId")]
+        definition_id: String,
+        source: MechanicalBuiltinProfile,
+        #[serde(rename = "plateToPcb")]
+        plate_to_pcb: f64,
+    },
+    #[serde(rename = "resolve-mechanical")]
+    ResolveMechanical {
+        id: String,
+        document: ProjectDoc,
+        contours: Vec<Contour>,
+    },
     Open {
         id: String,
         document: ProjectDoc,
@@ -1051,6 +1084,16 @@ pub enum CoreRequest {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreReply {
+    #[serde(rename = "mechanical-profile")]
+    MechanicalProfile {
+        id: String,
+        profile: MechanicalPartProfile,
+    },
+    #[serde(rename = "mechanical-resolved")]
+    MechanicalResolved {
+        id: String,
+        assembly: MechanicalAssembly,
+    },
     Preview {
         id: String,
         scene: SceneDelta,
@@ -1332,7 +1375,22 @@ pub struct OutlineExportRequest {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ArtifactRequest {
-    PreviewBoard { id: String, source: String, revision: u64 },
+    ExportMechanicalPlate {
+        id: String,
+        document: ProjectDoc,
+        contours: Vec<Contour>,
+    },
+    ExtractMechanical {
+        id: String,
+        source: String,
+        mappings: Vec<MechanicalPurposeMapping>,
+        max_deviation_mm: f64,
+    },
+    PreviewBoard {
+        id: String,
+        source: String,
+        revision: u64,
+    },
     CompileFootprints {
         id: String,
         jobs: Vec<FootprintCompileJob>,
@@ -1361,7 +1419,18 @@ pub enum ArtifactRequest {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ArtifactReply {
-    PreviewBoard { id: String, result: PcbPreview },
+    ExportMechanicalPlate {
+        id: String,
+        result: ExportArtifact,
+    },
+    ExtractMechanical {
+        id: String,
+        result: MechanicalExtraction,
+    },
+    PreviewBoard {
+        id: String,
+        result: PcbPreview,
+    },
     CompileFootprints {
         id: String,
         result: Vec<CompiledFootprint>,
@@ -1386,6 +1455,130 @@ pub enum ArtifactReply {
         id: String,
         error: ArtifactError,
     },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalPurpose {
+    ElectricalPcbMountingHole,
+    PlateCutout,
+    ClearanceEnvelope,
+    DrawingGuide,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalGeometryKind {
+    Line,
+    Arc,
+    Circle,
+    Rectangle,
+    Polygon,
+    Drill,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalPurposeMapping {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<MechanicalGeometryKind>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer: Option<String>,
+    pub purpose: MechanicalPurpose,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalDrillShape {
+    Circle,
+    Oval,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+#[serde(rename_all_fields = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub enum MechanicalShape {
+    Line {
+        start: Vec2,
+        end: Vec2,
+        width: Option<f64>,
+    },
+    Arc {
+        start: Vec2,
+        mid: Option<Vec2>,
+        end: Vec2,
+        angle_degrees: Option<f64>,
+        width: Option<f64>,
+    },
+    Circle {
+        center: Vec2,
+        end: Vec2,
+        width: Option<f64>,
+    },
+    Rectangle {
+        start: Vec2,
+        end: Vec2,
+        width: Option<f64>,
+    },
+    Polygon {
+        points: Vec<Vec2>,
+        width: Option<f64>,
+    },
+    Drill {
+        at: Vec2,
+        size: Vec2,
+        offset: Vec2,
+        rotation_degrees: f64,
+        shape: MechanicalDrillShape,
+        plated: Option<bool>,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalPrimitive {
+    pub id: String,
+    pub source_group_id: String,
+    pub kind: MechanicalGeometryKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer: Option<String>,
+    #[serde(default)]
+    pub layers: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purpose: Option<MechanicalPurpose>,
+    pub geometry: MechanicalShape,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalGeometry {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_name: Option<String>,
+    pub primitives: Vec<MechanicalPrimitive>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalExtraction {
+    pub geometry: MechanicalGeometry,
+    pub plate_cutouts: Vec<Vec<Vec2>>,
+    pub clearance_envelopes: Vec<Vec<Vec2>>,
+    pub pcb_holes: Vec<MechanicalPcbHole>,
+    pub source_geometry: MechanicalProfileSource,
 }
 
 /// Render-only projection of a KiCad board. All coordinates are millimetres, Y up.
@@ -1480,4 +1673,243 @@ pub struct CaseBodyMesh {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "lowercase")]
-pub enum AssemblyModelMode { Defaults, Custom }
+pub enum AssemblyModelMode {
+    Defaults,
+    Custom,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum PlateMethod {
+    PcbFr4,
+    Printed,
+    Cnc,
+    CutSheet,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalMount {
+    Tray,
+    Rigid,
+    Gasket,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalPartProfile {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_geometry: Option<MechanicalProfileSource>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pcb_holes: Option<Vec<MechanicalPcbHole>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clearance_volumes: Option<Vec<CaseOpening>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub openings: Option<Vec<CaseOpening>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clearances: Option<Vec<Vec<Vec2>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supported_thickness: Option<Vec2>,
+    pub definition_id: String,
+    pub source: String,
+    pub cutouts: Vec<Vec<Vec2>>,
+    pub plate_to_pcb: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalConfiguration {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hardware: Option<Vec<MechanicalHardwareSpecification>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub critical_fits: Option<Vec<MechanicalCriticalFit>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bottom_style: Option<MechanicalBottomStyle>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub middle_frame: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gasket_travel: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub openings: Option<Vec<CaseOpening>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub opening_allowance: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stabilizers: Option<Vec<MechanicalStabilizerOverride>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub part_processes: Option<Vec<MechanicalPartProcess>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gasket: Option<Gasket>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub closure_mounts: Option<Vec<Mount>>,
+    pub board_id: String,
+    #[serde(default)]
+    pub integrated_plate_frame: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub battery: Option<MechanicalBattery>,
+    #[serde(default)]
+    pub mounts: Vec<Mount>,
+    pub method: PlateMethod,
+    pub mount: MechanicalMount,
+    pub plate_thickness: f64,
+    pub plate_foam_thickness: f64,
+    pub pcb_thickness: f64,
+    pub bottom_foam_thickness: f64,
+    pub battery_height: f64,
+    pub bottom_thickness: f64,
+    pub plate_to_pcb: f64,
+    pub wall_thickness: f64,
+    pub clearance: f64,
+    pub profiles: Vec<MechanicalPartProfile>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalStackLayer {
+    pub id: String,
+    pub z: f64,
+    pub thickness: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalAssembly {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub pcb_reference: Option<CaseIR>,
+    pub suggested_mounts: Vec<Mount>,
+    pub nominal_plate_contours: Vec<Contour>,
+    pub revision: u64,
+    pub plate_contours: Vec<Contour>,
+    pub case: CaseAssemblyIR,
+    pub stack: Vec<MechanicalStackLayer>,
+    pub diagnostics: Vec<Finding>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalBattery {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub cable_width: Option<f64>,
+    pub size: Vec3,
+    pub at: Vec2,
+    pub cable_exit: Vec2,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalBuiltinProfile {
+    MxSwitch,
+    MxStab2u,
+    MxStab625u,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalPartProcess {
+    pub part_id: String,
+    pub method: PlateMethod,
+    pub material: String,
+    pub thickness: f64,
+    pub constraints_version: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalStabilizerKind {
+    None,
+    PcbMount,
+    PlateMount,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalStabilizerOverride {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<MechanicalPartProfile>,
+    pub part_id: String,
+    pub kind: MechanicalStabilizerKind,
+    pub units: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rotation: Option<f64>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct CaseOpening {
+    pub points: Vec<Vec2>,
+    pub z: f64,
+    pub height: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalProfileSource {
+    pub text: String,
+    pub sha256: String,
+    pub mappings: Vec<MechanicalPurposeMapping>,
+    pub source_ids: Vec<String>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalPcbHole {
+    pub source_id: String,
+    pub at: Vec2,
+    pub diameter: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "lowercase")]
+pub enum MechanicalBottomStyle {
+    Shell,
+    Sheet,
+}
+
+/// Manufacturing callout metadata; thread geometry is not modeled.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "export-types", ts(optional_fields))]
+pub struct MechanicalHardwareSpecification {
+    pub id: String,
+    pub part_id: String,
+    pub feature_id: String,
+    pub designation: String,
+    pub thread: String,
+    pub length: f64,
+    pub quantity: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tolerance: Option<String>,
+}
+
+/// A dimension between two document-space XY points, in millimetres.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalCriticalFit {
+    pub id: String,
+    pub part_id: String,
+    pub label: String,
+    pub from: Vec2,
+    pub to: Vec2,
+    pub tolerance: String,
+}

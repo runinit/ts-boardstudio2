@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { expect, test } from '@playwright/test';
 import { configureMatrix } from './matrix-setup';
 import { buildCase } from '../../cad/src/index';
@@ -68,8 +69,7 @@ test('row and column selections outline their full scope without selection circl
   const column = (await outline.boundingBox())!;
   expect(column.height).toBeGreaterThan(column.width * 2);
   await expect(page.locator('circle.wb-part-selection')).toHaveCount(0);
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Row', exact: true }).click();
+  await chooseScope(page, 'row');
   await expect(outline).toHaveAttribute('data-scope', 'row');
   const row = (await outline.boundingBox())!;
   expect(row.width).toBeGreaterThan(row.height * 3);

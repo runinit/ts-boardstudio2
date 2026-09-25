@@ -239,6 +239,19 @@ fn validate_body(ir: &CaseIR) -> Result<(), String> {
             }
         }
     }
+    for opening in body.openings.as_deref().unwrap_or_default() {
+        if !opening.z.is_finite()
+            || !opening.height.is_finite()
+            || opening.height <= 0.0
+            || opening.points.len() < 3
+            || opening.points.iter().any(|point| !valid_point(*point))
+            || area_float(&opening.points).abs() < 0.000001
+        {
+            return Err(format!(
+                "Case body '{id}' opening must have a finite polygon, Z and positive height"
+            ));
+        }
+    }
     for mount in body.mounts.as_deref().unwrap_or_default() {
         if !valid_point(mount.at) {
             return Err(format!(
@@ -489,6 +502,7 @@ mod tests {
         CaseIR {
             revision: 7,
             body: CaseBody {
+                openings: None,
                 id: "case-a".into(),
                 name: "Case A".into(),
                 board_id: "board-a".into(),

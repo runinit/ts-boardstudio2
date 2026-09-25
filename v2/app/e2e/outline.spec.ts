@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { configureMatrix } from './matrix-setup';
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -100,8 +101,7 @@ test('part inclusion and margin controls survive save and affect the contour', a
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   const key = page.getByRole('button', { name: /^SW1, MX switch/ });
   await key.click();
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Part', exact: true }).click();
+  await chooseScope(page, 'component');
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Use board margin', { exact: true }).click();
   await expect(page.getByLabel('Use board margin', { exact: true })).not.toBeChecked();
@@ -148,14 +148,12 @@ test('deleted matrix corners remain empty after resizing and rotation follows th
   await configureMatrix(page);
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Key', exact: true }).click();
+  await chooseScope(page, 'key');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(58);
   await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Matrix', exact: true }).click();
+  await chooseScope(page, 'matrix');
   const columns = page.getByRole('spinbutton', { name: /Columns/ });
   await columns.fill('6');
   await columns.blur();
@@ -178,8 +176,7 @@ test('definition keycaps update the outline and per-instance overrides can be re
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   await expect.poll(async () => contains(await contours(page), { x: -18, y: 0 })).toBe(true);
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Part', exact: true }).click();
+  await chooseScope(page, 'component');
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Keycap width', { exact: true }).fill('18');
   await page.getByLabel('Keycap width', { exact: true }).blur();

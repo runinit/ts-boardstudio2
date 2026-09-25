@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { configureMatrix } from './matrix-setup';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -179,13 +180,13 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await expect(page.locator('.wb-net-list')).toContainText('_COL0');
   await page.getByRole('tab', { name: 'Design' }).click();
 
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Expand Row 1' }).click();
   const row = page.getByRole('treeitem', { name: /^Row 1/ });
   await row.click();
-  await expect(page.getByRole('button', { name: 'Select: Row', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Select row', exact: true })).toBeVisible();
   const firstCell = page.getByRole('button', { name: 'Select key, row 1, column 1' });
   const before = await firstCell.getAttribute('transform');
   await expect(page.locator('.wb-stagger-handle').first()).toBeHidden();
@@ -197,8 +198,7 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('treeitem', { name: /^Key 1\.1/ }).click();
   await page.getByRole('combobox', { name: 'Key Assembly' }).selectOption('choc-switch');
   await expect(page.getByRole('combobox', { name: 'Key Assembly' })).toHaveValue('choc-switch');
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Matrix', exact: true }).click();
+  await chooseScope(page, 'matrix');
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('mx-hotswap-rgb');
   await page.getByRole('button', { name: 'Apply preset' }).click();
@@ -209,8 +209,8 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await canvas.hover();
   await page.mouse.wheel(0, -360);
   await expect(zoom).not.toHaveText('100%');
-  await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(zoom).toHaveText('100%');
+  await page.getByRole('button', { name: 'Fit board' }).click();
+  await expect(zoom).toHaveText(/\d+%/);
 });
 
 test('canvas drags follow the selected matrix, row, and column scope', async ({ page }) => {
@@ -233,19 +233,16 @@ test('canvas drags follow the selected matrix, row, and column scope', async ({ 
   const switch6 = page.getByRole('button', { name: /^SW6, MX switch/ });
 
   const switch2Before = await switch2.getAttribute('aria-label');
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Matrix', exact: true, pressed: true }).click();
+  await chooseScope(page, 'matrix');
   await drag(switch1);
   await expect(switch2).not.toHaveAttribute('aria-label', switch2Before!);
 
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Row', exact: true }).click();
+  await chooseScope(page, 'row');
   const switch2RowBefore = await switch2.getAttribute('aria-label');
   await drag(switch1);
   await expect(switch2).not.toHaveAttribute('aria-label', switch2RowBefore!);
 
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Column', exact: true }).click();
+  await chooseScope(page, 'column');
   const switch6Before = await switch6.getAttribute('aria-label');
   await drag(switch6);
   await expect(switch6).not.toHaveAttribute('aria-label', switch6Before!);
@@ -273,19 +270,17 @@ test('row and column scope drags follow the key under the pointer', async ({ pag
   const switch8 = page.getByRole('button', { name: /^SW8, MX switch/ });
   const row1Before = await switch2.getAttribute('aria-label');
 
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Row', exact: true }).click();
+  await chooseScope(page, 'row');
   const row4Before = await switch17.getAttribute('aria-label');
   await drag(switch16);
   await expect(switch17).not.toHaveAttribute('aria-label', row4Before!);
   await expect(switch2).toHaveAttribute('aria-label', row1Before!);
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('treeitem', { name: /^Row 4/ })).toHaveAttribute('aria-selected', 'true');
 
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Column', exact: true }).click();
+  await chooseScope(page, 'column');
   const column3Before = await switch8.getAttribute('aria-label');
   await drag(switch3);
   await expect(switch8).not.toHaveAttribute('aria-label', column3Before!);
@@ -332,19 +327,19 @@ test('matrix rows and columns are nested beneath their matrix in the CAD tree', 
   await expect(column).toHaveAttribute('aria-level', '4');
   const matrixPadding = Number.parseFloat((await matrix.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
   const columnPadding = Number.parseFloat((await column.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
   await page.keyboard.press('Escape');
   await expect(row).toHaveAttribute('aria-level', '4');
   const rowPadding = Number.parseFloat((await row.evaluate((element) => getComputedStyle(element.parentElement!).paddingLeft)));
   expect(rowPadding).toBeGreaterThan(matrixPadding);
   expect(columnPadding).toBe(rowPadding);
-  await page.getByRole('button', { name: /^Select:/ }).click();
+  await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('column');
   await page.keyboard.press('Escape');
   await column.click();
   await expect(column).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('button', { name: 'Select: Column', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Select column', exact: true })).toBeVisible();
 });
 
 test('matrix diode direction is editable and survives matrix edits', async ({ page }) => {
@@ -401,8 +396,15 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
   await page.mouse.up();
   await page.keyboard.up('Space');
   await expect.poll(() => canvas.getAttribute('viewBox')).not.toBe(initialView);
-  await page.getByRole('button', { name: 'Fit view' }).click();
-  await expect(page.locator('.wb-footer-zoom span')).toHaveText('100%');
+  await page.getByRole('button', { name: 'Fit board' }).click();
+  const fittedOutline = await page.locator('.wb-outline-shape').boundingBox();
+  const fittedCanvas = await canvas.boundingBox();
+  expect(fittedOutline).not.toBeNull();
+  expect(fittedCanvas).not.toBeNull();
+  expect(fittedOutline!.x).toBeGreaterThanOrEqual(fittedCanvas!.x);
+  expect(fittedOutline!.y).toBeGreaterThanOrEqual(fittedCanvas!.y);
+  expect(fittedOutline!.x + fittedOutline!.width).toBeLessThanOrEqual(fittedCanvas!.x + fittedCanvas!.width);
+  expect(fittedOutline!.y + fittedOutline!.height).toBeLessThanOrEqual(fittedCanvas!.y + fittedCanvas!.height);
 });
 
 test('previews a library footprint and keeps generator geometry in sync', async ({ page }) => {
@@ -555,8 +557,7 @@ test('shows attached STEP components in the 3D case preview', async ({ page }) =
 test('propagates a linked layout constraint during a source move', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /^SW2, MX switch/ }).click();
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Part', exact: true }).click();
+  await chooseScope(page, 'component');
   await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
   await page.getByRole('combobox', { name: 'Constraint source part' }).selectOption({ label: 'SW1' });
   await page.getByRole('spinbutton', { name: 'Offset X (mm)' }).fill('25');

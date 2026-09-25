@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { expect, test } from '@playwright/test';
 
 test('canvas wheel zoom keeps the page fixed', async ({ page }) => {
@@ -26,8 +27,7 @@ test('inspector fits a narrow effective viewport without horizontal scroll', asy
   await page.setViewportSize({ width: 1024, height: 576 });
   await page.goto('/');
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Part', exact: true }).click();
+  await chooseScope(page, 'component');
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.locator('summary').filter({ hasText: 'Layout constraint' }).click();
 

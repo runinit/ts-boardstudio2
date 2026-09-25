@@ -82,37 +82,42 @@ colors:
   dark-geometry-text: '#B98CD1'
 typography:
   preview-title:
-    fontFamily: '''Aptos Display'', ''Segoe UI'', sans-serif'
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
     fontSize: 20px
     fontWeight: 600
   inspector-title:
-    fontFamily: '''Aptos Display'', ''Segoe UI'', sans-serif'
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
     fontSize: 23px
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: -0.015em
   section:
-    fontFamily: '''Aptos'', ''Segoe UI'', sans-serif'
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
     fontSize: 13px
     fontWeight: 600
-    lineHeight: 1.4
+    lineHeight: 1.45
   body:
-    fontFamily: '''Aptos'', ''Segoe UI'', sans-serif'
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
     fontSize: 13px
     fontWeight: 400
-    lineHeight: 1.4
+    lineHeight: 1.45
     fontFeature: '''tnum'' 1'
   field:
-    fontFamily: '''Aptos'', ''Segoe UI'', sans-serif'
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
+    fontSize: 12px
+    fontWeight: 500
+    lineHeight: 1.45
+  supporting:
+    fontFamily: '''Source Sans 3'', ''Segoe UI'', sans-serif'
     fontSize: 12px
     fontWeight: 400
-    lineHeight: 1.4
+    lineHeight: 1.55
   measurement:
-    fontFamily: '''SFMono-Regular'', ''Cascadia Code'', Consolas, monospace'
+    fontFamily: '''Source Code Pro'', Consolas, monospace'
     fontSize: 12px
     fontWeight: 400
   metadata:
-    fontFamily: '''SFMono-Regular'', ''Cascadia Code'', Consolas, monospace'
+    fontFamily: '''Source Code Pro'', Consolas, monospace'
     fontSize: 10px
     fontWeight: 400
 rounded:
@@ -337,19 +342,23 @@ These checks do not certify every composited state, geometry layer, or 3D materi
 
 ## Typography
 
-The body stack is Aptos, Segoe UI, then sans-serif; headings begin with Aptos
-Display. Font availability varies by machine, so these are fallback stacks,
-not bundled-font guarantees. Measurements use SFMono-Regular, Cascadia Code,
-Consolas, then monospace. Tabular numerals are enabled on the workbench root.
+Source Sans 3 is the bundled face for headings, panes, menus, and controls.
+Its open forms and compact proportions keep dense labels readable without
+changing the workbench's palette or hierarchy. Source Code Pro is reserved for
+measurements, code, and canvas technical labels. Tabular numerals are enabled
+on the workbench root.
 
-- Preview titles use 20px; selected inspector titles use 23px, increasing to
-  26px at 1440px. Body text and disclosures use 13px at the normal density.
-- At 1440px, command labels and fields use 16px, disclosure headings 17px,
-  context 15–16px, and navigator labels 16px.
-- Inspector fields normally use 12px. Wide inspector number values use the body
-  stack at 16px; canvas technical labels and revision tags remain monospaced.
-- Compact metadata uses 10–11px. Case preview metadata uses 12–13px;
-  smaller legacy footprint labels are not the default for new controls.
+Both upright variable WOFF2 fonts are self-hosted, use `font-display: swap`, and
+are included in the generated offline cache. The main UI face is preloaded;
+monospace loads on demand. Segoe UI/sans-serif and Consolas/monospace remain
+fallbacks. Source provenance and checksums live in `app/src/assets/fonts/README.md`;
+SIL OFL licenses ship in `app/public/licenses/fonts/`.
+
+- Preview titles use 20px and selected inspector titles use 23px.
+- Section headings, actions, and control values use 13px; field labels and
+  supporting text use 12px, with measurements in Source Code Pro.
+- Pane and menu type roles stay fixed across viewport widths; browser zoom
+  controls the overall scale.
 
 **The Measurement Rule.** Keep values and units aligned, use tabular numerals,
 and keep precise values available alongside direct manipulation.
@@ -541,3 +550,47 @@ an entrance-animation system.
 - Don't spread geometry colors across unrelated panel backgrounds.
 - Don't copy the documented contrast and status-indicator defects into new components.
 - Don't present a saved screenshot or this document as proof of current accessibility compliance.
+
+### Workbench typography
+
+Keep pane and menu roles stable across viewport widths: 23px inspector titles,
+13px semibold section headings and actions, 13px control values, and 12px field
+labels and supporting copy. This dense editing interface uses a 1.45 UI line
+height and 1.55 for help text in narrow panes. Use the bundled Source Sans 3 and Source Code Pro font
+stacks; use monospace for measurements and code, not ordinary labels. Tree
+references do not shrink to make room for secondary descriptions; truncated
+names expose their full text on hover. Browser zoom remains available.
+
+### Workbench motion
+
+Command options reveal from the pill's attached edge over 180ms. Project and
+panel menus use a shorter crop with the same decelerating curve. Disclosure
+chevrons turn with their state; hover and selection colors settle over 120ms.
+Side panes enter over 220ms and exit over 120ms, remaining inert when hidden.
+Menu dismissal and canvas geometry changes remain immediate. No loops,
+page-load choreography, layout-size animation, or animation dependency is used.
+
+Reduced motion removes pane travel and chevron transitions, substitutes a brief
+80ms opacity change for menu reveals, and retains color feedback.
+
+### Workbench controls and review
+
+Desktop selection uses the five scope shortcuts; at widths of 1050px and below,
+one labeled selector takes their place. Rows/Columns tree grouping belongs in
+Objects options. Panel menu actions occupy full-width rows, and Escape closes
+the menu without changing the canvas selection.
+
+Compact headers retain the active board name and a focusable local-save status.
+The status follows actual storage writes; a failed write must not show as saved.
+Undo, Redo, and Export remain available as labeled Project menu actions when
+the compact header hides their desktop buttons.
+
+Findings name their severity and affected target, consolidate matching board and
+outline reports, and offer navigation when the target still exists. Corner-fit
+warnings describe the resulting smaller corners without making fabrication
+claims. Unresolved targets retain the diagnostic without a dead action.
+
+Fit board and Fit selection sit beside zoom. Fitting includes transformed part
+and keycap bounds, reserves room for canvas controls, and uses empty default
+bounds only when no geometry exists. Selecting a half in the tree selects its
+matrices and components for inspection with Fit selection.

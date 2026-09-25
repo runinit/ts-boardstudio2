@@ -67,3 +67,10 @@ test('a late CAD reply cannot replace a newer completed preview', async () => {
   expect(visible).toEqual(result(2));
   expect(requests).toHaveBeenCalledTimes(2);
 });
+
+test('rejects a CAD payload tagged with a different captured revision', async () => {
+  const { core, cad } = harness();
+  core.request.mockResolvedValue({ id: 'prepare', kind: 'case-prepared', ir: prepared(7) });
+  cad.request.mockResolvedValue(result(6));
+  await expect(buildCasePreview(core as never, cad as never, input(7), () => true)).rejects.toThrow('CAD returned a different case revision');
+});

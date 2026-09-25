@@ -919,6 +919,7 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
         vias: vec![],
     });
     doc.case_bodies.push(CaseBody {
+        openings: None,
         id: "case".into(),
         name: "Case".into(),
         board_id: "board".into(),
@@ -1072,6 +1073,7 @@ fn case_readiness_uses_its_board() {
         vias: vec![],
     });
     doc.case_bodies.push(CaseBody {
+        openings: None,
         id: "case".into(),
         name: "Case".into(),
         board_id: "case-board".into(),
@@ -1122,6 +1124,7 @@ fn case_mounts_walls_and_gasket_are_validated() {
         vias: vec![],
     });
     doc.case_bodies.push(CaseBody {
+        openings: None,
         id: "tray".into(),
         name: "Tray".into(),
         board_id: "board".into(),

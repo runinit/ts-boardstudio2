@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -50,9 +51,8 @@ test('origin changes preserve positions, splay is undoable and saved', async ({ 
 test('labeled commands expose scope, snap and context actions with focus recovery', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 3 3 keys', exact: true }).click();
-  await page.getByRole('button', { name: 'Select: Column', exact: true }).click();
-  await page.getByRole('button', { name: 'Key', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Select: Key', exact: true })).toBeFocused();
+  await chooseScope(page, 'key');
+  await expect(page.getByRole('button', { name: 'Select key', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Snap', exact: true }).click();
   await page.getByRole('combobox', { name: 'Snap increment' }).selectOption('0');
   await page.getByRole('checkbox', { name: 'Geometry snap', exact: true }).uncheck();
@@ -108,8 +108,7 @@ test('origin and splay handles preview, cancel and commit as one undo step', asy
 test('row properties expose row offsets without column stagger settings', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 3 3 keys', exact: true }).click();
-  await page.getByRole('button', { name: /^Select:/ }).click();
-  await page.getByRole('button', { name: 'Row', exact: true }).click();
+  await chooseScope(page, 'row');
   await expect(page.getByRole('spinbutton', { name: 'Offset X mm', exact: true })).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Stagger mm', exact: true })).toHaveCount(0);
 });

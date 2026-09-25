@@ -50,8 +50,8 @@ export const WorkbenchTree = ({ entries }: { entries: TreeEntry[] }) => {
           {entry.expandable ? <button className="wb-tree-disclosure" aria-label={`${entry.expanded ? 'Collapse' : 'Expand'} ${entry.label}`} aria-expanded={entry.expanded} onClick={entry.onToggle}>{entry.expanded ? '⌄' : '›'}</button> : <span className="wb-tree-spacer" />}
           <button className="wb-tree-select" role="treeitem" aria-level={entry.level + 1} aria-description={entry.onKeyDown ? 'Arrow keys move 0.1 mm; Shift+Arrow moves 1 mm. Delete removes the selection.' : undefined} aria-selected={entry.selected} aria-expanded={entry.expandable ? entry.expanded : undefined} onClick={entry.onSelect} onKeyDown={entry.onKeyDown}>
           <span className={`wb-tree-kind is-${entry.kind}`} aria-hidden="true"><TreeGlyph kind={entry.kind} /></span>
-            <span className="wb-tree-label">{entry.label}</span>
-            {entry.detail && <small>{entry.detail}</small>}
+            <span className="wb-tree-label" title={entry.label}>{entry.label}</span>
+            {entry.detail && <small title={entry.detail}>{entry.detail}</small>}
           </button>
         </div>;
       })}
