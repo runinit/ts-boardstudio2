@@ -1,0 +1,68 @@
+{
+  "repository": "https://github.com/ebastler/marbastlib",
+  "revision": "6b0a9a73f579e377816d60b58eac2b3252de7868",
+  "revisionDate": "2026-03-22",
+  "license": "CERN-OHL-P-2.0",
+  "licenseFile": "LICENSE",
+  "entries": [
+    {
+      "file": "SW_MX_1u.kicad_mod",
+      "sourcePath": "footprints/marbastlib-mx.pretty/SW_MX_1u.kicad_mod",
+      "sha256": "29c925516d79215884d1a89fc53250cd6c4899131e405af94966a74169fe4f19",
+      "status": "stable",
+      "mapping": {
+        "Eco2.User": "switch plate opening",
+        "Dwgs.User": "switch spacing guide",
+        "np_thru_hole": "electrical PCB mounting holes; not plate openings"
+      }
+    },
+    {
+      "file": "STAB_MX_2u.kicad_mod",
+      "sourcePath": "footprints/marbastlib-mx.pretty/STAB_MX_2u.kicad_mod",
+      "sha256": "e6dbfefba073f23abe8a003656cee4d54d051cb21535850f3332c651f54c9bfc",
+      "status": "stable",
+      "mapping": {
+        "Eco2.User": "two stabilizer plate openings",
+        "Dwgs.User": "stabilizer placement guide",
+        "np_thru_hole": "PCB-mounted stabilizer holes; not plate openings"
+      }
+    },
+    {
+      "file": "STAB_MX_6.25u.kicad_mod",
+      "sourcePath": "footprints/marbastlib-mx.pretty/STAB_MX_6.25u.kicad_mod",
+      "sha256": "c0ddbafba01affa537638cd7ddec12c17ec0ea15c1e1436886f0a3d7b67a2d4d",
+      "status": "stable",
+      "mapping": {
+        "Eco2.User": "two stabilizer plate openings",
+        "Dwgs.User": "stabilizer placement guide",
+        "np_thru_hole": "PCB-mounted stabilizer holes; not plate openings"
+      }
+    },
+    {
+      "file": "Plate_MX_1u.kicad_mod",
+      "sourcePath": "footprints/marbastlib-xp-plate-mx.pretty/Plate_MX_1u.kicad_mod",
+      "sha256": "62911d74926f52abf4d75349cb6286b68944306aa8af30db76cd4b730d0eb5fd",
+      "status": "experimental-reference-only",
+      "defaultEligible": false,
+      "mapping": {
+        "Edge.Cuts": "experimental FR4 plate switch opening",
+        "Dwgs.User": "switch spacing guide"
+      }
+    }
+  ],
+  "caveats": [
+    "Marbastlib stable STAB_MX and STAB_MX_P entries are both PCB-mounted; P denotes plated screw holes.",
+    "Marbastlib does not provide a stable dedicated plate-mounted MX stabilizer footprint.",
+    "No single combined switch/stabilizer footprint is represented here; upstream describes stabilizer footprints as add-ons placed with switch footprints.",
+    "Standalone FR4 plate footprints are in the upstream xp experimental library and are not defaults without separate validation."
+  ],
+  "supplierReference": {
+    "name": "JLCPCB",
+    "url": "https://jlcpcb.com/capabilities/Capab",
+    "minimumNonPlatedHoleMm": 0.5,
+    "minimumNonPlatedSlotWidthMm": 1.0,
+    "nonPlatedSlotToleranceMm": "±0.2",
+    "sharpCornerRectangularSlotsSupported": false,
+    "routedCopperClearanceMm": 0.2
+  }
+}

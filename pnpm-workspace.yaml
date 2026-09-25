@@ -1,10 +1,9 @@
 packages:
   - app
-  - engine
-  - footprints
-  - v2/*
+  - contracts
+  - kicad
+  - ergogen
+  - cad
 
 allowBuilds:
-  core-js: true
-  core-js-pure: true
   esbuild: true

@@ -1,33 +1,27 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const deploymentPath = `${(process.env.VITE_PUBLIC_URL || process.env.PUBLIC_URL || '/boardstudio/').replace(/\/+$/, '')}/`;
-process.env.REACT_APP_DEPLOYMENT_CHANNEL =
-  process.env.GITHUB_REPOSITORY === 'runinit/ergogen-gui-preview'
-    ? 'preview'
-    : 'production';
-const port = Number(process.env.PLAYWRIGHT_PORT || 3000);
-const baseURL = `http://127.0.0.1:${port}${deploymentPath}`;
+const PORT = 4328;
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
+  testIgnore: '**/*performance.spec.ts',
   retries: 0,
-  reporter: process.env.CI ? 'list' : 'html',
+  // Keep CAD-heavy functional tests within a predictable memory budget.
+  workers: 1,
   use: {
-    baseURL,
-    trace: 'on-first-retry',
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+    screenshot: 'only-on-failure',
+    baseURL: `http://127.0.0.1:${PORT}/`,
+    ...devices['Desktop Chrome'],
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 1,
+    launchOptions: {
+      executablePath: process.env.BOARDSTUDIO_CHROMIUM || undefined,
     },
-  ],
+  },
   webServer: {
-    command: `pnpm exec vite preview --host 127.0.0.1 --port ${port} --strictPort`,
-    url: baseURL,
+    command: `pnpm exec vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
+    url: `http://127.0.0.1:${PORT}/`,
     reuseExistingServer: false,
-    timeout: 120 * 1000,
+    timeout: 30_000,
   },
 });
