@@ -86,8 +86,8 @@ export function generatorDraft(definition: PartDefinition, edits: GeneratorEdits
         if (!/3dmodel_filename$/iu.test(key) || typeof value !== 'string' || !value.trim()) continue;
         const assetId = modelAssetId(value);
         const filename = assetId ? assets.get(assetId) ?? bundledModel(assetId)?.filename : undefined;
-        if (!assetId || !filename || !/\.(step|stp|wrl)$/iu.test(filename)) {
-          throw new Error(`${key.replaceAll('_', ' ')} must reference a bundled model or an attached STEP / WRL file.`);
+        if (!assetId || !filename || !/\.(step|stp|stl|wrl)$/iu.test(filename)) {
+          throw new Error(`${key.replaceAll('_', ' ')} must reference a bundled model or an attached STEP / STL / WRL file.`);
         }
       }
       ergogenGeometry(renderErgogen(draft));

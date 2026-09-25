@@ -34,9 +34,14 @@ describe('Ergogen generator settings', () => {
 
   it('rejects an unsupported model filename and invalid keycap dimensions', () => {
     const definition = catalogue().find((item) => item.generator?.source === 'ceoloide/switch_mx')!;
-    expect(generatorDraft(definition, { switch_3dmodel_filename: 'missing.step' }).error).toMatch(/bundled model or an attached STEP \/ WRL/u);
-    expect(generatorDraft(definition, { switch_3dmodel_filename: 'boardstudio-asset:local' }, new Map([['local', 'model.obj']])).error).toMatch(/bundled model or an attached STEP \/ WRL/u);
+    expect(generatorDraft(definition, { switch_3dmodel_filename: 'missing.step' }).error).toMatch(/bundled model or an attached STEP \/ STL \/ WRL/u);
+    expect(generatorDraft(definition, { switch_3dmodel_filename: 'boardstudio-asset:local' }, new Map([['local', 'model.obj']])).error).toMatch(/bundled model or an attached STEP \/ STL \/ WRL/u);
     expect(generatorDraft(definition, { switch_3dmodel_filename: 'boardstudio-asset:local' }, new Map([['local', 'model.step']])).error).toBe('');
     expect(generatorDraft(definition, { keycap_width: '0' }).error).toMatch(/greater than zero/u);
   });
+});
+
+it('accepts an attached STL in generator model settings', () => {
+  const definition = catalogue().find(item => item.generator?.source === 'ceoloide/switch_mx')!;
+  expect(generatorDraft(definition, {switch_3dmodel_filename:'boardstudio-asset:local'}, new Map([['local','model.stl']])).error).toBe('');
 });

@@ -85,7 +85,7 @@ test('mirrored creation is cancellable, atomic and edits either half', async ({ 
   }
 });
 
-test('independent components keep their half through save, reopen and geometry edits', async ({ page }) => {
+test('linked components keep both halves through save, reopen and geometry edits', async ({ page }) => {
   await newProject(page);
   await createPair(page);
   await page.getByRole('treeitem', { name: 'Left half Linked', exact: true }).click();
@@ -95,7 +95,7 @@ test('independent components keep their half through save, reopen and geometry e
   await page.getByRole('searchbox', { name: 'Search parts', exact: true }).fill('encoder');
   await page.getByRole('dialog', { name: 'Add', exact: true }).getByRole('button', { name: 'rotary encoder ec11 ec12', exact: true }).click();
   await page.locator('.wb-canvas').press('Enter');
-  await expect(page.locator('.wb-scene-part')).toHaveCount(25);
+  await expect(page.locator('.wb-scene-part')).toHaveCount(26);
   await expect(page.getByRole('combobox', { name: 'Component layout', exact: true }).locator('option:checked')).toHaveText('Left half');
   await page.getByRole('treeitem', { name: 'Right half Linked', exact: true }).click();
   await page.getByRole('button', { name: 'Add object', exact: true }).click();
@@ -103,11 +103,11 @@ test('independent components keep their half through save, reopen and geometry e
   await page.getByRole('searchbox', { name: 'Search parts', exact: true }).fill('RGB LED');
   await page.getByRole('dialog', { name: 'Add', exact: true }).getByRole('button', { name: 'RGB LED', exact: true }).click();
   await page.locator('.wb-canvas').press('Enter');
-  await expect(page.locator('.wb-scene-part')).toHaveCount(26);
+  await expect(page.locator('.wb-scene-part')).toHaveCount(27);
   const saved = await archive(page);
   expect(saved.document.layouts![0].partIds).toHaveLength(1);
-  expect(saved.document.layouts![1].partIds).toHaveLength(1);
-  const rightComponentId = saved.document.layouts![1].partIds[0];
+  expect(saved.document.layouts![1].partIds).toHaveLength(2);
+  const rightComponentId = saved.document.layouts![1].partIds.find(id => saved.document.parts.find(p => p.id === id)?.definitionId === 'rgb-led')!;
   const rightComponent = saved.document.parts.find((part) => part.id === rightComponentId)!;
   expect(rightComponent.definitionId).toBe('rgb-led');
   const componentId = saved.document.layouts![0].partIds[0];
@@ -117,14 +117,14 @@ test('independent components keep their half through save, reopen and geometry e
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await page.locator('.wb-project-file-input').setInputFiles(saved.path);
-  await expect(page.locator('.wb-scene-part')).toHaveCount(26);
+  await expect(page.locator('.wb-scene-part')).toHaveCount(27);
   await page.getByRole('treeitem', { name: 'Right half Linked', exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Rows keys', exact: true }).fill('3');
   await page.getByRole('spinbutton', { name: 'Rows keys', exact: true }).blur();
-  await expect(page.locator('.wb-scene-part')).toHaveCount(38);
+  await expect(page.locator('.wb-scene-part')).toHaveCount(39);
   const changed = (await archive(page)).document;
   expect(changed.parts.find((part) => part.id === componentId)).toEqual(component);
-  expect(changed.layouts!.find((layout) => layout.name === 'Right half')!.partIds).toEqual([rightComponentId]);
+  expect(changed.layouts!.find((layout) => layout.name === 'Right half')!.partIds).toEqual(saved.document.layouts![1].partIds);
   expect(changed.parts.find((part) => part.id === rightComponentId)).toEqual(rightComponent);
 });
 

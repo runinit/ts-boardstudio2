@@ -15,6 +15,7 @@ export type CoreReply = WithTiming<RustCoreReplyType>;
 export type CaseResult = {
   revision: number;
   step: Uint8Array;
+  bodies?: import('./generated/CaseBodyMesh').CaseBodyMesh[];
   mesh: { positions: Float32Array; normals: Float32Array };
 };
 

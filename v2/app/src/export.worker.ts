@@ -10,6 +10,7 @@ import type {
   ArchiveRequest as RustArchiveRequest,
   ArchiveReply as RustArchiveReply,
 } from '@boardstudio/v2-contracts';
+import { modelBindings } from '@boardstudio/v2-ergogen';
 import { exportErgogenForms } from '@boardstudio/v2-kicad';
 import init, { artifact_request, archive_request } from '../../core/pkg/boardstudio_core.js';
 const textBytes = (value: string): Uint8Array => new TextEncoder().encode(value);
@@ -26,7 +27,7 @@ export type ArchiveReply =
 
 export type ExportRequest = {
   id: string;
-  kind: 'project' | 'footprints' | 'kicad' | 'outline';
+  kind: 'project' | 'footprints' | 'kicad' | 'outline' | 'pcb-preview';
   document: ProjectDoc;
   boardId?: string;
   contours?: Contour[];
@@ -114,6 +115,16 @@ function prepareRequest(request: ExportRequest, target: ExportTarget): ArtifactR
 }
 
 function finishRequest(request: ExportRequest, plan: ExportPlan, paths: ReadonlyMap<string, string>): ArtifactReply {
+  if (request.kind === 'pcb-preview') {
+    const previewPaths = new Map(paths);
+    for (const job of plan.jobs) for (const model of modelBindings(job.definition, job.part)) {
+      if (model.assetId.startsWith('unresolved-model:')) {
+        const original = decodeURIComponent(model.assetId.slice('unresolved-model:'.length));
+        previewPaths.set(original, `models/unresolved/${encodeURIComponent(original)}`);
+      }
+    }
+    paths = previewPaths;
+  }
   return artifact({
     id: request.id,
     kind: 'finish-export',
@@ -121,7 +132,7 @@ function finishRequest(request: ExportRequest, plan: ExportPlan, paths: Readonly
   });
 }
 
-function build(request: ExportRequest): ExportReply {
+function build(request: ExportRequest): ExportReply | ArtifactReply {
   const paths = new Map(request.paths);
   const files = request.files;
 
@@ -184,6 +195,7 @@ function build(request: ExportRequest): ExportReply {
   if (exported.kind !== 'finish-export') throw new Error('Expected Rust board export');
   const boardFile = exported.result.files[0];
   if (!boardFile) throw new Error('Rust returned no board file');
+  if (request.kind === 'pcb-preview') return artifact({ id: request.id, kind: 'preview-board', source: boardFile.content, revision: request.document.revision });
   if (paths.size === 0) return { id: request.id, kind: 'file', filename: boardFile.filename, bytes: textBytes(boardFile.content), mediaType: 'text/plain' };
   files[boardFile.filename] = textBytes(boardFile.content);
   const packed = archive({ id: request.id, kind: 'archive', request: { kind: 'pack-files', entries: Object.keys(files).map((path, bufferIndex) => ({ path, bufferIndex })) }, buffers: Object.values(files) });

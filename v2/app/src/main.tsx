@@ -86,7 +86,7 @@ async function modelFiles(document: ProjectDoc, definitions: PartDefinition[], p
     const asset = document.assets.find((item) => item.id === id);
     const bundled = !asset ? bundledModel(id) : undefined;
     const name = asset?.name ?? bundled?.filename;
-    const extension = name?.match(/\.(step|stp|wrl)$/i)?.[1]?.toLowerCase();
+    const extension = name?.match(/\.(step|stp|stl|wrl)$/i)?.[1]?.toLowerCase();
 
     if (!asset || !extension) {
       if (!bundled || !extension) throw new Error(`Model asset ${id} needs a STEP, STP, or WRL filename`);
@@ -513,10 +513,10 @@ function App() {
 
   function importModel(file: File, definitionId: string, parameter?: string): void {
     schedule(async () => {
-      const extension = file.name.match(/\.(step|stp|wrl)$/i)?.[1]?.toLowerCase();
+      const extension = file.name.match(/\.(step|stp|stl|wrl)$/i)?.[1]?.toLowerCase();
 
       if (!extension) {
-        throw new Error('Select a STEP or WRL model');
+        throw new Error('Select a STEP, STL, or WRL model');
       }
 
       const current = projectRef.current;
@@ -534,7 +534,7 @@ function App() {
       const asset = {
         id: assetId,
         name: file.name,
-        mediaType: extension === 'wrl' ? 'model/vrml' : 'model/step',
+        mediaType: extension === 'wrl' ? 'model/vrml' : extension === 'stl' ? 'model/stl' : 'model/step',
         sha256,
         source: 'local file',
       };
@@ -673,6 +673,7 @@ function App() {
       document={project}
       scene={scene}
       casePreview={casePreview && { revision: casePreview.revision, ...casePreview.mesh }}
+      caseBodies={casePreview?.bodies}
       componentPreviews={componentPreviews}
       libraryModelPreviews={libraryModelPreviews}
       libraryModelStatus={libraryModelStatus}

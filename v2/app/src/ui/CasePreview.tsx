@@ -84,9 +84,10 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
     let observer: ResizeObserver | undefined;
 
     const build = async () => {
-      const [THREE, controlsModule] = await Promise.all([
+      const [THREE, controlsModule, { modelMatrix }] = await Promise.all([
         import('three'),
         import('three/addons/controls/OrbitControls.js'),
+        import('./modelTransform'),
       ]);
       if (disposed) return;
 
@@ -143,13 +144,7 @@ const CasePreview = ({ mesh, componentPreviews, boardThickness = 0, colorScheme 
         partGroup.add(sideGroup);
 
         const modelGroup = new THREE.Group();
-        modelGroup.position.set(component.model.offset.x, component.model.offset.y, component.model.offset.z);
-        modelGroup.rotation.set(
-          THREE.MathUtils.degToRad(component.model.rotation.x),
-          THREE.MathUtils.degToRad(component.model.rotation.y),
-          THREE.MathUtils.degToRad(component.model.rotation.z),
-        );
-        modelGroup.scale.set(component.model.scale.x, component.model.scale.y, component.model.scale.z);
+        modelGroup.applyMatrix4(modelMatrix(component.model));
         sideGroup.add(modelGroup);
 
         const geometry = makeGeometry(component.mesh.positions, component.mesh.normals);

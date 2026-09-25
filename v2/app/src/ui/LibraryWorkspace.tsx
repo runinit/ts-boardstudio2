@@ -1,5 +1,5 @@
 import React, { lazy, memo, useMemo, useState } from 'react';
-import type { PartDefinition, Vec2 } from '../../../contracts/src/index';
+import type { PartDefinition, Vec2, ProjectDoc } from '../../../contracts/src/index';
 import type { CompiledFootprint } from '../../../contracts/src/index';
 import type { ComponentPreview } from './CasePreview';
 import { Ergogen2DPreview, ergogenPreviewLayers, ergogenPreviewPoints } from './Ergogen2DPreview';
@@ -7,6 +7,8 @@ import { isErgogen, parameters } from '@boardstudio/v2-ergogen';
 
 export type LibraryModelStatus = { definitionId: string; state: 'empty' | 'loading' | 'ready' | 'unsupported' | 'error'; message?: string };
 import './library-workspace.css';
+import { sampleAssembly } from './sampleAssembly';
+const AssemblyViewer = lazy(() => import('./AssemblyViewer').then(m => ({ default: m.AssemblyViewer })));
 
 const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ default: module.CasePreview })));
 const copperLayer = (side: 'front' | 'back') => side === 'back' ? 'B.Cu' : 'F.Cu';
@@ -26,8 +28,8 @@ class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?:
     return this.props.children;
   }
 }
-export const LibraryWorkspace = memo(({ definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme }: {
-  definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2 }[];
+export const LibraryWorkspace = memo(({ document, definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme }: {
+  document: ProjectDoc; definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2 }[];
   compiled?: CompiledFootprint[];
   compilePending?: boolean; compileError?: string;
   models?: ComponentPreview[]; modelFilename?: string; modelStatus?: LibraryModelStatus; onRetry?: () => void; show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
@@ -64,6 +66,7 @@ export const LibraryWorkspace = memo(({ definition, title, companions = [], comp
     const side = parameterSide === 'B' ? 'back' : parameterSide === 'F' ? 'front' : ir.side;
     return [{ ...entry, ir, keycap, outline, side, graphicLayers: ergogenPreviewLayers(entry.definition, Boolean(keycap)) }];
   }) : [], [definition, companions, compiled]);
+  const sample = useMemo(() => definition ? sampleAssembly(document, definition, companions) : undefined, [document, definition, companions]);
   if (!definition) return <div className="wb-library-workspace-empty">Select a component or key assembly.</div>;
   if (!footprints.length) return <div className="wb-library-workspace-empty">
     {compilePending && <p role="status">Preparing footprint preview…</p>}
@@ -106,12 +109,7 @@ export const LibraryWorkspace = memo(({ definition, title, companions = [], comp
     {diagnostics.map((diagnostic, index) => <p className="wb-empty-note" key={`${diagnostic.kind}:${index}`}>{diagnostic.message}</p>)}
     <div className="wb-library-workspace-title"><h2>{title ?? definition.name}</h2><div role="group" aria-label="Part preview view"><button aria-pressed={!show3d} onClick={() => onViewChange(false)}>2D footprint</button><button aria-pressed={show3d} onClick={() => onViewChange(true)}>3D model</button></div></div>
     {show3d ? <div className="wb-library-model-workspace" aria-label="3D footprint model preview">
-      {modelStatus?.state === 'error' ? <div className="wb-model-message" role="alert"><p>{modelStatus.message}</p><button className="wb-secondary" onClick={onRetry}>Retry model loading</button></div>
-        : modelStatus?.state === 'empty' || (!definition.model && !definition.models?.length && !isErgogen(definition.generator?.source)) ? <p>No 3D model attached. Import a STEP model in the inspector.</p>
-        : modelStatus?.state === 'unsupported' || /\.wrl$/i.test(modelFilename ?? '') ? <p>WRL models are included in exports. Attach a STEP model for an interactive preview.</p>
-        : models.length ? <ModelPreviewBoundary resetKey={definition.id} onRetry={onRetry}><React.Suspense fallback={<p>Loading 3D preview…</p>}><CasePreview componentPreviews={models} colorScheme={colorScheme} /></React.Suspense></ModelPreviewBoundary> : <p role="status">Loading the attached 3D model…</p>}
-
-      {companions.length > 0 && <p>3D shows the selected switch model. Companion footprints are shown in 2D.</p>}
+      {sample && <ModelPreviewBoundary resetKey={definition.id} onRetry={onRetry}><React.Suspense fallback={<p>Loading assembly preview…</p>}><AssemblyViewer document={sample.project} boardId="sample-board" contours={sample.contours} colorScheme={colorScheme} sample /></React.Suspense></ModelPreviewBoundary>}
     </div> : <div className="wb-library-workspace-geometry"><svg viewBox={`${minX - 3} ${-maxY - 3} ${maxX - minX + 6} ${maxY - minY + 6}`} role="img" aria-label="Footprint preview">
       {footprints.map(({ definition: item, ir, keycap, outline, at, side }, index) => hidden.has(`part:${index}`) ? null : <g key={`${item.id}:${index}`} transform={`translate(${at.x} ${-at.y})`}>
         <Ergogen2DPreview definition={item} hideKeycap={Boolean(keycap)} hiddenLayers={hidden} />

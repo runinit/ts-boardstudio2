@@ -135,3 +135,20 @@ it('rejects duplicate raw filenames before ZIP indexing', async () => {
   }
   await expect(unpackProject(bytes, archiveTransport)).rejects.toThrow('Duplicate');
 });
+
+it('round trips routed sources, mapped meshes, and saved assembly members', async () => {
+  const project = demoProject();
+  const source = assetFixture('routed-source');
+  source.asset.name = 'routed.kicad_pcb';
+  const mesh = assetFixture('mapped-mesh');
+  mesh.asset.name = 'body.stl';
+  for (const fixture of [source, mesh]) await saveAsset(fixture.asset.sha256, fixture.bytes);
+  project.assets = [source.asset, mesh.asset];
+  project.boardReferences = [{id:'reference',boardId:'main-board',assetId:source.asset.id,enabled:true,pose:{at:{x:4,y:5},rotation:30},elevation:7,modelAssets:{'body.stl':mesh.asset.id}}];
+  project.assemblies = [{id:'assembly',name:'Visual assembly',members:[{id:'body',side:'back',pose:{at:{x:2,y:3},rotation:45},modelMode:'custom',models:[{assetId:mesh.asset.id,offset:{x:0,y:0,z:2},rotation:{x:0,y:0,z:30},scale:{x:1,y:1,z:1}}]}]}];
+  const archive = await packProject(project, {}, archiveTransport);
+  const restored = await unpackProject(archive, archiveTransport);
+  expect(restored).toEqual(project);
+  expect(await loadAsset(mesh.asset.sha256)).toEqual(mesh.bytes);
+  expect(await loadAsset(source.asset.sha256)).toEqual(source.bytes);
+});

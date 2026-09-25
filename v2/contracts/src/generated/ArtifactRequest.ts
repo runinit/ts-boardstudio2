@@ -4,4 +4,4 @@ import type { FootprintCompileJob } from "./FootprintCompileJob";
 import type { OutlineExportRequest } from "./OutlineExportRequest";
 import type { PrepareExportRequest } from "./PrepareExportRequest";
 
-export type ArtifactRequest = { "kind": "compile-footprints", id: string, jobs: Array<FootprintCompileJob>, } | { "kind": "import-footprint", id: string, definitionId: string, source: string, } | { "kind": "prepare-export", id: string, request: PrepareExportRequest, } | { "kind": "finish-export", id: string, request: FinishExportRequest, } | { "kind": "export-outline", id: string, request: OutlineExportRequest, };
+export type ArtifactRequest = { "kind": "preview-board", id: string, source: string, revision: number, } | { "kind": "compile-footprints", id: string, jobs: Array<FootprintCompileJob>, } | { "kind": "import-footprint", id: string, definitionId: string, source: string, } | { "kind": "prepare-export", id: string, request: PrepareExportRequest, } | { "kind": "finish-export", id: string, request: FinishExportRequest, } | { "kind": "export-outline", id: string, request: OutlineExportRequest, };

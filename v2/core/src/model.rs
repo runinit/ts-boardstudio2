@@ -683,6 +683,12 @@ pub struct LayoutMirrorLink {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct ProjectDoc {
+    #[serde(rename = "boardReferences", default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<BoardReference>>", optional))]
+    pub board_references: Vec<BoardReference>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<AssemblyDefinition>>", optional))]
+    pub assemblies: Vec<AssemblyDefinition>,
     #[cfg_attr(feature = "export-types", ts(type = "\"boardstudio/v2\""))]
     pub format: String,
     pub id: String,
@@ -709,6 +715,8 @@ pub struct ProjectDoc {
 impl ProjectDoc {
     pub fn empty(id: &str, name: &str) -> Self {
         Self {
+            board_references: vec![],
+            assemblies: vec![],
             format: "boardstudio/v2".into(),
             id: id.into(),
             name: name.into(),
@@ -1324,6 +1332,7 @@ pub struct OutlineExportRequest {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ArtifactRequest {
+    PreviewBoard { id: String, source: String, revision: u64 },
     CompileFootprints {
         id: String,
         jobs: Vec<FootprintCompileJob>,
@@ -1352,6 +1361,7 @@ pub enum ArtifactRequest {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ArtifactReply {
+    PreviewBoard { id: String, result: PcbPreview },
     CompileFootprints {
         id: String,
         result: Vec<CompiledFootprint>,
@@ -1377,3 +1387,97 @@ pub enum ArtifactReply {
         error: ArtifactError,
     },
 }
+
+/// Render-only projection of a KiCad board. All coordinates are millimetres, Y up.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PcbPreview {
+    pub revision: u64,
+    pub thickness: f64,
+    pub contours: Vec<Contour>,
+    pub surfaces: Vec<PcbSurface>,
+    pub holes: Vec<Vec<Vec2>>,
+    pub models: Vec<PcbModel>,
+    pub diagnostics: Vec<String>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PcbSurface {
+    pub layer: String,
+    pub points: Vec<Vec2>,
+    pub width: f64,
+    pub filled: bool,
+    pub text: String,
+    pub rotation: f64,
+    pub text_size: f64,
+}
+/// Model transforms retain KiCad's clockwise ZYX convention, not Pose2's convention.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PcbModel {
+    pub id: String,
+    pub reference: String,
+    pub path: String,
+    pub pose: Pose2,
+    pub side: Side,
+    pub offset: Vec3,
+    pub rotation: Vec3,
+    pub scale: Vec3,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct BoardReference {
+    pub id: String,
+    pub board_id: String,
+    pub asset_id: String,
+    pub enabled: bool,
+    pub pose: Pose2,
+    pub elevation: f64,
+    pub model_assets: BTreeMap<String, String>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct AssemblyDefinition {
+    pub id: String,
+    pub name: String,
+    pub members: Vec<AssemblyMember>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct AssemblyMember {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub parameters: Option<BTreeMap<String, serde_json::Value>>,
+    #[serde(rename = "modelMode", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub model_mode: Option<AssemblyModelMode>,
+    pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "export-types", ts(optional))]
+    pub definition_id: Option<String>,
+    pub pose: Pose2,
+    pub side: Side,
+    pub models: Vec<PartModel>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+pub struct CaseBodyMesh {
+    pub id: String,
+    pub name: String,
+    #[cfg_attr(feature = "export-types", ts(type = "Float32Array"))]
+    pub positions: Vec<f32>,
+    #[cfg_attr(feature = "export-types", ts(type = "Float32Array"))]
+    pub normals: Vec<f32>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "lowercase")]
+pub enum AssemblyModelMode { Defaults, Custom }

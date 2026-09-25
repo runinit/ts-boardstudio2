@@ -43,7 +43,7 @@ export function GeneratorFields({ definition, edits, onChange, onImportModel, er
           }
           if (/3dmodel_filename$/iu.test(key)) return <div className="wb-generator-field wb-generator-model-field" key={key}>
             <label>{label}<input type="text" aria-label={key} readOnly value={String(current ?? '')} /></label>
-            {onImportModel && <label className="wb-footprint-import">Attach STEP / WRL<input type="file" accept=".step,.stp,.wrl,model/step,model/vrml" onChange={(event) => {
+            {onImportModel && <label className="wb-footprint-import">Attach STEP / STL / WRL<input type="file" accept=".step,.stp,.stl,.wrl,model/step,model/stl,model/vrml" onChange={(event) => {
               const file = event.currentTarget.files?.[0];
               if (file) onImportModel(file, definition.id, key);
               event.currentTarget.value = '';

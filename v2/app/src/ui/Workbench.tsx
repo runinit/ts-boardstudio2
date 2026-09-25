@@ -18,6 +18,8 @@ import type {
   Vec2,
   JsonValue,
 } from '../../../contracts/src/index';
+import { matrixWithAssembly } from './sampleAssembly';
+import { assemblyPreset } from './assemblyPresets';
 import { componentPoseSvgTransform } from './CasePreview';
 import type { ComponentPreview } from './CasePreview';
 import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
@@ -48,6 +50,9 @@ import { PanelIcon, WorkspacePanel, useCompactPanel, usePanelSettings } from './
 import './workspace-panels.css';
 import { MirroredPairSetup, MirrorPairIcon, pairAt, type PairPlacement, type PairSetup } from './MirroredPairSetup';
 
+const AssemblyEditor = lazy(() => import('./AssemblyEditor').then(m => ({ default: m.AssemblyEditor })));
+const AssemblyViewer = lazy(() => import('./AssemblyViewer').then(m => ({ default: m.AssemblyViewer })));
+const BoardReferencePanel = lazy(() => import('./BoardReferencePanel').then(m => ({ default: m.BoardReferencePanel })));
 const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ default: module.CasePreview })));
 
 type Mode = 'Design' | 'PCB' | 'Case' | 'Library' | 'Export';
@@ -73,6 +78,7 @@ type Props = {
   onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void;
   onProjectMatrices?: (matrices: Matrix[]) => Promise<MatrixScene[] | undefined>;
   onModeChange?: (mode: Mode) => void;
+  caseBodies?: import('@boardstudio/v2-contracts').CaseBodyMesh[];
   casePreview?: { positions: Float32Array; normals: Float32Array; revision: number };
   componentPreviews?: ComponentPreview[];
   embedUsedModels?: boolean;
@@ -177,7 +183,7 @@ const systemColorScheme = (): 'light' | 'dark' => {
   }
 };
 
-const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onProjectMatrices, onModeChange, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
+const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, onDuplicateDesign, onProjectMatrices, onModeChange, caseBodies, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
   const [lastDesignMode, setLastDesignMode] = useState<Mode>('Design');
   const [commandMenu, setCommandMenu] = useState<string | null>(null);
@@ -221,6 +227,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const [librarySearch, setLibrarySearch] = useState('');
   const [libraryChoice, setLibraryChoice] = useState('');
   const [library3dOpen, setLibrary3dOpen] = useState(false);
+  const [editingAssembly, setEditingAssembly] = useState<import('@boardstudio/v2-contracts').AssemblyDefinition | null>(null);
+  const [assembly3d, setAssembly3d] = useState(false);
   const [libraryAssembly, setLibraryAssembly] = useState<MatrixPresetId | null>(null);
   const [matrixSetup, setMatrixSetup] = useState(false);
   const [pairSetup, setPairSetup] = useState(false);
@@ -254,7 +262,6 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   const [scriptSource, setScriptSource] = useState('');
   const [scriptEnabled, setScriptEnabled] = useState(true);
   const [caseBodyId, setCaseBodyId] = useState('');
-  const [caseControlsTarget, setCaseControlsTarget] = useState<HTMLDivElement | null>(null);
   const [projectName, setProjectName] = useState(document.name);
   const [boardName, setBoardName] = useState('');
   const [localBoardId, setLocalBoardId] = useState('');
@@ -547,10 +554,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
   }, [activeScript?.id, activeScript?.source, activeScript?.enabled]);
 
   useEffect(() => setProjectName(document.name), [document.name]);
-  useEffect(() => onModeChange?.(mode), [mode, onModeChange]);
-  useEffect(() => {
-    if (mode === 'Library' && library3dOpen && selectedLibraryDefinition) onSelectLibraryModel?.(selectedLibraryDefinition.id);
-  }, [mode, library3dOpen, selectedLibraryDefinition, onSelectLibraryModel]);
+  useEffect(() => onModeChange?.(mode === 'Design' && assembly3d ? 'Case' : mode), [mode, assembly3d, onModeChange]);
+
   useEffect(() => {
     if (selectedBoardIdProp === undefined && selectedBoard) setLocalBoardId(selectedBoard.id);
     setBoardName(selectedBoard?.name ?? '');
@@ -709,7 +714,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     setScriptsOpen(false);
     setPendingPart(null);
     setAddPartOpen(false);
-    if (next === 'Case' && selectedBoard) onRequestCaseModels?.(selectedBoard.id);
+
   };
 
   const changeScope = (kind: SelectionScope['kind']) => {
@@ -2010,8 +2015,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
     }
     if (mode === 'Library') {
       return <>
+        <section aria-label="Saved assemblies"><h2>Assemblies</h2><button onClick={() => setEditingAssembly({ id: makeId(), name: 'New assembly', members: [] })}>New assembly</button>{(document.assemblies ?? []).map(assembly => <div key={assembly.id}><button onClick={() => setEditingAssembly(assembly)}>{assembly.name}</button><button aria-label={`Duplicate ${assembly.name}`} onClick={() => setEditingAssembly({ ...structuredClone(assembly), id: makeId(), name: `${assembly.name} copy` })}>Duplicate</button></div>)}</section>
         <div className="wb-inspect-head"><h2>{libraryAssembly ? assemblyName(libraryAssembly) : selectedLibraryDefinition?.name ?? 'Select a part'}</h2></div>
-        {libraryAssembly && <section aria-label="Assembly settings"><p className="wb-empty-note">Switch footprint and diode{matrixPresetDefinitions[libraryAssembly].led ? ', with RGB LED' : ''}.</p><button className="wb-primary" onClick={() => beginMatrixPlacement(1, 1, libraryAssembly)}>Place key assembly</button></section>}
+        {libraryAssembly && <section aria-label="Assembly settings"><p className="wb-empty-note">Switch footprint and diode{matrixPresetDefinitions[libraryAssembly].led ? ', with RGB LED' : ''}.</p><button className="wb-primary" onClick={() => beginMatrixPlacement(1, 1, libraryAssembly)}>Place key assembly</button><button onClick={() => setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions))}>Customize 3D assembly</button></section>}
         {!libraryAssembly && selectedLibraryDefinition && <section className="wb-library-preview" aria-label="Selected footprint settings">
           <p className="wb-inspector-description">{selectedLibraryDefinition.kind === 'switch' ? 'Switch footprint' : selectedLibraryDefinition.kind === 'custom' ? 'Custom component' : 'Component footprint'} · {formatSize(selectedLibraryDefinition.courtyard)}</p>
           <button className="wb-primary wb-place-part" disabled={Boolean(generatorPreview?.error)} onClick={() => scope?.kind === 'key' ? placeLibraryDefinition(selectedLibraryDefinition) : beginPartPlacement(selectedLibraryDefinition)}>{scope?.kind === 'key' ? 'Apply to selected key' : 'Place component'} <ArrowIcon /></button>
@@ -2069,7 +2075,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
         {!libraryAssembly && !ergogenGenerator && onImportModel && <InspectorSection title="3D model" detail={activeModelDefinition?.model ? "Attached" : "Optional"}>
           <section className="wb-model-import" aria-label="3D model binding">
           {activeModelDefinition?.model ? <p className="wb-model-bound">Bound asset: {document.assets.find((asset) => asset.id === activeModelDefinition.model?.assetId)?.name ?? activeModelDefinition.model.assetId}</p> : <p className="wb-model-bound">No model attached to this definition.</p>}
-          <label className="wb-footprint-import">Attach STEP / WRL model<input type="file" accept=".step,.stp,.wrl,model/step,model/vrml" disabled={!activeModelDefinition} onChange={(event) => {
+          <label className="wb-footprint-import">Attach STEP / STL / WRL model<input type="file" accept=".step,.stp,.stl,.wrl,model/step,model/vrml" disabled={!activeModelDefinition} onChange={(event) => {
             const file = event.currentTarget.files?.[0];
             if (file) attachModel(file);
             event.currentTarget.value = '';
@@ -2263,7 +2269,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
         <span className="wb-panel-title">{mode === 'Library' ? 'Parts' : 'Objects'}</span>
       </>} primaryAction={(mode === 'Design' || mode === 'PCB') && <button ref={addPartRef} className="wb-add-trigger" aria-label="Add object" aria-expanded={addPartOpen} aria-controls="wb-add-part" onClick={() => { setAddPartOpen((open) => !open); setCommandMenu(null); }}><ToolIcon name="add" /> Add object</button>}>
 
-        {mode === 'Library' ? <PartsLibrary definitions={libraryDefinitions} assemblies={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id), definitionId: matrixPresetDefinitions[id].definitionId }))} query={librarySearch} selected={libraryAssembly ? `assembly:${libraryAssembly}` : selectedLibraryDefinition?.id ?? ''} onCreate={addCustomDefinition} onImport={onImportFootprint} onSearch={setLibrarySearch} onSelect={(id) => { setScriptsOpen(false); setLibraryChoice(id); setLibraryAssembly(null); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} onAssembly={(id) => { setScriptsOpen(false); const preset = id as MatrixPresetId; setLibraryAssembly(preset); setLibraryChoice(matrixPresetDefinitions[preset].definitionId); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} /> : addPartOpen ? <div id="wb-add-part" className="wb-add-inventory" role="dialog" aria-label="Add" onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setAddPartOpen(false); addPartRef.current?.focus(); } }} onClick={(event) => { if ((event.target as Element).closest('[data-close-menu]')) setAddPartOpen(false); }}>{addContent}</div> : <>
+        {mode === 'Library' ? <PartsLibrary definitions={libraryDefinitions} assemblies={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id), definitionId: matrixPresetDefinitions[id].definitionId }))} query={librarySearch} selected={libraryAssembly ? `assembly:${libraryAssembly}` : selectedLibraryDefinition?.id ?? ''} onCreate={addCustomDefinition} onImport={onImportFootprint} onSearch={setLibrarySearch} onSelect={(id) => { setEditingAssembly(null); setScriptsOpen(false); setLibraryChoice(id); setLibraryAssembly(null); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} onAssembly={(id) => { setEditingAssembly(null); setScriptsOpen(false); const preset = id as MatrixPresetId; setLibraryAssembly(preset); setLibraryChoice(matrixPresetDefinitions[preset].definitionId); setLibrary3dOpen(false); setRightOpen(true); setLeftOpen(false); }} /> : addPartOpen ? <div id="wb-add-part" className="wb-add-inventory" role="dialog" aria-label="Add" onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setAddPartOpen(false); addPartRef.current?.focus(); } }} onClick={(event) => { if ((event.target as Element).closest('[data-close-menu]')) setAddPartOpen(false); }}>{addContent}</div> : <>
 
         <div className="wb-board-picker"><label htmlFor="wb-board-select">Board</label><div><select id="wb-board-select" aria-label="Selected board" value={selectedBoardId} onChange={(event) => selectBoard(event.target.value)}>{document.boards.map((board) => <option key={board.id} value={board.id}>{board.name}</option>)}</select><button type="button" onClick={addBoard} aria-label="New board"><ToolIcon name="add" /></button></div></div>
 
@@ -2308,7 +2314,8 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
               <p>Standalone parts snap at corners, midpoints and centers. Gaps use rectangular edges; keycap envelope when available, courtyard otherwise.</p>
               <label className="wb-menu-check"><input type="checkbox" checked={showFootprints} onChange={(event) => setShowFootprints(event.target.checked)} /> Show footprint detail</label>
             </CommandMenu>
-          </> : <div className="wb-canvas-context"><ModeIcon mode={mode} /><strong>{viewLabel}</strong><span>{mode === 'Case' ? 'Assembly & components' : mode === 'Library' ? 'Footprint & model preview' : 'Artifacts & readiness'}</span></div>}
+          </> : <div className="wb-canvas-context"><ModeIcon mode={mode} /><strong>{viewLabel}</strong><span>{mode === 'Case' ? 'Assembly & components' : mode === 'Library' ? 'Footprint & model preview' : assembly3d ? 'PCB assembly' : 'Artifacts & readiness'}</span></div>}
+          {mode === 'Design' && <div className="wb-design-view-toggle" role="group" aria-label="Design view"><button aria-pressed={!assembly3d} onClick={() => setAssembly3d(false)}>2D</button><button aria-pressed={assembly3d} onClick={() => setAssembly3d(true)}>3D assembly</button></div>}
           {transformTool && <button className="wb-command-trigger wb-transform-active" aria-label="Finish transform" title="Finish transform (Esc)" onClick={() => { setTransformTool(null); setOriginPicking(false); }}><ToolIcon name={transformTool} />{transformTool[0].toUpperCase() + transformTool.slice(1)} · Done</button>}
           {outlineActive && <button className="wb-tool-commit" onClick={finishOutline} disabled={outlineDraft.length < 3}>Close outline</button>}
         </div>
@@ -2317,7 +2324,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
             if (event.key === 'Enter') { event.preventDefault(); placeMatrixAt(matrixGhost.origin); }
             if (event.key.startsWith('Arrow')) { event.preventDefault(); const step = PITCH_MM * (snapFraction || 0.25); setMatrixGhost((matrix) => matrix ? { ...matrix, origin: { x: matrix.origin.x + (event.key === 'ArrowRight' ? step : event.key === 'ArrowLeft' ? -step : 0), y: matrix.origin.y + (event.key === 'ArrowUp' ? step : event.key === 'ArrowDown' ? -step : 0) } } : null); }
             return;
-          } if (!pendingPart) return; if (event.key === 'Enter') { event.preventDefault(); placePendingPart(placementPoint); } if (event.key.startsWith('Arrow')) { event.preventDefault(); const step = snapFraction ? PITCH_MM * snapFraction : nudgeStep; setPlacementPoint((point) => ({ x: point.x + (event.key === 'ArrowRight' ? step : event.key === 'ArrowLeft' ? -step : 0), y: point.y + (event.key === 'ArrowUp' ? step : event.key === 'ArrowDown' ? -step : 0) })); } }} ref={svgRef} className={`wb-canvas ${matrixGhost ? 'is-placing-matrix' : ''}`} style={{ display: mode === 'Case' || mode === 'Library' ? 'none' : undefined }} viewBox={`${viewBounds.minX} ${-viewBounds.maxY} ${viewBounds.width} ${viewBounds.height}`} role="application" aria-label="Board layout canvas. Use the CAD tree to select objects; use wheel to zoom and Space-drag to pan." onPointerDown={startCanvasPan} onPointerMove={moveCanvasPointer} onPointerUp={endCanvasPointer} onPointerCancel={endCanvasPointer} onClickCapture={(event) => { if (matrixGhost) { event.stopPropagation(); drawOutline(event); } }} onClick={drawOutline} onDoubleClick={finishOutline}>
+          } if (!pendingPart) return; if (event.key === 'Enter') { event.preventDefault(); placePendingPart(placementPoint); } if (event.key.startsWith('Arrow')) { event.preventDefault(); const step = snapFraction ? PITCH_MM * snapFraction : nudgeStep; setPlacementPoint((point) => ({ x: point.x + (event.key === 'ArrowRight' ? step : event.key === 'ArrowLeft' ? -step : 0), y: point.y + (event.key === 'ArrowUp' ? step : event.key === 'ArrowDown' ? -step : 0) })); } }} ref={svgRef} className={`wb-canvas ${matrixGhost ? 'is-placing-matrix' : ''}`} style={{ display: mode === 'Case' || mode === 'Library' || (mode === 'Design' && assembly3d) ? 'none' : undefined }} viewBox={`${viewBounds.minX} ${-viewBounds.maxY} ${viewBounds.width} ${viewBounds.height}`} role="application" aria-label="Board layout canvas. Use the CAD tree to select objects; use wheel to zoom and Space-drag to pan." onPointerDown={startCanvasPan} onPointerMove={moveCanvasPointer} onPointerUp={endCanvasPointer} onPointerCancel={endCanvasPointer} onClickCapture={(event) => { if (matrixGhost) { event.stopPropagation(); drawOutline(event); } }} onClick={drawOutline} onDoubleClick={finishOutline}>
             <defs><pattern id="wb-grid-small" width={unit / 2} height={unit / 2} patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="0.12" fill="var(--wb-grid-large)" stroke="none" /></pattern></defs>
             <rect x={viewBounds.minX} y={-viewBounds.maxY} width={viewBounds.width} height={viewBounds.height} fill="url(#wb-grid-small)" />
             <g transform="scale(1,-1)" style={outlineActive || pendingPart || originPicking ? { pointerEvents: 'none' } : undefined}>
@@ -2355,18 +2362,13 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
               </g>}
             </g>
           </svg>
-          {(mode === 'Design' || mode === 'PCB') && <WorkbenchLayers layers={mode === 'PCB' ? [...pcbLayers, 'Edge.Cuts', 'Courtyards', 'Pads', 'Holes', 'References'] : ['Keys', 'Components', 'Keycaps', 'Footprints', 'Board']} hidden={mode === 'Design' ? new Set([...hiddenLayers, ...(!showFootprints ? ['Footprints'] : [])]) : hiddenLayers} onToggle={(layer) => layer === 'Footprints' ? setShowFootprints(!showFootprints) : toggleLayer(layer)} />}
+          {(mode === 'Design' || mode === 'PCB') && !assembly3d && <WorkbenchLayers layers={mode === 'PCB' ? [...pcbLayers, 'Edge.Cuts', 'Courtyards', 'Pads', 'Holes', 'References'] : ['Keys', 'Components', 'Keycaps', 'Footprints', 'Board']} hidden={mode === 'Design' ? new Set([...hiddenLayers, ...(!showFootprints ? ['Footprints'] : [])]) : hiddenLayers} onToggle={(layer) => layer === 'Footprints' ? setShowFootprints(!showFootprints) : toggleLayer(layer)} />}
           {existingHalfOpen && <ExistingHalfSetup matrices={unpairedMatrices} axis={Math.max(0, ...selectionOutline(visibleParts, definitions).map((point) => point.x)) + 12} onCancel={() => setExistingHalfOpen(false)} onCreate={(matrices, axis) => { try { const next = mirrorExistingHalf(document, matrices, axis, makeId); emit({ kind: 'replace-document', document: next }, matrices.map((matrix) => matrix.id)); setExistingHalfOpen(false); setZoom(1); setPan({ x: 0, y: 0 }); return undefined; } catch (error) { return String(error instanceof Error ? error.message : error); } }} />}
           {pairSetup && mode === 'Design'  && <MirroredPairSetup presets={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id) }))} onPreview={(setup) => beginMatrixPlacement(setup.rows, setup.columns, setup.preset as MatrixPresetId, setup)} onCancel={() => { setPairSetup(false); (compactObjects && !leftOpen ? window.document.getElementById('wb-objects-toggle') : addPartRef.current)?.focus(); }} />}
-          {mode === 'Library' && <LibraryWorkspace definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={setLibrary3dOpen} colorScheme={colorScheme} />}
-          {mode === 'Case' && <React.Suspense fallback={<div role="status">Loading case preview…</div>}><CasePreview
-            mesh={activeCaseBody ? casePreview : undefined}
-            componentPreviews={selectedBoard ? componentPreviews : undefined}
-            boardThickness={selectedBoard?.thickness ?? 0}
-            colorScheme={colorScheme}
-            controlsTarget={caseControlsTarget}
-          /></React.Suspense>}
-          {mode !== 'Case' && mode !== 'Library' && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
+          {mode === 'Library' && !editingAssembly && <LibraryWorkspace document={document} definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={value => { if (value && libraryAssembly) setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions)); else setLibrary3dOpen(value); }} colorScheme={colorScheme} />}
+          {mode === 'Library' && editingAssembly && <React.Suspense fallback={<p>Loading assembly editor…</p>}><AssemblyEditor key={editingAssembly.id} document={document} initial={editingAssembly} matrixName={selectedMatrix ? selectedMatrix.name?.trim() || `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}` : 'selected matrix'} onApply={selectedMatrix ? assembly => { const prepared = matrixWithAssembly(selectedMatrix, assembly, libraryDefinitions, document.revision); emit({ kind: 'set-matrix', ...prepared }, [selectedMatrix.id]); } : undefined} definitions={libraryDefinitions} boardId={selectedBoard?.id} colorScheme={colorScheme} onChange={next => emit({ kind: 'replace-document', document: next }, [editingAssembly.id])} onClose={() => setEditingAssembly(null)} onPlace={next => { emit({ kind: 'replace-document', document: next }, []); setEditingAssembly(null); changeMode('Design'); setAssembly3d(true); }} /></React.Suspense>}
+          {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={document} boardId={selectedBoard.id} contours={visibleContours} bodies={casePreview?.revision === document.revision ? caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body })) : undefined} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
+          {mode !== 'Case' && mode !== 'Library' && !assembly3d && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
           {snapGuide && <div className="wb-canvas-hint" role="status">{snapGuide.label}</div>}
           {originPicking && <div className="wb-canvas-hint" role="status">Pick splay origin · Click the canvas · Esc cancels</div>}
           {matrixGhost && pairPlacement && <div className="wb-canvas-hint" role="status">Place linked halves · Click to place · Esc cancels</div>}
@@ -2378,6 +2380,7 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
 
       <WorkspacePanel side="right" label={`${mode === 'Library' ? 'Parts' : mode} inspector`} settings={inspectorPanel} compact={compactInspector} open={rightOpen} onClose={() => setRightOpen(false)}>
         <div className="wb-inspector-content" key={`${mode}:${scriptsOpen}:${mode === 'Library' ? libraryAssembly ?? selectedLibraryDefinition?.id : `${selectedBoardId}:${scope?.matrixId}:${scope?.kind}:${scope?.row}:${scope?.column}:${activePart?.id}`}`}>
+          {(mode === 'Design' || mode === 'Case') && selectedBoard && <React.Suspense fallback={null}><BoardReferencePanel document={document} boardId={selectedBoard.id} onChange={next => emit({ kind: 'replace-document', document: next }, [selectedBoard.id])} /></React.Suspense>}
           {designView && !scriptsOpen && !outlineSettingsOpen && <>{mode === 'Design' && selectedMatrix && scope?.kind !== 'component' && <><div className="wb-inspect-head wb-selection-heading"><h2 aria-label={selectionTitle}>{selectionTitle.split(' · ').at(-1)}</h2></div><p className="wb-selection-summary">{scope?.kind === 'matrix' ? `${selectedMatrix.rows} rows · ${selectedMatrix.columns} columns` : `${activeParts.length} keys selected`}</p></>}<div className="wb-selection-breadcrumb">{selectedBoard?.name} / {viewLabel}{selectedMatrix ? ` / ${activeLayout?.name || selectedMatrix.name || selectionTitle.split(' · ')[0]}` : ''}</div><div className="wb-inspector-tabs" role="tablist" aria-label="Inspector details"><button role="tab" aria-selected={inspectorTab === 'properties'} onClick={() => setInspectorTab('properties')}>Properties</button><button role="tab" aria-selected={inspectorTab === 'relations'} onClick={() => setInspectorTab('relations')}>Relations</button></div></>}
           {showFindings ? <><div className="wb-inspect-head"><h2>Findings</h2><button className="wb-secondary" onClick={() => setShowFindings(false)}>Back</button></div><FindingList findings={scene.findings} /></> : inspectorTab === 'relations' && designView && !scriptsOpen && !outlineSettingsOpen ? <><h2>Relationships</h2><p className="wb-empty-note">{partnerLayout ? `Key assemblies, diodes and components mirror with ${partnerLayout.name}. Replace a component on one half to keep it local.` : activeLayout ? 'This layout is independent. Its geometry and components can be edited separately.' : activeConstraint ? `${parts.get(activeConstraint.sourcePartId)?.reference} drives ${activePart?.reference}.` : 'No saved placement relationship on this selection.'}</p>{activePart && <button className="wb-secondary" onClick={() => { changeMode('Design'); setScope({ kind: 'component', partId: activePart.id }); setInspectorTab('properties'); }}>Edit placement relationship</button>}<p className="wb-empty-note">Matrix rows and columns share pitch, stagger and splay. Edit those in Properties.</p></> : getModeDetails()}
         </div>
@@ -2385,10 +2388,9 @@ const Workbench = ({ document, scene, onEdit, onUndo, onRedo, onExport, compileF
       {((compactObjects && leftOpen) || (compactInspector && rightOpen)) && <button className="wb-drawer-scrim" aria-label="Close panels" onClick={() => { setLeftOpen(false); setRightOpen(false); }} />}
     </section>
     <footer className="wb-canvas-footer">
-      {mode === 'Case' ? <>
+      {mode === 'Case' || (mode === 'Design' && assembly3d) || (mode === 'Library' && editingAssembly) ? <>
         <span className="wb-footer-view">3D · mm</span>
         <div className="wb-footer-center"><span>Drag to orbit · Scroll to zoom</span></div>
-        <div ref={setCaseControlsTarget} />
       </> : <>
       <div className="wb-footer-coords"><span>mm</span><span>X <b>{activePart?.pose.at.x.toFixed(2) ?? '0.00'}</b></span><span>Y <b>{activePart?.pose.at.y.toFixed(2) ?? '0.00'}</b></span></div>
       <div className="wb-footer-center"><button onClick={() => setCommandMenu('snap')} disabled={mode !== 'Design' && mode !== 'PCB'}>Grid {snapFraction === 0 ? 'off' : snapFraction === 1 ? '1u' : snapFraction === .5 ? '½u' : snapFraction === .125 ? '⅛u' : '¼u'}</button><span>{geometrySnap ? 'Geometry snap on' : 'Geometry snap off'}</span></div>

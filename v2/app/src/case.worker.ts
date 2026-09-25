@@ -25,7 +25,7 @@ async function handle(message: CaseMessage): Promise<void> {
     const result = await buildAssembly(message.ir);
     const reply: CaseReply = { id, kind: 'case', result };
 
-    self.postMessage(reply, [result.step.buffer, result.mesh.positions.buffer, result.mesh.normals.buffer]);
+    self.postMessage(reply, [result.step.buffer, result.mesh.positions.buffer, result.mesh.normals.buffer, ...(result.bodies ?? []).flatMap(body => [body.positions.buffer, body.normals.buffer])]);
   } catch (cause) {
     const reply: CaseReply = {
       id,

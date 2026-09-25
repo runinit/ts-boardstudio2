@@ -17,7 +17,8 @@ test('Parts uses a searchable categorized catalogue and a selected component ins
   await expect(page.locator('.wb-canvas-footer')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Snap', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await expect(page.getByText(/No 3D model attached. Import/)).toBeVisible();
+  await page.getByText('Sample PCB', {exact:true}).click();
+  await expect(page.getByText(/No component models are attached/)).toBeVisible();
   await page.getByRole('button', { name: '2D footprint', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Footprint preview' })).toBeVisible();
   const pad = page.locator('.wb-preview-pad').first();
@@ -128,10 +129,11 @@ test('Parts renders an attached model through the visible 3D control', async ({ 
   });
   await expect(page.getByText('Bound asset: switch.step')).toBeVisible();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await expect(page.getByLabel('Case and component mesh preview, 1 components')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('.wb-case-preview canvas')).toBeVisible();
+  await expect(page.getByText('1 / 1 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.wb-assembly-scene canvas')).toBeVisible();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({ name: 'export.wrl', mimeType: 'model/vrml', buffer: Buffer.from('#VRML V2.0 utf8\nShape { geometry Box { size 10 10 5 } }') });
-  await expect(page.getByText('WRL models are included in exports. Attach a STEP model for an interactive preview.')).toBeVisible();
+  await expect(page.getByText('Bound asset: export.wrl')).toBeVisible();
+  await expect(page.getByText('1 / 1 models · 1.6 mm PCB', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '2D footprint', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Footprint preview' })).toBeVisible();
 });

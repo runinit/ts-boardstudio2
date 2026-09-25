@@ -13,6 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ($($type:ty),+ $(,)?) => { $(<$type>::export(&config)?;)+ };
     }
     export!(
+        CaseBodyMesh, PcbPreview, PcbSurface, PcbModel, BoardReference, AssemblyDefinition, AssemblyMember, AssemblyModelMode,
         ArchiveEntry,
         ArchiveAssetBuffer,
         ArchiveRequest,

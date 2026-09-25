@@ -120,6 +120,15 @@ export async function packProject(doc: ProjectDoc, options: ProjectPackOptions =
       return doc.parts.filter((part) => part.definitionId === definition.id).flatMap((part) => modelAssetIds(definition, part));
     }));
 
+    for (const definition of doc.definitions) {
+      for (const model of [...(definition.model ? [definition.model] : []), ...(definition.models ?? [])]) if (bundledModel(model.assetId)) bundledIds.add(model.assetId);
+    }
+    for (const assembly of doc.assemblies ?? []) for (const member of assembly.members) {
+      for (const model of member.models) if (bundledModel(model.assetId)) bundledIds.add(model.assetId);
+      const definition = doc.definitions.find(d => d.id === member.definitionId);
+      if (definition && isErgogen(definition.generator?.source)) for (const id of modelAssetIds({ ...definition, generator: { ...definition.generator!, parameters: { ...definition.generator!.parameters, ...member.parameters } } }, { id: member.id, definitionId: definition.id, reference: member.id, pose: member.pose, side: member.side })) bundledIds.add(id);
+    }
+    for (const reference of doc.boardReferences ?? []) for (const id of Object.values(reference.modelAssets)) if (bundledModel(id)) bundledIds.add(id);
     for (const id of bundledIds) {
       if (embeddedAssets.some((asset) => asset.id === id)) continue;
       const bundled = bundledModel(id);
@@ -127,7 +136,7 @@ export async function packProject(doc: ProjectDoc, options: ProjectPackOptions =
       const bytes = await bundledModelBytes(id);
       const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(bytes));
       const sha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-      embeddedAssets.push({ id, name: bundled.filename, mediaType: /\.wrl$/i.test(bundled.filename) ? 'model/vrml' : 'model/step', sha256, source: 'bundled Ergogen library' });
+      embeddedAssets.push({ id, name: bundled.filename, mediaType: /\.wrl$/i.test(bundled.filename) ? 'model/vrml' : /\.stl$/i.test(bundled.filename) ? 'model/stl' : 'model/step', sha256, source: 'bundled Ergogen library' });
       files.set(`assets/${sha256}`, bytes);
     }
   }

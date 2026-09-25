@@ -155,17 +155,23 @@ function readMesh(oc: OpenCascadeInstance, shape: TopoDS_Shape, path: string): C
   return { positions: new Float32Array(positions), normals: new Float32Array(normals) };
 }
 
-function makeAssembly(oc: OpenCascadeInstance, ir: PreparedCaseAssemblyIR): TopoDS_Shape {
+function makeAssembly(oc: OpenCascadeInstance, ir: PreparedCaseAssemblyIR, meshes: NonNullable<CaseResult['bodies']>): TopoDS_Shape {
   using builder = new oc.BRep_Builder();
   const compound = new oc.TopoDS_Compound();
   builder.MakeCompound(compound);
 
   try {
     for (const body of ir.bodies) {
+      using bodyShape = new oc.TopoDS_Compound();
+      builder.MakeCompound(bodyShape);
       for (const region of body.regions) {
         using shape = makeRegion(oc, body.body, region);
-        builder.Add(compound, shape);
+        builder.Add(bodyShape, shape);
       }
+      builder.Add(compound, bodyShape);
+      const path = `/body-${++exportSequence}.stl`;
+      try { meshes.push({ id: body.body.id, name: body.body.name, ...readMesh(oc, bodyShape, path) }); }
+      finally { try { oc.FS.unlink(path); } catch { /* Writer may not have created a file. */ } }
     }
     return compound;
   } catch (error) {
@@ -220,8 +226,9 @@ export async function buildAssembly(ir: PreparedCaseAssemblyIR): Promise<CaseRes
     if (body.regions.length === 0) throw new Error('Case requires at least one prepared region');
   }
   const oc = await getKernel();
-  const shape = makeAssembly(oc, ir);
-  return exportShape(oc, shape, ir.revision);
+  const bodies: NonNullable<CaseResult['bodies']> = [];
+  const shape = makeAssembly(oc, ir, bodies);
+  return { ...exportShape(oc, shape, ir.revision), bodies };
 }
 
 export interface StepModel {

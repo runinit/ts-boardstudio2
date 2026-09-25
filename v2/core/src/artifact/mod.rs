@@ -3,6 +3,7 @@ pub mod compile;
 pub mod kicad;
 pub mod outline;
 mod sexpr;
+mod preview;
 mod source;
 mod source_geometry;
 
@@ -53,6 +54,10 @@ pub fn builtin_catalogue() -> Result<Vec<CompiledFootprint>, ArtifactError> {
 
 fn handle(request: ArtifactRequest) -> ArtifactReply {
     match request {
+        ArtifactRequest::PreviewBoard { id, source, revision } => match preview::board(&source, revision) {
+            Ok(result) => ArtifactReply::PreviewBoard { id, result },
+            Err(error) => ArtifactReply::Error { id, error },
+        },
         ArtifactRequest::CompileFootprints { id, jobs } => compile_jobs(id, jobs),
         ArtifactRequest::ImportFootprint {
             id,

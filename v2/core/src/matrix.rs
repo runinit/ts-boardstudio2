@@ -791,6 +791,114 @@ mod projection_tests {
     }
 }
 
+// A matrix definition replacement keeps electrical identities by logical terminal,
+// rather than carrying old physical pad IDs into the new footprint.
+fn remap_member_pins(
+    doc: &mut ProjectDoc,
+    index: usize,
+    definition_id: &str,
+) -> Result<Vec<String>, String> {
+    let part = &doc.parts[index];
+    if part.definition_id == definition_id
+        || !doc
+            .nets
+            .iter()
+            .any(|net| net.pins.iter().any(|pin| pin.part_id == part.id))
+    {
+        return Ok(vec![]);
+    }
+    let before = doc
+        .definitions
+        .iter()
+        .find(|d| d.id == part.definition_id)
+        .ok_or("Previous matrix definition is missing")?;
+    let after = doc
+        .definitions
+        .iter()
+        .find(|d| d.id == definition_id)
+        .ok_or("Replacement matrix definition is missing")?;
+    let old_row = matrix_terminal_pad_ids(before, true);
+    let old_column = matrix_terminal_pad_ids(before, false);
+    let mut mapping = BTreeMap::new();
+    for pad in &before.pads {
+        let mut targets = if old_row.contains(&pad.id) {
+            matrix_terminal_pad_ids(after, true)
+        } else if old_column.contains(&pad.id) {
+            matrix_terminal_pad_ids(after, false)
+        } else {
+            vec![]
+        };
+        if targets.is_empty() {
+            for (name, pads) in &before.terminals {
+                if pads.contains(&pad.id) {
+                    targets.extend(after.terminals.get(name).into_iter().flatten().cloned());
+                }
+            }
+        }
+        if targets.is_empty() && !pad.number.is_empty() {
+            targets.extend(
+                after
+                    .pads
+                    .iter()
+                    .filter(|new| new.number == pad.number)
+                    .map(|new| new.id.clone()),
+            );
+        }
+        if targets.is_empty() && after.pads.iter().any(|new| new.id == pad.id) {
+            targets.push(pad.id.clone());
+        }
+        targets.sort();
+        targets.dedup();
+        mapping.insert(pad.id.clone(), targets);
+    }
+    let part_id = part.id.clone();
+    let mut assigned = BTreeMap::new();
+    let mut changed = vec![];
+    for net in &mut doc.nets {
+        if !net.pins.iter().any(|pin| pin.part_id == part_id) {
+            continue;
+        }
+        let mut pins = vec![];
+        for pin in &net.pins {
+            if pin.part_id != part_id {
+                pins.push(pin.clone());
+                continue;
+            }
+            let targets = mapping
+                .get(&pin.pad_id)
+                .filter(|targets| !targets.is_empty())
+                .ok_or_else(|| {
+                    format!(
+                        "Cannot map connected pad {}/{} to the replacement footprint",
+                        part_id, pin.pad_id
+                    )
+                })?;
+            for target in targets {
+                if assigned
+                    .insert(target.clone(), net.id.clone())
+                    .is_some_and(|previous| previous != net.id)
+                {
+                    return Err(format!(
+                        "Replacement would merge different nets on pad {part_id}/{target}"
+                    ));
+                }
+                let mapped = Pin {
+                    part_id: part_id.clone(),
+                    pad_id: target.clone(),
+                };
+                if !pins.contains(&mapped) {
+                    pins.push(mapped);
+                }
+            }
+        }
+        if pins != net.pins {
+            net.pins = pins;
+            changed.push(net.id.clone());
+        }
+    }
+    Ok(changed)
+}
+
 pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>, String> {
     let previous = doc
         .matrices
@@ -994,6 +1102,7 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                     return Err(format!("Matrix member ID {id} is already owned"));
                 }
                 if let Some(&index) = part_index.get(&id) {
+                    changed.extend(remap_member_pins(doc, index, &definition_id)?);
                     let part = &mut doc.parts[index];
                     let overridden = part
                         .properties

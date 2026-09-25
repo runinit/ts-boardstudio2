@@ -39,6 +39,14 @@ export class ExportClient {
     return worker;
   }
 
+  preview(input: Omit<ExportRequest, 'id' | 'kind' | 'files'>): Promise<Extract<ArtifactReply, { kind: 'preview-board' }>['result']> {
+    const id = crypto.randomUUID();
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve: (reply) => reply.kind === 'preview-board' ? resolve(reply.result) : reject(new Error('Expected PCB preview')), reject });
+      this.worker.postMessage({ ...input, id, kind: 'pcb-preview', files: {} });
+    });
+  }
+
   request(input: Omit<ExportRequest, 'id'>): Promise<Extract<ExportReply, { kind: 'file' }>> {
     const id = crypto.randomUUID();
     return new Promise((resolve, reject) => {

@@ -268,6 +268,28 @@ fn model_forms(
         .collect()
 }
 
+fn override_models(
+    source: String,
+    definition: &PartDefinition,
+    paths: &BTreeMap<String, String>,
+) -> Result<String, ArtifactError> {
+    if definition.model.is_none() && definition.models.is_none() {
+        return Ok(source);
+    }
+    let parsed = kiutils_sexpr::parse_one(&source).map_err(|e| validation(e.to_string()))?;
+    let root = &parsed.nodes[0];
+    let replacements = sexpr::children(root, "model")
+        .map(|node| (sexpr::span(node), String::new()))
+        .collect();
+    let mut result = sexpr::replace_spans(&source, replacements)
+        .ok_or_else(|| validation("Invalid model spans"))?;
+    let at = result
+        .rfind(')')
+        .ok_or_else(|| validation("Invalid footprint"))?;
+    result.insert_str(at, &model_forms(definition, paths)?.join("\n"));
+    Ok(result)
+}
+
 fn managed_model_forms(
     definition: &PartDefinition,
     models: &BTreeMap<String, String>,
@@ -1105,7 +1127,7 @@ fn finish_standalone(
             }
             // A standalone library file contains the footprint artifact only;
             // generators can also emit board-level routing or helper graphics.
-            format!("{}\n", normalize_generated_footprint(footprints[0]))
+            format!("{}\n", override_models(normalize_generated_footprint(footprints[0]), definition, &plan.model_paths)?)
         } else if is_imported(definition) {
             source::patch_footprint(
                 &definition.kicad_source.as_ref().expect("checked").source,
@@ -1178,7 +1200,7 @@ fn finish_board(
             let mut board_objects_here = Vec::new();
             for form in forms {
                 if form.starts_with("(footprint ") || form.starts_with("(module ") {
-                    footprints.push(normalize_generated_footprint(&form));
+                    footprints.push(override_models(normalize_generated_footprint(&form), definition, &plan.model_paths)?);
                 } else {
                     board_objects_here.push(render(&form)?);
                 }

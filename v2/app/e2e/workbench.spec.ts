@@ -78,7 +78,7 @@ test('previews and exports the case assembly as STEP', async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
-  await expect(page.getByLabel(/Case and component mesh preview/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByLabel('Complete PCB assembly preview')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('Preview current')).toBeVisible();
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
@@ -516,10 +516,10 @@ test('authors a custom component and exports a KiCad footprint library', async (
   await page.getByRole('tab', { name: 'Parts' }).click();
   await page.getByRole('button', { name: 'New custom component' }).click();
   const editor = page.getByRole('complementary', { name: 'Parts inspector' });
-  await expect(editor.getByRole('heading', { level: 2 })).toHaveText('Custom component 7');
+  await expect(editor.getByRole('heading', { level: 2, name: 'Custom component 7', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Definition name' }).fill('Controller mount');
   await page.getByRole('textbox', { name: 'Definition name' }).blur();
-  await expect(editor.getByRole('heading', { level: 2 })).toHaveText('Controller mount');
+  await expect(editor.getByRole('heading', { level: 2, name: 'Controller mount', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '+ Add pad' }).click();
   await expect(page.getByRole('group', { name: 'Pad 1' })).toBeVisible();
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
@@ -549,7 +549,7 @@ test('shows attached STEP components in the 3D case preview', async ({ page }) =
   await expect(page.getByText('Bound asset: preview.step')).toBeVisible();
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
-  await expect(page.getByLabel('Case and component mesh preview, 15 components')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('15 / 15 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 30_000 });
 });
 
 test('propagates a linked layout constraint during a source move', async ({ page }) => {

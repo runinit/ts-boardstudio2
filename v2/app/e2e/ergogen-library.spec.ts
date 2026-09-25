@@ -152,7 +152,7 @@ test('bundled MX models load and generator settings are grouped', async ({ page 
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await expect(page.locator('.wb-library-model-workspace canvas')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText('2 / 2 models · 1.6 mm PCB', {exact:true})).toBeVisible({ timeout: 20_000 });
   const canvasBox = (await page.locator('.wb-library-model-workspace canvas').boundingBox())!;
   const switchBox = (await page.getByRole('button', { name: '2D footprint', exact: true }).boundingBox())!;
   expect(canvasBox.y).toBeGreaterThanOrEqual(switchBox.y + switchBox.height);
@@ -173,6 +173,9 @@ test('bundled MX models load and generator settings are grouped', async ({ page 
   await page.screenshot({ path: info.outputPath('mx-narrow-light.png') });
 });
 
+test.describe('model network recovery', () => {
+  test.use({ serviceWorkers: 'block' });
+
 test('model failures can retry and parts without models do not keep loading', async ({ page }) => {
   test.setTimeout(60_000);
   const modelUrl = /\.(step|stp)(\?|$)/i;
@@ -184,13 +187,18 @@ test('model failures can retry and parts without models do not keep loading', as
   await search.fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Retry model loading' })).toBeVisible();
+  await page.getByText('Sample PCB', {exact:true}).click();
+  await expect(page.getByRole('button', { name: 'Retry models' })).toBeVisible();
   await page.unroute(modelUrl);
-  await page.getByRole('button', { name: 'Retry model loading' }).click();
-  await expect(page.locator('.wb-library-model-workspace canvas')).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: 'Retry models' }).click();
+  await expect(page.getByText('2 / 2 models · 1.6 mm PCB', {exact:true})).toBeVisible({ timeout: 20_000 });
   await search.fill('ceoloide/utility_filled_zone');
   await page.getByRole('option', { name: /utility filled zone/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await expect(page.getByText('No 3D model attached. Import a STEP model in the inspector.')).toBeVisible();
-  await expect(page.locator('.wb-library-model-workspace canvas')).toHaveCount(0);
+  await page.getByText('Sample PCB', {exact:true}).click();
+  await expect(page.getByText(/No component models are attached/)).toBeVisible();
+  await expect(page.locator('.wb-assembly-scene canvas')).toBeVisible();
+  await expect(page.getByText('Preparing PCB assembly…')).toHaveCount(0);
+});
+
 });

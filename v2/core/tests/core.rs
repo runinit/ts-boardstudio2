@@ -1295,7 +1295,7 @@ fn mirrored_pair_links_geometry_bidirectionally_and_keeps_hardware_local() {
     let (mut engine, mut doc) = linked_pair();
     let mut right = doc.matrices[1].clone();
     right.cells.push(MatrixCell {
-            assemblies_local: None,
+        assemblies_local: Some(true),
         row: 0,
         column: 1,
         enabled: true,
@@ -1447,7 +1447,7 @@ fn mirrored_pair_previews_restore_both_halves_and_nudges_stay_parametric() {
 }
 
 #[test]
-fn mirrored_pair_keeps_extra_components_local_and_unlink_preserves_poses() {
+fn mirrored_pair_links_extra_components_and_unlink_preserves_poses() {
     let (mut engine, doc) = linked_pair();
     let mut local = doc.parts[0].clone();
     local.id = "left-encoder".into();
@@ -1462,7 +1462,7 @@ fn mirrored_pair_keeps_extra_components_local_and_unlink_preserves_poses() {
     )))
     .1;
     let mut left = doc.layouts[0].clone();
-    left.part_ids.push(local.id.clone());
+    if !left.part_ids.contains(&local.id) { left.part_ids.push(local.id.clone()); }
     doc = scene(engine.handle(edit(
         doc.revision,
         EditPhase::Commit,
@@ -1480,11 +1480,10 @@ fn mirrored_pair_keeps_extra_components_local_and_unlink_preserves_poses() {
         },
     )))
     .1;
-    assert_eq!(
-        doc.parts.iter().find(|part| part.id == local.id),
-        Some(&local)
-    );
-    assert!(doc.layouts[1].part_ids.is_empty());
+    assert_eq!(doc.parts.iter().find(|part| part.id == local.id).unwrap().pose, local.pose);
+    assert_eq!(doc.layouts[1].part_ids.len(), 1);
+    let counterpart = doc.parts.iter().find(|part| part.id == doc.layouts[1].part_ids[0]).unwrap();
+    assert!((counterpart.pose.at.x + local.pose.at.x - 20.0).abs() < 1e-8);
     let mut independent = doc.layouts[1].clone();
     independent.mirror_link = None;
     let unlinked = scene(engine.handle(edit(
@@ -1495,7 +1494,7 @@ fn mirrored_pair_keeps_extra_components_local_and_unlink_preserves_poses() {
         },
     )))
     .1;
-    assert_eq!(unlinked.parts, doc.parts);
+    assert_eq!(unlinked.parts.iter().map(|part| (&part.id, &part.pose)).collect::<Vec<_>>(), doc.parts.iter().map(|part| (&part.id, &part.pose)).collect::<Vec<_>>());
     let mut change = unlinked.matrices[0].clone();
     change.rows += 1;
     let changed = scene(engine.handle(edit(
@@ -2521,19 +2520,12 @@ fn constraint_preview_commit_and_undo() {
     ));
     let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
     assert_eq!(undone.parts[1].pose.at.x, 10.0);
-    assert!(matches!(
-        engine.handle(edit(
-            2,
-            EditPhase::Commit,
-            EditOperation::MoveParts {
-                positions: vec![Position {
-                    id: "target".into(),
-                    at: Vec2 { x: 8.0, y: 0.0 }
-                }],
-            }
-        )),
-        CoreReply::Error { revision: 2, .. }
-    ));
+    let (_, moved) = scene(engine.handle(edit(2, EditPhase::Commit, EditOperation::MoveParts {
+        positions: vec![Position { id: "target".into(), at: Vec2 { x: 8.0, y: 0.0 } }],
+    })));
+    assert_eq!(moved.parts[1].pose.at.x, 8.0);
+    let (_, restored) = scene(engine.handle(CoreRequest::Undo { id: "undo-offset".into() }));
+    assert_eq!(restored.parts[1].pose.at.x, 10.0);
 }
 
 #[test]
@@ -2826,4 +2818,100 @@ fn matrix_custom_splay_origin_survives_export_and_resize() {
         restored.matrices[0].column_origins,
         reopened.matrices[0].column_origins
     );
+}
+
+#[test]
+fn replacing_matrix_switch_remaps_existing_terminal_nets_and_undoes() {
+    let mut doc = matrix_doc();
+    doc.definitions[0].pads = ["one", "two"].iter().enumerate().map(|(i, id)| serde_json::from_value(serde_json::json!({
+        "id": id, "number": (i + 1).to_string(), "at": {"x": i, "y": 0}, "size": {"x": 1, "y": 1}, "shape": "circle"
+    })).unwrap()).collect();
+    let mut engine = CoreEngine::new();
+    engine.handle(CoreRequest::Open {
+        id: "open".into(),
+        document: doc,
+    });
+    let (_, mut placed) = scene(engine.handle(edit(
+        0,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: matrix(1, 1),
+            definitions: None,
+        },
+    )));
+    let id = placed.parts[0].id.clone();
+    placed.nets.push(Net {
+        id: "external".into(),
+        name: "ROW0".into(),
+        pins: vec![Pin {
+            part_id: id.clone(),
+            pad_id: "one".into(),
+        }],
+    });
+    placed.boards[0].net_ids.push("external".into());
+    placed.nets.push(Net {
+        id: "external-column".into(),
+        name: "COL0".into(),
+        pins: vec![Pin {
+            part_id: id.clone(),
+            pad_id: "two".into(),
+        }],
+    });
+    placed.boards[0].net_ids.push("external-column".into());
+    engine.handle(CoreRequest::Open {
+        id: "reopen".into(),
+        document: placed.clone(),
+    });
+    let mut replacement = placed.definitions[0].clone();
+    replacement.id = "new-switch".into();
+    replacement.pads[0].id = "new-row".into();
+    replacement.pads[1].id = "new-column".into();
+    replacement
+        .terminals
+        .insert("from".into(), vec!["new-row".into()]);
+    replacement
+        .terminals
+        .insert("to".into(), vec!["new-column".into()]);
+    replacement.matrix_terminals = Some(MatrixTerminals {
+        row: "from".into(),
+        column: "to".into(),
+    });
+    let mut incoming = placed.matrices[0].clone();
+    incoming.definition_id = replacement.id.clone();
+    let mut conflicting = replacement.clone();
+    conflicting.matrix_terminals.as_mut().unwrap().column = "from".into();
+    assert!(matches!(
+        engine.handle(edit(
+            placed.revision,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix: incoming.clone(),
+                definitions: Some(vec![conflicting])
+            }
+        )),
+        CoreReply::Error { .. }
+    ));
+    let (_, changed) = scene(engine.handle(edit(
+        placed.revision,
+        EditPhase::Commit,
+        EditOperation::SetMatrix {
+            matrix: incoming,
+            definitions: Some(vec![replacement]),
+        },
+    )));
+    assert_eq!(
+        changed
+            .nets
+            .iter()
+            .find(|n| n.id == "external")
+            .unwrap()
+            .pins,
+        vec![Pin {
+            part_id: id,
+            pad_id: "new-row".into()
+        }]
+    );
+    let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
+    assert_eq!(undone.nets, placed.nets);
+    assert_eq!(undone.parts, placed.parts);
 }
