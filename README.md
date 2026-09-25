@@ -58,7 +58,7 @@ scenarios run separately through `test:perf`. `precommit` prepares WASM and runs
 app and CAD type checks; it is not a substitute for `check`.
 Install Playwright Chromium with `pnpm --dir app exec playwright install
 chromium` if needed. `pnpm test:e2e:pages` checks the production build under
-`/ts-boardstudio2/` (also included in `check`). Run the development-server CAD
+`/boardstudio/` (also included in `check`). Run the development-server CAD
 regression with
 `pnpm --dir app test:e2e:dev`. Set `BOARDSTUDIO_CHROMIUM=/usr/bin/chromium` to use a local
 Chromium binary.

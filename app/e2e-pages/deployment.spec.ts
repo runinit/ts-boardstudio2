@@ -17,7 +17,7 @@ test('Pages subpath loads workers, CAD, models and offline exports', async ({ pa
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope);
-  expect(new URL(scope).pathname).toBe('/ts-boardstudio2/');
+  expect(new URL(scope).pathname).toBe('/boardstudio/');
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload();
