@@ -35,5 +35,6 @@ test('reports generated solids when findings only block manufacturing', () => {
   );
 
   expect(markup).toContain('Generated CAD solids');
-  expect(markup).toContain('manufacturing findings to review');
+  expect(markup).not.toContain('manufacturing findings to review');
+  expect(markup).not.toContain('ready to export');
 });

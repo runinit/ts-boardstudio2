@@ -411,11 +411,6 @@ body { overflow: hidden; }
 .wb-footprint-import { display: flex; align-items: center; justify-content: space-between; margin: -4px 0 12px; padding: 9px 10px; border: 1px dashed var(--wb-rule); border-radius: 3px; color: var(--wb-accent); background: var(--wb-panel); font-size: 10px; font-weight: 600; cursor: pointer; }
 .wb-footprint-import::after { content: 'Import file'; color: var(--wb-muted); font: 8px var(--wb-mono); }
 .wb-footprint-import input { position: absolute; width: 1px; height: 1px; clip: rect(0, 0, 0, 0); overflow: hidden; }
-.wb-case-preview-state { display: flex; align-items: center; gap: 9px; margin: -3px 0 18px; padding: 10px; border: 1px solid var(--wb-rule); border-radius: 3px; background: var(--wb-canvas); }
-.wb-case-preview-state .wb-ready-dot { flex: none; }
-.wb-case-preview-state > span:last-child { display: grid; gap: 3px; }
-.wb-case-preview-state strong { color: var(--wb-ink); font-size: 10px; font-weight: 600; }
-.wb-case-preview-state small { color: var(--wb-subtle); font: 8px var(--wb-mono); }
 .wb-ready-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--wb-raised); }
 .wb-ready-dot.is-ready { background: var(--wb-status-success-surface); }
 .wb-library-item { display: grid; grid-template-columns: 30px 1fr 16px; align-items: center; gap: 9px; width: 100%; min-height: 49px; padding: 6px 3px; border: 0; border-bottom: 1px solid var(--wb-rule); text-align: left; background: transparent; cursor: pointer; }

@@ -1251,8 +1251,18 @@ fn sync_nets(
     for board in &mut doc.boards {
         board.net_ids.retain(|id| !id.starts_with(&prefix));
     }
-    let mut nets = led_nets(matrix, cells, members, &prefix);
-    if matrix.diodes == Some(true) {
+    let hardware_managed = doc.hardware.as_ref().is_some_and(|hardware| {
+        hardware
+            .boards
+            .iter()
+            .any(|entry| entry.board_id == doc.boards[board_index].id)
+    });
+    let mut nets = if hardware_managed {
+        Vec::new()
+    } else {
+        led_nets(matrix, cells, members, &prefix)
+    };
+    if matrix.diodes == Some(true) && !hardware_managed {
         let mut row_nets: Vec<Net> = (0..matrix.rows)
             .map(|row| Net {
                 id: format!("{prefix}row/{row}"),

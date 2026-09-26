@@ -399,6 +399,18 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         .boards
         .iter()
         .find(|board| board.id == config.board_id);
+    // Fits belong to the project snapshot of a part. Old case-owned fits remain
+    // readable, but an explicit part fit is authoritative for every use of it.
+    for definition in &document.definitions {
+        if let Some(profile) = &definition.mechanical_profile {
+            effective_config
+                .profiles
+                .retain(|entry| entry.definition_id != definition.id);
+            let mut inherited = profile.clone();
+            inherited.definition_id = definition.id.clone();
+            effective_config.profiles.push(inherited);
+        }
+    }
     let switch_parts = board
         .into_iter()
         .flat_map(|board| {
@@ -426,7 +438,7 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
     if effective_config.plate_thickness < 0.0 {
         effective_config.plate_thickness = default_switch_plate_thickness(default_family);
     }
-    if effective_config.pcb_thickness < 0.0 {
+    if board.is_some() || effective_config.pcb_thickness < 0.0 {
         effective_config.pcb_thickness = board
             .map(|board| board.thickness)
             .filter(|thickness| thickness.is_finite() && *thickness > 0.0)
@@ -2420,6 +2432,80 @@ mod tests {
         assert_eq!(a.iter().filter(|contour| contour.hole).count(), 1);
         assert_eq!(b.iter().filter(|contour| contour.hole).count(), 1);
     }
+    #[test]
+    fn part_owned_profiles_supply_case_cutouts_without_case_assignment() {
+        let mut doc = ProjectDoc::empty("profiles", "Profiles");
+        let profile = builtin_profile(
+            "custom-switch".into(),
+            MechanicalBuiltinProfile::MxSwitch,
+            3.5,
+        )
+        .unwrap();
+        doc.definitions.push(
+            serde_json::from_value(serde_json::json!({
+                "id": "custom-switch", "name": "Qualified switch", "kind": "switch",
+                "courtyard": [], "pads": [], "mechanicalProfile": profile
+            }))
+            .unwrap(),
+        );
+        doc.parts.push(
+            serde_json::from_value(serde_json::json!({
+                "id":"key", "definitionId":"custom-switch", "reference":"SW1",
+                "pose":{"at":{"x":20,"y":20},"rotation":0}, "side":"front"
+            }))
+            .unwrap(),
+        );
+        doc.boards.push(Board {
+            id: "board".into(),
+            name: "Board".into(),
+            outline_ids: vec![],
+            part_ids: vec!["key".into()],
+            net_ids: vec![],
+            thickness: 1.2,
+            traces: vec![],
+            vias: vec![],
+        });
+        doc.mechanical = Some(config());
+        let outline = Contour {
+            hole: false,
+            points: vec![
+                Vec2 { x: 0., y: 0. },
+                Vec2 { x: 40., y: 0. },
+                Vec2 { x: 40., y: 40. },
+                Vec2 { x: 0., y: 40. },
+            ],
+        };
+        let saved = doc.clone();
+        let result = resolve(&doc, &[outline]);
+        assert_eq!(
+            doc, saved,
+            "resolving must not copy inherited fits into the project"
+        );
+        assert_eq!(
+            result
+                .plate_contours
+                .iter()
+                .filter(|contour| contour.hole)
+                .count(),
+            1
+        );
+        assert!(
+            !result
+                .diagnostics
+                .iter()
+                .any(|finding| finding.id.contains("profile-missing"))
+        );
+        assert_eq!(
+            result
+                .stack
+                .iter()
+                .find(|layer| layer.id == "pcb")
+                .unwrap()
+                .thickness,
+            1.2
+        );
+    }
+
     #[test]
     fn switch_profiles_drive_spacing_and_reject_incompatible_engagement() {
         let mut doc = ProjectDoc::empty("test", "test");

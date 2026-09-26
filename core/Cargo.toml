@@ -14,6 +14,9 @@ export-types = ["dep:ts-rs"]
 name = "export_contracts"
 required-features = ["export-types"]
 
+[[example]]
+name = "dump_firmware"
+
 [dependencies]
 i_overlay = "9.0.0"
 kiutils_sexpr = "=0.1.1"

@@ -63,3 +63,15 @@ assert.throws(() => parseForms('(footprint'), /Unbalanced Ergogen output/);
 assert.throws(() => parseForms('footprint'), /KiCad forms/);
 
 console.log(`Rendered ${definitions.length} Ergogen generators in front and back poses`);
+
+// Jumper local nets follow stable part identity, never the editable reference.
+const reversibleMcu = definitions.find(({ generator }) => generator?.source === 'ceoloide/mcu_nice_nano');
+const localNames = (id, reference) => {
+  const seen = new Set();
+  render(reversibleMcu, { part: { ...part(reversibleMcu), id, reference, generatorParameters: { reversible: true } }, netIndex: name => { seen.add(name); return seen.size; } });
+  return [...seen].filter(name => name.startsWith('__boardstudio_local_')).sort();
+};
+const stableLocals = localNames('mcu/left', 'U1');
+assert.ok(stableLocals.length >= 24, 'reversible MCU has distinct local socket nets');
+assert.deepEqual(stableLocals, localNames('mcu/left', 'U99'), 'renaming a part preserves local nets');
+assert.ok(localNames('mcu/right', 'U1').every(name => !stableLocals.includes(name)), 'same reference on different parts cannot join local nets');

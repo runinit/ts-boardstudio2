@@ -21,14 +21,14 @@ async function configure(page: Page) {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await page.getByRole('button', { name: 'Configure mechanical stack', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Disable mechanical stack', exact: true })).toBeVisible();
+  await expect(page.getByText('Configuration resolved', { exact: false })).toBeVisible();
   return page.locator('.wb-mechanical-panel');
 }
 
 test('mechanical configuration is opt-in, undoable and persistent without replacing authored bodies', async ({ page }) => {
   const panel = await configure(page);
   await expect.poll(async () => (await saved(page)).mechanical?.method).toBe('printed');
-  await panel.getByRole('button', { name: 'Generate', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText(/Generated CAD solids · 4 parts at revision/)).toBeVisible({ timeout: 60_000 });
   const originalBodies = (await saved(page)).caseBodies;
   await panel.getByRole('combobox', { name: 'Bottom construction', exact: true }).selectOption('sheet');
@@ -41,6 +41,7 @@ test('mechanical configuration is opt-in, undoable and persistent without replac
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(panel.getByRole('combobox', { name: 'Bottom construction', exact: true })).toHaveValue('sheet');
   expect((await saved(page)).caseBodies).toEqual(originalBodies);
+  await panel.locator('summary').filter({ hasText: 'Configuration management' }).click();
   await panel.getByRole('button', { name: 'Disable mechanical stack', exact: true }).click();
   await expect.poll(async () => (await saved(page)).mechanical ?? undefined).toBeUndefined();
   expect((await saved(page)).caseBodies).toEqual(originalBodies);
@@ -49,6 +50,8 @@ test('mechanical configuration is opt-in, undoable and persistent without replac
 test('library profile resolves real cutouts and view controls leave the committed configuration unchanged', async ({ page }) => {
   test.setTimeout(90000);
   const panel = await configure(page);
+  await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
+  await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
   await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
   await expect.poll(async () => (await saved(page)).mechanical?.profiles.length, { timeout: 30_000 }).toBe(1);
   const profile = (await saved(page)).mechanical!.profiles[0];
@@ -61,11 +64,11 @@ test('library profile resolves real cutouts and view controls leave the committe
   await materials.first().selectOption('PLA');
   await expect.poll(async () => (await saved(page)).mechanical?.partProcesses?.find((entry) => entry.partId === 'plate')?.material).toBe('PLA');
   await materials.last().selectOption('PLA');
-  await panel.getByRole('button', { name: 'Generate', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText(/Generated CAD solids · 4 parts at revision/)).toBeVisible({ timeout: 60000 });
 
   await expect(panel.getByLabel('Resolved mechanical stack')).toBeVisible();
-  await panel.getByLabel('Resolved mechanical stack').getByRole('button').filter({ hasText: 'plate' }).first().click();
+  await panel.getByLabel('Resolved mechanical stack').getByRole('button').filter({ hasText: 'Plate' }).first().click();
   const revision = (await saved(page)).revision;
   await page.getByRole('button', { name: 'Exploded', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Exploded', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -79,25 +82,28 @@ test('library profile resolves real cutouts and view controls leave the committe
 test('clicking a generated solid selects its resolved stack layer', async ({ page }) => {
   test.setTimeout(90_000);
   const panel = await configure(page);
+  await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
+  await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
   await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
   await panel.locator('summary').filter({ hasText: 'Per-part process overrides' }).click();
   const materials = panel.getByRole('combobox', { name: 'Material', exact: true });
   await materials.first().selectOption('PLA');
   await materials.last().selectOption('PLA');
-  await panel.getByRole('button', { name: 'Generate', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText(/Generated CAD solids · 4 parts at revision/)).toBeVisible({ timeout: 60_000 });
-  const plate = panel.getByLabel('Resolved mechanical stack').getByRole('button').filter({ hasText: 'plate' }).first();
+  const plate = panel.getByLabel('Resolved mechanical stack').getByRole('button').filter({ hasText: 'Plate' }).first();
   await expect(plate).toHaveAttribute('aria-pressed', 'false');
-  await page.getByText('Visibility', { exact: true }).click();
-  await page.getByRole('checkbox', { name: 'PCB', exact: true }).uncheck();
-  await page.getByRole('checkbox', { name: 'bottom', exact: true }).uncheck();
-  await page.getByRole('checkbox', { name: 'plate-foam', exact: true }).uncheck();
-  await page.getByRole('checkbox', { name: 'bottom-foam', exact: true }).uncheck();
+  await page.getByRole('region', { name: 'Canvas layers' }).getByRole('button', { name: 'Layers', exact: true }).click();
+  await page.getByRole('button', { name: /^(Hide|Show) PCB$/, exact: true }).click();
+  await page.getByRole('button', { name: /^(Hide|Show) Bottom$/, exact: true }).click();
+  await page.getByRole('button', { name: /^(Hide|Show) Plate foam$/, exact: true }).click();
+  await page.getByRole('button', { name: /^(Hide|Show) Bottom foam$/, exact: true }).click();
   await page.getByRole('button', { name: 'Top', exact: true }).click();
   const canvas = page.getByLabel('3D PCB assembly. Drag to orbit, scroll to zoom.');
   const bounds = await canvas.boundingBox();
   if (!bounds) throw new Error('Assembly canvas is not visible');
-  for (const [x, y] of [[0.35, 0.35], [0.5, 0.35], [0.65, 0.35], [0.35, 0.5], [0.5, 0.5], [0.65, 0.5], [0.35, 0.65], [0.5, 0.65], [0.65, 0.65]]) {
+  // Include the outer rim: the floating controls leave centre probes that can hit switch openings.
+  for (const [x, y] of [[0.5, 0.28], [0.35, 0.35], [0.5, 0.35], [0.65, 0.35], [0.35, 0.5], [0.5, 0.5], [0.65, 0.5], [0.35, 0.65], [0.5, 0.65], [0.65, 0.65]]) {
     await canvas.click({ position: { x: bounds.width * x, y: bounds.height * y } });
     if (await plate.getAttribute('aria-pressed') === 'true') break;
   }
@@ -136,7 +142,7 @@ test('generated preview separates saved authored bodies and scopes configuration
   await expect(page.getByText(/Mechanical stack belongs to/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Disable mechanical stack', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Show configured board', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Disable mechanical stack', exact: true })).toBeVisible();
+  await expect(page.getByText('Configuration resolved', { exact: false })).toBeVisible();
 });
 
 test('generated-only boards keep their export ready when leaving the Case view', async ({ page }) => {
@@ -159,14 +165,16 @@ test('generated-only boards keep their export ready when leaving the Case view',
     });
   });
   const panel = await configure(page);
+  await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
+  await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
   await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
   await panel.locator('summary').filter({ hasText: 'Per-part process overrides' }).click();
-  await panel.getByRole('button', { name: 'Generate', exact: true }).click();
-  await expect(page.getByText('Generated assembly ready', { exact: true })).toBeVisible({ timeout: 60000 });
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Case generation' }).getByText(/Geometry current/)).toBeVisible({ timeout: 60000 });
   expect((await saved(page)).caseBodies).toHaveLength(0);
   await page.getByRole('button', { name: 'Export', exact: true }).first().click();
   const generated = page.locator('.wb-export-row').filter({ hasText: 'Generated mechanical package' });
   await expect(generated.getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
   const authored = page.locator('.wb-export-row').filter({ hasText: 'Authored Case STEP' });
-  await expect(authored.getByRole('button', { name: 'Needs work', exact: true })).toBeDisabled();
+  await expect(authored.getByRole('button', { name: 'Export Authored Case STEP', exact: true })).toBeDisabled();
 });

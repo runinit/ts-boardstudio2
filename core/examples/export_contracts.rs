@@ -1,3 +1,10 @@
+use boardstudio_core::electrical::*;
+use boardstudio_core::electrical_jumpers::{JumperDiagnostic, JumperRecipe, JumperSite};
+use boardstudio_core::electrical_peripherals::PeripheralRequirement;
+use boardstudio_core::electrical_profiles::JumperState;
+use boardstudio_core::firmware::{
+    FirmwareKey, FirmwarePackage, FirmwareRequest, FirmwareScanMode, ScanPin, SplitTransport,
+};
 use boardstudio_core::model::*;
 use std::{env, fs, path::PathBuf};
 use ts_rs::{Config, TS};
@@ -98,6 +105,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Constraint,
         MirrorAxis,
         ProjectDoc,
+        HardwareConfiguration,
+        HardwareTopology,
+        HardwareTransport,
+        PhysicalBoardInstance,
+        ElectricalBoardConfiguration,
+        ElectricalHandoffBaseline,
+        JumperState,
+        JumperRecipe,
+        JumperSite,
+        JumperDiagnostic,
+        FirmwareKey,
+        FirmwarePackage,
+        FirmwareRequest,
+        FirmwareScanMode,
+        ScanPin,
+        SplitTransport,
+        PeripheralRequirement,
+        ElectricalPlanRequest,
+        ElectricalMode,
+        ElectricalAssignment,
+        ElectricalDiagnostic,
+        ElectricalPlan,
         EditOperation,
         Position,
         EditPhase,

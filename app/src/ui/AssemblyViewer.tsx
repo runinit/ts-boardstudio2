@@ -209,7 +209,9 @@ export function AssemblyViewer({
           selectedLayer={selectedLayer}
           onSelectLayer={onSelectLayer}
           reference={shownReference}
-          colorScheme={colorScheme}
+        colorScheme={colorScheme}
+        key={`${document.id}:${boardId}`}
+        persistenceKey={`${document.id}:${boardId}`}
           onSelect={onSelect}
         />
       )}
@@ -221,7 +223,7 @@ export function AssemblyViewer({
       {(sample || messages.length > 0) && (
         <details className="wb-assembly-notices">
           <summary>
-            {sample ? 'Sample PCB' : `${messages.length} preview notices`}
+            {sample ? 'Sample PCB' : `${messages.length} model ${messages.length === 1 ? 'notice' : 'notices'}`}
           </summary>
           {sample && <p>Sample board around this footprint assembly.</p>}
           {messages.map((m, i) => (

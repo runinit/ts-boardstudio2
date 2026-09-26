@@ -399,10 +399,43 @@ insets at 700px and below. Footprint workspace padding changes from 35px 38px
 
 **The Stationary Controls Rule.** Scope and snap controls remain anchored to the workspace while world geometry pans and zooms.
 
-The Case view uses the shared footer for its 3D Fit and zoom controls. Its zoom
-percentage is relative to the fitted camera; 2D scale, axes, coordinates, and
-snap status do not appear over the perspective preview. Assembly metadata stays
-at the upper left, and the visual-preview limitation stays at the lower left.
+The Case action bar owns geometry readiness and its next action: configure,
+generate, wait/cancel, retry, review errors, or export. Export requires current
+generation, preview, committed scene, and resolved assembly revisions on the
+configured board. Mechanical errors block export; warnings remain reviewable
+without blocking. The canvas labels only the geometry currently displayed.
+Configuration metadata does not imply generated-solid or manufacturing readiness.
+
+Layout findings and Mechanical findings have separate, explicitly scoped footer
+controls. Counts match the grouped lists they open. Mechanical review opens and
+focuses diagnostics, including from a closed compact inspector. Model notices
+remain separate from mechanical findings.
+
+The mechanical inspector orders active diagnostics, Construction, Inherited part profiles,
+Dimensions & clearances, and Resolved stack before optional openings/battery,
+mounting/hardware, and manufacturing overrides. Async results can open an
+untouched disclosure; ordinary edits preserve a user's open/closed choice.
+Disable mechanical stack belongs in Configuration management at the end.
+Part fit comes from the key assembly or definition selected in Parts. The inherited
+summary links to that definition's fit editor, where standard switch profiles,
+custom cutouts and clearances, and imported KiCad geometry can be reviewed before
+saving. Opening or cancelling the editor does not change the document. Existing
+Case-specific profile overrides remain under Advanced source geometry.
+
+Layout, PCB, Parts, and assembly previews share a floating Layers pill in the
+lower-right corner. It starts collapsed. Expanding the bounded list never changes
+the drawing dimensions or camera. Below 640px of drawing width it has a Close
+control and 44px targets; Escape closes it and returns focus to the trigger.
+Availability is separate from visibility preference: generated solids show
+Not generated, while unavailable component assets show Missing model. Preferences
+remain view-only, survive generation, and assembly preferences are scoped to the
+project and board. Long labels wrap; lists scroll inside.
+
+Assembly display and assembled/exploded/section controls occupy a wrapping rail
+above the drawing. Camera controls remain outside the Layers pill.
+Compact Case settings has a visible label, and compact generation, layer, and
+settings controls use 44px touch targets. Passive canvas hints do not intercept
+geometry selection or gasket dragging.
 
 ## Elevation & Depth
 
@@ -575,8 +608,8 @@ Reduced motion removes pane travel and chevron transitions, substitutes a brief
 
 ### Workbench controls and review
 
-Desktop selection uses the five scope shortcuts; at widths of 1050px and below,
-one labeled selector takes their place. Rows/Columns tree grouping belongs in
+Selection uses one labeled selector alongside Transform, Align, and Snap. The
+2D/3D switch occupies a separate control so view changes are distinct from editing. Rows/Columns tree grouping belongs in
 Objects options. Panel menu actions occupy full-width rows, and Escape closes
 the menu without changing the canvas selection.
 
@@ -594,3 +627,46 @@ Fit board and Fit selection sit beside zoom. Fitting includes transformed part
 and keycap bounds, reserves room for canvas controls, and uses empty default
 bounds only when no geometry exists. Selecting a half in the tree selects its
 matrices and components for inspection with Fit selection.
+
+
+### Wiring and physical assemblies
+
+The PCB inspector identifies the selected part and its named terminal assignments.
+Key switches inherit wiring from the board plan; the Wiring section owns controller
+selection, explicit matrix/direct mode, automatic resolution, pin locks and manual
+assignments. Mechanical holes never appear as electrical terminals. Peripheral pins
+are allocated before scan pins. Missing profiles, diode polarity, capacity conflicts,
+and manual-net conflicts remain explicit findings rather than guessed connections.
+When existing connections conflict with the automatic plan, Wiring names the
+affected nets and requires an explicit replacement action. That action releases
+only the conflicting terminals, preserves other manual connections, and supports
+Undo.
+
+The firmware keymap starts with unassigned keys and offers an editable binding for
+each current key and encoder push button. Layout edits define a new hardware/keymap
+revision; deleted-key tombstones and automatic keymap migration are not promised.
+PCB downloads include a wiring report and per-part jumper instructions for each
+physical population sharing the board. Draft
+handoffs retain unresolved findings. Successful PCB handoffs protect valid signal
+assignments, including drafts; protection survives Undo. Starting a new PCB revision
+requires the explicit remap review in Wiring. Failed exports record no handoff.
+
+Reversible recipes preserve fabricated local nets across open solder gaps and use
+part IDs rather than editable references for their names. Instructions identify the
+face and bridge state; optional omitted footprint traces are routing obligations.
+Firmware resolves the module GPIO behind each selected population, including the
+reduced MCU jumper variant. Wired halves use local power, crossed TX/RX through a
+straight TRRS cable, sleeve ground, and an unused ring 1.
+
+Physical assembly selection is separate from the PCB design. A split may share one
+reversible PCB or use two boards. Turning a half over changes its face and reflects
+its physical X/Z placement. Construction dimensions may be linked; openings, mounts,
+and battery space remain local. PCB thickness remains authoritative. Case geometry
+is retained across electrical-only edits only when its exact physical dependency
+signature and project/instance identity still match.
+The Case preview uses that instance's reflected parts and outline together. Layout
+2D and 3D continue to show the canonical PCB design.
+
+ZMK handoffs target v0.3.0 and contain editable source, pin assignments, and build
+configuration. Source generation and device-tree syntax checks do not substitute
+for a complete target firmware build or hardware verification.

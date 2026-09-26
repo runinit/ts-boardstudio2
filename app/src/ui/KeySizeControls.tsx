@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Vec2 } from '../../../contracts/src/index';
 
-export function KeySizeControls({ sizes, pitch, gap, onCommit }: { sizes: Vec2[]; pitch: Vec2; gap: Vec2; onCommit: (size: Vec2, axis?: 'x' | 'y') => void }) {
-  const units = (size: Vec2) => ({ x: Math.round((size.x + gap.x) / pitch.x * 4) / 4, y: Math.round((size.y + gap.y) / pitch.y * 4) / 4 });
-  const value = sizes.length ? units(sizes[0]) : { x: 1, y: 1 };
-  const mixed = sizes.some((size) => { const u = units(size); return u.x !== value.x || u.y !== value.y; });
+type KeySizeItem = { size: Vec2; pitch: Vec2; gap: Vec2 };
+
+export function KeySizeControls({ items, onCommit }: { items: KeySizeItem[]; onCommit: (units: Vec2, axis?: 'x' | 'y') => void }) {
+  const units = ({ size, pitch, gap }: KeySizeItem) => ({ x: Math.round((size.x + gap.x) / pitch.x * 4) / 4, y: Math.round((size.y + gap.y) / pitch.y * 4) / 4 });
+  const value = items.length ? units(items[0]) : { x: 1, y: 1 };
+  const mixed = items.some((item) => { const itemUnits = units(item); return itemUnits.x !== value.x || itemUnits.y !== value.y; });
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value.x, value.y, mixed]);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -15,9 +17,9 @@ export function KeySizeControls({ sizes, pitch, gap, onCommit }: { sizes: Vec2[]
     clearTimeout(timer.current);
     const signature = JSON.stringify({ next, axis });
     if (sent.current === signature) return;
-    if (axis ? sizes.some((size) => units(size)[axis] !== next[axis]) : mixed || next.x !== value.x || next.y !== value.y) {
+    if (axis ? items.some((item) => units(item)[axis] !== next[axis]) : mixed || next.x !== value.x || next.y !== value.y) {
       sent.current = signature;
-      onCommit({ x: next.x * pitch.x - gap.x, y: next.y * pitch.y - gap.y }, axis);
+      onCommit(next, axis);
     }
   };
   const keyboardCommit = (axis: 'x' | 'y') => {

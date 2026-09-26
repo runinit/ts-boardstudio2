@@ -1,12 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+test('Parts saves standard and custom fits without changing the document on cancel', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Parts' }).click();
+  const library = page.getByRole('listbox', { name: 'Footprint library' });
+  await library.getByRole('option', { name: 'MX switch', exact: true }).click();
+  const revision = await page.locator('.wb-root').getAttribute('data-revision');
+  await page.getByRole('button', { name: 'Define profile', exact: true }).click();
+  const editor = page.getByRole('region', { name: 'Mechanical fit profile editor' });
+  await expect(editor).toBeVisible();
+  await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', revision!);
+  await page.getByRole('button', { name: 'Define profile', exact: true }).click();
+  await editor.getByRole('button', { name: 'Use standard cutout', exact: true }).click();
+  await expect(editor.getByLabel('Plate cutouts contour 1 vertex 1 X', { exact: true })).toBeVisible();
+  await editor.getByRole('button', { name: 'Save fit profile', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
+  await expect(editor).toContainText('3.50 mm');
+  await expect(editor.getByLabel('Plate cutouts contour 1 vertex 1 X', { exact: true })).not.toHaveValue('');
+  await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await library.getByRole('option', { name: /RGB LED/ }).click();
+  await page.getByRole('button', { name: 'Define profile', exact: true }).click();
+  await editor.getByRole('button', { name: 'Add clearance', exact: true }).click();
+  await editor.getByLabel('Component clearances contour 1 vertex 1 X', { exact: true }).fill('-4');
+  await editor.getByRole('button', { name: 'Save fit profile', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
+  await expect(editor.getByLabel('Component clearances contour 1 vertex 1 X', { exact: true })).toHaveValue('-4');
+});
+
 test('preview layers and part visibility change only the drawing', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
   await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /RGB LED/ }).click();
 
   const preview = page.getByRole('img', { name: 'Footprint preview' });
-  const layers = page.getByRole('region', { name: 'Preview layers' });
+  const layers = page.getByRole('region', { name: 'Canvas layers' });
+  await layers.getByRole('button', { name: 'Layers', exact: true }).click();
   const revision = await page.locator('.wb-root').getAttribute('data-revision');
   const padCount = await preview.locator('.wb-preview-pad').count();
   expect(padCount).toBeGreaterThan(0);
@@ -28,7 +57,8 @@ test('named footprint graphics layers can be hidden independently', async ({ pag
   await page.getByRole('tab', { name: 'Parts' }).click();
   await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /switch choc v1 v2/ }).click();
 
-  const layers = page.getByRole('region', { name: 'Preview layers' });
+  const layers = page.getByRole('region', { name: 'Canvas layers' });
+  await layers.getByRole('button', { name: 'Layers', exact: true }).click();
   const preview = page.getByRole('img', { name: 'Footprint preview' });
   const layer = await preview.locator('.wb-ergogen-drawing [data-layer]').first().getAttribute('data-layer');
   expect(layer).toBeTruthy();
@@ -57,7 +87,8 @@ test('assembly companions can be hidden without hiding the switch', async ({ pag
   await page.getByRole('button', { name: 'Inspect', exact: true }).click();
 
   const preview = page.getByRole('img', { name: 'Footprint preview' });
-  const layers = page.getByRole('region', { name: 'Preview layers' });
+  const layers = page.getByRole('region', { name: 'Canvas layers' });
+  await layers.getByRole('button', { name: 'Layers', exact: true }).click();
   const before = await preview.locator('.wb-preview-pad').count();
   await layers.getByRole('button', { name: 'Hide part RGB LED' }).click();
   const remaining = await preview.locator('.wb-preview-pad').count();

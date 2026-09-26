@@ -75,7 +75,15 @@ export async function createRendererCanvas(
   let disposed = false;
   const sceneWorker = new Worker(new URL('./scene.worker.ts', import.meta.url), { type: 'module' });
   let sceneId = 0;
-  const pending = new Map<number, { resolve: (accepted: boolean) => void; reject: (error: Error) => void }>();
+  // A prepared scene may arrive after the user has changed the camera. Keep
+  // that interaction authoritative over the keepCamera flag captured when
+  // the worker request was posted.
+  let cameraGeneration = 0;
+  const pending = new Map<number, {
+    resolve: (accepted: boolean) => void;
+    reject: (error: Error) => void;
+    cameraGeneration: number;
+  }>();
   let frame = 0;
   let drag: ObjectDrag | undefined;
   let dragPlane: number | undefined;
@@ -90,7 +98,11 @@ export async function createRendererCanvas(
     try {
       performance.measure('boardstudio.renderer.prepare', { start: performance.now() - elapsed, end: performance.now() });
       const start = performance.now();
-      const accepted = renderer.setPreparedScene(prepared);
+      const accepted = renderer.setPreparedScene(
+        cameraGeneration !== request.cameraGeneration
+          ? { ...prepared, keepCamera: true }
+          : prepared,
+      );
       performance.measure('boardstudio.renderer.upload', { start, end: performance.now() });
       render();
       if (accepted && !measuredFirstScene) {
@@ -124,6 +136,7 @@ export async function createRendererCanvas(
   const pointerDown = (event: PointerEvent) => {
     dragging = true;
     moved = false;
+    cameraGeneration++;
     onInteract?.();
     previous = down = { x: event.clientX, y: event.clientY };
     canvas.setPointerCapture(event.pointerId);
@@ -161,6 +174,8 @@ export async function createRendererCanvas(
   };
   const wheel = (event: WheelEvent) => {
     event.preventDefault();
+    cameraGeneration++;
+    onInteract?.();
     renderer.zoom(Math.exp(Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY) * 0.001, 1)));
     render();
   };
@@ -179,16 +194,16 @@ export async function createRendererCanvas(
       pending.clear();
       const id = ++sceneId;
       return new Promise<boolean>((resolve, reject) => {
-        pending.set(id, { resolve, reject });
+        pending.set(id, { resolve, reject, cameraGeneration });
         sceneWorker.postMessage({ id, scene });
       });
     },
     setState(state) { if (!disposed) { renderer.setState(state); render(); } },
     setDrag(value) { drag = value; },
-    setHandles(handles) { if (!disposed) { renderer.setHandles(handles); render(); } },
-    fit() { if (!disposed) { renderer.fit(); render(); } },
-    view(preset) { if (!disposed) { renderer.view(preset); render(); } },
-    zoom(factor) { if (!disposed) { renderer.zoom(factor); render(); } },
+    setHandles(value) { if (!disposed) { renderer.setHandles(value); render(); } },
+    fit() { if (!disposed) { cameraGeneration++; onInteract?.(); renderer.fit(); render(); } },
+    view(preset) { if (!disposed) { cameraGeneration++; onInteract?.(); renderer.view(preset); render(); } },
+    zoom(factor) { if (!disposed) { cameraGeneration++; onInteract?.(); renderer.zoom(factor); render(); } },
     dispose() {
       if (disposed) return;
       disposed = true;

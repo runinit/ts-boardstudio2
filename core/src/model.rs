@@ -178,6 +178,12 @@ pub struct PartDefinition {
     pub models: Option<Vec<PartModel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generator: Option<PartGenerator>,
+    #[serde(
+        rename = "mechanicalProfile",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub mechanical_profile: Option<MechanicalPartProfile>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
@@ -686,6 +692,8 @@ pub struct LayoutMirrorLink {
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct ProjectDoc {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hardware: Option<HardwareConfiguration>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mechanical: Option<MechanicalConfiguration>,
     #[serde(
         rename = "boardReferences",
@@ -729,6 +737,7 @@ pub struct ProjectDoc {
 impl ProjectDoc {
     pub fn empty(id: &str, name: &str) -> Self {
         Self {
+            hardware: None,
             mechanical: None,
             board_references: vec![],
             assemblies: vec![],
@@ -751,6 +760,76 @@ impl ProjectDoc {
             constraints: vec![],
         }
     }
+}
+
+/// Project-level physical/electrical topology. Optional to preserve the v2
+/// document shape while projects adopt automatic wiring.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase", default)]
+pub struct HardwareConfiguration {
+    pub topology: HardwareTopology,
+    pub transport: HardwareTransport,
+    pub instances: Vec<PhysicalBoardInstance>,
+    pub boards: Vec<ElectricalBoardConfiguration>,
+    pub shared_construction: Option<MechanicalConfiguration>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum HardwareTopology {
+    #[default]
+    Unibody,
+    Split,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum HardwareTransport {
+    #[default]
+    None,
+    Wireless,
+    Wired,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct PhysicalBoardInstance {
+    pub id: String,
+    pub name: String,
+    pub board_id: String,
+    pub half: String,
+    pub role: String,
+    pub flipped: bool,
+    pub controller_part_id: Option<String>,
+    pub mechanical: Option<MechanicalConfiguration>,
+    pub construction_linked: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase", default)]
+pub struct ElectricalBoardConfiguration {
+    pub board_id: String,
+    pub controller_part_id: Option<String>,
+    pub mode: crate::electrical::ElectricalMode,
+    pub locks: BTreeMap<String, String>,
+    pub assignments: BTreeMap<String, String>,
+    pub key_bindings: BTreeMap<String, String>,
+    pub jumper_states: BTreeMap<String, crate::electrical_profiles::JumperState>,
+    pub protected_handoff: Option<ElectricalHandoffBaseline>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct ElectricalHandoffBaseline {
+    pub fingerprint: String,
+    pub revision: u64,
+    pub assignments: BTreeMap<String, String>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
@@ -1035,6 +1114,44 @@ pub struct MatrixColumnBasis {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreRequest {
+    #[serde(rename = "generate-firmware")]
+    GenerateFirmware {
+        id: String,
+        request: crate::firmware::FirmwareRequest,
+    },
+    #[serde(rename = "resolve-electrical")]
+    ResolveElectrical {
+        id: String,
+        request: crate::electrical::ElectricalPlanRequest,
+    },
+    #[serde(rename = "apply-electrical")]
+    ApplyElectrical {
+        id: String,
+        #[serde(rename = "baseRevision")]
+        base_revision: u64,
+        plan: crate::electrical::ElectricalPlan,
+        #[serde(default)]
+        draft: bool,
+    },
+    #[serde(rename = "review-electrical-remap")]
+    ReviewElectricalRemap {
+        id: String,
+        #[serde(rename = "baseRevision")]
+        base_revision: u64,
+        #[serde(rename = "boardId")]
+        board_id: String,
+        #[serde(rename = "expectedFingerprint")]
+        expected_fingerprint: String,
+    },
+    #[serde(rename = "protect-electrical-handoff")]
+    ProtectElectricalHandoff {
+        id: String,
+        #[serde(rename = "baseRevision")]
+        base_revision: u64,
+        #[serde(rename = "boardId")]
+        board_id: String,
+        plan: crate::electrical::ElectricalPlan,
+    },
     #[serde(rename = "mechanical-profile")]
     MechanicalProfile {
         id: String,
@@ -1084,6 +1201,26 @@ pub enum CoreRequest {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CoreReply {
+    #[serde(rename = "firmware-generated")]
+    FirmwareGenerated {
+        id: String,
+        package: crate::firmware::FirmwarePackage,
+    },
+    #[serde(rename = "electrical-resolved")]
+    ElectricalResolved {
+        id: String,
+        plan: crate::electrical::ElectricalPlan,
+    },
+    ElectricalApplied {
+        id: String,
+        revision: u64,
+        document: ProjectDoc,
+    },
+    ElectricalHandoffProtected {
+        id: String,
+        revision: u64,
+        document: ProjectDoc,
+    },
     #[serde(rename = "mechanical-profile")]
     MechanicalProfile {
         id: String,

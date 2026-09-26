@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import type { CaseResult, SceneDelta } from '@boardstudio/v2-contracts';
-import { casePreviewContextMatches, currentCaseResult } from './casePreviewContext';
+import { casePreviewContextMatches, currentCaseResult, reusableCaseResult } from './casePreviewContext';
 import type { CasePreviewContext } from './casePreviewContext';
 import { buildCasePreview } from './buildCasePreview';
 
@@ -69,4 +69,16 @@ test('a view-only rerender preserves completed results for the same committed co
   const completed = { context: captured, result: result() };
   const exportViewContext = { ...captured };
   expect(currentCaseResult(completed, exportViewContext)).toBe(completed.result);
+});
+
+test('completed geometry can follow an electrical-only revision within the same physical instance', () => {
+  const captured = { ...context(), instanceId: 'left', session: 1, mechanicalFingerprint: 'geometry-a' };
+  const scene = { revision: 8 } as SceneDelta;
+  const current = { ...captured, revision: 8, scene, committedScene: scene };
+  expect(reusableCaseResult({ context: captured, result: result() }, current)?.revision).toBe(8);
+  expect(casePreviewContextMatches(captured, current)).toBe(false);
+  expect(reusableCaseResult({ context: captured, result: result() }, { ...current, instanceId: 'right' })).toBeUndefined();
+  expect(reusableCaseResult({ context: captured, result: result() }, { ...current, session: 2 })).toBeUndefined();
+  expect(reusableCaseResult({ context: captured, result: result() }, { ...current, mechanicalFingerprint: 'geometry-b' })).toBeUndefined();
+  expect(reusableCaseResult({ context: captured, result: result() }, { ...current, scene: { ...scene } })).toBeUndefined();
 });

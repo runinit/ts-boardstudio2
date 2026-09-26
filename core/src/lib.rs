@@ -2,6 +2,11 @@ pub mod archive;
 pub mod artifact;
 mod case;
 mod constraints;
+pub mod electrical;
+pub mod electrical_jumpers;
+pub mod electrical_peripherals;
+pub mod electrical_profiles;
+pub mod firmware;
 mod geometry;
 mod matrix;
 pub mod mechanical;
@@ -101,6 +106,10 @@ impl Default for CoreEngine {
 impl CoreEngine {
     pub fn handle(&mut self, request: CoreRequest) -> CoreReply {
         match request {
+            CoreRequest::GenerateFirmware { id, request } => match firmware::generate(&request) {
+                Ok(package) => CoreReply::FirmwareGenerated { id, package },
+                Err(message) => self.error(id, &message),
+            },
             CoreRequest::Open { id, mut document } => {
                 if document.format != "boardstudio/v2" {
                     return self.error(id, "Unsupported document format");
@@ -208,6 +217,148 @@ impl CoreEngine {
                     matrix_scenes: scenes,
                 }
             }
+            CoreRequest::ResolveElectrical { id, request } => CoreReply::ElectricalResolved {
+                id,
+                plan: electrical::resolve(request),
+            },
+            CoreRequest::ApplyElectrical {
+                id,
+                base_revision,
+                plan,
+                draft,
+            } => {
+                if base_revision != self.document.revision {
+                    return self.error(id, "Stale base revision");
+                }
+                let reviewed = electrical::resolve(electrical::ElectricalPlanRequest {
+                    document: self.document.clone(),
+                    instance_id: plan.instance_id.clone(),
+                    mode: plan.mode,
+                    locks: Default::default(),
+                    controller_profile: plan.controller_profile.clone(),
+                    board_id: plan.board_id.clone(),
+                    controller_part_id: plan.controller_part_id.clone(),
+                });
+                if reviewed.fingerprint != plan.fingerprint {
+                    return self.error(
+                        id,
+                        "The wiring inputs changed; resolve again before applying",
+                    );
+                }
+                let mut document = self.document.clone();
+                if let Err(message) =
+                    electrical::materialize_reviewed(&mut document, &reviewed, draft)
+                {
+                    return self.error(id, &message);
+                }
+                self.edit(
+                    id,
+                    EditCommand {
+                        base_revision,
+                        transaction_id: "apply-wiring".into(),
+                        phase: EditPhase::Commit,
+                        target_ids: vec![],
+                        operation: EditOperation::ReplaceDocument { document },
+                    },
+                )
+            }
+            CoreRequest::ReviewElectricalRemap {
+                id,
+                base_revision,
+                board_id,
+                expected_fingerprint,
+            } => {
+                if base_revision != self.document.revision {
+                    return self.error(id, "Stale base revision");
+                }
+                let Some(config) = self.document.hardware.as_mut().and_then(|hardware| {
+                    hardware
+                        .boards
+                        .iter_mut()
+                        .find(|board| board.board_id == board_id)
+                }) else {
+                    return self.error(id, "PCB wiring configuration is missing");
+                };
+                if config
+                    .protected_handoff
+                    .as_ref()
+                    .map(|baseline| baseline.fingerprint.as_str())
+                    != Some(expected_fingerprint.as_str())
+                {
+                    return self.error(id, "The PCB handoff changed; review it again");
+                }
+                config.protected_handoff = None;
+                self.document.revision += 1;
+                self.scene(
+                    id,
+                    "review-remap",
+                    vec![],
+                    &self.document,
+                    &self.contours,
+                    &self.findings,
+                    &self.outline_cache,
+                    SceneKind::Committed,
+                )
+            }
+            CoreRequest::ProtectElectricalHandoff {
+                id,
+                base_revision,
+                board_id,
+                plan,
+            } => {
+                if base_revision != self.document.revision {
+                    return self.error(id, "Stale base revision");
+                }
+                if plan.revision != self.document.revision {
+                    return self.error(id, "Wiring plan is stale");
+                }
+                if plan.board_id.as_deref() != Some(&board_id) {
+                    return self.error(id, "The handoff belongs to a different PCB");
+                }
+                let reviewed = electrical::resolve(electrical::ElectricalPlanRequest {
+                    document: self.document.clone(),
+                    instance_id: None,
+                    mode: plan.mode,
+                    locks: Default::default(),
+                    controller_profile: plan.controller_profile.clone(),
+                    board_id: plan.board_id.clone(),
+                    controller_part_id: plan.controller_part_id.clone(),
+                });
+                if plan.instance_id.is_some() || reviewed.fingerprint != plan.fingerprint {
+                    return self.error(id, "The handoff no longer matches the PCB wiring");
+                }
+                let hw = self.document.hardware.get_or_insert_with(Default::default);
+                let index = hw.boards.iter().position(|b| b.board_id == board_id);
+                let index = index.unwrap_or_else(|| {
+                    hw.boards.push(ElectricalBoardConfiguration {
+                        board_id: board_id.clone(),
+                        ..Default::default()
+                    });
+                    hw.boards.len() - 1
+                });
+                let board = &mut hw.boards[index];
+                let mut assignments = board
+                    .protected_handoff
+                    .as_ref()
+                    .map(|baseline| baseline.assignments.clone())
+                    .unwrap_or_default();
+                assignments.extend(electrical::handoff_assignments(&plan));
+                board.protected_handoff = Some(ElectricalHandoffBaseline {
+                    fingerprint: plan.fingerprint.clone(),
+                    revision: self.document.revision,
+                    assignments,
+                });
+                self.scene(
+                    id,
+                    "protect-handoff",
+                    vec![],
+                    &self.document,
+                    &self.contours,
+                    &self.findings,
+                    &self.outline_cache,
+                    SceneKind::Committed,
+                )
+            }
         }
     }
 
@@ -231,6 +382,7 @@ impl CoreEngine {
             Err(message) => return self.error(id, &message),
         };
         let mut changed = changed;
+        electrical::preserve_handoff(&self.document, &mut next);
         if let Err(message) = layout::validate(&next) {
             return self.error(id, &message);
         }
@@ -340,6 +492,7 @@ impl CoreEngine {
             return self.error(id, "History is empty");
         };
         let changed = changed_ids(&self.document, &next);
+        electrical::preserve_handoff(&self.document, &mut next);
         to.push(self.document.clone());
         next.revision = self.document.revision + 1;
         self.document = next;

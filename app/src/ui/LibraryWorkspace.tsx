@@ -1,5 +1,6 @@
+import { CanvasLayers } from './CanvasLayers';
 import React, { lazy, memo, useMemo, useState } from 'react';
-import type { PartDefinition, Vec2, ProjectDoc } from '../../../contracts/src/index';
+import type { PartDefinition, Vec2, ProjectDoc, MechanicalPartProfile, MechanicalBuiltinProfile, MechanicalPurposeMapping, MechanicalExtraction } from '../../../contracts/src/index';
 import type { CompiledFootprint } from '../../../contracts/src/index';
 import type { ComponentPreview } from './CasePreview';
 import { Ergogen2DPreview, ergogenPreviewLayers, ergogenPreviewPoints } from './Ergogen2DPreview';
@@ -8,12 +9,12 @@ import { isErgogen, parameters } from '@boardstudio/v2-ergogen';
 export type LibraryModelStatus = { definitionId: string; state: 'empty' | 'loading' | 'ready' | 'unsupported' | 'error'; message?: string };
 import './library-workspace.css';
 import { sampleAssembly } from './sampleAssembly';
+import { PartMechanicalProfileEditor } from './PartMechanicalProfileEditor';
 const AssemblyViewer = lazy(() => import('./AssemblyViewer').then(m => ({ default: m.AssemblyViewer })));
 
 const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ default: module.CasePreview })));
 const copperLayer = (side: 'front' | 'back') => side === 'back' ? 'B.Cu' : 'F.Cu';
 type PreviewLayer = { id: string; label: string; kind: 'copper' | 'graphic' | 'outline' | 'drill' | 'label' | 'part' };
-const VisibilityIcon = ({ visible }: { visible: boolean }) => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8c1.7-2.5 3.9-3.8 6.5-3.8s4.8 1.3 6.5 3.8c-1.7 2.5-3.9 3.8-6.5 3.8S3.2 10.5 1.5 8Z" /><circle cx="8" cy="8" r="2" />{!visible && <path d="M2 14 14 2" />}</svg>;
 class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?: () => void; children: React.ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
@@ -28,14 +29,18 @@ class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?:
     return this.props.children;
   }
 }
-export const LibraryWorkspace = memo(({ document, definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme }: {
+export const LibraryWorkspace = memo(({ document, definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme, mechanicalProfile, onSaveMechanicalProfile, onMechanicalProfile, onExtractMechanicalProfile }: {
   document: ProjectDoc; definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2 }[];
   compiled?: CompiledFootprint[];
   compilePending?: boolean; compileError?: string;
   models?: ComponentPreview[]; modelFilename?: string; modelStatus?: LibraryModelStatus; onRetry?: () => void; show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
+  mechanicalProfile?: MechanicalPartProfile;
+  onSaveMechanicalProfile?: (profile: MechanicalPartProfile) => void;
+  onMechanicalProfile?: (definitionId: string, source: MechanicalBuiltinProfile, gap: number) => Promise<MechanicalPartProfile>;
+  onExtractMechanicalProfile?: (source: string, mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
 }) => {
-  const [layersOpen, setLayersOpen] = useState(true);
   const [visibility, setVisibility] = useState<{ definitionId: string; hidden: Set<string> }>({ definitionId: '', hidden: new Set() });
+  const [editingProfile, setEditingProfile] = useState(false);
   const hidden = visibility.definitionId === definition?.id ? visibility.hidden : new Set<string>();
   const toggleLayer = (id: string) => setVisibility((current) => {
     const next = new Set(current.definitionId === definition?.id ? current.hidden : []);
@@ -103,14 +108,16 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
   ];
   const outlineLabels = [...new Set(visibleFootprints.filter(({ outline }) => outline.length > 0).map(({ keycap: envelope }) => envelope ? 'Keycap' : 'Courtyard'))].filter((name) => !hidden.has(`outline:${name}`)).map((name) => name.toLowerCase()).join(' / ');
   const visiblePads = visibleFootprints.some(({ ir, side }) => ir.pads.some((pad) => !hidden.has(`copper:${copperLayer(pad.side ?? side)}`)));
+  if (editingProfile && onSaveMechanicalProfile) return <PartMechanicalProfileEditor key={definition.id} definition={definition} profile={mechanicalProfile} onSave={onSaveMechanicalProfile} onClose={() => setEditingProfile(false)} onBuiltin={onMechanicalProfile} onExtract={onExtractMechanicalProfile} />;
   return <div className="wb-library-workspace" aria-label="Footprint workspace">
     {compilePending && <p role="status">Compiling footprint preview…</p>}
     {compileError && <p role="alert">{compileError}</p>}
     {diagnostics.map((diagnostic, index) => <p className="wb-empty-note" key={`${diagnostic.kind}:${index}`}>{diagnostic.message}</p>)}
+    <section className="wb-library-fit-profile" aria-label="Mechanical fit profile"><div><h3>Mechanical fit</h3><p>{mechanicalProfile ? 'Defined with this part and inherited by layouts and cases.' : 'Define this part’s fit once so every layout and case uses the same profile.'}</p></div><button type="button" className="wb-secondary" onClick={() => setEditingProfile(true)} disabled={!onSaveMechanicalProfile}>{mechanicalProfile ? 'Edit profile' : 'Define profile'}</button></section>
     <div className="wb-library-workspace-title"><h2>{title ?? definition.name}</h2><div role="group" aria-label="Part preview view"><button aria-pressed={!show3d} onClick={() => onViewChange(false)}>2D footprint</button><button aria-pressed={show3d} onClick={() => onViewChange(true)}>3D model</button></div></div>
     {show3d ? <div className="wb-library-model-workspace" aria-label="3D footprint model preview">
       {sample && <ModelPreviewBoundary resetKey={definition.id} onRetry={onRetry}><React.Suspense fallback={<p>Loading assembly preview…</p>}><AssemblyViewer document={sample.project} boardId="sample-board" contours={sample.contours} colorScheme={colorScheme} sample /></React.Suspense></ModelPreviewBoundary>}
-    </div> : <div className="wb-library-workspace-geometry"><svg viewBox={`${minX - 3} ${-maxY - 3} ${maxX - minX + 6} ${maxY - minY + 6}`} role="img" aria-label="Footprint preview">
+    </div> : <div className="wb-library-workspace-geometry wb-layer-surface"><svg viewBox={`${minX - 3} ${-maxY - 3} ${maxX - minX + 6} ${maxY - minY + 6}`} role="img" aria-label="Footprint preview">
       {footprints.map(({ definition: item, ir, keycap, outline, at, side }, index) => hidden.has(`part:${index}`) ? null : <g key={`${item.id}:${index}`} transform={`translate(${at.x} ${-at.y})`}>
         <Ergogen2DPreview definition={item} hideKeycap={Boolean(keycap)} hiddenLayers={hidden} />
         {outline.length > 0 && !hidden.has(`outline:${keycap ? 'Keycap' : 'Courtyard'}`) && <polygon points={outline.map((p) => `${p.x},${-p.y}`).join(' ')} className={keycap ? 'wb-preview-keycap' : 'wb-preview-courtyard'} />}
@@ -122,13 +129,10 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
           {!hidden.has('pad-labels') && <text x={pad.at.x} y={-pad.at.y + pad.size.y / 2 + 0.7} className="wb-preview-pad-label">{pad.number}</text>}
         </g>)}
       </g>)}
-    </svg><section className="wb-library-layers" aria-label="Preview layers">
-      <button className="wb-library-layers-heading" aria-expanded={layersOpen} onClick={() => setLayersOpen((open) => !open)}>Layers <span>{layersOpen ? '−' : '+'}</span></button>
-      {layersOpen && <div className="wb-library-layers-list">
-        {layers.map((layer) => <button key={layer.id} className={`wb-library-layer is-${layer.kind}`} aria-label={`${hidden.has(layer.id) ? 'Show' : 'Hide'} ${layer.label}`} aria-pressed={!hidden.has(layer.id)} onClick={() => toggleLayer(layer.id)}><span className="wb-layer-swatch" /><span>{layer.label}</span><span className="wb-layer-eye"><VisibilityIcon visible={!hidden.has(layer.id)} /></span></button>)}
-        <div className="wb-library-layer-divider">Parts</div>{footprints.map(({ definition: item }, index) => <button key={`${item.id}:${index}`} className="wb-library-layer is-part" aria-label={`${hidden.has(`part:${index}`) ? 'Show' : 'Hide'} part ${item.name}`} aria-pressed={!hidden.has(`part:${index}`)} onClick={() => toggleLayer(`part:${index}`)}><span className="wb-layer-swatch" /><span>{item.name}</span><span className="wb-layer-eye"><VisibilityIcon visible={!hidden.has(`part:${index}`)} /></span></button>)}
-      </div>}
-    </section></div>}
+    </svg><CanvasLayers hidden={hidden} onToggle={toggleLayer} groups={[
+      { title: 'Footprint', layers },
+      { title: 'Parts', layers: footprints.map(({ definition: item }, index) => ({ id: `part:${index}`, label: item.name, accessibilityLabel: `part ${item.name}`, kind: 'part' })) },
+    ]} /></div>}
     <div className="wb-library-workspace-scale">{show3d ? 'Drag to orbit · Scroll to zoom' : `${keycap ? 'Keycap ' : ''}${size.x.toFixed(1)} × ${size.y.toFixed(1)} mm${visiblePads ? ' · Purple: pads' : ''}${outlineLabels ? ` · Dashed: ${outlineLabels}` : ''}`}</div>
   </div>;
 });

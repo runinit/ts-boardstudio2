@@ -407,6 +407,7 @@ pub fn builtin_definitions() -> Vec<PartDefinition> {
                 version: BUILTIN_VERSION.into(),
                 parameters: BTreeMap::new(),
             }),
+            mechanical_profile: None,
         }
     })
     .collect()

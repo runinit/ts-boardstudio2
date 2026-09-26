@@ -1,6 +1,7 @@
+import { CanvasLayers } from './CanvasLayers';
 import { defaultGasketLayout, moveGasket, gasketAnchors } from '../gasketEditing';
 import type { MechanicalGasketSupport } from '@boardstudio/v2-contracts';
-import { generationMessage, type GenerationState } from '../generationState';
+import type { GenerationState } from '../generationState';
 import React, { useEffect, useRef, useState } from 'react';
 import type { BoardReference, MechanicalAssembly, MechanicalConfiguration, PcbPreview } from '@boardstudio/v2-contracts';
 import type { ModelMesh } from '../modelMesh';
@@ -11,7 +12,7 @@ export type LoadedModel = { id: string; mesh: ModelMesh };
 export type AssemblyBody = { id: string; name: string; mesh: ModelMesh };
 type AssemblyView = 'assembled' | 'exploded' | 'section';
 
-export function AssemblyScene({ board, models, bodies = [], mechanical, generation, onGasketChange, mechanicalConfiguration, selectedLayer = '', reference, onSelect, onSelectLayer, colorScheme }: {
+export function AssemblyScene({ board, models, bodies = [], mechanical, generation, onGasketChange, mechanicalConfiguration, selectedLayer = '', reference, onSelect, onSelectLayer, colorScheme, persistenceKey }: {
   board: PcbPreview;
   models: LoadedModel[];
   bodies?: AssemblyBody[];
@@ -24,6 +25,7 @@ export function AssemblyScene({ board, models, bodies = [], mechanical, generati
   onSelect?: (reference: string) => void;
   onSelectLayer?: (id: string) => void;
   colorScheme: 'light' | 'dark';
+  persistenceKey?: string;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<RendererCanvas>();
@@ -39,7 +41,8 @@ export function AssemblyScene({ board, models, bodies = [], mechanical, generati
   mechanicalRef.current = mechanical;
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
-  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const hiddenKey = `boardstudio:v2:layers:assembly:${persistenceKey ?? 'default'}`;
+  const [hidden, setHidden] = useState<Set<string>>(() => { try { return new Set(JSON.parse(localStorage.getItem(hiddenKey) ?? '[]') as string[]); } catch { return new Set(); } });
   const [selected, setSelected] = useState('');
   const [view, setView] = useState<AssemblyView>('assembled');
   const [displayMode, setDisplayMode] = useState<'shaded' | 'wireframe' | 'hybrid'>('hybrid');
@@ -52,6 +55,7 @@ export function AssemblyScene({ board, models, bodies = [], mechanical, generati
   const [editingGaskets, setEditingGaskets] = useState(false);
   const [gasketMessage, setGasketMessage] = useState('');
   const [activeGasket, setActiveGasket] = useState('');
+  useEffect(() => { try { localStorage.setItem(hiddenKey, JSON.stringify([...hidden])); } catch { /* view preference only */ } }, [hiddenKey, hidden]);
 
   useEffect(() => {
     const element = canvas.current;
@@ -167,6 +171,7 @@ export function AssemblyScene({ board, models, bodies = [], mechanical, generati
     next.has(id) ? next.delete(id) : next.add(id);
     return next;
   });
+  const generatedBodyIds = new Set(bodies.map((body) => body.id));
   const controls = [
     ['PCB', 'PCB'],
     ['Copper', 'Copper'],
@@ -181,50 +186,45 @@ export function AssemblyScene({ board, models, bodies = [], mechanical, generati
     ? bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length
     : 0;
   const solidsBlocked = mechanical?.generationBlocked ?? false;
-  const hasManufacturingFindings = mechanical?.diagnostics.some((finding) => finding.severity === 'error') ?? false;
   const showView = (preset: 'fit' | 'top' | 'bottom' | 'isometric') => {
     renderer.current?.view(preset);
-    interacted.current = preset !== 'fit' ? interacted.current : false;
+    interacted.current = true;
     if (preset === 'fit') fitted.current = true;
   };
 
   return <div className="wb-assembly-scene" aria-label="Complete PCB assembly preview">
-    <canvas ref={canvas} aria-label="3D PCB assembly. Drag to orbit, scroll to zoom." />
-    <details className="wb-assembly-layers">
-      <summary>Visibility</summary>
-      {controls.map(([id, label]) => <label key={id}>
-        <input type="checkbox" checked={!hidden.has(id)} onChange={() => toggle(id)} />
-        {label}
-      </label>)}
-      <details>
-        <summary>Components ({board.models.length})</summary>
-        {board.models.map((model) => <label key={model.id}>
-          <input type="checkbox" checked={!hidden.has(model.id)} onChange={() => toggle(model.id)} />
-          {model.reference} · {model.path.split('/').pop()}
-        </label>)}
-      </details>
-    </details>
+    <div className="wb-scene-view-bar">
     <div className="wb-render-modes" role="group" aria-label="Display mode">
       {(['shaded', 'wireframe', 'hybrid'] as const).map(mode => <button key={mode} aria-pressed={displayMode === mode} onClick={() => setDisplayMode(mode)}>{mode[0].toUpperCase() + mode.slice(1)}</button>)}
-    </div>
-    {preparing && <span role="status" className="wb-scene-preparing">Preparing 3D geometry…</span>}
-    <div className="wb-assembly-controls" role="group" aria-label="Assembly camera">
-      <button disabled={!ready} onClick={() => showView('fit')}>Fit</button>
-      <button disabled={!ready} onClick={() => showView('top')}>Top</button>
-      <button disabled={!ready} onClick={() => showView('bottom')}>Bottom</button>
-      <button disabled={!ready} onClick={() => showView('isometric')}>Isometric</button>
     </div>
     {mechanical && <div className="wb-mechanical-view-controls" role="group" aria-label="Mechanical assembly view">
       <button aria-pressed={view === 'assembled'} onClick={() => setView('assembled')}>Assembled</button>
       <button aria-pressed={view === 'exploded'} onClick={() => setView('exploded')}>Exploded</button>
       <button aria-pressed={view === 'section'} onClick={() => setView('section')}>Section</button>
-      {Boolean(mechanical.gasketSupports?.length) && <button aria-pressed={editingGaskets} onClick={() => { setEditingGaskets(value => !value); setGasketMessage(editingGaskets ? '' : 'Drag a gasket handle along the perimeter · linked supports move together'); setView('assembled'); renderer.current?.view('top'); }}>Edit gaskets</button>}
+      {Boolean(mechanical.gasketSupports?.length) && <button disabled={!ready || preparing} aria-pressed={editingGaskets} onClick={() => { setEditingGaskets(value => !value); setGasketMessage(editingGaskets ? '' : 'Drag a gasket handle along the perimeter · linked supports move together'); setView('assembled'); renderer.current?.view('top'); }}>Edit gaskets</button>}
       {editingGaskets && activeGasket && <button onClick={unlinkGasket}>Unlink selected support</button>}
     </div>}
-    {mechanical && <output role="status" className="wb-mechanical-preview-status">{generation && generation.status !== 'ready' ? `${generationMessage(generation)}${bodies.length ? ' · showing previous geometry' : ''}` : solidsBlocked ? 'Case solids blocked · see mechanical diagnostics' : generatedBodyCount === mechanical.case.bodies.length ? `Generated CAD solids${hasManufacturingFindings ? ' · manufacturing findings to review' : ''} · ${mechanical.case.bodies.length} parts at revision ${mechanical.revision}` : 'Generate required'}</output>}
+    </div>
+    <div className="wb-layer-surface wb-assembly-drawing">
+      <div className="wb-assembly-viewport">
+    <canvas ref={canvas} aria-label="3D PCB assembly. Drag to orbit, scroll to zoom." />
+    {preparing && <span role="status" className="wb-scene-preparing">Preparing 3D geometry…</span>}
+    <div className="wb-assembly-controls" role="group" aria-label="Assembly camera">
+      <button disabled={!ready || preparing} onClick={() => showView('fit')}>Fit</button>
+      <button disabled={!ready || preparing} onClick={() => showView('top')}>Top</button>
+      <button disabled={!ready || preparing} onClick={() => showView('bottom')}>Bottom</button>
+      <button disabled={!ready || preparing} onClick={() => showView('isometric')}>Isometric</button>
+    </div>
+    {mechanical && <output role="status" className="wb-mechanical-preview-status">{solidsBlocked ? 'Case solids blocked' : generatedBodyCount > 0 && generatedBodyCount === mechanical.case.bodies.length && (!generation || generation.status === 'ready' && generation.revision === mechanical.revision) ? `Generated CAD solids · ${mechanical.case.bodies.length} parts at revision ${mechanical.revision}` : bodies.length ? 'Showing previous geometry' : 'No generated solids'}</output>}
     {gasketMessage && <output className="wb-gasket-message" role="status">{gasketMessage}</output>}
     {view === 'section' && <output className="wb-mechanical-section-label">Section at board centre · half removed</output>}
     <output className="wb-assembly-caption">{selected || `${models.length} / ${board.models.length} models · ${board.thickness} mm PCB`}</output>
     {error && <p className="wb-assembly-error" role="alert">{error}</p>}
+      </div>
+    <CanvasLayers hidden={hidden} onToggle={toggle} groups={[
+      { title: 'Assembly', layers: controls.map(([id, label]) => ({ id, label: ({ plate: 'Plate', 'plate-foam': 'Plate foam', 'bottom-foam': 'Bottom foam', bottom: 'Bottom' } as Record<string, string>)[id] ?? label, available: id === 'PCB' || ['Copper', 'Mask', 'Silkscreen', 'Models', 'Keycaps'].includes(id) || generatedBodyIds.has(id) })) },
+      { title: 'Components', layers: board.models.map(model => ({ id: model.id, label: `${model.reference} · ${model.path.split('/').pop()}`, kind: 'part', available: models.some(loaded => loaded.id === model.id), availabilityLabel: 'Missing model' })) },
+    ]} />
+    </div>
   </div>;
 }

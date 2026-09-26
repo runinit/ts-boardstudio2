@@ -92,6 +92,7 @@ pub(super) fn import_footprint(source: &str, id: &str) -> Result<CompiledFootpri
         model: None,
         models: None,
         generator: None,
+        mechanical_profile: None,
         kicad_source: Some(crate::model::KicadSource {
             format_version: 1,
             source: source.to_owned(),

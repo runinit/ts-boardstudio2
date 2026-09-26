@@ -18,7 +18,7 @@ export function demoProject(): ProjectDoc {
   for (let row = 0; row < ROWS; row += 1) {
     for (let col = 0; col < COLUMNS; col += 1) {
       const id = `switch-${row}-${col}`;
-      const at: Vec2 = { x: col * PITCH_MM, y: row === 0 ? 0 : -row * PITCH_MM };
+      const at: Vec2 = { x: col * PITCH_MM, y: row * PITCH_MM };
 
       parts.push({ id, definitionId: definition.id, reference: `SW${parts.length + 1}`, pose: { at, rotation: 0 }, side: 'front' });
       rowPins[row].push({ partId: id, padId: 'one' });

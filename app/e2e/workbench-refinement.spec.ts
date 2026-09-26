@@ -38,21 +38,21 @@ test('selection-specific inspectors, group counts and grouping persistence', asy
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(page.getByRole('spinbutton', { name: 'Offset X mm' })).toHaveValue('0');
   await page.getByRole('button', { name: 'Expand Column 1' }).click();
-  await page.getByRole('treeitem', { name: /^Key 2\.1/ }).click();
-  await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 2.1', exact: true })).toBeVisible();
+  await page.getByRole('treeitem', { name: /^Key 1\.2/ }).click();
+  await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 1.2', exact: true })).toBeVisible();
   await editNumber(page, 'Local X mm', '2');
   await editNumber(page, 'Key rotation °', '20');
   const overlay = page.getByRole('button', { name: 'Select key, row 2, column 1', exact: true });
-  await expect(overlay).toHaveAttribute('transform', 'translate(2 -19.05) rotate(20)');
-  await expect(page.getByRole('button', { name: /^SW6, MX switch/ })).toHaveAttribute('transform', 'translate(2 -19.05) rotate(20)');
+  await expect(overlay).toHaveAttribute('transform', 'translate(2 19.05) rotate(20)');
+  await expect(page.getByRole('button', { name: /^SW6, MX switch/ })).toHaveAttribute('transform', 'translate(2 19.05) rotate(20)');
   await page.getByRole('checkbox', { name: 'Key enabled' }).click();
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).not.toBeChecked();
   await expect(page.getByRole('treeitem', { name: 'Column 1 2 keys', exact: true })).toBeVisible();
-  await expect(page.getByRole('treeitem', { name: 'Key 2.1 Empty slot', exact: true })).toBeVisible();
+  await expect(page.getByRole('treeitem', { name: 'Key 1.2 Empty slot', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Objects options', exact: true }).click();
   await page.getByRole('combobox', { name: 'Tree grouping' }).selectOption('row');
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 2.1', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Matrix 1 · Key 1.2', exact: true })).toBeVisible();
   await expect(page.getByRole('treeitem', { name: 'Row 2 4 keys', exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Key enabled' }).click();
   await expect(page.getByRole('checkbox', { name: 'Key enabled' })).toBeChecked();
@@ -96,7 +96,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
 
 test('command controls remain fixed through zoom and pan and both themes persist', async ({ page }) => {
   await page.goto('/');
-  const scope = page.getByRole('group', { name: 'Selection types' });
+  const scope = page.getByRole('button', { name: /^Select:/ });
   const snap = page.getByRole('button', { name: 'Snap', exact: true });
   const beforeScope = await scope.boundingBox();
   const beforeSnap = await snap.boundingBox();

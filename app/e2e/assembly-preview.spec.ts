@@ -1,5 +1,10 @@
 import { expect, test, type Locator } from '@playwright/test';
 
+async function openLayers(page: import('@playwright/test').Page) {
+  const trigger = page.getByRole('region', { name: 'Canvas layers' }).getByRole('button', { name: 'Layers', exact: true });
+  if (await trigger.getAttribute('aria-expanded') === 'false') await trigger.click();
+}
+
 async function countPcbPixels(canvas: Locator) {
   const screenshot = await canvas.screenshot();
   return await canvas.page().evaluate(async ({ imageData }) => {
@@ -22,7 +27,8 @@ async function countPcbPixels(canvas: Locator) {
         && green > blue * 0.9
         && red < 180) counts.green += 1;
       if (red > green * 1.05 && green > blue * 1.2 && red > 100) counts.gold += 1;
-      if (red > 180 && red < 250 && red > green && red - green < 4 && green > blue && green - blue < 12)
+      // Rear lighting can round green and blue to the same byte (225,224,224).
+      if (red > 180 && red < 250 && red > green && red - green < 4 && green >= blue && green - blue < 12)
         counts.silkscreen += 1;
     }
     return counts;
@@ -59,11 +65,11 @@ test('Design shows PCB and case bodies with view-only visibility controls',async
   await page.getByRole('button',{name:'3D assembly',exact:true}).click();
   await expect(page.getByLabel('Complete PCB assembly preview')).toBeVisible();
   await expect(page.getByText(/1.6 mm PCB/)).toBeVisible();
-  await page.getByText('Visibility',{exact:true}).click();
-  await expect(page.getByRole('checkbox',{name:'Switch plate',exact:true})).toBeVisible({timeout:45000});
+  await openLayers(page);
+  await expect(page.getByRole('button', { name: /^(Hide|Show) Switch\ plate$/, exact: true })).toBeVisible({timeout:45000});
   const revision=await page.locator('.wb-root').getAttribute('data-revision');
-  await page.getByRole('checkbox',{name:'Switch plate',exact:true}).uncheck();
-  await page.getByRole('checkbox',{name:'Copper',exact:true}).uncheck();
+  await page.getByRole('button', { name: /^(Hide|Show) Switch\ plate$/, exact: true }).click();
+  await page.getByRole('button', { name: /^(Hide|Show) Copper$/, exact: true }).click();
   await page.getByRole('button',{name:'Bottom',exact:true}).click();
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision',revision!);
   await page.getByRole('button',{name:'2D',exact:true}).click();await expect(page.getByRole('application',{name:/Board layout canvas/})).toBeVisible();
@@ -115,19 +121,21 @@ test('renders front and rear PCB layers with no component models attached', asyn
     }
     return false;
   }, undefined, { timeout: 10_000 });
-  const visibility = page.getByText('Visibility', { exact: true });
-  await visibility.click();
-  const plate = page.getByRole('checkbox', { name: 'Switch plate', exact: true });
+  const plate = page.getByRole('button', { name: /^(Hide|Show) Switch\ plate$/, exact: true });
+  await openLayers(page);
   if (await plate.isVisible()) {
-    await plate.uncheck();
-    await expect(plate).not.toBeChecked();
-    await page.getByRole('button', { name: 'Fit', exact: true }).click();
+    await plate.click();
+    await expect(plate).toHaveAttribute('aria-pressed', 'false');
   }
+  await expect(page.getByText('Preparing 3D geometry…', { exact: true })).not.toBeVisible();
+  await page.getByRole('button', { name: 'Fit', exact: true }).click();
   for (const name of ['PCB', 'Copper', 'Mask openings', 'Silkscreen']) {
-    const layer = page.getByRole('checkbox', { name, exact: true });
+    const layer = page.getByRole('button', { name: new RegExp(`^(Hide|Show) ${name}$`), exact: true });
     await expect(layer).toBeVisible();
-    await layer.uncheck();
-    await layer.check();
+    await layer.click();
+    await expect(layer).toHaveAttribute('aria-pressed', 'false');
+    await layer.click();
+    await expect(layer).toHaveAttribute('aria-pressed', 'true');
   }
 
   for (const view of ['Top', 'Bottom', 'Isometric'] as const) {
@@ -143,23 +151,23 @@ test('renders front and rear PCB layers with no component models attached', asyn
   }
 
   await page.getByRole('button', { name: 'Top', exact: true }).click();
-  const copper = page.getByRole('checkbox', { name: 'Copper', exact: true });
-  const mask = page.getByRole('checkbox', { name: 'Mask openings', exact: true });
-  const silkscreen = page.getByRole('checkbox', { name: 'Silkscreen', exact: true });
-  await copper.uncheck();
-  await mask.uncheck();
+  const copper = page.getByRole('button', { name: /^(Hide|Show) Copper$/, exact: true });
+  const mask = page.getByRole('button', { name: /^(Hide|Show) Mask\ openings$/, exact: true });
+  const silkscreen = page.getByRole('button', { name: /^(Hide|Show) Silkscreen$/, exact: true });
+  await copper.click();
+  await mask.click();
   await expect.poll(async () => (await countPcbPixels(canvas)).gold).toBeLessThan(100);
-  await copper.check();
-  await mask.check();
+  await copper.click();
+  await mask.click();
   await expect.poll(async () => (await countPcbPixels(canvas)).gold).toBeGreaterThan(500);
-  await silkscreen.uncheck();
+  await silkscreen.click();
   await expect.poll(async () => (await countPcbPixels(canvas)).silkscreen).toBeLessThan(20);
-  await silkscreen.check();
+  await silkscreen.click();
   await expect.poll(async () => (await countPcbPixels(canvas)).silkscreen).toBeGreaterThan(50);
-  const pcbVisibility = page.getByRole('checkbox', { name: 'PCB', exact: true });
-  await pcbVisibility.uncheck();
+  const pcbVisibility = page.getByRole('button', { name: /^(Hide|Show) PCB$/, exact: true });
+  await pcbVisibility.click();
   await expect.poll(async () => (await countPcbPixels(canvas)).green).toBeLessThan(100);
-  await pcbVisibility.check();
+  await pcbVisibility.click();
 
   const bounds = await canvas.boundingBox();
   if (!bounds) throw new Error('Assembly canvas is not visible');

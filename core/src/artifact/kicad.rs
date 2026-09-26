@@ -1525,6 +1525,7 @@ mod tests {
         document.definitions = ["d1", "d2"]
             .into_iter()
             .map(|id| PartDefinition {
+                mechanical_profile: None,
                 id: id.into(),
                 name: format!("Part {id}"),
                 kind: PartKind::Utility,
@@ -1598,6 +1599,7 @@ mod tests {
 
     fn asymmetric_definition() -> PartDefinition {
         PartDefinition {
+            mechanical_profile: None,
             id: "asym".into(),
             name: "Asymmetric".into(),
             kind: PartKind::Custom,

@@ -102,7 +102,7 @@ export async function runOutlineBenchmark(keys: 100 | 200): Promise<{ p50: numbe
       if (reply.kind === 'matrix-projections') {
         throw new Error('Unexpected matrix projection reply during benchmark');
       }
-      if (reply.kind === 'mechanical-profile' || reply.kind === 'mechanical-resolved' || reply.kind === 'case-prepared') {
+      if (reply.kind !== 'scene' && reply.kind !== 'preview') {
         throw new Error('Unexpected case preparation reply during outline benchmark');
       }
 

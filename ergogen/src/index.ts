@@ -396,7 +396,7 @@ export function render(definition: PartDefinition, options: RenderOptions = {}):
   p.esxy = (x: number, y: number) => { const at = transform(x, y, false); return xy(at.x, at.y); };
   p.eaxy = (x: number, y: number) => { const at = transform(x, y, true); return xy(at.x, at.y); };
   p.local_net = (suffix: string) => {
-    const name = `${part?.reference ?? 'REF**'}_${suffix}`;
+    const name = `__boardstudio_local_${encodeURIComponent(part?.id ?? definition.id)}_${encodeURIComponent(String(suffix))}`;
     const index = netIndex(name);
     const str = `(net ${index} ${JSON.stringify(name)})`;
     return { name, index, str, toString: () => str };
