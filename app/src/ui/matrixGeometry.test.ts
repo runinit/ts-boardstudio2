@@ -13,7 +13,7 @@ test('indexes Rust matrix scene cells and column bases', () => {
 });
 
 test('keeps member identities and disabled cell poses from Rust', () => {
-  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 0, column: 0, enabled: true, memberId: 'legacy-key', pose: { at: { x: 1, y: 2 }, rotation: 0 } }, { row: 0, column: 1, enabled: false, pose: { at: { x: 20, y: 2 }, rotation: 5 } }], columns: [] });
-  expect(adapter.member(0, 0)).toBe('legacy-key');
+  const adapter = matrixSceneAdapter({ matrixId: 'm', cells: [{ row: 0, column: 0, enabled: true, memberId: 'matrix/m/r0c0', pose: { at: { x: 1, y: 2 }, rotation: 0 } }, { row: 0, column: 1, enabled: false, pose: { at: { x: 20, y: 2 }, rotation: 5 } }], columns: [] });
+  expect(adapter.member(0, 0)).toBe('matrix/m/r0c0');
   expect(adapter.pose(0, 1)?.at).toEqual({ x: 20, y: 2 });
 });

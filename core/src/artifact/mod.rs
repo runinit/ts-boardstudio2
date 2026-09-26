@@ -1,4 +1,3 @@
-pub mod builtins;
 pub mod compile;
 pub mod kicad;
 pub mod mechanical_extract;
@@ -48,11 +47,6 @@ pub fn request(json: &str) -> String {
     serde_json::to_string(&reply).expect("artifact reply serializes")
 }
 
-/// Return the synchronous built-in footprint catalogue through the same compiler used by requests.
-pub fn builtin_catalogue() -> Result<Vec<CompiledFootprint>, ArtifactError> {
-    compile::builtin_catalogue()
-        .map_err(|message| ArtifactError::new(ArtifactErrorCode::Validation, message))
-}
 
 fn handle(request: ArtifactRequest) -> ArtifactReply {
     match request {
@@ -146,7 +140,7 @@ fn compile_job(job: &FootprintCompileJob) -> Result<CompiledFootprint, ArtifactE
         }
         return Ok(compiled);
     }
-    compile::compile_builtin(&job.definition, &job.parameters, job.side.clone())
+    compile::compile_authored(&job.definition, job.side.clone())
         .map_err(|message| ArtifactError::new(ArtifactErrorCode::Validation, message))
 }
 

@@ -31,10 +31,8 @@ const expected = [
   'ceoloide/utility_point_debugger',
   'ceoloide/utility_router',
   'ceoloide/utility_text',
-  'infused-kim/choc',
   'infused-kim/conn_molex_pico_ezmate_1x02',
   'infused-kim/conn_molex_pico_ezmate_1x05',
-  'infused-kim/diode',
   'infused-kim/icon_bat',
   'infused-kim/mounting_hole',
   'infused-kim/nice_nano_pretty',
@@ -59,7 +57,7 @@ for (const id of expected) {
 }
 
 // Side and mirrored variants must remain represented by the migrated sources.
-for (const id of ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2', 'infused-kim/choc']) {
+for (const id of ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2']) {
   const generator = catalogue[id];
   assert.ok('side' in generator.params || 'reverse' in generator.params, `${id} lost its side variant parameter`);
 }

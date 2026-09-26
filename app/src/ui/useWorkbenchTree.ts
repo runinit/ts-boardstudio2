@@ -109,7 +109,6 @@ export function useWorkbenchTree({ document, mechanicalAssembly, selectedBoardId
           const cell = matrixCellOverrides.get(matrix.id)?.get(`${row}:${column}`);
           const keyId = `key:${matrix.id}:${row}:${column}`;
           const components = [
-            ...(matrix.diodes && cell?.diode !== false ? [{ id: 'diode', definitionId: 'matrix-diode', label: 'Diode' }] : []),
             ...(cell?.assemblies ?? []).map((assembly) => ({ id: assembly.id, definitionId: assembly.definitionId, label: definitions.get(assembly.definitionId)?.name ?? 'Component' })),
           ];
           rows.push({

@@ -12,10 +12,10 @@ carry generated board routing or graphics. Those objects are included by placed
 board export. Each library ZIP includes `BOARD-UTILITIES.txt` with this policy and,
 when applicable, a separate list of utility generators skipped from the library.
 
-`builtinDefinitions()` and the default compiled front/back preview catalogue are
-generated from Rust at `src/generated/builtin-catalog.json`. Changed parameters
-and imported-source projections are compiled asynchronously by the worker. The
-catalogue is checked against Rust during `check`; do not hand-edit it.
+The active footprint catalogue comes from the bundled Ergogen generators. The
+worker compiles generated footprints, authored geometry, and imported-source
+projections through their respective current pipelines. Generic built-in
+footprints and their duplicate compiled catalogue have been removed.
 
 Imported `.kicad_mod` source remains authoritative in `PartDefinition.kicadSource`.
 The Rust importer projects supported source geometry for preview and records
@@ -29,11 +29,7 @@ Tests send real artifact requests through that driver and keep KiCad CLI parsing
 plotting, and DRC checks. The Ergogen adapter tests cover all bundled generators
 on both sides; its output is passed to Rust for final validation and composition.
 
-Built-in coverage includes the MX/Choc solder and hotswap layouts, RGB LED and
-matrix diode. KiCad DRC checks the four default switch/socket layouts for copper
-and mounting-hole clearance, plus 6 by 5 assemblies at 19.05 mm pitch with the
-diode at (6, -10) and RGB LED at (-5, -12), both on the back. These checks use
-unassigned nets; assigned, unrouted nets can produce expected unconnected
-findings. Vendor silk graphics, specialized hotswap keepouts, plated stabilizer
-variants, and physical fit are not proven equivalent. Use solder and hotswap
-presets as alternative cell definitions, not coincident parts.
+The adapter suite covers all 37 active generators on both board sides. Current
+assembly and electrical tests cover canonical MX/Choc recipes, MINI-E lighting,
+and supported reversible jumper mappings. Model attachments use the `models`
+list. No old-project footprint or model conversion is performed.

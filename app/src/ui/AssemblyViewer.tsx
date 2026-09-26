@@ -70,7 +70,6 @@ export function AssemblyViewer({
       ...document.assets.map((a) => a.id),
       ...bundledModels().map((m) => m.id),
       ...document.definitions.flatMap((d) => [
-        ...(d.model ? [d.model.assetId] : []),
         ...(d.models ?? []).map((m) => m.assetId),
       ]),
     ]);

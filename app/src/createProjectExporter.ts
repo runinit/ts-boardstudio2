@@ -38,7 +38,6 @@ function bindings(definition: PartDefinition, part?: Part): NonNullable<PartDefi
     }
   }
   return [
-    ...(definition.model ? [definition.model] : []),
     ...(definition.models ?? []),
     ...generated,
   ];

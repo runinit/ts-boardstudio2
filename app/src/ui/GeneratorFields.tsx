@@ -22,7 +22,7 @@ export function GeneratorFields({ definition, edits, onChange, onImportModel, er
     if (/3dmodel|model_/.test(key)) return 'models';
     if (type === 'net') return 'connections';
     if (/^keycap_(width|height|depth)$/.test(key)) return 'dimensions';
-    if (/^(side|reversible|hotswap|solder|include_keycap|show_keycaps|choc_v1_support|choc_v2_support|name|text)$/.test(key)) return 'options';
+    if (/^(side|reversible|hotswap|solder|include_keycap|choc_v1_support|choc_v2_support|name|text)$/.test(key)) return 'options';
     // Utilities need their geometry/content visible to be useful.
     if ((definition.kind as string) === 'utility' && !/pad|trace|drill/.test(key) && ['number', 'string', 'boolean'].includes(type)) return 'options';
     return 'advanced';

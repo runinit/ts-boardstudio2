@@ -121,7 +121,7 @@ export async function packProject(doc: ProjectDoc, options: ProjectPackOptions =
     }));
 
     for (const definition of doc.definitions) {
-      for (const model of [...(definition.model ? [definition.model] : []), ...(definition.models ?? [])]) if (bundledModel(model.assetId)) bundledIds.add(model.assetId);
+      for (const model of (definition.models ?? [])) if (bundledModel(model.assetId)) bundledIds.add(model.assetId);
     }
     for (const assembly of doc.assemblies ?? []) for (const member of assembly.members) {
       for (const model of member.models) if (bundledModel(model.assetId)) bundledIds.add(model.assetId);

@@ -14,7 +14,7 @@ fn matrix() -> Matrix {
         mirror: None,
         rotation: None,
         edge_gap: None,
-        diodes: None,
+
         diode_direction: None,
         row_offsets: vec![],
         column_offsets: vec![],
@@ -34,7 +34,6 @@ fn open() -> CoreEngine {
         kind: PartKind::Switch,
         courtyard: vec![],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,

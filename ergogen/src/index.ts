@@ -35,7 +35,7 @@ export function catalogue(): PartDefinition[] {
   return Object.keys(generators).sort().map((source) => {
     const name = source.split('/')[1].replaceAll('_', ' ').replaceAll('-', ' ');
     const utility = /\/utility_|\/(?:text|point_debugger|icon_bat)$/u.test(source);
-    const keyboardSwitch = ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33', 'infused-kim/choc'].includes(source);
+    const keyboardSwitch = ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33'].includes(source);
     const kind = utility ? 'utility'
       : keyboardSwitch ? 'switch'
       : /mcu|nano|nrf/.test(source) ? 'controller'
@@ -44,7 +44,7 @@ export function catalogue(): PartDefinition[] {
       : /diode|led|smd/.test(source) ? 'passive' : 'custom';
     const definition: PartDefinition = {
       id: `ergogen:${source}`, name, kind, pads: [], courtyard: [],
-      ...(keyboardSwitch ? { keycap: source === 'infused-kim/choc' ? { x: 18, y: 17 } : { x: 18, y: 18 }, matrixTerminals: { row: 'from', column: 'to' } } : {}),
+      ...(keyboardSwitch ? { keycap: { x: 18, y: 18 }, matrixTerminals: { row: 'from', column: 'to' } } : {}),
       envelopeSource: {}, terminals: {},
       generator: { source, version: 'bundled-1', parameters: {} },
     };
@@ -69,9 +69,8 @@ export function normalizeDefinition(input: PartDefinition): PartDefinition {
   });
   const keyboardSwitch = input.kind === 'switch' && input.matrixTerminals !== undefined;
   const old = input.envelopeSource ?? {};
-  const hasProvenance = input.envelopeSource !== undefined;
-  const courtyardAuthored = (old.courtyard === 'authored' || (!hasProvenance && validPolygon(input.courtyard))) && validPolygon(input.courtyard);
-  const keycapAuthored = (old.keycap === 'authored' || (!hasProvenance && Boolean(input.keycap))) && Boolean(input.keycap && input.keycap.x > 0 && input.keycap.y > 0);
+  const courtyardAuthored = old.courtyard === 'authored' && validPolygon(input.courtyard);
+  const keycapAuthored = old.keycap === 'authored' && Boolean(input.keycap && input.keycap.x > 0 && input.keycap.y > 0);
   const dims = keycapParameters(source, input.generator!.parameters);
   const keycap = keycapAuthored ? input.keycap : dims ? { x: dims[0], y: dims[1] } : input.keycap;
   const terminals = Object.fromEntries(Object.entries(terminalPads(input)).map(([name, ids]) => [name, ids.map((id) => {
@@ -92,7 +91,7 @@ export function normalizeDefinition(input: PartDefinition): PartDefinition {
 }
 
 function keycapParameters(source: string, values: Record<string, unknown>): [number, number] | undefined {
-  const keys = source === 'infused-kim/choc' ? ['keycaps_x', 'keycaps_y'] : ['keycap_width', 'keycap_height'];
+  const keys = ['keycap_width', 'keycap_height'];
   if (!parameters(source)[keys[0]]) return undefined;
   const defaults = parameters(source);
   const width = Number(values[keys[0]] ?? defaults[keys[0]]?.value);

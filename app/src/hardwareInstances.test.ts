@@ -56,7 +56,7 @@ test('physical scene contours and transforms agree with the selected instance', 
   expect(scene.transforms[0].pose.at.x).toBe(10);
 });
 
-test('disabling an instance does not fall back to the shared or legacy case', () => {
+test('disabling an instance does not fall back to the shared or board-level case', () => {
   const doc = demoProject();
   doc.mechanical = createMechanicalConfiguration(doc);
   doc.hardware = { topology:'split', transport:'wireless', boards:[], instances:[{...instance('left'), mechanical:doc.mechanical}], sharedConstruction:doc.mechanical };

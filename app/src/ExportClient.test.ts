@@ -17,7 +17,7 @@ class FakeWorker {
 }
 
 const definition = (id: string): PartDefinition => ({ id, name: id, kind: 'custom', pads: [], courtyard: [] });
-const job = (id: string) => ({ id, definition: definition(id), parameters: {}, side: 'front' as const });
+const job = (id: string) => ({ id, definition: definition(id), side: 'front' as const });
 
 afterEach(() => {
   workers.length = 0;

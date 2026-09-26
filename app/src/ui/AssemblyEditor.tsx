@@ -336,7 +336,6 @@ export function AssemblyEditor({
                               },
                             )
                           : [
-                              ...(definition.model ? [definition.model] : []),
                               ...(definition.models ?? []),
                             ],
                       });

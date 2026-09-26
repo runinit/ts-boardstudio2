@@ -52,7 +52,7 @@ test('library profile resolves real cutouts and view controls leave the committe
   const panel = await configure(page);
   await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
   await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
-  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
+  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('ergogen:ceoloide/switch_mx');
   await expect.poll(async () => (await saved(page)).mechanical?.profiles.length, { timeout: 30_000 }).toBe(1);
   const profile = (await saved(page)).mechanical!.profiles[0];
   expect(profile.cutouts).toHaveLength(1);
@@ -84,7 +84,7 @@ test('clicking a generated solid selects its resolved stack layer', async ({ pag
   const panel = await configure(page);
   await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
   await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
-  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
+  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('ergogen:ceoloide/switch_mx');
   await panel.locator('summary').filter({ hasText: 'Per-part process overrides' }).click();
   const materials = panel.getByRole('combobox', { name: 'Material', exact: true });
   await materials.first().selectOption('PLA');
@@ -167,7 +167,7 @@ test('generated-only boards keep their export ready when leaving the Case view',
   const panel = await configure(page);
   await panel.locator('summary').filter({ hasText: 'Advanced source geometry' }).click();
   await panel.getByRole('combobox', { name: 'Library fit profile', exact: true }).selectOption('mx-switch');
-  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('mx-switch');
+  await panel.getByRole('combobox', { name: 'Assign library fit profile to', exact: true }).selectOption('ergogen:ceoloide/switch_mx');
   await panel.locator('summary').filter({ hasText: 'Per-part process overrides' }).click();
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Case generation' }).getByText(/Geometry current/)).toBeVisible({ timeout: 60000 });

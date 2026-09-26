@@ -2,4 +2,4 @@
 import type { MatrixAssembly } from "./MatrixAssembly";
 import type { Vec2 } from "./Vec2";
 
-export type MatrixCell = { row: number, column: number, enabled: boolean, diode?: boolean, definitionId?: string, variant?: string, offset?: Vec2, rotation?: number, assemblies?: Array<MatrixAssembly>, assembliesLocal?: boolean, };
+export type MatrixCell = { row: number, column: number, enabled: boolean, definitionId?: string, variant?: string, offset?: Vec2, rotation?: number, assemblies?: Array<MatrixAssembly>, assembliesLocal?: boolean, };

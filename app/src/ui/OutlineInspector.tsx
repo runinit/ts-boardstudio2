@@ -3,7 +3,6 @@ import { defaultOutlineSettings } from '../../../contracts/src/index';
 import type { Board, OutlineFeature, OutlineSettings, Part, PartDefinition, ProjectDoc } from '../../../contracts/src/index';
 
 type Automatic = Extract<OutlineFeature, { kind: 'part-envelope' }>;
-const legacySettings: OutlineSettings = { ...defaultOutlineSettings, corners: 'sharp' };
 
 function keycapFallback(definition: PartDefinition) {
   if (definition.courtyard.length < 3) return { x: 18, y: 18 };
@@ -25,7 +24,7 @@ export function OutlineInspector({ document, board, onChange, onDraw }: { docume
   if (!board) return <p className="wb-empty-note">Add a board to generate its outline.</p>;
   const features = board.outlineIds.map((id) => document.outline.find((feature) => feature.id === id)).filter((feature): feature is OutlineFeature => !!feature);
   const automatic = features.find((feature): feature is Automatic => feature.kind === 'part-envelope');
-  const settings = automatic?.settings ?? legacySettings;
+  const settings = automatic?.settings ?? defaultOutlineSettings;
   const update = (patch: Partial<Automatic>) => {
     const next: Automatic = automatic ? { ...automatic, ...patch } : { id: crypto.randomUUID(), kind: 'part-envelope', partIds: board.partIds, margin: 4, operation: 'add', settings: defaultOutlineSettings, ...patch };
     onChange({ ...document, outline: automatic ? document.outline.map((feature) => feature.id === next.id ? next : feature) : [next, ...document.outline], boards: document.boards.map((item) => item.id === board.id ? { ...item, outlineIds: automatic ? item.outlineIds : [next.id, ...item.outlineIds] } : item) }, [board.id, next.id]);

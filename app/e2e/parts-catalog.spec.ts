@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const retired = ['mx-switch', 'mx-hotswap', 'choc-switch', 'choc-hotswap', 'rgb-led', 'matrix-diode', 'ergogen:infused-kim/choc', 'ergogen:infused-kim/diode'];
 
-test('the Parts catalog shows preferred key parts and preserves the legacy board', async ({ page }) => {
+test('the Parts catalog shows preferred key parts and uses the canonical starter board', async ({ page }) => {
   await page.goto('/');
   const revision = await page.locator('.wb-root').getAttribute('data-revision');
   await page.getByRole('tab', { name: 'Parts' }).click();
@@ -20,13 +20,13 @@ test('the Parts catalog shows preferred key parts and preserves the legacy board
   await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
   await page.locator('summary').filter({ hasText: /^Key assembly/ }).click();
   const select = page.getByRole('combobox', { name: 'Matrix part definition' });
-  await expect(select).toHaveValue('mx-switch');
-  await expect(select.locator('option[value="mx-switch"]')).toHaveCount(1);
-  for (const id of retired.filter(id => id !== 'mx-switch')) await expect(select.locator(`option[value="${id}"]`)).toHaveCount(0);
-  await select.selectOption('ergogen:ceoloide/switch_mx');
+  await expect(select).toHaveValue('ergogen:ceoloide/switch_mx');
+  await expect(select.locator('option[value="ergogen:ceoloide/switch_mx"]')).toHaveCount(1);
+  for (const id of retired) await expect(select.locator(`option[value="${id}"]`)).toHaveCount(0);
+  await select.selectOption('ergogen:ceoloide/switch_choc_v1_v2');
   await expect(page.locator('.wb-scene-part')).toHaveCount(15);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
-  await expect(select).toHaveValue('mx-switch');
+  await expect(select).toHaveValue('ergogen:ceoloide/switch_mx');
 });
 
 test('assembly component selectors omit duplicates and label Choc V1 explicitly', async ({ page }) => {
@@ -83,5 +83,5 @@ test('updating a matrix preset is explicit, repeatable, and undoable', async ({ 
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(15);
-  await expect(page.getByRole('combobox', { name: 'Matrix part definition' })).toHaveValue('mx-switch');
+  await expect(page.getByRole('combobox', { name: 'Matrix part definition' })).toHaveValue('ergogen:ceoloide/switch_mx');
 });

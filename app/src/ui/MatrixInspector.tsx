@@ -77,11 +77,9 @@ export const CellInspector = ({ matrix, scope, definitions, onChange, projection
     <button className="wb-secondary" onClick={() => update({ offset: { x: 0, y: 0 }, rotation: 0 })}>Reset local transform</button>
     <label className="wb-script-select-label">Key Assembly<select aria-label="Key Assembly" value={cell.definitionId ?? matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value, variant: event.target.value })}>
       {partChoices(definitions, cell.definitionId ?? matrix.definitionId).filter((definition) => (definition.matrixTerminals && definition.terminals?.[definition.matrixTerminals.row]?.length && definition.terminals?.[definition.matrixTerminals.column]?.length)
-        || (!definition.matrixTerminals && definition.pads.some((pad) => pad.id === 'one') && definition.pads.some((pad) => pad.id === 'two'))
-        || definition.id === 'mx-hotswap' || definition.id === 'choc-hotswap').map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
+        || (!definition.matrixTerminals && definition.pads.some((pad) => pad.id === 'one') && definition.pads.some((pad) => pad.id === 'two'))).map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
     </select></label>
     <h3 className="wb-subtitle">Attached components</h3>
-    {matrix.diodes && cell.diode !== false && <p className="wb-empty-note">Matrix diode</p>}
     {isMirrorTarget && (cell.assembliesLocal
       ? <button className="wb-secondary" onClick={() => update({ assembliesLocal: false })}>Use mirrored components</button>
       : <p className="wb-empty-note">The key assembly and attached components follow the paired half. Replacing one here keeps this key local.</p>)}
@@ -91,7 +89,7 @@ export const CellInspector = ({ matrix, scope, definitions, onChange, projection
       </select></label>
       <button aria-label={`Remove ${assembly.id}`} onClick={() => update({ assemblies: cell.assemblies?.filter((entry) => entry.id !== assembly.id) })}>Remove</button>
     </div>)}
-    {!cell.assemblies?.length && !(matrix.diodes && cell.diode !== false) && <p className="wb-empty-note">No attached components. Apply a component in Parts.</p>}
+    {!cell.assemblies?.length && <p className="wb-empty-note">No attached components. Apply a component in Parts.</p>}
   </section>;
 };
 
@@ -150,10 +148,9 @@ export const MatrixEditor = ({ document, catalog, onEdit, scope, onDuplicateDesi
         <label className="wb-script-select-label">Switch footprint<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => { const definition = catalog.find(item => item.id === event.target.value); if (definition) commit({ ...matrix, definitionId: definition.id }, [definition]); }}>
           {partChoices(catalog, matrix.definitionId).filter((definition) => definition.kind === 'switch' || definition.id === matrix.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
         </select></label>
-        <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Add matrix diodes" checked={Boolean(matrix.diodes)} onChange={(event) => update({ diodes: event.target.checked })} /> Add one diode per key</label>
-        {matrix.diodes && <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
+        <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
           <option value="row2col">Rows to columns</option><option value="col2row">Columns to rows</option>
-        </select></label>}
+        </select></label>
       </InspectorSection>
       <InspectorSection title="Keycap spacing" detail="Preview only">
         <div className="wb-matrix-number-grid">

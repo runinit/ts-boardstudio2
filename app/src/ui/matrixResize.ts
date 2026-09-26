@@ -12,7 +12,7 @@ export function resizeMatrix(matrix: Matrix, rows: number, columns: number): Mat
       cells.push({
         row, column, enabled: true, definitionId: template.definitionId,
         variant: template.variant, rotation: template.variant?.endsWith('/north') ? 180 : 0,
-        diode: false, assembliesLocal: template.assembliesLocal,
+        assembliesLocal: template.assembliesLocal,
         assemblies: structuredClone(template.assemblies),
       });
     }

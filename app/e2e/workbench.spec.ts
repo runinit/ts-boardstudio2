@@ -321,16 +321,12 @@ test('legacy matrix diode direction is editable and survives matrix edits', asyn
   await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
 
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
-  await page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true }).click();
-  await expect(page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true })).toBeChecked();
   const direction = page.getByRole('combobox', { name: 'Diode direction' });
   await expect(direction).toHaveValue('row2col');
   await direction.selectOption('col2row');
   await expect(direction).toHaveValue('col2row');
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('choc-solder');
   await page.getByRole('button', { name: 'Update assembly preset' }).click();
-  await page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true }).click();
-  await expect(page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true })).toBeChecked();
   await expect(direction).toHaveValue('col2row');
 });
 
@@ -492,7 +488,7 @@ test('authors a custom component and exports a KiCad footprint library', async (
   await page.getByRole('tab', { name: 'Parts' }).click();
   await page.getByRole('button', { name: 'New custom component' }).click();
   const editor = page.getByRole('complementary', { name: 'Parts inspector' });
-  await expect(editor.getByRole('heading', { level: 2, name: 'Custom component 7', exact: true })).toBeVisible();
+  await expect(editor.getByRole('heading', { level: 2, name: 'Custom component 1', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Definition name' }).fill('Controller mount');
   await page.getByRole('textbox', { name: 'Definition name' }).blur();
   await expect(editor.getByRole('heading', { level: 2, name: 'Controller mount', exact: true })).toBeVisible();

@@ -111,7 +111,6 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
     } else {
         Mirror::X
     });
-    result.diodes = source.diodes;
     result.diode_direction = source.diode_direction;
     result.row_offsets = source.row_offsets.clone();
     result.column_offsets = source.column_offsets.clone();
@@ -157,7 +156,7 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
                 row: source_cell.row,
                 column: source_cell.column,
                 enabled: true,
-                diode: None,
+
                 definition_id: None,
                 variant: None,
                 offset: None,
@@ -174,7 +173,6 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
         cell.rotation = source_cell
             .and_then(|cell| cell.rotation)
             .map(|angle| -angle);
-        cell.diode = source_cell.and_then(|cell| cell.diode);
         if cell.assemblies_local != Some(true)
             && !source_cell.is_some_and(|cell| cell.assemblies_local == Some(true))
         {
@@ -959,7 +957,7 @@ pub(crate) fn move_keys(
                     row,
                     column,
                     enabled: true,
-                    diode: None,
+
                     definition_id: None,
                     variant: None,
                     offset: None,

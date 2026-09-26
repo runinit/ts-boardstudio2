@@ -6,7 +6,6 @@ import type { MechanicalConfiguration } from "./MechanicalConfiguration";
 import type { PhysicalBoardInstance } from "./PhysicalBoardInstance";
 
 /**
- * Project-level physical/electrical topology. Optional to preserve the v2
- * document shape while projects adopt automatic wiring.
+ * Project-level physical/electrical topology for automatic wiring.
  */
 export type HardwareConfiguration = { topology: HardwareTopology, transport: HardwareTransport, instances: Array<PhysicalBoardInstance>, boards: Array<ElectricalBoardConfiguration>, sharedConstruction: MechanicalConfiguration | null, };

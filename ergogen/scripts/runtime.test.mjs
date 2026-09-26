@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import { catalogue, geometry, normalizeDefinition, parameters, parseForms, render } from '../src/index.ts';
 
 const definitions = catalogue();
-assert.equal(definitions.length, 39);
+assert.equal(definitions.length, 37);
 
 for (const definition of definitions.filter(({ kind }) => kind !== 'utility')) {
   assert.ok(definition.courtyard.length >= 3, `${definition.id} must have a physical outline envelope`);
 }
 
-for (const source of ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33', 'infused-kim/choc']) {
+for (const source of ['ceoloide/switch_mx', 'ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33']) {
   const definition = definitions.find(({ generator }) => generator?.source === source);
   assert.ok(definition?.keycap, `${source} must expose its keycap dimensions`);
-  const keycapToggle = source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
+  const keycapToggle = 'include_keycap';
   assert.equal(parameters(source)[keycapToggle].value, true, `${source} must show its keycap by default`);
   assert.ok(definition.terminals?.from?.length && definition.terminals?.to?.length, `${source} must expose its electrical terminal pad groups`);
   assert.ok(definition.matrixTerminals?.row === 'from' && definition.matrixTerminals?.column === 'to', `${source} must be matrix-ready`);

@@ -51,7 +51,6 @@ fn preview_does_not_commit_and_stale_edit_fails() {
         kind: PartKind::Switch,
         courtyard: vec![],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -289,7 +288,6 @@ fn part_envelope_tracks_committed_move() {
             Vec2 { x: -1.0, y: 1.0 },
         ],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -356,7 +354,6 @@ fn scripts_emit_stable_ids_and_keep_visual_pose() {
         kind: PartKind::Switch,
         courtyard: vec![],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -427,7 +424,6 @@ fn added_part_joins_board_and_envelope_then_removes_cleanly() {
             Vec2 { x: -1.0, y: 1.0 },
         ],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -624,7 +620,6 @@ fn pcb_readiness_checks_pads_outlines_and_thickness() {
             rotation: None,
             net_id: None,
         }],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -743,7 +738,6 @@ fn invalid_definition_geometry_blocks_own_board() {
                 rotation: None,
                 net_id: None,
             }],
-            model: None,
             models: None,
             keycap: None,
             envelope_source: None,
@@ -817,7 +811,6 @@ fn empty_definition_and_pad_ids_are_reported() {
             rotation: None,
             net_id: None,
         }],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -881,7 +874,6 @@ fn duplicate_pad_nets_and_invalid_case_block_readiness() {
             rotation: None,
             net_id: None,
         }],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -1199,7 +1191,6 @@ fn matrix_doc() -> ProjectDoc {
             Vec2 { x: -7.0, y: 7.0 },
         ],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -1312,7 +1303,7 @@ fn mirrored_pair_links_geometry_bidirectionally_and_keeps_hardware_local() {
         column: 1,
         enabled: true,
         variant: Some("right-only".into()),
-        diode: Some(false),
+
         definition_id: None,
         offset: None,
         rotation: None,
@@ -1353,7 +1344,7 @@ fn mirrored_pair_links_geometry_bidirectionally_and_keeps_hardware_local() {
             row: 1,
             column: 2,
             enabled: false,
-            diode: None,
+
             definition_id: None,
             variant: None,
             offset: None,
@@ -1608,7 +1599,7 @@ fn matrix(rows: u32, columns: u32) -> Matrix {
         mirror: None,
         rotation: None,
         edge_gap: None,
-        diodes: None,
+
         diode_direction: None,
         row_offsets: vec![],
         column_offsets: vec![],
@@ -1634,7 +1625,7 @@ fn matrix_shrink_discards_out_of_bounds_edits() {
         row: 5,
         column: 0,
         enabled: true,
-        diode: None,
+
         definition_id: None,
         variant: None,
         offset: Some(Vec2 { x: 2.0, y: 0.0 }),
@@ -1688,7 +1679,7 @@ fn new_matrix_rejects_out_of_bounds_edits() {
         row: 1,
         column: 0,
         enabled: true,
-        diode: None,
+
         definition_id: None,
         variant: None,
         offset: None,
@@ -1715,7 +1706,7 @@ fn matrix_cells_preserve_survivors_and_companions() {
             row: 0,
             column: 1,
             enabled: false,
-            diode: None,
+
             definition_id: None,
             variant: None,
             offset: None,
@@ -1727,7 +1718,7 @@ fn matrix_cells_preserve_survivors_and_companions() {
             row: 1,
             column: 0,
             enabled: true,
-            diode: None,
+
             definition_id: None,
             variant: Some("hotswap".into()),
             offset: Some(Vec2 { x: 2.0, y: 1.0 }),
@@ -1904,246 +1895,6 @@ fn matrix_registers_definitions_atomically() {
     let (_, undone) = scene(engine.handle(CoreRequest::Undo { id: "undo".into() }));
     assert!(undone.definitions.is_empty());
     assert!(undone.parts.is_empty());
-}
-
-#[test]
-fn matrix_diodes_create_stable_nets() {
-    let mut engine = CoreEngine::new();
-    let mut doc = matrix_doc();
-    let pad = |id: &str| Pad {
-        id: id.into(),
-        number: id.into(),
-        at: Vec2::default(),
-        size: Vec2 { x: 1.0, y: 1.0 },
-        shape: PadShape::Circle,
-        drill: None,
-        plated: None,
-        side: None,
-        rotation: None,
-        net_id: None,
-    };
-    doc.definitions[0].pads = vec![pad("one"), pad("two")];
-    let mut diode = doc.definitions[0].clone();
-    diode.id = "matrix-diode".into();
-    diode.pads = vec![pad("anode"), pad("cathode")];
-    doc.definitions.push(diode);
-    engine.handle(CoreRequest::Open {
-        id: "open".into(),
-        document: doc,
-    });
-    let mut value = matrix(1, 2);
-    value.diodes = Some(true);
-    let (placed_scene, placed) = scene(engine.handle(edit(
-        0,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value.clone(),
-            definitions: None,
-        },
-    )));
-    assert!(placed_scene.readiness.layout);
-    assert_eq!(placed.matrices[0].part_ids.len(), 4);
-    assert!(
-        placed
-            .parts
-            .iter()
-            .any(|part| part.id == "matrix/main/r0c0/diode")
-    );
-    let diode_part = placed
-        .parts
-        .iter()
-        .find(|part| part.id == "matrix/main/r0c0/diode")
-        .unwrap();
-    assert_eq!(diode_part.pose.at, Vec2 { x: 6.0, y: -10.0 });
-    assert!(matches!(diode_part.side, Side::Back));
-    assert!(
-        placed
-            .parts
-            .iter()
-            .find(|part| part.id == "matrix/main/r0c0/diode")
-            .unwrap()
-            .reference
-            .starts_with('D')
-    );
-    let row = placed
-        .nets
-        .iter()
-        .find(|net| net.id == "matrix/main/net/row/0")
-        .unwrap();
-    assert_eq!(row.pins.len(), 2);
-    let link = placed
-        .nets
-        .iter()
-        .find(|net| net.id == "matrix/main/net/link/r0c0")
-        .unwrap();
-    assert_eq!(link.pins[0].pad_id, "cathode");
-    assert_eq!(link.pins[1].pad_id, "one");
-    assert!(placed.boards[0].net_ids.contains(&row.id));
-    value.diode_direction = Some(DiodeDirection::Col2row);
-    let (_, reversed) = scene(engine.handle(edit(
-        1,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value.clone(),
-            definitions: None,
-        },
-    )));
-    let reversed_row = reversed.nets.iter().find(|net| net.id == row.id).unwrap();
-    let reversed_link = reversed.nets.iter().find(|net| net.id == link.id).unwrap();
-    assert_eq!(reversed_row.pins[0].pad_id, "cathode");
-    assert_eq!(reversed_link.pins[0].pad_id, "anode");
-    assert_eq!(reversed_link.pins[1].pad_id, "one");
-    value.columns = 1;
-    let (_, shrunk) = scene(engine.handle(edit(
-        2,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value.clone(),
-            definitions: None,
-        },
-    )));
-    assert!(
-        !shrunk
-            .nets
-            .iter()
-            .any(|net| net.id == "matrix/main/net/link/r0c1")
-    );
-    assert!(shrunk.nets.iter().all(|net| {
-        net.pins
-            .iter()
-            .all(|pin| pin.part_id != "matrix/main/r0c1/diode")
-    }));
-    value.id = "copy".into();
-    value.origin.x = 30.0;
-    let (_, duplicated) = scene(engine.handle(edit(
-        3,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value,
-            definitions: None,
-        },
-    )));
-    assert!(duplicated.nets.iter().any(|net| net.name == "main_ROW0"));
-    assert!(duplicated.nets.iter().any(|net| net.name == "copy_ROW0"));
-}
-
-#[test]
-fn matrix_led_chain_has_exportable_pins() {
-    let mut engine = CoreEngine::new();
-    let mut doc = matrix_doc();
-    let mut led = doc.definitions[0].clone();
-    led.id = "rgb-led".into();
-    led.pads = ["vdd", "gnd", "din", "dout"]
-        .into_iter()
-        .map(|id| Pad {
-            id: id.into(),
-            number: id.into(),
-            at: Vec2::default(),
-            size: Vec2 { x: 1.0, y: 1.0 },
-            shape: PadShape::Rect,
-            drill: None,
-            plated: None,
-            side: None,
-            rotation: None,
-            net_id: None,
-        })
-        .collect();
-    doc.definitions.push(led);
-    engine.handle(CoreRequest::Open {
-        id: "open".into(),
-        document: doc,
-    });
-    let mut value = matrix(1, 2);
-    value.cells = (0..2)
-        .map(|column| MatrixCell {
-            assemblies_local: None,
-            row: 0,
-            column,
-            enabled: true,
-            diode: None,
-            definition_id: None,
-            variant: None,
-            offset: None,
-            rotation: None,
-            assemblies: vec![MatrixAssembly {
-                id: "led".into(),
-                definition_id: "rgb-led".into(),
-                offset: Vec2::default(),
-                rotation: None,
-                side: None,
-            }],
-        })
-        .collect();
-    let (_, placed) = scene(engine.handle(edit(
-        0,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value.clone(),
-            definitions: None,
-        },
-    )));
-    let power = placed
-        .nets
-        .iter()
-        .find(|net| net.id == "matrix/main/net/led/vdd")
-        .unwrap();
-    assert_eq!(power.pins.len(), 2);
-    assert!(power.pins.iter().all(|pin| pin.pad_id == "vdd"));
-    let input = placed
-        .nets
-        .iter()
-        .find(|net| net.id == "matrix/main/net/led/in")
-        .unwrap();
-    assert_eq!(
-        input.pins,
-        vec![Pin {
-            part_id: "matrix/main/r0c0/led".into(),
-            pad_id: "din".into()
-        }]
-    );
-    let link = placed
-        .nets
-        .iter()
-        .find(|net| net.id == "matrix/main/net/led/link/r0c0/led")
-        .unwrap();
-    assert_eq!(link.pins[0].pad_id, "dout");
-    assert_eq!(link.pins[1].part_id, "matrix/main/r0c1/led");
-    assert!(placed.boards[0].net_ids.contains(&link.id));
-    value.cells[0].enabled = false;
-    let (_, shrunk) = scene(engine.handle(edit(
-        1,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value.clone(),
-            definitions: None,
-        },
-    )));
-    assert!(!shrunk.nets.iter().any(|net| net.id == link.id));
-    assert_eq!(
-        shrunk
-            .nets
-            .iter()
-            .find(|net| net.id == "matrix/main/net/led/in")
-            .unwrap()
-            .pins[0]
-            .part_id,
-        "matrix/main/r0c1/led"
-    );
-    value.cells[1].assemblies.clear();
-    let (_, removed) = scene(engine.handle(edit(
-        2,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: value,
-            definitions: None,
-        },
-    )));
-    assert!(
-        !removed
-            .nets
-            .iter()
-            .any(|net| net.id.starts_with("matrix/main/net/led/"))
-    );
 }
 
 #[test]
@@ -2603,100 +2354,6 @@ fn matrix_cumulative_stagger_splay_survive_growth_and_serialization() {
 }
 
 #[test]
-fn matrix_wires_all_pads_in_ergogen_terminals() {
-    let definition: PartDefinition = serde_json::from_value(serde_json::json!({
-        "id": "ergogen:switch_mx",
-        "name": "MX switch",
-        "kind": "switch",
-        "courtyard": [{"x": -5.0, "y": -5.0}, {"x": 5.0, "y": -5.0}, {"x": 5.0, "y": 5.0}, {"x": -5.0, "y": 5.0}],
-        "pads": [
-            {"id": "pad-0", "number": "1", "at": {"x": -2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "from"},
-            {"id": "pad-1", "number": "2", "at": {"x": 2.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "to"},
-            {"id": "pad-2", "number": "1", "at": {"x": -3.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "from"},
-            {"id": "pad-3", "number": "2", "at": {"x": 3.0, "y": 0.0}, "size": {"x": 1.0, "y": 1.0}, "shape": "rect", "terminal": "to"}
-        ],
-        "terminals": {"from": ["pad-0", "pad-2"], "to": ["pad-1", "pad-3"]},
-        "matrixTerminals": {"row": "from", "column": "to"},
-        "generator": {"source": "ceoloide/switch_mx", "version": "bundled-1", "parameters": {}}
-    })).unwrap();
-    let mut doc = matrix_doc();
-    doc.definitions.push(definition.clone());
-    let mut diode = doc.definitions[0].clone();
-    diode.id = "matrix-diode".into();
-    diode.pads = vec![
-        Pad {
-            id: "anode".into(),
-            number: "1".into(),
-            at: Vec2::default(),
-            size: Vec2 { x: 1.0, y: 1.0 },
-            shape: PadShape::Circle,
-            drill: None,
-            plated: None,
-            side: None,
-            rotation: None,
-            net_id: None,
-        },
-        Pad {
-            id: "cathode".into(),
-            number: "2".into(),
-            at: Vec2::default(),
-            size: Vec2 { x: 1.0, y: 1.0 },
-            shape: PadShape::Circle,
-            drill: None,
-            plated: None,
-            side: None,
-            rotation: None,
-            net_id: None,
-        },
-    ];
-    doc.definitions.push(diode);
-    let mut engine = CoreEngine::new();
-    engine.handle(CoreRequest::Open {
-        id: "open".into(),
-        document: doc,
-    });
-    let mut incoming = matrix(1, 1);
-    incoming.definition_id = definition.id.clone();
-    incoming.diodes = Some(true);
-    let reply = engine.handle(edit(
-        0,
-        EditPhase::Commit,
-        EditOperation::SetMatrix {
-            matrix: incoming,
-            definitions: None,
-        },
-    ));
-    let (_, generated) = scene(reply);
-    let switch_id = "matrix/main/r0c0";
-    let row_link = generated
-        .nets
-        .iter()
-        .find(|net| net.name == "main_LINK_R0_C0")
-        .unwrap();
-    assert_eq!(
-        row_link
-            .pins
-            .iter()
-            .filter(|pin| pin.part_id == switch_id)
-            .count(),
-        2
-    );
-    let column = generated
-        .nets
-        .iter()
-        .find(|net| net.name == "main_COL0")
-        .unwrap();
-    assert_eq!(
-        column
-            .pins
-            .iter()
-            .filter(|pin| pin.part_id == switch_id)
-            .count(),
-        2
-    );
-}
-
-#[test]
 fn matrix_accepts_stable_ergogen_catalogue_ids() {
     let definition: PartDefinition = serde_json::from_value(serde_json::json!({
         "id": "ergogen:ceoloide/switch_mx",
@@ -2940,7 +2597,7 @@ fn mirrored_resize_keeps_each_halves_local_preset_companions() {
                         row,
                         column,
                         enabled: true,
-                        diode: Some(false),
+
                         definition_id: Some("switch".into()),
                         variant: Some("preset/mx-rgb/south".into()),
                         offset: None,

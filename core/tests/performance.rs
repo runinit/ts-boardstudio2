@@ -20,7 +20,6 @@ fn fixture(keys: usize) -> ProjectDoc {
             Vec2 { x: -7.0, y: 7.0 },
         ],
         pads: vec![],
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,

@@ -60,7 +60,6 @@ fn ergogen_document() -> ProjectDoc {
                 Vec2 { x: 1.0, y: 1.0 },
             ],
             pads: vec![],
-            model: None,
             models: None,
             generator: Some(PartGenerator {
                 source: "ceoloide/utility_text".into(),
@@ -146,7 +145,6 @@ fn asymmetric_definition() -> PartDefinition {
             rotation: Some(30.0),
             net_id: None,
         }],
-        model: None,
         models: None,
         generator: None,
     }
@@ -230,7 +228,7 @@ fn rotated_oblong_uses_absolute_angle_and_back_side_canonical_mirror() {
 #[test]
 fn native_models_use_safe_project_paths_and_kicad_axis_transforms() {
     let mut definition = asymmetric_definition();
-    definition.model = Some(PartModel {
+    definition.models = Some(vec![PartModel {
         asset_id: "mesh".into(),
         offset: Vec3 {
             x: 1.0,
@@ -247,7 +245,7 @@ fn native_models_use_safe_project_paths_and_kicad_axis_transforms() {
             y: 2.0,
             z: 3.0,
         },
-    });
+    }]);
     let paths = BTreeMap::from([("mesh".into(), "models/body.step".into())]);
     let footprint =
         native_footprint(&definition, "model-test", None, &BTreeMap::new(), &paths).unwrap();

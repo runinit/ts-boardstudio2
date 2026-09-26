@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import type {
-  MechanicalConfiguration,
-  MechanicalPartProcess,
   PartDefinition,
   ProjectDoc,
 } from '@boardstudio/v2-contracts';
@@ -11,10 +9,9 @@ import {
   inferSwitchFamily,
   initialSwitchFamily,
   materialForProcess,
-  normalizeMechanicalConfiguration,
 } from './mechanicalPresets';
 
-function documentWithSwitch(source = 'builtin:mx-switch', parameters: Record<string, unknown> = {}): ProjectDoc {
+function documentWithSwitch(source = 'ceoloide/switch_mx', parameters: Record<string, unknown> = {}): ProjectDoc {
   return {
     boards: [{ id: 'board', name: 'Main', partIds: ['switch'], thickness: 1.2 }],
     parts: [{ id: 'switch', definitionId: 'switch-def', generatorParameters: parameters }],
@@ -46,72 +43,16 @@ describe('mechanical generation defaults', () => {
     expect(byId.get('bottom')).toMatchObject({ method: 'printed', material: 'PLA', thickness: 3 });
   });
 
-  it('selects the method material default and keeps foam as cut sheet', () => {
-    for (const [method, material] of [
-      ['printed', 'PLA'],
-      ['cnc', 'Aluminium'],
-      ['cut-sheet', 'Acrylic'],
-      ['pcb-fr4', 'FR-4'],
-    ] as const) {
-      const document = documentWithSwitch();
-      const initial = createMechanicalConfiguration(document, 'board');
-      const processes: MechanicalPartProcess[] = [
-        { partId: 'plate', method: 'printed', material: 'PLA', thickness: 0.5, constraintsVersion: '' },
-        { partId: 'plate-foam', method: 'printed', material: 'PLA', thickness: 0.5, constraintsVersion: '' },
-        { partId: 'bottom-foam', method: 'printed', material: '', thickness: 0.5, constraintsVersion: '' },
-        { partId: 'bottom', method, material: 'PLA', thickness: 0.5, constraintsVersion: '' },
-      ];
-      const normalized = normalizeMechanicalConfiguration(document, {
-        ...initial,
-        method,
-        partProcesses: processes,
-      });
-      const byId = new Map(normalized.partProcesses?.map((process) => [process.partId, process]));
-
-      expect(byId.get('plate')).toMatchObject({ method, material, thickness: normalized.plateThickness });
-      expect(byId.get('plate-foam')).toMatchObject({ method: 'cut-sheet', material: 'EVA' });
-      expect(byId.get('bottom-foam')).toMatchObject({ method: 'cut-sheet', material: 'EVA' });
-      expect(byId.get('bottom')?.material).toBe(material);
-      expect(byId.get('bottom')?.thickness).toBe(normalized.bottomThickness);
+  it('selects material defaults for each current construction method', () => {
+    for (const [method, material] of [['printed', 'PLA'], ['cnc', 'Aluminium'], ['cut-sheet', 'Acrylic'], ['pcb-fr4', 'FR-4']] as const) {
+      expect(materialForProcess('plate', method)).toBe(material);
+      expect(materialForProcess('plate-foam', method)).toBe('EVA');
     }
   });
 
-  it('fills blank or incompatible legacy materials while preserving custom geometry and zero layers', () => {
-    const document = documentWithSwitch();
-    const initial = createMechanicalConfiguration(document, 'board');
-    const legacy = {
-      ...initial,
-      plateThickness: 1.8,
-      plateFoamThickness: 0,
-      bottomFoamThickness: 0,
-      bottomThickness: 4.2,
-      wallThickness: 2.5,
-      clearance: 0.45,
-      partProcesses: [
-        { partId: 'plate', method: 'cnc', material: '', thickness: 0.5, constraintsVersion: '' },
-      ],
-    } as MechanicalConfiguration;
-
-    const normalized = normalizeMechanicalConfiguration(document, legacy);
-    const byId = new Map(normalized.partProcesses?.map((process) => [process.partId, process]));
-
-    expect(normalized).toMatchObject({
-      plateThickness: 1.8,
-      plateFoamThickness: 0,
-      bottomFoamThickness: 0,
-      bottomThickness: 4.2,
-      wallThickness: 2.5,
-      clearance: 0.45,
-    });
-    expect(byId.get('plate')).toMatchObject({ material: 'PLA', thickness: 1.8 });
-    expect(byId.get('plate-foam')).toMatchObject({ material: 'EVA', thickness: 0 });
-    expect(byId.get('bottom-foam')).toMatchObject({ material: 'EVA', thickness: 0 });
-    expect(materialForProcess('plate', 'cnc')).toBe('Aluminium');
-  });
-
-  it('recognizes built-in hot-swap switches and requires a family for combined imports', () => {
-    expect(initialSwitchFamily(documentWithSwitch('builtin:mx-hotswap'), 'board')).toBe('mx');
-    expect(initialSwitchFamily(documentWithSwitch('builtin:choc-hotswap'), 'board')).toBe('choc-v1');
+  it('recognizes canonical switches and requires a family for combined imports', () => {
+    expect(initialSwitchFamily(documentWithSwitch('ceoloide/switch_mx'), 'board')).toBe('mx');
+    expect(initialSwitchFamily(documentWithSwitch('ceoloide/switch_choc_v1_v2', { choc_v1_support: true, choc_v2_support: false }), 'board')).toBe('choc-v1');
 
     const combined = {
       id: 'combined',

@@ -89,7 +89,6 @@ pub(super) fn import_footprint(source: &str, id: &str) -> Result<CompiledFootpri
         }),
         courtyard: envelope.clone(),
         pads: projection.pads.clone(),
-        model: None,
         models: None,
         generator: None,
         mechanical_profile: None,

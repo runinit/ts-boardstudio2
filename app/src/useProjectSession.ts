@@ -1,6 +1,5 @@
 import type { CasePreviewResult } from '@boardstudio/v2-cad';
 import type { CoreReply, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
-import { normalizeDefinition } from '@boardstudio/v2-ergogen';
 import type { MutableRefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { CaseClient } from './CaseClient';
@@ -8,7 +7,6 @@ import { CoreClient } from './CoreClient';
 import { ExportClient } from './ExportClient';
 import type { ContextualCaseResult } from './casePreviewContext';
 import { demoProject } from './demo';
-import { normalizeMechanicalConfiguration } from './mechanicalPresets';
 import { activeProjectId, loadProject, saveProject } from './storage';
 
 const STARTER_ID = 'starter';
@@ -103,11 +101,7 @@ export function useProjectSession({ caseClient, exportClient, previewCache, setS
     client.current = core;
     schedule(async () => {
       const saved = await loadProject(activeProjectId(STARTER_ID));
-      const loaded = saved ?? demoProject();
-      const document = { ...loaded, definitions: loaded.definitions.map((definition) => normalizeDefinition(definition)) };
-      if (document.mechanical) {
-        document.mechanical = normalizeMechanicalConfiguration(document, document.mechanical);
-      }
+      const document = saved ?? demoProject();
       const reply = await core.request({ id: crypto.randomUUID(), kind: 'open', document });
 
       await accept(reply, 'open');

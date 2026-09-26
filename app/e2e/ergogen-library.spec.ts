@@ -3,21 +3,15 @@ import { catalogue } from '@boardstudio/v2-ergogen';
 import { demoProject } from '../src/demo';
 import { expect, test } from '@playwright/test';
 
-for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33', 'infused-kim/choc']) {
+for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33']) {
   test(`${source} dashed outline follows the centered keycap dimensions`, async ({ page }) => {
     await page.goto('/');
-    if (source === 'infused-kim/choc') {
-      // User-owned definitions remain available even when their bundled source is retired.
-      const doc = demoProject();
-      doc.definitions.push({ ...catalogue().find(item => item.generator?.source === source)!, id: 'custom-choc' });
-      await page.getByRole('button', { name: 'Project', exact: true }).click();
-      await page.locator('.wb-project-file-input').setInputFiles({ name: 'custom-choc.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
-    }
+
     await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
     await page.getByRole('tab', { name: 'Parts', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search footprints' }).fill(source);
     await page.getByRole('listbox', { name: 'Footprint library', exact: true }).getByRole('option').click();
-    await expect(page.getByRole('checkbox', { name: source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap', exact: true })).toBeChecked();
+    await expect(page.getByRole('checkbox', { name: 'include_keycap', exact: true })).toBeChecked();
     if (source.includes('gateron')) {
       await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
       await page.getByRole('checkbox', { name: 'include_socket_silks', exact: true }).check();
@@ -33,7 +27,7 @@ for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks2
         };
         return { outline: box('.wb-preview-courtyard, .wb-preview-keycap'), body: box('.wb-ergogen-drawing') };
       });
-      const height = source === 'infused-kim/choc' ? 17 : 18;
+      const height = 18;
       expect(bounds.outline.left).toBeCloseTo(-9);
       expect(bounds.outline.right).toBeCloseTo(9);
       expect(bounds.outline.top).toBeCloseTo(-height / 2);
@@ -42,7 +36,7 @@ for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks2
       // Socket graphics retain their KiCad position relative to the pads.
       expect(bounds.body.right - bounds.body.left).toBeGreaterThan(0);
       expect(bounds.body.top).toBeCloseTo(source.includes('gateron') ? 2.525 : -8.2);
-      expect(bounds.body.bottom).toBeCloseTo(source.includes('gateron') ? 7.925 : source === 'infused-kim/choc' ? 7 : -1.5);
+      expect(bounds.body.bottom).toBeCloseTo(source.includes('gateron') ? 7.925 : -1.5);
     }
   });
 }
@@ -161,6 +155,7 @@ test('bundled MX models load and generator settings are grouped', async ({ page 
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /MX switch/ }).click();
+  await page.getByRole('checkbox', { name: 'hotswap', exact: true }).check();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText('2 / 2 models · 1.6 mm PCB', {exact:true})).toBeVisible({ timeout: 20_000 });
   const canvasBox = (await page.locator('.wb-library-model-workspace canvas').boundingBox())!;
@@ -196,6 +191,7 @@ test('model failures can retry and parts without models do not keep loading', as
   const search = page.getByRole('searchbox', { name: 'Search footprints' });
   await search.fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /MX switch/ }).click();
+  await page.getByRole('checkbox', { name: 'hotswap', exact: true }).check();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await page.getByText('Sample PCB', {exact:true}).click();
   await expect(page.getByRole('button', { name: 'Retry models' })).toBeVisible();

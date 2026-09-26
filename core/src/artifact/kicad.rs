@@ -239,10 +239,7 @@ fn model_forms(
     definition: &PartDefinition,
     models: &BTreeMap<String, String>,
 ) -> Result<Vec<String>, ArtifactError> {
-    let model_list = definition
-        .model
-        .iter()
-        .chain(definition.models.iter().flatten());
+    let model_list = definition.models.iter().flatten();
     model_list
         .map(|model| {
             let path = models.get(&model.asset_id).ok_or_else(|| {
@@ -279,7 +276,7 @@ fn override_models(
     definition: &PartDefinition,
     paths: &BTreeMap<String, String>,
 ) -> Result<String, ArtifactError> {
-    if definition.model.is_none() && definition.models.is_none() {
+    if definition.models.is_none() {
         return Ok(source);
     }
     let parsed = kiutils_sexpr::parse_one(&source).map_err(|e| validation(e.to_string()))?;
@@ -337,11 +334,10 @@ fn native_footprint(
     let job = FootprintCompileJob {
         id: definition.id.clone(),
         definition: definition.clone(),
-        parameters: BTreeMap::new(),
         side: part.map_or(Side::Front, |part| part.side.clone()),
     };
     let compiled =
-        compile::compile_builtin(&job.definition, &job.parameters, job.side).map_err(validation)?;
+        compile::compile_authored(&job.definition, job.side).map_err(validation)?;
     let geometry = &compiled.geometry;
     assert_geometry(geometry)?;
     let back = matches!(geometry.side, Side::Back);
@@ -377,15 +373,8 @@ fn native_footprint(
         .fold(0.0_f64, f64::max)
         + 2.0;
     let mirror = if back { " (justify mirror)" } else { "" };
-    let hide = definition.generator.as_ref().is_some_and(|generator| {
-        matches!(
-            generator.source.as_str(),
-            "builtin:rgb-led" | "builtin:matrix-diode"
-        )
-    });
-    let hide = if hide { " (hide yes)" } else { "" };
     let mut forms = vec![render(&format!(
-        "(property \"Reference\" {} (at 0 {} 0) (layer {}){hide} (effects (font (size {} {}) (thickness {})){mirror}))",
+        "(property \"Reference\" {} (at 0 {} 0) (layer {}) (effects (font (size {} {}) (thickness {})){mirror}))",
         q(reference)?,
         num(reference_y)?,
         q(reference_layer)?,
@@ -465,7 +454,6 @@ fn is_ergogen(definition: &PartDefinition) -> bool {
     definition.generator.as_ref().is_some_and(|generator| {
         generator.source.starts_with("ceoloide/")
             || generator.source.starts_with("infused-kim/")
-            || generator.source.starts_with("ergogen/")
     })
 }
 

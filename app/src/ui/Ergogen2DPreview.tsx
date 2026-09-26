@@ -20,8 +20,7 @@ const graphicLayer = (form: Expression[]): string => {
 const previewDefinition = (definition: PartDefinition, hideKeycap: boolean): PartDefinition => {
   if (!hideKeycap || !definition.generator) return definition;
   const generator = definition.generator;
-  const keycapToggle = generator.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
-  return { ...definition, generator: { ...generator, parameters: { ...generator.parameters, [keycapToggle]: false } } };
+  return { ...definition, generator: { ...generator, parameters: { ...generator.parameters, include_keycap: false } } };
 };
 export const ergogenPreviewLayers = (definition: PartDefinition, hideKeycap = false): string[] => {
   if (!isErgogen(definition.generator?.source)) return [];

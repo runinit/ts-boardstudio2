@@ -180,7 +180,6 @@ mod tests {
             envelope_notice: None,
             courtyard: vec![],
             pads: vec![],
-            model: None,
             models: None,
             generator: Some(PartGenerator {
                 source: source.into(),

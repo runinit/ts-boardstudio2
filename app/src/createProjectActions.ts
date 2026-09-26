@@ -2,7 +2,6 @@ import type { CoreClient } from './CoreClient';
 import type { CoreReply, CoreRequest, EditCommand, ProjectDoc } from '@boardstudio/v2-contracts';
 import { defaultOutlineSettings, emptyProject } from '@boardstudio/v2-contracts';
 import { catalogue as ergogenCatalogue } from '@boardstudio/v2-ergogen';
-import { builtinDefinitions } from '@boardstudio/v2-kicad';
 import type { MutableRefObject } from 'react';
 import { ExportClient } from './ExportClient';
 import { updateInstanceMechanical } from './hardwareInstances';
@@ -81,7 +80,6 @@ export function createProjectActions({ projectRef, client, exportClient, selecte
       const boardId = crypto.randomUUID();
       const outlineId = crypto.randomUUID();
 
-      document.definitions = builtinDefinitions();
       document.outline = [{ id: outlineId, kind: 'part-envelope', settings: defaultOutlineSettings, partIds: [], margin: 4, operation: 'add' }];
       document.boards = [{ id: boardId, name: 'Main board', outlineIds: [outlineId], partIds: [], netIds: [], thickness: 1.6 }];
       document.materials = [{ id: 'pla', name: 'PLA', thickness: 3 }];
@@ -207,7 +205,7 @@ export function createProjectActions({ projectRef, client, exportClient, selecte
         generator: { ...definition.generator, parameters: { ...definition.generator.parameters, [parameter]: `boardstudio-asset:${assetId}` } },
       } : {
         ...definition,
-        model: { assetId, offset: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } },
+        models: [{ assetId, offset: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } }, ...(definition.models?.slice(1) ?? [])],
       };
       const nextDefinitions = current.definitions.some((item) => item.id === definitionId)
         ? current.definitions.map((item) => item.id === definitionId ? updatedDefinition : item)

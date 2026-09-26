@@ -50,24 +50,34 @@ and body cache lifetimes. Existing WASM entrypoints are re-exported unchanged.
 Nested ownership lets children use private ancestor types and helpers without
 widening field or helper visibility.
 
-No document schema, renderer protocol, pad identity, net mapping, generator
-geometry, mechanical cutting profile, or CAD kernel changes belong to this cleanup.
+## Current project format
 
-## Compatibility and cleanup guardrails
+Only the current `boardstudio/v2` shape is supported. There are no released older
+projects to migrate. Opening a project does not repair old dimensions or rewrite
+library definitions. Missing required mechanical dimensions and removed fields
+on part definitions, matrices, or cells are rejected.
 
-Retired footprint IDs, generators, models, licenses, authored case bodies, and
-custom/imported definitions remain supported. Catalog visibility is deliberately
-separate from definition resolution. Do not infer dead code from a hidden part or
-an old-looking CSS class. Current assembly recipes still use stable preset IDs.
+- Part models use `models`; the old singular `model` field is removed.
+- Matrix companions come from explicit assembly members. The old matrix `diodes`
+  and cell `diode` flags, implicit RGB chains, and their net cleanup are removed.
+  Diode direction remains an input to the current electrical planner.
+- Matrix membership uses canonical cell IDs. Ordered-ID recovery and residual
+  interpolation for early projects are removed. Empty cells use parametric poses.
+- The six generic built-in footprint generators and their compiled catalog are
+  removed. The starter uses the canonical Ceoloide MX switch.
+- Infused-Kim Choc and diode sources are retained as attributed reference files,
+  but excluded from the executable catalog. The runtime has 37 active generators.
+- Custom/imported parts, authored case bodies, and current assembly snapshots
+  remain supported. KiCad syntax adapters remain necessary for bundled generators
+  and supported external footprint imports.
 
-TypeScript checks unused locals and parameters. This does not detect orphaned
-exports, dynamic CSS use, or compatibility-only definitions; those require caller
-and saved-project checks. Transform coverage moved from the removed `CasePreview`
-component to `componentPreview`. Preview retry has a regression test.
+The Rust model is the source for generated TypeScript contracts. No renderer
+protocol, mechanical cutting profile, generator source geometry, or CAD kernel
+changes are part of this removal. TypeScript checks unused locals and parameters.
 
 ## Validation entrypoints
 
-- `pnpm check`: contract/catalog drift, runtime imports, native and package tests,
+- `pnpm check`: contract and generator-catalog drift, runtime imports, native and package tests,
   WASM and production builds, boundary checks, browser tests, and Pages checks.
 - `pnpm precommit`: core/CAD/renderer preparation and app/CAD typechecks.
 - `pnpm test:e2e:dev`: development-server loading regressions.

@@ -2,45 +2,7 @@ import type { JsonValue, PartDefinition } from '../../../contracts/src/index';
 import { bundledModel } from '../bundledModels';
 import { geometry as ergogenGeometry, isErgogen, modelAssetId, normalizeDefinition, parameters as ergogenParameters, render as renderErgogen } from '@boardstudio/v2-ergogen';
 
-type Field = { key: string; label: string; fallback: number };
 export type GeneratorEdits = Record<string, JsonValue>;
-
-const fields: Record<string, Field[]> = {
-  'builtin:mx-switch': [
-    { key: 'padSpacing', label: 'Pad spacing', fallback: 6.35 },
-    { key: 'padSize', label: 'Pad size', fallback: 2.286 },
-    { key: 'padDrill', label: 'Pad drill', fallback: 1.4986 },
-  ],
-  'builtin:choc-switch': [
-    { key: 'padSpacing', label: 'Pad spacing', fallback: 5 },
-    { key: 'padSize', label: 'Pad size', fallback: 2.032 },
-    { key: 'padDrill', label: 'Pad drill', fallback: 1.27 },
-  ],
-  'builtin:mx-hotswap': [
-    { key: 'padSpacing', label: 'Pad spacing', fallback: 12.952 },
-    { key: 'padSize', label: 'Pad size', fallback: 2.6 },
-  ],
-  'builtin:choc-hotswap': [
-    { key: 'padSpacing', label: 'Pad spacing', fallback: 11.55 },
-    { key: 'padSize', label: 'Pad size', fallback: 2.6 },
-  ],
-  'builtin:rgb-led': [
-    { key: 'padSpacing', label: 'Pad spacing', fallback: 5.4 },
-    { key: 'padSize', label: 'Pad size', fallback: 1.1 },
-  ],
-};
-
-export const numericFields = (definition?: PartDefinition): Field[] => {
-  const source = definition?.generator?.source ?? '';
-  const known = fields[source];
-  if (known) return known;
-  if (!isErgogen(source)) return [];
-  return Object.entries(ergogenParameters(source)).filter(([, parameter]) => parameter.type === 'number').map(([key, parameter]) => ({
-    key,
-    label: key.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
-    fallback: typeof parameter.value === 'number' ? parameter.value : 0,
-  }));
-};
 
 export const generatorParameters = (definition?: PartDefinition) => {
   const source = definition?.generator?.source;
@@ -92,19 +54,8 @@ export function generatorDraft(definition: PartDefinition, edits: GeneratorEdits
       }
       ergogenGeometry(renderErgogen(draft));
       return { definition: normalizeDefinition(draft), error: '' };
-    } else {
-      for (const field of numericFields(definition)) {
-        const input = edits[field.key];
-        if (input === undefined) continue;
-        const value = typeof input === 'number' ? input : typeof input === 'string' && input.trim() !== '' ? Number(input) : NaN;
-        if (!Number.isFinite(value) || value <= 0) throw new Error(`${field.label} must be greater than zero.`);
-        draft.generator.parameters[field.key] = value;
-      }
-      for (const key of ['reversible', 'includeTracesVias']) {
-        if (typeof edits[key] === 'boolean') draft.generator.parameters[key] = edits[key];
-      }
     }
-    return { definition: draft, error: '' };
+    throw new Error(`Unsupported footprint generator: ${draft.generator.source}`);
   } catch (error) {
     return { definition, error: error instanceof Error ? error.message : String(error) };
   }

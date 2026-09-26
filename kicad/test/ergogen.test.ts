@@ -136,7 +136,7 @@ test('exports placed Ergogen zone, reversible text, and front/back route as KiCa
 });
 
 test('upgrades legacy vendor footprint arcs for KiCad 10', { skip: !hasKiCad10 }, () => {
-  for (const source of ['infused-kim/choc', 'infused-kim/nice_view']) {
+  for (const source of ['infused-kim/nice_view']) {
     const item = definition(source);
     const paths = new Map(modelAssetIds(item).map((id) => [id, `models/${id.slice(14).replaceAll('/', '_')}`]));
     const board = exportNativeBoard(project([item], [part(item, 'part', 0, 'front', {})]), 'main', contour, paths);
@@ -154,7 +154,7 @@ test('KiCad 10 parses default board output from every bundled generator', { skip
 });
 
 test('standalone export batches all Ergogen generators and reports skipped board utilities', () => {
-  assert.equal(definitions.length, 39);
+  assert.equal(definitions.length, 37);
   const doc = emptyProject('ergogen-library', 'Ergogen library');
   doc.definitions = definitions;
   const paths = new Map(definitions.flatMap((item) => modelAssetIds(item).map((id) => [

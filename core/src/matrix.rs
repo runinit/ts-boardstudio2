@@ -1,6 +1,6 @@
 use crate::model::{
-    DiodeDirection, Matrix, MatrixCell, MatrixColumnBasis, MatrixScene, MatrixSceneCell, Mirror,
-    Net, OutlineFeature, Part, Pin, Pose2, ProjectDoc, Side, Vec2,
+    Matrix, MatrixCell, MatrixColumnBasis, MatrixScene, MatrixSceneCell, Mirror,
+    OutlineFeature, Part, Pin, Pose2, ProjectDoc, Side, Vec2,
 };
 use serde_json::json;
 pub(crate) mod layout;
@@ -10,15 +10,8 @@ use std::collections::{BTreeMap, BTreeSet};
 pub(crate) const MAX_MATRIX_PARTS: u32 = 4096;
 const OVERRIDE: &str = "layoutOverride";
 const DEFAULT_EDGE_GAP_MM: f64 = 1.0;
-const DIODE_DEFINITION: &str = "matrix-diode";
-const DIODE_MEMBER: &str = "diode";
 const SWITCH_ROW_PAD: &str = "one";
 const SWITCH_COLUMN_PAD: &str = "two";
-const DIODE_ROW_PAD: &str = "anode";
-const DIODE_SWITCH_PAD: &str = "cathode";
-const DIODE_OFFSET: Vec2 = Vec2 { x: 6.0, y: -10.0 };
-const LED_DEFINITION: &str = "rgb-led";
-const LED_PAD_IDS: [&str; 4] = ["vdd", "gnd", "din", "dout"];
 
 fn matrix_terminal_pad_ids(definition: &crate::model::PartDefinition, row: bool) -> Vec<String> {
     let ids = if let Some(terminals) = &definition.matrix_terminals {
@@ -29,13 +22,13 @@ fn matrix_terminal_pad_ids(definition: &crate::model::PartDefinition, row: bool)
         };
         definition.terminals.get(name).cloned().unwrap_or_default()
     } else {
-        let legacy = if row {
+        let default_pad = if row {
             SWITCH_ROW_PAD
         } else {
             SWITCH_COLUMN_PAD
         };
-        if definition.pads.iter().any(|pad| pad.id == legacy) {
-            vec![legacy.into()]
+        if definition.pads.iter().any(|pad| pad.id == default_pad) {
+            vec![default_pad.into()]
         } else {
             vec![]
         }
@@ -45,25 +38,13 @@ fn matrix_terminal_pad_ids(definition: &crate::model::PartDefinition, row: bool)
         .collect()
 }
 
-fn has_matrix_terminals(definition: &crate::model::PartDefinition) -> bool {
-    !matrix_terminal_pad_ids(definition, true).is_empty()
-        && !matrix_terminal_pad_ids(definition, false).is_empty()
-}
+
 
 fn member_id(matrix: &str, row: u32, column: u32) -> String {
     format!("matrix/{matrix}/r{row}c{column}")
 }
 
-// Preserve ordered IDs from early projects, including after growth adds canonical cells.
 fn cell_members(matrix: &Matrix) -> BTreeMap<(u32, u32), String> {
-    let prefix = format!("matrix/{}/", matrix.id);
-    let ids: BTreeSet<_> = matrix.part_ids.iter().collect();
-    let mut legacy = matrix.part_ids.iter().filter(|id| {
-        !id.starts_with(&prefix)
-            && !id
-                .rsplit_once('/')
-                .is_some_and(|(parent, _)| ids.contains(&parent.to_string()))
-    });
     let cells: BTreeMap<_, _> = matrix
         .cells
         .iter()
@@ -75,12 +56,7 @@ fn cell_members(matrix: &Matrix) -> BTreeMap<(u32, u32), String> {
             if cells.get(&(row, column)).is_some_and(|cell| !cell.enabled) {
                 continue;
             }
-            let canonical = member_id(&matrix.id, row, column);
-            let id = if ids.contains(&canonical) {
-                canonical
-            } else {
-                legacy.next().cloned().unwrap_or(canonical)
-            };
+            let id = member_id(&matrix.id, row, column);
             members.insert((row, column), id);
         }
     }
@@ -114,7 +90,7 @@ pub(crate) fn removed_members(doc: &mut ProjectDoc, requested: &[String]) -> Vec
                             row,
                             column,
                             enabled: true,
-                            diode: None,
+
                             definition_id: None,
                             variant: None,
                             offset: None,
@@ -135,9 +111,6 @@ pub(crate) fn removed_members(doc: &mut ProjectDoc, requested: &[String]) -> Vec
                             .cloned(),
                     );
                 } else {
-                    if requested.contains(&format!("{id}/{DIODE_MEMBER}")) {
-                        cell.diode = Some(false);
-                    }
                     cell.assemblies
                         .retain(|assembly| !requested.contains(&format!("{id}/{}", assembly.id)));
                 }
@@ -181,18 +154,6 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
         .any(|def| def.id == matrix.definition_id)
     {
         return Err(format!("Unknown definition {}", matrix.definition_id));
-    }
-    if matrix.diodes == Some(true) {
-        let diode = doc
-            .definitions
-            .iter()
-            .find(|def| def.id == DIODE_DEFINITION)
-            .ok_or("Matrix diode definition is missing")?;
-        if !diode.pads.iter().any(|pad| pad.id == DIODE_ROW_PAD)
-            || !diode.pads.iter().any(|pad| pad.id == DIODE_SWITCH_PAD)
-        {
-            return Err("Matrix diode pads are missing".into());
-        }
     }
     if matrix.cells.len() > (matrix.rows * matrix.columns) as usize {
         return Err("Matrix cells exceed dimensions".into());
@@ -275,46 +236,6 @@ pub(crate) fn valid_matrix(matrix: &Matrix, doc: &ProjectDoc) -> Result<(), Stri
             {
                 return Err("Matrix assembly is invalid".into());
             }
-            if assembly.definition_id == LED_DEFINITION {
-                let definition = doc
-                    .definitions
-                    .iter()
-                    .find(|def| def.id == LED_DEFINITION)
-                    .unwrap();
-                if LED_PAD_IDS
-                    .iter()
-                    .any(|id| !definition.pads.iter().any(|pad| pad.id == *id))
-                {
-                    return Err("Matrix RGB LED pads are missing".into());
-                }
-            }
-        }
-        if matrix.diodes == Some(true)
-            && cell.diode != Some(false)
-            && assemblies.contains(&DIODE_MEMBER.to_string())
-        {
-            return Err("Matrix diode assembly ID is reserved".into());
-        }
-        if matrix.diodes == Some(true) && cell.enabled {
-            let definition_id = cell.definition_id.as_ref().unwrap_or(&matrix.definition_id);
-            let definition = doc
-                .definitions
-                .iter()
-                .find(|def| &def.id == definition_id)
-                .unwrap();
-            if !has_matrix_terminals(definition) {
-                return Err("Matrix switch pads are missing".into());
-            }
-        }
-    }
-    if matrix.diodes == Some(true) {
-        let definition = doc
-            .definitions
-            .iter()
-            .find(|def| def.id == matrix.definition_id)
-            .unwrap();
-        if !has_matrix_terminals(definition) {
-            return Err("Matrix switch pads are missing".into());
         }
     }
     Ok(())
@@ -541,55 +462,6 @@ pub(crate) fn project_matrix(
             if mode == ProjectionMode::Actual {
                 if let Some(id) = member_id.as_deref().and_then(|id| by_id.get(id)) {
                     pose = id.pose;
-                } else {
-                    let mut residuals: BTreeMap<u32, (u32, Vec2)> = BTreeMap::new();
-                    for ((saved_row, saved_column), saved_id) in &members {
-                        if saved_id.starts_with(&format!("matrix/{}/", matrix.id)) {
-                            continue;
-                        }
-                        let Some(part) = by_id.get(saved_id.as_str()) else {
-                            continue;
-                        };
-                        let distance = saved_column.abs_diff(column);
-                        if residuals
-                            .get(saved_row)
-                            .is_some_and(|(old, _)| *old <= distance)
-                        {
-                            continue;
-                        }
-                        let expected = location(
-                            matrix,
-                            *saved_row,
-                            *saved_column,
-                            cells.get(&(*saved_row, *saved_column)).copied(),
-                        );
-                        residuals.insert(
-                            *saved_row,
-                            (
-                                distance,
-                                Vec2 {
-                                    x: part.pose.at.x - expected.x,
-                                    y: part.pose.at.y - expected.y,
-                                },
-                            ),
-                        );
-                    }
-                    let mut nearest: Vec<u32> = residuals.keys().copied().collect();
-                    nearest.sort_by_key(|saved_row| (saved_row.abs_diff(row), *saved_row));
-                    if let Some(first) = nearest.first() {
-                        let mut residual = residuals[first].1;
-                        if nearest.len() > 1 && *first != row {
-                            let second = nearest[1];
-                            let t = (row as f64 - *first as f64) / (second as f64 - *first as f64);
-                            let other = residuals[&second].1;
-                            residual = Vec2 {
-                                x: residual.x + t * (other.x - residual.x),
-                                y: residual.y + t * (other.y - residual.y),
-                            };
-                        }
-                        pose.at.x += residual.x;
-                        pose.at.y += residual.y;
-                    }
                 }
             }
             if !pose.at.x.is_finite() || !pose.at.y.is_finite() || !pose.rotation.is_finite() {
@@ -636,12 +508,12 @@ mod projection_tests {
             pitch: Vec2 { x: 19.0, y: 19.0 },
             origin: Vec2 { x: 0.0, y: 0.0 },
             definition_id: "missing".into(),
-            part_ids: vec!["legacy-0".into(), "matrix/m/r0c1".into(), "legacy-1".into()],
+            part_ids: vec!["matrix/m/r0c0".into(), "matrix/m/r0c1".into(), "matrix/m/r0c2".into()],
             board_id: None,
             mirror: Some(Mirror::X),
             rotation: Some(10.0),
             edge_gap: None,
-            diodes: None,
+
             diode_direction: None,
             row_offsets: vec![],
             column_offsets: vec![],
@@ -652,7 +524,7 @@ mod projection_tests {
                 row: 1,
                 column: 1,
                 enabled: false,
-                diode: None,
+
                 definition_id: None,
                 variant: None,
                 offset: Some(Vec2 { x: 2.0, y: -1.0 }),
@@ -692,17 +564,17 @@ mod projection_tests {
     }
 
     #[test]
-    fn actual_projection_prefers_saved_pose_and_interpolates_legacy_residuals() {
+    fn actual_projection_uses_saved_poses_and_parametric_empty_cells() {
         let m = matrix();
         let parts = vec![
-            part("legacy-0", 100.0, 10.0),
-            part("legacy-1", 100.0, 30.0),
+            part("matrix/m/r0c0", 100.0, 10.0),
+            part("matrix/m/r0c2", 100.0, 30.0),
             part("matrix/m/r0c1", 55.0, 66.0),
         ];
         let scene = project_matrix(&m, &parts, ProjectionMode::Actual).unwrap();
         assert_eq!(scene.cells[1].pose, parts[2].pose);
-        assert_eq!(scene.cells[0].member_id.as_deref(), Some("legacy-0"));
-        assert_eq!(scene.cells[2].member_id.as_deref(), Some("legacy-1"));
+        assert_eq!(scene.cells[0].member_id.as_deref(), Some("matrix/m/r0c0"));
+        assert_eq!(scene.cells[2].member_id.as_deref(), Some("matrix/m/r0c2"));
         assert!(scene.cells[4].member_id.is_none());
         assert!(scene.cells[4].pose.at.x.is_finite());
     }
@@ -963,8 +835,6 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
         .get(board_index)
         .map(|board| board.outline_ids.clone())
         .unwrap_or_default();
-    let previous_members = previous.as_ref().map(cell_members).unwrap_or_default();
-    let mut next_members = BTreeMap::new();
     let mut next = incoming.clone();
     next.edge_gap = Some(incoming.edge_gap.unwrap_or(Vec2 {
         x: DEFAULT_EDGE_GAP_MM,
@@ -996,56 +866,13 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
             if cell.is_some_and(|cell| !cell.enabled) {
                 continue;
             }
-            let id = previous_members
-                .get(&(row, column))
-                .cloned()
-                .unwrap_or_else(|| member_id(&incoming.id, row, column));
-            next_members.insert((row, column), id.clone());
-            let mut pose = Pose2 {
+            let id = member_id(&incoming.id, row, column);
+            let pose = Pose2 {
                 at: location(incoming, row, column, cell),
                 rotation: incoming.rotation.unwrap_or(0.0)
                     + column_rotation(incoming, column)
                     + cell.and_then(|cell| cell.rotation).unwrap_or(0.0),
             };
-            if id != member_id(&incoming.id, row, column) {
-                if let (Some(before), Some(&index)) = (&previous, part_index.get(&id)) {
-                    let old_cell = before
-                        .cells
-                        .iter()
-                        .find(|cell| cell.row == row && cell.column == column);
-                    let expected = location(before, row, column, old_cell);
-                    let actual = doc.parts[index].pose;
-                    let angle = -(before.rotation.unwrap_or(0.0) + column_rotation(before, column))
-                        .to_radians();
-                    let (sin, cos) = angle.sin_cos();
-                    let dx = actual.at.x - expected.x;
-                    let dy = actual.at.y - expected.y;
-                    let mut x = dx * cos - dy * sin;
-                    let mut y = dx * sin + dy * cos;
-                    if before.mirror == Some(Mirror::X) {
-                        x = -x;
-                    }
-                    if before.mirror == Some(Mirror::Y) {
-                        y = -y;
-                    }
-                    if incoming.mirror == Some(Mirror::X) {
-                        x = -x;
-                    }
-                    if incoming.mirror == Some(Mirror::Y) {
-                        y = -y;
-                    }
-                    let (sin, cos) = (incoming.rotation.unwrap_or(0.0)
-                        + column_rotation(incoming, column))
-                    .to_radians()
-                    .sin_cos();
-                    pose.at.x += x * cos - y * sin;
-                    pose.at.y += x * sin + y * cos;
-                    pose.rotation += actual.rotation
-                        - before.rotation.unwrap_or(0.0)
-                        - column_rotation(before, column)
-                        - old_cell.and_then(|cell| cell.rotation).unwrap_or(0.0);
-                }
-            }
             let mut members = vec![(
                 id,
                 incoming.definition_id.clone(),
@@ -1079,24 +906,6 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                     ));
                 }
             }
-            if incoming.diodes == Some(true) && cell.is_none_or(|cell| cell.diode != Some(false)) {
-                let rotation = pose.rotation.to_radians();
-                let (sin, cos) = rotation.sin_cos();
-                let at = Vec2 {
-                    x: pose.at.x + DIODE_OFFSET.x * cos - DIODE_OFFSET.y * sin,
-                    y: pose.at.y + DIODE_OFFSET.x * sin + DIODE_OFFSET.y * cos,
-                };
-                members.push((
-                    format!("{}/{}", members[0].0, DIODE_MEMBER),
-                    DIODE_DEFINITION.into(),
-                    Pose2 {
-                        at,
-                        rotation: pose.rotation,
-                    },
-                    Side::Back,
-                    None,
-                ));
-            }
             for (id, definition_id, pose, side, variant) in members {
                 if !old_ids.contains(&id) && part_index.contains_key(&id) {
                     return Err(format!("Matrix member ID {id} is already owned"));
@@ -1122,8 +931,6 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
                     }
                 } else {
                     let prefix = match definition_id.as_str() {
-                        DIODE_DEFINITION => "D",
-                        "rgb-led" => "LED",
                         _ => "SW",
                     };
                     let number = next_reference.entry(prefix).or_insert(1);
@@ -1220,231 +1027,6 @@ pub fn set_matrix(doc: &mut ProjectDoc, incoming: &Matrix) -> Result<Vec<String>
     } else {
         doc.matrices.push(next);
     }
-    sync_nets(
-        doc,
-        incoming,
-        board_index,
-        &cells,
-        &next_members,
-        &mut changed,
-    )?;
     changed.extend(removed);
     Ok(changed)
-}
-
-fn sync_nets(
-    doc: &mut ProjectDoc,
-    matrix: &Matrix,
-    board_index: usize,
-    cells: &BTreeMap<(u32, u32), &MatrixCell>,
-    members: &BTreeMap<(u32, u32), String>,
-    changed: &mut Vec<String>,
-) -> Result<(), String> {
-    let prefix = format!("matrix/{}/net/", matrix.id);
-    changed.extend(
-        doc.nets
-            .iter()
-            .filter(|net| net.id.starts_with(&prefix))
-            .map(|net| net.id.clone()),
-    );
-    doc.nets.retain(|net| !net.id.starts_with(&prefix));
-    for board in &mut doc.boards {
-        board.net_ids.retain(|id| !id.starts_with(&prefix));
-    }
-    let hardware_managed = doc.hardware.as_ref().is_some_and(|hardware| {
-        hardware
-            .boards
-            .iter()
-            .any(|entry| entry.board_id == doc.boards[board_index].id)
-    });
-    let mut nets = if hardware_managed {
-        Vec::new()
-    } else {
-        led_nets(matrix, cells, members, &prefix)
-    };
-    if matrix.diodes == Some(true) && !hardware_managed {
-        let mut row_nets: Vec<Net> = (0..matrix.rows)
-            .map(|row| Net {
-                id: format!("{prefix}row/{row}"),
-                name: format!("{}_ROW{row}", matrix.id),
-                pins: vec![],
-            })
-            .collect();
-        let mut column_nets: Vec<Net> = (0..matrix.columns)
-            .map(|column| Net {
-                id: format!("{prefix}column/{column}"),
-                name: format!("{}_COL{column}", matrix.id),
-                pins: vec![],
-            })
-            .collect();
-        let mut links = vec![];
-        for row in 0..matrix.rows {
-            for column in 0..matrix.columns {
-                let cell = cells.get(&(row, column)).copied();
-                if cell.is_some_and(|cell| !cell.enabled) {
-                    continue;
-                }
-                let switch = members
-                    .get(&(row, column))
-                    .cloned()
-                    .unwrap_or_else(|| member_id(&matrix.id, row, column));
-                let diode = cell.is_none_or(|cell| cell.diode != Some(false));
-                let switch_part = doc
-                    .parts
-                    .iter()
-                    .find(|part| part.id == switch)
-                    .ok_or("Matrix switch part is missing")?;
-                let switch_definition = doc
-                    .definitions
-                    .iter()
-                    .find(|definition| definition.id == switch_part.definition_id)
-                    .ok_or("Matrix switch definition is missing")?;
-                let row_pads = matrix_terminal_pad_ids(switch_definition, true);
-                let column_pads = matrix_terminal_pad_ids(switch_definition, false);
-                if diode {
-                    let diode_id = format!("{switch}/{DIODE_MEMBER}");
-                    let (row_pad, switch_pad) =
-                        match matrix.diode_direction.unwrap_or(DiodeDirection::Row2col) {
-                            DiodeDirection::Row2col => (DIODE_ROW_PAD, DIODE_SWITCH_PAD),
-                            DiodeDirection::Col2row => (DIODE_SWITCH_PAD, DIODE_ROW_PAD),
-                        };
-                    row_nets[row as usize].pins.push(Pin {
-                        part_id: diode_id.clone(),
-                        pad_id: row_pad.into(),
-                    });
-                    links.push(Net {
-                        id: format!("{prefix}link/r{row}c{column}"),
-                        name: format!("{}_LINK_R{row}_C{column}", matrix.id),
-                        pins: std::iter::once(Pin {
-                            part_id: diode_id,
-                            pad_id: switch_pad.into(),
-                        })
-                        .chain(row_pads.iter().map(|pad_id| Pin {
-                            part_id: switch.clone(),
-                            pad_id: pad_id.clone(),
-                        }))
-                        .collect(),
-                    });
-                } else {
-                    row_nets[row as usize]
-                        .pins
-                        .extend(row_pads.iter().map(|pad_id| Pin {
-                            part_id: switch.clone(),
-                            pad_id: pad_id.clone(),
-                        }));
-                }
-                column_nets[column as usize]
-                    .pins
-                    .extend(column_pads.into_iter().map(|pad_id| Pin {
-                        part_id: switch.clone(),
-                        pad_id,
-                    }));
-            }
-        }
-        nets.extend(row_nets.into_iter().chain(column_nets).chain(links));
-    }
-    for net in nets {
-        changed.push(net.id.clone());
-        if let Some(board) = doc.boards.get_mut(board_index) {
-            board.net_ids.push(net.id.clone());
-        }
-        doc.nets.push(net);
-    }
-    Ok(())
-}
-
-fn led_nets(
-    matrix: &Matrix,
-    cells: &BTreeMap<(u32, u32), &MatrixCell>,
-    cell_ids: &BTreeMap<(u32, u32), String>,
-    prefix: &str,
-) -> Vec<Net> {
-    let mut members = vec![];
-    for row in 0..matrix.rows {
-        for column in 0..matrix.columns {
-            let Some(cell) = cells.get(&(row, column)).copied() else {
-                continue;
-            };
-            if !cell.enabled {
-                continue;
-            }
-            for assembly in &cell.assemblies {
-                if assembly.definition_id == LED_DEFINITION {
-                    members.push((
-                        row,
-                        column,
-                        assembly.id.as_str(),
-                        format!(
-                            "{}/{}",
-                            cell_ids
-                                .get(&(row, column))
-                                .cloned()
-                                .unwrap_or_else(|| member_id(&matrix.id, row, column)),
-                            assembly.id
-                        ),
-                    ));
-                }
-            }
-        }
-    }
-    if members.is_empty() {
-        return vec![];
-    }
-    let mut nets = vec![
-        Net {
-            id: format!("{prefix}led/vdd"),
-            name: format!("{}_LED_VDD", matrix.id),
-            pins: vec![],
-        },
-        Net {
-            id: format!("{prefix}led/gnd"),
-            name: format!("{}_LED_GND", matrix.id),
-            pins: vec![],
-        },
-        Net {
-            id: format!("{prefix}led/in"),
-            name: format!("{}_LED_IN", matrix.id),
-            pins: vec![Pin {
-                part_id: members[0].3.clone(),
-                pad_id: "din".into(),
-            }],
-        },
-        Net {
-            id: format!("{prefix}led/out"),
-            name: format!("{}_LED_OUT", matrix.id),
-            pins: vec![Pin {
-                part_id: members.last().unwrap().3.clone(),
-                pad_id: "dout".into(),
-            }],
-        },
-    ];
-    for (_, _, _, part_id) in &members {
-        nets[0].pins.push(Pin {
-            part_id: part_id.clone(),
-            pad_id: "vdd".into(),
-        });
-        nets[1].pins.push(Pin {
-            part_id: part_id.clone(),
-            pad_id: "gnd".into(),
-        });
-    }
-    for pair in members.windows(2) {
-        let (row, column, assembly, source) = &pair[0];
-        let target = &pair[1].3;
-        nets.push(Net {
-            id: format!("{prefix}led/link/r{row}c{column}/{assembly}"),
-            name: format!("{}_LED_R{row}C{column}_{}", matrix.id, assembly),
-            pins: vec![
-                Pin {
-                    part_id: source.clone(),
-                    pad_id: "dout".into(),
-                },
-                Pin {
-                    part_id: target.clone(),
-                    pad_id: "din".into(),
-                },
-            ],
-        });
-    }
-    nets
 }

@@ -9,4 +9,4 @@ import type { PartKind } from "./PartKind";
 import type { PartModel } from "./PartModel";
 import type { Vec2 } from "./Vec2";
 
-export type PartDefinition = { id: string, name: string, kind: PartKind, keycap?: Vec2, envelopeSource?: EnvelopeSource, kicadSource?: KicadSource, terminals?: { [key in string]: Array<string> }, matrixTerminals?: MatrixTerminals, envelopeNotice?: string, courtyard: Array<Vec2>, pads: Array<Pad>, model?: PartModel, models?: Array<PartModel>, generator?: PartGenerator, mechanicalProfile?: MechanicalPartProfile, };
+export type PartDefinition = { id: string, name: string, kind: PartKind, keycap?: Vec2, envelopeSource?: EnvelopeSource, kicadSource?: KicadSource, terminals?: { [key in string]: Array<string> }, matrixTerminals?: MatrixTerminals, envelopeNotice?: string, courtyard: Array<Vec2>, pads: Array<Pad>, models?: Array<PartModel>, generator?: PartGenerator, mechanicalProfile?: MechanicalPartProfile, };

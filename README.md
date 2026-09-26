@@ -2,7 +2,8 @@
 
 This is a new offline-first application. It reads and writes only
 `boardstudio/v2` projects. There is no old-project importer or conversion path.
-This repository contains only v2. GitHub Pages builds this application.
+Earlier development shapes are unsupported; only the current generated contracts
+are accepted. GitHub Pages builds this application.
 
 ## Package boundaries
 
@@ -21,7 +22,7 @@ contours feed the 2D canvas, PCB edge, DXF and case construction.
 
 ## Ergogen library
 
-Parts includes all 39 bundled Ergogen generators in `ergogen/library/`.
+Parts includes 37 active bundled Ergogen generators in `ergogen/library/`.
 `pnpm --dir ergogen test` checks all 186 tracked library files against the
 reviewed SHA-256 inventory and the generated runtime against the source.
 `pnpm build` regenerates the trusted browser catalogue. User supplied JavaScript generators are not
@@ -175,10 +176,8 @@ The v2 CI workflow runs on pull requests and does not deploy.
 
 ### Inspector organization
 
-Parts inspectors focus on placement and part options. Standard built-in footprints
-use their existing pad geometry; pad spacing, size and drill tuning are no longer
-exposed. Previously saved parameters are retained and still compile unchanged.
-Bundled generator assembly choices and keycap dimensions are visible; connection
+Parts inspectors focus on placement and part options. Canonical bundled generator
+assembly choices and keycap dimensions are visible; connection
 bindings, model placement and advanced footprint parameters are disclosed separately.
 
 The catalogue owns footprint import and **New custom component**. Raw courtyard

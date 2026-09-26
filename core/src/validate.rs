@@ -205,25 +205,12 @@ pub fn validate(doc: &ProjectDoc) -> Vec<Finding> {
             .filter(|cell| cell.enabled)
             .map(|cell| cell.assemblies.len())
             .sum();
-        let diodes = if matrix.diodes == Some(true) {
-            (matrix.rows as usize * matrix.columns as usize)
-                .saturating_sub(disabled)
-                .saturating_sub(
-                    matrix
-                        .cells
-                        .iter()
-                        .filter(|cell| cell.enabled && cell.diode == Some(false))
-                        .count(),
-                )
-        } else {
-            0
-        };
         if matrix
             .rows
             .checked_mul(matrix.columns)
             .is_some_and(|count| {
                 matrix.part_ids.len()
-                    != (count as usize).saturating_sub(disabled) + companions + diodes
+                    != (count as usize).saturating_sub(disabled) + companions
             })
         {
             findings.push(error(

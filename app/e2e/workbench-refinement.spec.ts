@@ -121,13 +121,13 @@ test('command controls remain fixed through zoom and pan and both themes persist
   }
 });
 
-test('reopened legacy and transformed sparse matrices retain member alignment and saved identity', async ({ page }) => {
+test('reopened saved and transformed sparse matrices retain member alignment and saved identity', async ({ page }) => {
   const doc = demoProject();
   delete doc.matrices[0].mirror;
   doc.parts[6].pose = { at: { x: 22, y: -23 }, rotation: 13 };
   await page.goto('/');
   await page.getByRole('button', { name: 'Project', exact: true }).click();
-  await page.locator('.wb-project-file-input').setInputFiles({ name: 'legacy.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
+  await page.locator('.wb-project-file-input').setInputFiles({ name: 'saved.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
   const overlay = page.getByRole('button', { name: 'Select key, row 2, column 2', exact: true });
   await expect(overlay).toHaveAttribute('transform', 'translate(22 -23) rotate(13)');
   await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
@@ -239,7 +239,7 @@ test('column stagger and splay update following keys and support undo, redo and 
   await editNumber(page, 'Stagger mm', '5');
   await editNumber(page, 'Splay °', '15');
   const key = page.getByRole('button', { name: /^SW3, MX switch/ });
-  await expect(key).toHaveAttribute('transform', /rotate\(-15\)/);
+  await expect(key).toHaveAttribute('transform', /rotate\(15\)/);
   const transformed = await key.getAttribute('transform');
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(key).toHaveAttribute('transform', /rotate\(0\)/);

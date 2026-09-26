@@ -31,12 +31,12 @@ function equivalent(actual, expected, label = 'reply') {
   }
 }
 
-const matrix = { id: 'matrix', rows: 3, columns: 3, definitionId: 'switch', origin: { x: 7, y: -3 }, pitch: { x: 19, y: 19 }, partIds: ['legacy-a', 'matrix/matrix/r0c1', 'legacy-b', 'legacy-c', 'legacy-d', 'legacy-e'], cells: [0, 1, 2].map((column) => ({ row: 1, column, enabled: false })), columnStaggers: [0, 2, -1], columnOrigins: [null, { x: 4, y: -20 }], columnSplays: [0, 15, -8] };
+const matrix = { id: 'matrix', rows: 3, columns: 3, definitionId: 'switch', origin: { x: 7, y: -3 }, pitch: { x: 19, y: 19 }, partIds: ['matrix/matrix/r0c0', 'matrix/matrix/r0c1', 'matrix/matrix/r0c2', 'matrix/matrix/r2c0', 'matrix/matrix/r2c1', 'matrix/matrix/r2c2'], cells: [0, 1, 2].map((column) => ({ row: 1, column, enabled: false })), columnStaggers: [0, 2, -1], columnOrigins: [null, { x: 4, y: -20 }], columnSplays: [0, 15, -8] };
 const document = emptyProject('boundary-fixture', 'Boundary fixture');
 document.definitions = [{ id: 'switch', name: 'Switch', kind: 'switch', pads: [], courtyard: [] }];
 document.matrices = [matrix];
 document.parts = matrix.partIds.map((id, index) => ({ id, definitionId: 'switch', reference: `S${index + 1}`, side: 'front', pose: { at: { x: (index % 3) * 19, y: index < 3 ? 0 : -38 }, rotation: index * 3 } }));
-const command = (phase) => ({ baseRevision: 0, transactionId: 'move', phase, targetIds: ['legacy-a'], operation: { kind: 'move-parts', positions: [{ id: 'legacy-a', at: { x: 10, y: 12 } }] } });
+const command = (phase) => ({ baseRevision: 0, transactionId: 'move', phase, targetIds: ['matrix/matrix/r0c0'], operation: { kind: 'move-parts', positions: [{ id: 'matrix/matrix/r0c0', at: { x: 10, y: 12 } }] } });
 const requests = [
   { id: 'open', kind: 'open', document },
   { id: 'snapshot', kind: 'snapshot' },

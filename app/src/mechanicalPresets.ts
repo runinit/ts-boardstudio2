@@ -51,23 +51,6 @@ export const plateToPcbGap = (
 export const defaultPlateFoamThickness = (gap: number): number =>
   Math.max(0, Math.floor((Math.min(3, gap - 0.2) + 1e-6) * 10) / 10);
 
-function processThickness(
-  partId: string,
-  configuration: Pick<MechanicalConfiguration, 'plateThickness' | 'plateFoamThickness' | 'bottomFoamThickness' | 'bottomThickness'>,
-): number {
-  switch (partId) {
-    case 'plate': return configuration.plateThickness;
-    case 'plate-foam': return configuration.plateFoamThickness;
-    case 'bottom-foam': return configuration.bottomFoamThickness;
-    case 'bottom': return configuration.bottomThickness;
-    default: return 1;
-  }
-}
-
-function validMaterial(partId: string, method: ProcessMethod, material: string): boolean {
-  return materialOptionsForProcess(partId, method).includes(material);
-}
-
 function makeProcess(
   partId: StandardProcessId,
   method: ProcessMethod,
@@ -128,61 +111,6 @@ export function createMechanicalConfiguration(
   };
 }
 
-export function normalizeMechanicalConfiguration(
-  document: ProjectDoc,
-  configuration: MechanicalConfiguration,
-): MechanicalConfiguration {
-  const board = document.boards.find((entry) => entry.id === configuration.boardId);
-  const family = profileSwitchFamily(configuration)
-    ?? initialSwitchFamily(document, configuration.boardId)
-    ?? 'mx';
-  const plateThickness = validPositive(configuration.plateThickness)
-    ? configuration.plateThickness
-    : defaultPlateThickness(family);
-  const plateToPcb = plateToPcbGap(family, plateThickness);
-  const resolved: MechanicalConfiguration = {
-    ...configuration,
-    method: configuration.method ?? 'printed',
-    plateThickness,
-    plateFoamThickness: validNonnegative(configuration.plateFoamThickness)
-      ? configuration.plateFoamThickness
-      : defaultPlateFoamThickness(plateToPcb),
-    pcbThickness: validPositive(configuration.pcbThickness)
-      ? configuration.pcbThickness
-      : board?.thickness || 1.6,
-    bottomFoamThickness: validNonnegative(configuration.bottomFoamThickness)
-      ? configuration.bottomFoamThickness
-      : 2,
-    batteryHeight: configuration.battery
-      ? validNonnegative(configuration.batteryHeight) ? configuration.batteryHeight : configuration.battery.size.z
-      : 0,
-    bottomThickness: validPositive(configuration.bottomThickness) ? configuration.bottomThickness : 3,
-    plateToPcb,
-    wallThickness: validPositive(configuration.wallThickness) ? configuration.wallThickness : 2,
-    clearance: validNonnegative(configuration.clearance) ? configuration.clearance : 0.3,
-  };
-  const existing = configuration.partProcesses ?? [];
-  const standard = standardProcessIds.map((partId) => {
-    const prior = existing.find((entry) => entry.partId === partId);
-    const method = partId.endsWith('foam') ? 'cut-sheet' : partId === 'plate'
-      ? resolved.method
-      : prior?.method ?? resolved.method;
-    const material = prior?.material && validMaterial(partId, method, prior.material)
-      ? prior.material
-      : materialForProcess(partId, method);
-    return {
-      ...(prior ?? makeProcess(partId, method, processThickness(partId, resolved))),
-      partId,
-      method,
-      material,
-      thickness: processThickness(partId, resolved),
-      constraintsVersion: prior?.constraintsVersion || constraintsVersion,
-    };
-  });
-  const others = existing.filter((entry) => !standardProcessIds.includes(entry.partId as StandardProcessId));
-  return { ...resolved, partProcesses: [...standard, ...others] };
-}
-
 export function profileSwitchFamily(configuration: MechanicalConfiguration): MechanicalSwitchFamily | undefined {
   const families = new Set(configuration.profiles
     .filter((profile) => profile.switchFamily)
@@ -194,19 +122,13 @@ function validPositive(value: number | undefined): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-function validNonnegative(value: number | undefined): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
-}
-
 export function inferSwitchFamily(
   definition: PartDefinition | undefined,
   partParameters?: Record<string, unknown>,
 ): MechanicalSwitchFamily | undefined {
   if (!definition) return undefined;
-  const id = definition.id.toLowerCase();
   const source = definition.generator?.source.toLowerCase() ?? '';
-  if (['mx-switch', 'mx-hotswap'].includes(id) || source.endsWith('/switch_mx') || ['builtin:mx-switch', 'builtin:mx-hotswap'].includes(source)) return 'mx';
-  if (['choc-switch', 'choc-hotswap'].includes(id) || source === 'infused-kim/choc' || ['builtin:choc-switch', 'builtin:choc-hotswap'].includes(source)) return 'choc-v1';
+  if (source === 'ceoloide/switch_mx') return 'mx';
   if (!source.endsWith('/switch_choc_v1_v2')) return undefined;
   const getEnabled = (name: string): boolean | undefined => {
     const value = partParameters?.[name] ?? definition.generator?.parameters[name];

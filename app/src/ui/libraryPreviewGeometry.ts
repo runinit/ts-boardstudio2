@@ -9,9 +9,8 @@ export function libraryKeycap(definition: PartDefinition): Vec2 | undefined {
   if (validSize(keycap) && (!envelopeSource || envelopeSource.keycap === 'authored')) return keycap;
   if (generator && isErgogen(generator.source)) {
     const defaults = parameters(generator.source);
-    const [width, height] = generator.source === 'infused-kim/choc' ? ['keycaps_x', 'keycaps_y'] : ['keycap_width', 'keycap_height'];
-    if (defaults[width] && defaults[height]) {
-      const size = { x: Number(generator.parameters[width] ?? defaults[width].value), y: Number(generator.parameters[height] ?? defaults[height].value) };
+    if (defaults.keycap_width && defaults.keycap_height) {
+      const size = { x: Number(generator.parameters.keycap_width ?? defaults.keycap_width.value), y: Number(generator.parameters.keycap_height ?? defaults.keycap_height.value) };
       if (validSize(size)) return size;
     }
   }

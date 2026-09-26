@@ -6,7 +6,7 @@
 .wb-mech-inherited-profile { display: grid; gap: 3px; padding: 9px 0; border-bottom: 1px solid var(--wb-rule); }
 .wb-mech-inherited-profile strong { color: var(--wb-ink); font-size: 12px; }
 .wb-mech-inherited-profile span { color: var(--wb-muted); font-size: 11px; }
-.wb-mech-legacy-profile-editor { border-top-color: var(--wb-rule-strong); }
+.wb-mech-source-profile-editor { border-top-color: var(--wb-rule-strong); }
 .wb-case-generation h3 { margin: 0; color: var(--wb-ink); font: 600 var(--wb-type-body)/var(--wb-leading-ui) var(--wb-body); }
 .wb-case-generation-status { margin: 0; color: var(--wb-muted); font: var(--wb-type-label)/var(--wb-leading-copy) var(--wb-body); overflow-wrap: anywhere; }
 .wb-case-generation[data-state='ready'] .wb-case-generation-status { color: var(--wb-status-success); }

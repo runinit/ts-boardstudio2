@@ -117,11 +117,10 @@ export function importNativeFootprint(source: string, definitionId: string): Par
 export function compileNativeFootprint(
   definition: PartDefinition,
   side: Side = 'front',
-  parameters: Record<string, unknown> = definition.generator?.parameters ?? {},
 ): CompiledFootprint {
   const reply = nativeArtifact<{ id: string; kind: string; result: CompiledFootprint[] }>({
     id: `compile:${definition.id}:${side}`, kind: 'compile-footprints', jobs: [{
-      id: definition.id, definition, parameters, side,
+      id: definition.id, definition, side,
     }],
   });
   const compiled = reply.result[0];

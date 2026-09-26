@@ -22,9 +22,9 @@ export function createLibraryActions({ activeModelDefinition, onImportModel, doc
   };
 
   const updateModel = (field: 'offset' | 'rotation' | 'scale', axis: 'x' | 'y' | 'z', value: number) => {
-    if (!activeModelDefinition?.model) return;
+    if (!activeModelDefinition?.models?.[0]) return;
     const definitions = document.definitions.map((definition) => definition.id === activeModelDefinition.id
-      ? { ...definition, model: { ...definition.model!, [field]: { ...definition.model![field], [axis]: value } } }
+      ? { ...definition, models: definition.models!.map((model, index) => index === 0 ? { ...model, [field]: { ...model[field], [axis]: value } } : model) }
       : definition);
     emit({ kind: 'replace-document', document: { ...document, definitions } }, [activeModelDefinition.id]);
   };

@@ -31,7 +31,7 @@ function resolve(engine: CoreEngine, document: ProjectDoc, mode: 'matrix' | 'dir
 }
 
 describe('real footprint electrical handoff', () => {
-  test('RGB companions replace legacy automatic LED nets without conflicting with the scan plan', () => {
+  test('RGB companions use the automatic wiring and firmware planner', () => {
     const engine = new CoreEngine();
     const doc = fixture();
     const source = catalogue().find(definition => definition.generator?.source === 'ceoloide/led_sk6812mini-e')!;
@@ -42,8 +42,6 @@ describe('real footprint electrical handoff', () => {
       doc.parts.push({ id, reference: `LED${index + 1}`, definitionId: rgb.id, pose: { at: { x: index * 19, y: 5 }, rotation: 0 }, side: 'front' });
       doc.boards[0].partIds.push(id);
     }
-    doc.nets.push({ id: 'matrix/matrix/net/led/in', name: 'Legacy RGB', pins: [{ partId: `${doc.parts[0].id}/rgb`, padId: rgb.terminals!.P4[0] }] });
-    doc.boards[0].netIds.push(doc.nets[0].id);
     doc.hardware = { topology: 'unibody', transport: 'none', instances: [], sharedConstruction: null, boards: [{ boardId: 'main-board', controllerPartId: 'controller/left', mode: 'direct', locks: {}, assignments: {}, keyBindings: {}, jumperStates: {}, protectedHandoff: null }] };
     const opened = call(engine, { id: 'open', kind: 'open', document: doc });
     if (opened.kind !== 'scene') throw new Error('Expected project');
@@ -53,13 +51,12 @@ describe('real footprint electrical handoff', () => {
     expect(plan.peripherals.filter(peripheral => peripheral.kind === 'rgb')).toHaveLength(3);
     const applied = call(engine, { id: 'apply', kind: 'apply-electrical', baseRevision: opened.document.revision, plan, draft: false });
     if (applied.kind !== 'scene') throw new Error('Expected applied project');
-    expect(applied.document.nets.some(net => net.id === 'matrix/matrix/net/led/in')).toBe(false);
     const firmware = firmwareRequest(applied.document, resolve(engine, applied.document)).request;
     expect(firmware.peripheral_overlays.join('\n')).toContain('chain-length = <3>');
     expect(call(engine, { id: 'firmware-rgb', kind: 'generate-firmware', request: firmware }).kind).toBe('firmware-generated');
     engine.free();
   });
-  test('legacy nice!view reverse footprints retain their source-specific jumper faces and routing requirements', () => {
+  test('Infused-Kim nice!view reverse footprints retain their source-specific jumper faces and routing requirements', () => {
     const engine = new CoreEngine();
     const doc = fixture();
     const source = catalogue().find(definition => definition.generator?.source === 'infused-kim/nice_view')!;

@@ -33,7 +33,6 @@ export function placeAssembly(
         ...member.parameters,
       };
     if (member.models.length || member.modelMode === 'custom') {
-      delete definition.model;
       definition.models = structuredClone(member.models);
     }
     next.definitions.push(normalizeDefinition(definition));
@@ -108,7 +107,7 @@ export function matrixWithAssembly(
         enabled: old?.enabled ?? true,
         definitionId: placed.definitions[0].id,
         rotation: (old?.rotation ?? 0) + primary.pose.rotation,
-        diode: false,
+
         assembliesLocal: true,
         assemblies: assembly.members
           .slice(1)
@@ -129,7 +128,7 @@ export function matrixWithAssembly(
     matrix: {
       ...matrix,
       definitionId: placed.definitions[0].id,
-      diodes: false,
+
       cells,
     },
     definitions: placed.definitions,

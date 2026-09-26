@@ -12,16 +12,16 @@ const archiveTransport: ArchiveTransport = nativeArchiveTransport();
 describe('v2 project archive', () => {
   it('round trips the document without old format conversion', async () => {
     const project = demoProject();
-    const archive = await packProject(project, {}, archiveTransport);
+    const archive = await packProject(project, { embedUsedModels: false }, archiveTransport);
 
-    expect(await unpackProject(archive, archiveTransport)).toEqual(project);
+    expect(await unpackProject(archive, archiveTransport)).toEqual(JSON.parse(JSON.stringify(project)));
   });
 
   it('can omit bundled models for catalog backed projects', async () => {
     const project = demoProject();
     const archive = await packProject(project, { embedUsedModels: false }, archiveTransport);
 
-    expect(await unpackProject(archive, archiveTransport)).toEqual(project);
+    expect(await unpackProject(archive, archiveTransport)).toEqual(JSON.parse(JSON.stringify(project)));
   });
 
   it('embeds used bundled models by default', async () => {
@@ -93,7 +93,7 @@ it('packs a single entry for shared asset references and preserves their identit
   const project = { ...demoProject(), assets: [asset, { ...asset, id: 'second identity' }] };
   const packed = await packProject(project, { embedUsedModels: false }, archiveTransport);
   expect(Object.keys(unzipSync(packed)).filter((path) => path.startsWith('assets/'))).toEqual([`assets/${asset.sha256}`]);
-  expect(await unpackProject(packed, archiveTransport)).toEqual(project);
+  expect(await unpackProject(packed, archiveTransport)).toEqual(JSON.parse(JSON.stringify(project)));
 });
 
 it('validates all hashes before persisting any imported asset', async () => {
@@ -146,9 +146,9 @@ it('round trips routed sources, mapped meshes, and saved assembly members', asyn
   project.assets = [source.asset, mesh.asset];
   project.boardReferences = [{id:'reference',boardId:'main-board',assetId:source.asset.id,enabled:true,pose:{at:{x:4,y:5},rotation:30},elevation:7,modelAssets:{'body.stl':mesh.asset.id}}];
   project.assemblies = [{id:'assembly',name:'Visual assembly',members:[{id:'body',side:'back',pose:{at:{x:2,y:3},rotation:45},modelMode:'custom',models:[{assetId:mesh.asset.id,offset:{x:0,y:0,z:2},rotation:{x:0,y:0,z:30},scale:{x:1,y:1,z:1}}]}]}];
-  const archive = await packProject(project, {}, archiveTransport);
+  const archive = await packProject(project, { embedUsedModels: false }, archiveTransport);
   const restored = await unpackProject(archive, archiveTransport);
-  expect(restored).toEqual(project);
+  expect(restored).toEqual(JSON.parse(JSON.stringify(project)));
   expect(await loadAsset(mesh.asset.sha256)).toEqual(mesh.bytes);
   expect(await loadAsset(source.asset.sha256)).toEqual(source.bytes);
 });

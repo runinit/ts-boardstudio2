@@ -100,7 +100,6 @@ fn artifact_import_protocol_preserves_authoritative_source_in_document_json() {
             jobs: vec![FootprintCompileJob {
                 id: "authored-envelope-job".into(),
                 definition: authored_envelope.clone(),
-                parameters: Default::default(),
                 side: Side::Back,
             }],
         })
@@ -129,8 +128,7 @@ fn artifact_import_protocol_preserves_authoritative_source_in_document_json() {
                 jobs: vec![FootprintCompileJob {
                     id: "unsupported-job".into(),
                     definition: unsupported,
-                    parameters: Default::default(),
-                    side: Side::Front,
+                        side: Side::Front,
                 }],
             })
             .unwrap(),
@@ -162,12 +160,12 @@ fn artifact_import_protocol_preserves_authoritative_source_in_document_json() {
         source
     );
     assert_eq!(restored, document);
-    let mut legacy = serde_json::to_value(ProjectDoc::empty("legacy", "Legacy")).unwrap();
-    legacy["definitions"] = serde_json::json!([{
-        "id":"legacy-part", "name":"Legacy", "kind":"custom", "courtyard":[], "pads":[]
+    let mut authored = serde_json::to_value(ProjectDoc::empty("authored", "Authored")).unwrap();
+    authored["definitions"] = serde_json::json!([{
+        "id":"authored-part", "name":"Authored", "kind":"custom", "courtyard":[], "pads":[]
     }]);
-    let legacy: ProjectDoc = serde_json::from_value(legacy).unwrap();
-    assert!(legacy.definitions[0].kicad_source.is_none());
+    let authored: ProjectDoc = serde_json::from_value(authored).unwrap();
+    assert!(authored.definitions[0].kicad_source.is_none());
 
     let mut engine = boardstudio_core::CoreEngine::new();
     engine.request(

@@ -134,6 +134,7 @@ pub struct KicadSource {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
+#[serde(deny_unknown_fields)]
 pub struct PartDefinition {
     pub id: String,
     pub name: String,
@@ -172,8 +173,6 @@ pub struct PartDefinition {
     pub envelope_notice: Option<String>,
     pub courtyard: Vec<Vec2>,
     pub pads: Vec<Pad>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub model: Option<PartModel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub models: Option<Vec<PartModel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -279,6 +278,7 @@ pub struct Net {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
+#[serde(deny_unknown_fields)]
 pub struct Matrix {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -299,8 +299,6 @@ pub struct Matrix {
     pub rotation: Option<f64>,
     #[serde(rename = "edgeGap", skip_serializing_if = "Option::is_none")]
     pub edge_gap: Option<Vec2>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub diodes: Option<bool>,
     #[serde(rename = "diodeDirection", skip_serializing_if = "Option::is_none")]
     pub diode_direction: Option<DiodeDirection>,
     #[cfg_attr(feature = "export-types", ts(as = "Option<Vec<Vec2>>", optional))]
@@ -344,12 +342,11 @@ pub struct Matrix {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
+#[serde(deny_unknown_fields)]
 pub struct MatrixCell {
     pub row: u32,
     pub column: u32,
     pub enabled: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub diode: Option<bool>,
     #[serde(rename = "definitionId", skip_serializing_if = "Option::is_none")]
     pub definition_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -762,8 +759,7 @@ impl ProjectDoc {
     }
 }
 
-/// Project-level physical/electrical topology. Optional to preserve the v2
-/// document shape while projects adopt automatic wiring.
+/// Project-level physical/electrical topology for automatic wiring.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase", default)]
@@ -1344,7 +1340,6 @@ pub struct CompiledFootprint {
 pub struct FootprintCompileJob {
     pub id: String,
     pub definition: PartDefinition,
-    pub parameters: BTreeMap<String, serde_json::Value>,
     pub side: Side,
 }
 
@@ -1835,10 +1830,6 @@ fn unset_mechanical_dimension() -> f64 {
     -1.0
 }
 
-fn default_battery_height() -> f64 {
-    0.0
-}
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "kebab-case")]
@@ -1969,23 +1960,14 @@ pub struct MechanicalConfiguration {
     pub mounts: Vec<Mount>,
     pub method: PlateMethod,
     pub mount: MechanicalMount,
-    #[serde(default = "unset_mechanical_dimension")]
     pub plate_thickness: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub plate_foam_thickness: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub pcb_thickness: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub bottom_foam_thickness: f64,
-    #[serde(default = "default_battery_height")]
     pub battery_height: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub bottom_thickness: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub plate_to_pcb: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub wall_thickness: f64,
-    #[serde(default = "unset_mechanical_dimension")]
     pub clearance: f64,
     pub profiles: Vec<MechanicalPartProfile>,
 }

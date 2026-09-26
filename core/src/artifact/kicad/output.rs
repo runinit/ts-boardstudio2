@@ -425,7 +425,7 @@ fn finish_board(
             )?);
             continue;
         }
-        let compiled = compile::compile_builtin(definition, &BTreeMap::new(), part.side.clone())
+        let compiled = compile::compile_authored(definition, part.side.clone())
             .map_err(|message| validation(message))?;
         let geometry = &compiled.geometry;
         let mut pad_net_map = BTreeMap::new();

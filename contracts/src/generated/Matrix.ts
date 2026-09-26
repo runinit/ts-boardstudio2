@@ -4,4 +4,4 @@ import type { MatrixCell } from "./MatrixCell";
 import type { Mirror } from "./Mirror";
 import type { Vec2 } from "./Vec2";
 
-export type Matrix = { id: string, name?: string, rows: number, columns: number, pitch: Vec2, origin: Vec2, definitionId: string, partIds: Array<string>, boardId?: string, mirror?: Mirror, rotation?: number, edgeGap?: Vec2, diodes?: boolean, diodeDirection?: DiodeDirection, rowOffsets?: Array<Vec2>, columnOffsets?: Array<Vec2>, columnStaggers?: Array<number>, columnSplays?: Array<number>, columnOrigins?: Array<Vec2 | null>, cells?: Array<MatrixCell>, };
+export type Matrix = { id: string, name?: string, rows: number, columns: number, pitch: Vec2, origin: Vec2, definitionId: string, partIds: Array<string>, boardId?: string, mirror?: Mirror, rotation?: number, edgeGap?: Vec2, diodeDirection?: DiodeDirection, rowOffsets?: Array<Vec2>, columnOffsets?: Array<Vec2>, columnStaggers?: Array<number>, columnSplays?: Array<number>, columnOrigins?: Array<Vec2 | null>, cells?: Array<MatrixCell>, };

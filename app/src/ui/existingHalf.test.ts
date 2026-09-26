@@ -20,6 +20,7 @@ test('links existing matrices without changing source identities or independent 
 
 test('unsupported frames fail before changing the document', () => {
   const doc = demoProject();
+  doc.matrices[0].mirror = 'y';
   const before = structuredClone(doc);
   expect(() => mirrorExistingHalf(doc, doc.matrices, 100, () => 'extra')).toThrow('Y-mirrored');
   expect(doc).toEqual(before);

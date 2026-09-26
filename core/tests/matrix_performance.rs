@@ -33,7 +33,6 @@ fn definition(id: &str, pads: Vec<Pad>) -> PartDefinition {
             Vec2 { x: -7.0, y: 7.0 },
         ],
         pads,
-        model: None,
         models: None,
         keycap: None,
         envelope_source: None,
@@ -88,7 +87,7 @@ fn guided_matrix_preview() {
                 row,
                 column,
                 enabled: true,
-                diode: None,
+
                 definition_id: None,
                 variant: None,
                 offset: None,
@@ -119,7 +118,7 @@ fn guided_matrix_preview() {
         mirror: None,
         rotation: None,
         edge_gap: None,
-        diodes: Some(true),
+
         diode_direction: None,
         row_offsets: vec![],
         column_offsets: vec![],

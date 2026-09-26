@@ -92,11 +92,11 @@ const MCU_ROWS: [[&str; 2]; 12] = [
 
 pub fn describe(part: &Part, definition: &PartDefinition) -> Option<JumperRecipe> {
     let source = definition.generator.as_ref()?.source.as_str();
-    let legacy_display = source == "infused-kim/nice_view";
+    let infused_kim_display = source == "infused-kim/nice_view";
     if !option(
         part,
         definition,
-        if legacy_display {
+        if infused_kim_display {
             "reverse"
         } else {
             "reversible"
@@ -111,12 +111,12 @@ pub fn describe(part: &Part, definition: &PartDefinition) -> Option<JumperRecipe
         .unwrap_or(part.side == Side::Front);
     // The older nice!view source keeps destination nets in header order; the
     // ceoloide footprints reverse them to put the bridges on the opposite face.
-    let closing_face = if installed_front == legacy_display {
+    let closing_face = if installed_front == infused_kim_display {
         "front"
     } else {
         "back"
     };
-    let traces = !legacy_display && option(part, definition, "include_traces", true);
+    let traces = !infused_kim_display && option(part, definition, "include_traces", true);
     let mut recipe = JumperRecipe {
         part_id: part.id.clone(),
         source: source.into(),
@@ -278,7 +278,7 @@ mod tests {
                 envelope_notice: None,
                 courtyard: vec![],
                 pads: vec![],
-                model: None,
+
                 models: None,
                 generator: Some(PartGenerator {
                     source: source.into(),

@@ -45,9 +45,8 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
     if (!ir) return [];
     const keycap = libraryKeycap(entry.definition);
     const generator = entry.definition.generator;
-    const keycapToggle = generator?.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
     const includeKeycap = generator && isErgogen(generator.source)
-      ? generator.parameters[keycapToggle] ?? parameters(generator.source)[keycapToggle]?.value
+      ? generator.parameters.include_keycap ?? parameters(generator.source).include_keycap?.value
       : true;
     const outline = keycap ? includeKeycap === false ? [] : keycapOutline(keycap) : ir.courtyard;
     const parameterSide = generator?.parameters.side;

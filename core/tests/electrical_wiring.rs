@@ -40,7 +40,6 @@ fn definition(
         envelope_notice: None,
         courtyard: vec![],
         pads,
-        model: None,
         models: None,
         generator: source.map(|s| PartGenerator {
             source: s.into(),
@@ -83,7 +82,7 @@ fn wired_document() -> ProjectDoc {
         "diode",
         PartKind::Passive,
         diode_terms,
-        Some("builtin:matrix-diode"),
+        None,
     ));
     let mut mcu_terms = BTreeMap::new();
     for p in [
@@ -133,7 +132,7 @@ fn wired_document() -> ProjectDoc {
         mirror: None,
         rotation: None,
         edge_gap: None,
-        diodes: Some(true),
+
         diode_direction: Some(DiodeDirection::Row2col),
         row_offsets: vec![],
         column_offsets: vec![],
@@ -146,7 +145,7 @@ fn wired_document() -> ProjectDoc {
                     row: r,
                     column: c,
                     enabled: true,
-                    diode: Some(true),
+
                     definition_id: Some("switch".into()),
                     variant: None,
                     offset: None,
@@ -213,7 +212,7 @@ fn apply_materializes_switch_diode_and_controller_pins_and_preserves_manual_net(
 }
 
 #[test]
-fn legacy_led_nets_follow_the_selected_hardware_board_scope() {
+fn unmanaged_nets_are_not_removed_by_automatic_wiring() {
     let mut managed = wired_document();
     managed.hardware = Some(HardwareConfiguration {
         boards: vec![ElectricalBoardConfiguration {
@@ -226,7 +225,7 @@ fn legacy_led_nets_follow_the_selected_hardware_board_scope() {
     });
     managed.nets.push(Net {
         id: "matrix/m/net/led/in".into(),
-        name: "stale matrix led".into(),
+        name: "Unmanaged net".into(),
         pins: vec![],
     });
     let plan = boardstudio_core::electrical::resolve(ElectricalPlanRequest {
@@ -240,7 +239,7 @@ fn legacy_led_nets_follow_the_selected_hardware_board_scope() {
     });
     boardstudio_core::electrical::materialize(&mut managed, &plan).unwrap();
     assert!(
-        !managed
+        managed
             .nets
             .iter()
             .any(|net| net.id == "matrix/m/net/led/in")
@@ -256,7 +255,7 @@ fn legacy_led_nets_follow_the_selected_hardware_board_scope() {
     });
     unrelated.nets.push(Net {
         id: "matrix/m/net/led/in".into(),
-        name: "legacy led".into(),
+        name: "Unmanaged net".into(),
         pins: vec![],
     });
     let plan = boardstudio_core::electrical::resolve(ElectricalPlanRequest {

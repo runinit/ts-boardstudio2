@@ -13,6 +13,14 @@ fn document() -> ProjectDoc {
         "nets":[],"constraints":[],"matrices":[],"caseBodies":[],"assets":[],"materials":[]
     })).unwrap()
 }
+fn matrix_document() -> ProjectDoc {
+    let mut serialized = serde_json::to_string(&document()).unwrap();
+    for index in 0..9 {
+        serialized = serialized.replace(&format!("\"k{index}\""), &format!("\"matrix/main/r{}c{}\"", index / 3, index % 3));
+    }
+    serde_json::from_str(&serialized).unwrap()
+}
+
 fn scene(reply: CoreReply) -> SceneDelta {
     match reply {
         CoreReply::Scene { scene, .. } => scene,
@@ -84,7 +92,6 @@ fn automatic_part_envelopes_exclude_nonphysical_utilities() {
             Vec2 { x: -10.0, y: 10.0 },
         ],
         pads: vec![],
-        model: None,
         models: None,
         generator: None,
     });
@@ -526,15 +533,15 @@ fn finishing_cannot_leave_a_cutout_outside_its_exterior() {
 }
 
 #[test]
-fn legacy_matrix_deletions_record_disabled_cells_before_resizing() {
-    let mut doc = document();
-    doc.matrices.push(serde_json::from_value(json!({"id":"legacy","rows":3,"columns":3,"pitch":{"x":19.05,"y":19.05},"origin":{"x":0,"y":0},"definitionId":"switch","partIds":doc.boards[0].part_ids})).unwrap());
+fn current_matrix_deletions_record_disabled_cells_before_resizing() {
+    let mut doc = matrix_document();
+    doc.matrices.push(serde_json::from_value(json!({"id":"main","rows":3,"columns":3,"pitch":{"x":19.05,"y":19.05},"origin":{"x":0,"y":0},"definitionId":"switch","partIds":doc.boards[0].part_ids})).unwrap());
     let mut core = CoreEngine::new();
     scene(core.handle(CoreRequest::Open {
         id: "open".into(),
         document: doc,
     }));
-    let removed = commit(&mut core, 0, json!({"kind":"remove-parts","ids":["k0"]}));
+    let removed = commit(&mut core, 0, json!({"kind":"remove-parts","ids":["matrix/main/r0c0"]}));
     assert!(
         !removed
             .findings
@@ -543,7 +550,7 @@ fn legacy_matrix_deletions_record_disabled_cells_before_resizing() {
         "{:?}",
         removed.findings
     );
-    commit(&mut core, 1, json!({"kind":"remove-parts","ids":["k1"]}));
+    commit(&mut core, 1, json!({"kind":"remove-parts","ids":["matrix/main/r0c1"]}));
     let CoreReply::Scene { document: doc, .. } =
         core.handle(CoreRequest::Snapshot { id: "snap".into() })
     else {
@@ -587,15 +594,15 @@ fn subgrid_bridge_cannot_export_a_self_touching_sharp_outline() {
 }
 
 #[test]
-fn editing_legacy_matrix_preserves_member_ids_coordinates_and_nets() {
-    let mut doc = document();
-    let matrix: Matrix = serde_json::from_value(json!({"id":"legacy", "rows":3,"columns":3,"pitch":{"x":19.05,"y":19.05},"origin":{"x":0,"y":0},"definitionId":"switch","partIds":(0..9).map(|i|format!("k{i}")).collect::<Vec<_>>()})).unwrap();
+fn editing_current_matrix_preserves_member_ids_coordinates_and_nets() {
+    let mut doc = matrix_document();
+    let matrix: Matrix = serde_json::from_value(json!({"id":"main", "rows":3,"columns":3,"pitch":{"x":19.05,"y":19.05},"origin":{"x":0,"y":0},"definitionId":"switch","partIds":(0..9).map(|i|format!("matrix/main/r{}c{}",i/3,i%3)).collect::<Vec<_>>()})).unwrap();
     doc.matrices.push(matrix.clone());
     doc.nets.push(Net {
         id: "original-net".into(),
         name: "ROW0".into(),
         pins: vec![Pin {
-            part_id: "k0".into(),
+            part_id: "matrix/main/r0c0".into(),
             pad_id: "1".into(),
         }],
     });
@@ -609,7 +616,7 @@ fn editing_legacy_matrix_preserves_member_ids_coordinates_and_nets() {
         id: "edit".into(),
         command: EditCommand {
             base_revision: 0,
-            transaction_id: "legacy-edit".into(),
+            transaction_id: "current-edit".into(),
             phase: EditPhase::Commit,
             target_ids: vec![],
             operation: serde_json::from_value(json!({"kind":"set-matrix", "matrix":matrix}))
@@ -641,6 +648,6 @@ fn editing_legacy_matrix_preserves_member_ids_coordinates_and_nets() {
             .unwrap()
             .pins[0]
             .part_id,
-        "k0"
+        "matrix/main/r0c0"
     );
 }

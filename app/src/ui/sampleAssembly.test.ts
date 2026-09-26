@@ -4,7 +4,7 @@ import { demoProject } from '../demo';
 import { placeAssembly, matrixWithAssembly } from './assemblyPlacement';
 
 describe('saved assemblies',()=>{
-  const assembly:AssemblyDefinition={id:'a',name:'Key',members:[{id:'switch',definitionId:'mx-switch',pose:{at:{x:2,y:3},rotation:30},side:'back',models:[]},{id:'cap',pose:{at:{x:2,y:3},rotation:30},side:'front',models:[{assetId:'cap',offset:{x:0,y:0,z:10},rotation:{x:0,y:0,z:0},scale:{x:1,y:1,z:1}}]}]};
+  const assembly:AssemblyDefinition={id:'a',name:'Key',members:[{id:'switch',definitionId:'ergogen:ceoloide/switch_mx',pose:{at:{x:2,y:3},rotation:30},side:'back',models:[]},{id:'cap',pose:{at:{x:2,y:3},rotation:30},side:'front',models:[{assetId:'cap',offset:{x:0,y:0,z:10},rotation:{x:0,y:0,z:0},scale:{x:1,y:1,z:1}}]}]};
   it('snapshots member definitions and retains offsets and side',()=>{
     const before=demoProject();const after=placeAssembly(before,assembly,before.definitions,'main-board',{x:10,y:20},'placement');
     const part=after.parts.find(p=>p.id==='placement/switch')!;expect(part.pose).toEqual({at:{x:12,y:23},rotation:30});expect(part.side).toBe('back');
@@ -21,11 +21,11 @@ describe('saved assemblies',()=>{
 it('applies an assembly without changing matrix identities or disabled cells', () => {
   const doc = demoProject();
   const matrix = {...doc.matrices[0], cells: [{row:0,column:0,enabled:false,offset:{x:2,y:3}}]};
-  const assembly: AssemblyDefinition = {id:'preset',name:'Switch',members:[{id:'main',definitionId:'mx-switch',side:'front',pose:{at:{x:0,y:0},rotation:0},models:[]},{id:'diode',definitionId:'mx-switch',side:'back',pose:{at:{x:3,y:4},rotation:90},models:[]}]};
+  const assembly: AssemblyDefinition = {id:'preset',name:'Switch',members:[{id:'main',definitionId:'ergogen:ceoloide/switch_mx',side:'front',pose:{at:{x:0,y:0},rotation:0},models:[]},{id:'diode',definitionId:'ergogen:ceoloide/switch_mx',side:'back',pose:{at:{x:3,y:4},rotation:90},models:[]}]};
   const result = matrixWithAssembly(matrix, assembly, doc.definitions, 7);
   expect(result.matrix.id).toBe(matrix.id);
   expect(result.matrix.partIds).toEqual(matrix.partIds);
-  expect(result.matrix.cells[0]).toMatchObject({enabled:false,offset:{x:2,y:3},diode:false,assembliesLocal:true});
+  expect(result.matrix.cells[0]).toMatchObject({enabled:false,offset:{x:2,y:3},assembliesLocal:true});
   expect(result.matrix.cells[1].assemblies[0]).toMatchObject({offset:{x:3,y:4},rotation:90,side:'back'});
   expect(result.definitions).toHaveLength(2);
 });

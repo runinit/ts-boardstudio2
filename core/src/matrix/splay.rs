@@ -186,7 +186,7 @@ mod tests {
             mirror: Some(Mirror::X),
             rotation: Some(31.0),
             edge_gap: None,
-            diodes: None,
+
             diode_direction: None,
             row_offsets: vec![],
             column_offsets: vec![],

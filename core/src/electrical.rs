@@ -161,7 +161,7 @@ fn diode_terminals(definition: &PartDefinition) -> Option<(&str, &str)> {
     // Only known semantic terminals qualify; pad numbers never establish polarity.
     for (anode, cathode) in [("anode", "cathode"), ("A", "K"), ("from", "to")] {
         let known_source = definition.generator.as_ref().is_some_and(|generator| {
-            generator.source.ends_with("/diode") || generator.source == "builtin:matrix-diode"
+            generator.source == "ceoloide/diode_tht_sod123"
         });
         if anode == "from" && !known_source {
             continue;
@@ -350,14 +350,7 @@ pub fn resolve(request: ElectricalPlanRequest) -> ElectricalPlan {
         if matrix.board_id.as_ref().is_some_and(|id| id != &board.id) {
             continue;
         }
-        let ids: BTreeSet<_> = matrix.part_ids.iter().collect();
         let prefix = format!("matrix/{}/", matrix.id);
-        let mut legacy = matrix.part_ids.iter().filter(|id| {
-            !id.starts_with(&prefix)
-                && !id
-                    .rsplit_once('/')
-                    .is_some_and(|(parent, _)| ids.contains(&parent.to_string()))
-        });
         let mut members = BTreeMap::new();
         for row in 0..matrix.rows {
             for column in 0..matrix.columns {
@@ -368,12 +361,7 @@ pub fn resolve(request: ElectricalPlanRequest) -> ElectricalPlan {
                 {
                     continue;
                 }
-                let canonical = format!("{prefix}r{row}c{column}");
-                let id = if ids.contains(&canonical) {
-                    canonical
-                } else {
-                    legacy.next().cloned().unwrap_or(canonical)
-                };
+                let id = format!("{prefix}r{row}c{column}");
                 members.insert((row, column), id);
             }
         }
@@ -878,16 +866,6 @@ pub fn resolve(request: ElectricalPlanRequest) -> ElectricalPlan {
                 || locks.contains_key(&column_function),
         });
     }
-    let hardware_managed = doc.hardware.as_ref().is_some_and(|hardware| {
-        hardware
-            .boards
-            .iter()
-            .any(|entry| entry.board_id == board.id)
-    });
-    let legacy_prefixes = keys
-        .iter()
-        .map(|key| format!("matrix/{}/net/", key.matrix.id))
-        .collect::<BTreeSet<_>>();
     for net in nets.values_mut() {
         net.pins
             .sort_by(|a, b| (&a.part_id, &a.pad_id).cmp(&(&b.part_id, &b.pad_id)));
@@ -895,12 +873,6 @@ pub fn resolve(request: ElectricalPlanRequest) -> ElectricalPlan {
         for pin in &net.pins {
             if let Some(manual) = doc.nets.iter().find(|other| {
                 !other.id.starts_with(&prefix)
-                    && !legacy_prefixes.iter().any(|prefix| {
-                        other
-                            .id
-                            .strip_prefix(prefix)
-                            .is_some_and(|suffix| hardware_managed || !suffix.starts_with("led/"))
-                    })
                     && other.pins.contains(pin)
             }) {
                 diagnostic(
@@ -1116,29 +1088,10 @@ pub(crate) fn materialize_reviewed(
         }
     }
     let prefix = format!("generated/electrical/{board_id}/");
-    let matrices = plan
-        .assignments
-        .iter()
-        .map(|assignment| assignment.matrix_id.clone())
-        .collect::<BTreeSet<_>>();
-    let hardware_managed = document.hardware.as_ref().is_some_and(|hardware| {
-        hardware
-            .boards
-            .iter()
-            .any(|entry| entry.board_id == *board_id)
-    });
     let removed = document
         .nets
         .iter()
-        .filter(|net| {
-            net.id.starts_with(&prefix)
-                || matrices.iter().any(|matrix| {
-                    let legacy = format!("matrix/{matrix}/net/");
-                    net.id
-                        .strip_prefix(&legacy)
-                        .is_some_and(|suffix| hardware_managed || !suffix.starts_with("led/"))
-                })
-        })
+        .filter(|net| net.id.starts_with(&prefix))
         .map(|net| net.id.clone())
         .collect::<BTreeSet<_>>();
     document.nets.retain(|net| !removed.contains(&net.id));

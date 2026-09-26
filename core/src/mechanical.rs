@@ -22,37 +22,17 @@ fn switch_mounting_datum(family: MechanicalSwitchFamily) -> f64 {
     }
 }
 
-fn default_switch_plate_thickness(family: MechanicalSwitchFamily) -> f64 {
-    match family {
-        MechanicalSwitchFamily::ChocV1 => 1.3,
-        MechanicalSwitchFamily::Mx | MechanicalSwitchFamily::ChocV2 => 1.5,
-    }
-}
-
 fn inferred_switch_family(
     part: &Part,
     definition: &PartDefinition,
 ) -> Option<MechanicalSwitchFamily> {
-    let id = definition.id.to_ascii_lowercase();
     let source = definition
         .generator
         .as_ref()
         .map(|generator| generator.source.to_ascii_lowercase())
         .unwrap_or_default();
-    if matches!(id.as_str(), "mx-switch" | "mx-hotswap")
-        || source.ends_with("/switch_mx")
-        || matches!(source.as_str(), "builtin:mx-switch" | "builtin:mx-hotswap")
-    {
+    if source == "ceoloide/switch_mx" {
         return Some(MechanicalSwitchFamily::Mx);
-    }
-    if matches!(id.as_str(), "choc-switch" | "choc-hotswap")
-        || source == "infused-kim/choc"
-        || matches!(
-            source.as_str(),
-            "builtin:choc-switch" | "builtin:choc-hotswap"
-        )
-    {
-        return Some(MechanicalSwitchFamily::ChocV1);
     }
     if !source.ends_with("/switch_choc_v1_v2") {
         return None;
@@ -115,13 +95,6 @@ fn default_layer_process(
         thickness,
         constraints_version: "2026-09-24".into(),
     }
-}
-
-fn default_foam_thickness(gap: f64) -> f64 {
-    if !gap.is_finite() {
-        return 0.0;
-    }
-    ((gap - 0.2).min(3.0).max(0.0) * 10.0).floor() / 10.0
 }
 
 fn material_is_valid(part_id: &str, method: &PlateMethod, material: &str) -> bool {
@@ -391,16 +364,12 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
     let Some(config) = &document.mechanical else {
         return result;
     };
-    // Normalize legacy configurations before geometry checks. Negative values are
-    // serde sentinels for omitted dimensions; explicit zero remains meaningful for
-    // optional foam and battery layers.
     let mut effective_config = config.clone();
     let board = document
         .boards
         .iter()
         .find(|board| board.id == config.board_id);
-    // Fits belong to the project snapshot of a part. Old case-owned fits remain
-    // readable, but an explicit part fit is authoritative for every use of it.
+    // An explicit part fit is authoritative for every use of its definition.
     for definition in &document.definitions {
         if let Some(profile) = &definition.mechanical_profile {
             effective_config
@@ -426,45 +395,11 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
             })
         })
         .collect::<Vec<_>>();
-    let selected_family = switch_parts.iter().find_map(|(part, definition)| {
-        effective_config
-            .profiles
-            .iter()
-            .find(|profile| profile.definition_id == part.definition_id)
-            .and_then(|profile| profile.switch_family)
-            .or_else(|| inferred_switch_family(part, definition))
-    });
-    let default_family = selected_family.unwrap_or(MechanicalSwitchFamily::Mx);
-    if effective_config.plate_thickness < 0.0 {
-        effective_config.plate_thickness = default_switch_plate_thickness(default_family);
+    if let Some(board) = board {
+        effective_config.pcb_thickness = board.thickness;
     }
-    if board.is_some() || effective_config.pcb_thickness < 0.0 {
-        effective_config.pcb_thickness = board
-            .map(|board| board.thickness)
-            .filter(|thickness| thickness.is_finite() && *thickness > 0.0)
-            .unwrap_or(1.6);
-    }
-    if effective_config.bottom_thickness < 0.0 {
-        effective_config.bottom_thickness = 3.0;
-    }
-    if effective_config.bottom_foam_thickness < 0.0 {
-        effective_config.bottom_foam_thickness = 2.0;
-    }
-    if effective_config.wall_thickness < 0.0 {
-        effective_config.wall_thickness = 2.0;
-    }
-    if effective_config.clearance < 0.0 {
-        effective_config.clearance = 0.3;
-    }
-    if effective_config.battery.is_none() || effective_config.battery_height < 0.0 {
+    if effective_config.battery.is_none() {
         effective_config.battery_height = 0.0;
-    }
-    let default_gap = switch_mounting_datum(default_family) - effective_config.plate_thickness;
-    if effective_config.plate_to_pcb < 0.0 {
-        effective_config.plate_to_pcb = default_gap;
-    }
-    if effective_config.plate_foam_thickness < 0.0 {
-        effective_config.plate_foam_thickness = default_foam_thickness(default_gap);
     }
     effective_config.part_processes = Some(normalized_processes(&effective_config));
     for (part, definition) in &switch_parts {
@@ -497,18 +432,6 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
             .iter_mut()
             .find(|profile| profile.definition_id == part.definition_id)
         {
-            let legacy_standard = profile.cutouts.len() == 1 && (
-                profile.source.starts_with("marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/SW_MX_1u.kicad_mod:")
-                || (profile.source_geometry.is_none() && !profile.source.contains("Board Studio standard") &&
-                    (profile.source.starts_with("Kailh PG1350 drawing CPG135001D01-16:") || profile.source.starts_with("Kailh PG1353 drawing CPG135301D03:")))
-            );
-            if legacy_standard {
-                if let Ok(standard) = builtin_profile(profile.definition_id.clone(), profile_source_for_family(family), switch_mounting_datum(family) - effective_config.plate_thickness) {
-                    profile.cutouts = standard.cutouts;
-                    profile.source_geometry = None;
-                    profile.source = standard.source;
-                }
-            }
             if profile.switch_family.is_none() {
                 profile.switch_family = Some(family);
             }
@@ -1952,7 +1875,7 @@ mod tests {
         }
     }
     #[test]
-    fn optional_configuration_preserves_legacy_serialization() {
+    fn disabled_mechanical_configuration_has_no_stack() {
         let doc = ProjectDoc::empty("test", "test");
         assert!(
             serde_json::to_value(&doc)
@@ -1985,120 +1908,6 @@ mod tests {
         );
         assert_eq!(result.case.bodies[0].contours, result.plate_contours);
     }
-    #[test]
-    fn legacy_mechanical_settings_get_generation_defaults_for_every_process() {
-        for (method, material) in [
-            (PlateMethod::Printed, "PLA"),
-            (PlateMethod::Cnc, "Aluminium"),
-            (PlateMethod::CutSheet, "Acrylic"),
-            (PlateMethod::PcbFr4, "FR-4"),
-        ] {
-            let mut doc = ProjectDoc::empty("legacy", "legacy");
-            doc.boards.push(Board {
-                id: "board".into(),
-                name: "Board".into(),
-                outline_ids: vec![],
-                part_ids: vec![],
-                net_ids: vec![],
-                thickness: 1.2,
-                traces: vec![],
-                vias: vec![],
-            });
-            let mut old = serde_json::to_value(config()).unwrap();
-            old["method"] = serde_json::to_value(&method).unwrap();
-            for field in [
-                "plateThickness",
-                "plateFoamThickness",
-                "pcbThickness",
-                "bottomFoamThickness",
-                "batteryHeight",
-                "bottomThickness",
-                "plateToPcb",
-                "wallThickness",
-                "clearance",
-            ] {
-                old.as_object_mut().unwrap().remove(field);
-            }
-            old["partProcesses"] = serde_json::json!([
-                {"partId":"plate", "method":"printed", "material":"", "thickness":0.5},
-                {"partId":"plate-foam", "method":"printed", "material":"", "thickness":0.5}
-            ]);
-            doc.mechanical = Some(serde_json::from_value(old).unwrap());
-            let outline = [Contour {
-                hole: false,
-                points: vec![
-                    Vec2 { x: 0.0, y: 0.0 },
-                    Vec2 { x: 80.0, y: 0.0 },
-                    Vec2 { x: 80.0, y: 45.0 },
-                    Vec2 { x: 0.0, y: 45.0 },
-                ],
-            }];
-
-            let assembly = resolve(&doc, &outline);
-            assert!(
-                !assembly.generation_blocked,
-                "{method:?}: {:#?}",
-                assembly.diagnostics
-            );
-            assert_eq!(
-                assembly
-                    .stack
-                    .iter()
-                    .find(|layer| layer.id == "pcb")
-                    .unwrap()
-                    .thickness,
-                1.2
-            );
-            for (id, thickness) in [
-                ("plate", 1.5),
-                ("plate-foam", 3.0),
-                ("bottom-foam", 2.0),
-                ("bottom", 3.0),
-            ] {
-                assert_eq!(
-                    assembly
-                        .stack
-                        .iter()
-                        .find(|layer| layer.id == id)
-                        .unwrap()
-                        .thickness,
-                    thickness,
-                    "{id} thickness for {method:?}"
-                );
-            }
-            assert!(assembly.diagnostics.iter().all(|finding| {
-                !(finding.id.starts_with("mechanical:process:")
-                    && finding.severity == Severity::Error)
-            }));
-            let mut effective = doc.mechanical.as_ref().unwrap().clone();
-            effective.plate_thickness = 1.5;
-            effective.plate_foam_thickness = 3.0;
-            effective.pcb_thickness = 1.2;
-            effective.bottom_foam_thickness = 2.0;
-            effective.bottom_thickness = 3.0;
-            let processes = normalized_processes(&effective);
-            let plate = processes
-                .iter()
-                .find(|item| item.part_id == "plate")
-                .unwrap();
-            let plate_foam = processes
-                .iter()
-                .find(|item| item.part_id == "plate-foam")
-                .unwrap();
-            let bottom_foam = processes
-                .iter()
-                .find(|item| item.part_id == "bottom-foam")
-                .unwrap();
-            assert_eq!(plate.material, material);
-            assert_eq!(plate.thickness, 1.5);
-            assert_eq!(plate_foam.method, PlateMethod::CutSheet);
-            assert_eq!(plate_foam.material, "EVA");
-            assert_eq!(plate_foam.thickness, 3.0);
-            assert_eq!(bottom_foam.material, "EVA");
-            assert_eq!(bottom_foam.thickness, 2.0);
-        }
-    }
-
     #[test]
     fn custom_dimensions_and_disabled_foam_survive_normalization() {
         let mut c = config();
@@ -2557,27 +2366,14 @@ mod tests {
         assert!(second.generation_blocked);
     }
     #[test]
-    fn legacy_standard_mx_profile_uses_the_new_square_but_custom_profiles_keep_their_geometry() {
-        let mut doc=ProjectDoc::empty("legacy-fit","Legacy fit");
-        doc.definitions=crate::artifact::builtins::builtin_definitions();
-        doc.parts.push(serde_json::from_value(serde_json::json!({"id":"switch","definitionId":"mx-hotswap","reference":"SW1","side":"front","pose":{"at":{"x":20,"y":20},"rotation":0}})).unwrap());
-        doc.boards.push(Board{id:"board".into(),name:"Board".into(),outline_ids:vec![],part_ids:vec!["switch".into()],net_ids:vec![],thickness:1.6,traces:vec![],vias:vec![]});
-        let mut profile=builtin_profile("mx-hotswap".into(),MechanicalBuiltinProfile::MxSwitch,3.5).unwrap();
-        profile.source="marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/SW_MX_1u.kicad_mod:CERN-OHL-P-2.0:Eco2.User; chord deviation <=0.005mm; engagement user-specified; PCB-mount stabilizers only".into();
-        profile.cutouts[0].iter_mut().for_each(|p|{p.x*=1.05;p.y*=1.05;});
-        let mut settings=config();settings.profiles=vec![profile];doc.mechanical=Some(settings);
-        let outline=Contour{hole:false,points:vec![Vec2{x:0.,y:0.},Vec2{x:40.,y:0.},Vec2{x:40.,y:40.},Vec2{x:0.,y:40.}]};
-        let width=|result:MechanicalAssembly| {let hole=result.plate_contours.into_iter().find(|c|c.hole).unwrap();hole.points.iter().map(|p|p.x).fold(f64::NEG_INFINITY,f64::max)-hole.points.iter().map(|p|p.x).fold(f64::INFINITY,f64::min)};
-        assert!((width(resolve(&doc,std::slice::from_ref(&outline)))-14.).abs()<0.001);
-        doc.mechanical.as_mut().unwrap().profiles[0].source="Custom qualified opening".into();
-        assert!((width(resolve(&doc,&[outline]))-14.7).abs()<0.001);
-    }
-
-    #[test]
-    fn real_hotswap_catalogue_produces_seventy_square_openings() {
-        for definition_id in ["mx-hotswap", "choc-hotswap"] {
+    fn canonical_switch_profiles_produce_seventy_square_openings() {
+        for source in ["ceoloide/switch_mx", "ceoloide/switch_choc_v1_v2"] {
+            let definition_id = "switch-def";
             let mut doc = ProjectDoc::empty("split", "split");
-            doc.definitions = crate::artifact::builtins::builtin_definitions();
+            doc.definitions.push(serde_json::from_value(serde_json::json!({
+                "id":definition_id,"name":"Switch","kind":"switch","courtyard":[],"pads":[],
+                "generator":{"source":source,"version":"bundled-1","parameters":{"choc_v1_support":true,"choc_v2_support":false}}
+            })).unwrap());
             for half in 0..2 {
                 for row in 0..5 {
                     for column in 0..7 {
@@ -2595,9 +2391,9 @@ mod tests {
                 outline_ids:vec![], part_ids:doc.parts.iter().map(|p|p.id.clone()).collect(),
                 net_ids:vec![], thickness:1.6, traces:vec![], vias:vec![] });
             let mut settings = config();
-            settings.plate_thickness = -1.0;
-            settings.plate_to_pcb = -1.0;
-            settings.plate_foam_thickness = -1.0;
+            settings.plate_thickness = if source.ends_with("switch_mx") { 1.5 } else { 1.3 };
+            settings.plate_to_pcb = if source.ends_with("switch_mx") { 3.5 } else { 2.2 };
+            settings.plate_foam_thickness = 0.0;
             doc.mechanical = Some(settings);
             let outlines = (0..2).map(|half| {
                 let x = half as f64 * 160.0;
@@ -2620,18 +2416,18 @@ mod tests {
     }
 
     #[test]
-    fn builtin_and_generator_switches_derive_their_fit_and_plate_gap() {
+    fn generator_switches_derive_their_fit_and_plate_gap() {
         for (source, parameters, family, plate_thickness, gap) in [
             (
-                "builtin:mx-hotswap",
+                "ceoloide/switch_mx",
                 serde_json::json!({}),
                 MechanicalSwitchFamily::Mx,
                 1.5,
                 3.5,
             ),
             (
-                "builtin:choc-hotswap",
-                serde_json::json!({}),
+                "ceoloide/switch_choc_v1_v2",
+                serde_json::json!({"choc_v1_support":true,"choc_v2_support":false}),
                 MechanicalSwitchFamily::ChocV1,
                 1.3,
                 2.2,
@@ -2664,9 +2460,9 @@ mod tests {
                 "generator":{"source":source,"version":"1","parameters":parameters}
             })).unwrap());
             let mut configuration = config();
-            configuration.plate_thickness = -1.0;
-            configuration.plate_to_pcb = -1.0;
-            configuration.plate_foam_thickness = -1.0;
+            configuration.plate_thickness = plate_thickness;
+            configuration.plate_to_pcb = gap;
+            configuration.plate_foam_thickness = 0.0;
             doc.mechanical = Some(configuration);
             let outline = [Contour {
                 hole: false,
@@ -2715,10 +2511,7 @@ mod tests {
         doc.definitions.push(serde_json::from_value(serde_json::json!({
             "id":"imported", "name":"Imported switch", "kind":"switch", "courtyard":[], "pads":[]
         })).unwrap());
-        let mut configuration = config();
-        configuration.plate_thickness = -1.0;
-        configuration.plate_to_pcb = -1.0;
-        configuration.plate_foam_thickness = -1.0;
+        let configuration = config();
         doc.mechanical = Some(configuration);
         let outline = [Contour {
             hole: false,

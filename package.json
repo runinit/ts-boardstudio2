@@ -23,10 +23,8 @@
     "generate:contracts": "node contracts/scripts/contracts.mjs generate",
     "check:contracts": "node contracts/scripts/contracts.mjs check",
     "test:contracts": "node contracts/test/runtime-import.test.mjs",
-    "generate:catalogue": "node kicad/scripts/catalog.mjs generate",
-    "check:catalogue": "node kicad/scripts/catalog.mjs check",
     "check:boundaries": "node app/scripts/check-rust-boundaries.mjs",
-    "check": "pnpm run check:contracts && pnpm run check:catalogue && pnpm run test:contracts && pnpm run test && pnpm run build && pnpm --dir cad check && pnpm run check:boundaries && pnpm run test:e2e && pnpm run test:e2e:pages",
+    "check": "pnpm run check:contracts && pnpm run test:contracts && pnpm run test && pnpm run build && pnpm --dir cad check && pnpm run check:boundaries && pnpm run test:e2e && pnpm run test:e2e:pages",
     "test:e2e:pages": "pnpm --dir app test:e2e:pages"
   }
 }

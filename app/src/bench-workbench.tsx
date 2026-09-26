@@ -2,7 +2,7 @@ import { useLayoutEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { emptyProject } from '@boardstudio/v2-contracts';
 import type { EditCommand, Matrix, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';
-import { builtinDefinitions } from '@boardstudio/v2-kicad';
+import { matrixWithPreset } from './ui/matrixPresets';
 import { CoreClient } from './CoreClient';
 import { Workbench } from './ui/Workbench';
 
@@ -222,17 +222,17 @@ function matrixFixture(keys: Size): { project: ProjectDoc; matrix: Matrix } {
   const matrix: Matrix = {
     id: 'benchmark', boardId: 'bench-board', rows, columns,
     pitch: { x: PITCH_MM, y: PITCH_MM }, edgeGap: { x: 1, y: 1 },
-    origin: { x: 0, y: 0 }, definitionId: 'mx-switch', partIds: [], diodes: true,
+    origin: { x: 0, y: 0 }, definitionId: 'ergogen:ceoloide/switch_mx', partIds: [],
     cells: Array.from({ length: keys }, (_, index) => ({
       row: Math.floor(index / columns), column: index % columns, enabled: true,
-      assemblies: [{ id: 'rgb', definitionId: 'rgb-led', offset: { x: 0, y: 6 } }],
     })),
   };
 
-  project.definitions = builtinDefinitions();
+  const prepared = matrixWithPreset(matrix, 'mx-rgb');
+  project.definitions = prepared.definitions;
   project.outline = [{ id: 'bench-outline', kind: 'part-envelope', partIds: [], margin: 4, operation: 'add' }];
   project.boards = [{ id: 'bench-board', name: 'Benchmark board', outlineIds: ['bench-outline'], partIds: [], netIds: [], thickness: 1.6 }];
-  return { project, matrix };
+  return { project, matrix: prepared.matrix };
 }
 
 export async function runMatrixBenchmark(keys: Size, scope: 'matrix' | 'row' | 'column'): Promise<Measurements> {

@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { emptyProject } from '../../contracts/src/index.ts';
 import type { Contour, ProjectDoc } from '../../contracts/src/index.ts';
-import { builtinCompiled, builtinDefinitions } from '../src/index.ts';
 import { compileNativeFootprint, exportNativeBoard, exportNativeFootprint, importNativeFootprint, nativeArtifact } from './nativeArtifact.ts';
 
 const fixture = (): { doc: ProjectDoc; contours: Contour[] } => {
@@ -68,7 +67,6 @@ test('exports a deterministic board with flipped Y coordinates and net pads', ()
 test('compiled geometry is immutable and ignores net labels', () => {
   const { doc } = fixture();
   const definition = doc.definitions[0];
-  definition.generator = { source: 'custom:switch', version: '1', parameters: { spacing: 19 } };
   const first = compileNativeFootprint(definition);
   definition.pads[0].netId = 'row';
   const second = compileNativeFootprint(definition);
@@ -77,28 +75,6 @@ test('compiled geometry is immutable and ignores net labels', () => {
   assert.equal('netId' in first.geometry.pads[0], false);
   assert.match(first.previewSvg ?? '', /<svg.*<rect/u);
   assert.notDeepEqual(compileNativeFootprint(definition, 'back').geometry, first.geometry);
-});
-
-test('built-in switch and RGB settings compile repeatably', () => {
-  const builtins = builtinDefinitions();
-  assert.deepEqual(builtins.map((definition) => definition.id), ['mx-switch', 'choc-switch', 'mx-hotswap', 'choc-hotswap', 'rgb-led', 'matrix-diode']);
-  for (const definition of builtins) {
-    const first = builtinCompiled(definition.id)!;
-    assert.equal(builtinCompiled(definition.id)?.geometry.pads.length, first.geometry.pads.length);
-    assert.ok(first.geometry.pads.length >= 2);
-    assert.match(exportNativeFootprint(({ ...emptyProject('p', 'p'), definitions: [definition] }), definition.id).content, /\(footprint/u);
-  }
-
-  const rgb = builtins.find((definition) => definition.id === 'rgb-led')!;
-  rgb.generator!.parameters = { reversible: true, includeTracesVias: true, traceWidth: 0.3, viaSize: 0.8, viaDrill: 0.4 };
-  const ir = compileNativeFootprint(rgb);
-  assert.equal(ir.geometry.traces.length, 4);
-  assert.equal(ir.geometry.vias.length, 4);
-  assert.match(ir.previewSvg ?? '', /<line.*<circle/u);
-
-  const mx = builtins.find((definition) => definition.id === 'mx-switch')!;
-  mx.generator!.parameters = { padSpacing: 1 };
-  assert.throws(() => compileNativeFootprint(mx), /overlaps mounting hole/u);
 });
 
 test('exports front and back copper traces and vias', () => {
@@ -129,12 +105,12 @@ test('rejects stale revisions and conflicting net assignments', () => {
 test('requires relative model paths and emits standalone footprints', () => {
   const { doc } = fixture();
   const definition = doc.definitions[0];
-  definition.model = {
+  definition.models = [{
     assetId: 'switch-model',
     offset: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     scale: { x: 1, y: 1, z: 1 },
-  };
+  }];
   const project = emptyProject('models', 'Models');
   project.definitions = [definition];
   assert.throws(() => exportNativeFootprint(project, definition.id, new Map([['switch-model', '../secret.step']])), /safe relative path/u);
@@ -302,64 +278,4 @@ test('KiCad 10 plots the standalone footprint', () => {
   writeFileSync(join(library, 'Switch.kicad_mod'), exportNativeFootprint(doc, 'switch').content);
   execFileSync('kicad-cli', ['fp', 'export', 'svg', library, '--output', output], { encoding: 'utf8' });
   assert.ok(existsSync(join(output, 'Switch.svg')));
-});
-
-test('KiCad 10 parses built-in mechanical holes and reversible RGB copper', () => {
-  const [mx, , , , rgb] = builtinDefinitions();
-  rgb.generator!.parameters = { reversible: true, includeTracesVias: true };
-  const directory = mkdtempSync(join(tmpdir(), 'boardstudio-v2-builtins-'));
-  const library = join(directory, 'BoardStudio.pretty');
-  const output = join(directory, 'svg');
-  mkdirSync(library);
-  mkdirSync(output);
-  writeFileSync(join(library, 'MX.kicad_mod'), exportNativeFootprint(projectWith(mx), mx.id).content);
-  writeFileSync(join(library, 'RGB.kicad_mod'), exportNativeFootprint(projectWith(rgb), rgb.id).content);
-  execFileSync('kicad-cli', ['fp', 'export', 'svg', library, '--output', output], { encoding: 'utf8' });
-  assert.ok(existsSync(join(output, 'MX.svg')));
-  assert.ok(existsSync(join(output, 'RGB.svg')));
-});
-
-test('built-in switch contacts clear their mounting holes in KiCad DRC', () => {
-  for (const definition of builtinDefinitions().filter((entry) => entry.kind === 'switch' || entry.id.includes('hotswap'))) {
-    const doc = emptyProject(definition.id, definition.name);
-    doc.definitions = [definition];
-    doc.parts = [{ id: 'part', definitionId: definition.id, reference: 'SW1', pose: { at: { x: 0, y: 0 }, rotation: 0 }, side: 'front' }];
-    doc.boards = [{ id: 'main', name: 'board', outlineIds: [], partIds: ['part'], netIds: ['one', 'two'], thickness: 1.6 }];
-    doc.nets = [
-      { id: 'one', name: 'ONE', pins: [{ partId: 'part', padId: 'one' }] },
-      { id: 'two', name: 'TWO', pins: [{ partId: 'part', padId: 'two' }] },
-    ];
-    const contours: Contour[] = [{ hole: false, points: [
-      { x: -15, y: -15 }, { x: 15, y: -15 }, { x: 15, y: 15 }, { x: -15, y: 15 },
-    ] }];
-    const report = runDrc(doc, contours);
-    assert.deepEqual(report.violations, [], `${definition.id}: ${JSON.stringify(report.violations)}`);
-  }
-});
-
-test('6 by 5 switch, diode and RGB assemblies clear KiCad DRC', () => {
-  const pitch = 19.05;
-  const definitions = builtinDefinitions();
-  const contours: Contour[] = [{ hole: false, points: [
-    { x: -20, y: -30 }, { x: 100, y: -30 }, { x: 100, y: 115 }, { x: -20, y: 115 },
-  ] }];
-  for (const definitionId of ['mx-switch', 'choc-switch', 'mx-hotswap', 'choc-hotswap']) {
-    const doc = emptyProject(definitionId, definitionId);
-    doc.definitions = definitions;
-    for (let row = 0; row < 6; row += 1) {
-      for (let column = 0; column < 5; column += 1) {
-        const x = column * pitch;
-        const y = row * pitch;
-        const id = `r${row}c${column}`;
-        doc.parts.push(
-          { id, definitionId, reference: `SW${row * 5 + column + 1}`, pose: { at: { x, y }, rotation: 0 }, side: 'front' },
-          { id: `${id}-diode`, definitionId: 'matrix-diode', reference: `D${row * 5 + column + 1}`, pose: { at: { x: x + 6, y: y - 10 }, rotation: 0 }, side: 'back' },
-          { id: `${id}-led`, definitionId: 'rgb-led', reference: `LED${row * 5 + column + 1}`, pose: { at: { x: x - 5, y: y - 12 }, rotation: 0 }, side: 'back' },
-        );
-      }
-    }
-    doc.boards = [{ id: 'main', name: 'main', outlineIds: [], partIds: doc.parts.map((part) => part.id), netIds: [], thickness: 1.6 }];
-    const report = runDrc(doc, contours);
-    assert.deepEqual(report.violations, [], `${definitionId}: ${JSON.stringify(report.violations)}`);
-  }
 });
