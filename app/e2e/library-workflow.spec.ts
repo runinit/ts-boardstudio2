@@ -1,3 +1,6 @@
+import { builtinDefinitions } from '@boardstudio/v2-kicad';
+import { zipSync, strToU8 } from 'fflate';
+import { demoProject } from '../src/demo';
 import { chooseScope } from './selection';
 import { expect, test } from '@playwright/test';
 import { configureMatrix } from './matrix-setup';
@@ -11,15 +14,14 @@ test('Parts uses a searchable categorized catalogue and a selected component ins
   await expect(catalog.getByRole('tree')).toHaveCount(0);
   await expect(catalog.getByRole('listbox', { name: 'Key assemblies' })).toBeVisible();
   await catalog.getByRole('searchbox').fill('RGB');
-  await catalog.getByRole('option', { name: /RGB LED/ }).click();
-  await expect(page.getByRole('complementary', { name: 'Parts inspector' }).getByRole('heading', { name: 'RGB LED', exact: true })).toBeVisible();
+  await catalog.getByRole('option', { name: /SK6812 MINI-E/ }).click();
+  await expect(page.getByRole('complementary', { name: 'Parts inspector' }).getByRole('heading', { name: 'SK6812 MINI-E', exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Definition name' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Place component', exact: true })).toBeVisible();
   await expect(page.locator('.wb-canvas-footer')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Snap', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '3D model', exact: true }).click();
-  await page.getByText('Sample PCB', {exact:true}).click();
-  await expect(page.getByText(/No component models are attached/)).toBeVisible();
+  await expect(page.getByText('1 / 1 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole('button', { name: '2D footprint', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Footprint preview' })).toBeVisible();
   const pad = page.locator('.wb-preview-pad').first();
@@ -117,7 +119,12 @@ test('Parts renders an attached model through the visible 3D control', async ({ 
   test.setTimeout(60_000);
   const model = await buildCase(prepareCase({ revision: 0, body: { id: 'model', name: 'Model', boardId: 'main-board', kind: 'plate', thickness: 2, clearance: 0 }, contours: [{ hole: false, points: [{ x: -3, y: -3 }, { x: 3, y: -3 }, { x: 3, y: 3 }, { x: -3, y: 3 }] }] }));
   await page.goto('/');
+  const document = demoProject();
+  document.definitions.push({ ...builtinDefinitions().find(item => item.id === 'mx-switch')!, id: 'custom-model-switch', name: 'Custom model switch' });
+  await page.getByRole('button', { name: 'Project', exact: true }).click();
+  await page.locator('.wb-project-file-input').setInputFiles({ name: 'custom-switch.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(document)) })) });
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
+  await page.getByRole('option', { name: 'Custom model switch', exact: true }).click();
   await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'switch.step', mimeType: 'model/step',

@@ -1,3 +1,4 @@
+import { partCatalogLabel } from './partsCatalog';
 import { CanvasLayers } from './CanvasLayers';
 import React, { lazy, memo, useMemo, useState } from 'react';
 import type { PartDefinition, Vec2, ProjectDoc, MechanicalPartProfile, MechanicalBuiltinProfile, MechanicalPurposeMapping, MechanicalExtraction } from '../../../contracts/src/index';
@@ -9,6 +10,7 @@ import { isErgogen, parameters } from '@boardstudio/v2-ergogen';
 export type LibraryModelStatus = { definitionId: string; state: 'empty' | 'loading' | 'ready' | 'unsupported' | 'error'; message?: string };
 import './library-workspace.css';
 import { sampleAssembly } from './sampleAssembly';
+import { keycapOutline, libraryKeycap, previewPoint } from './libraryPreviewGeometry';
 import { PartMechanicalProfileEditor } from './PartMechanicalProfileEditor';
 const AssemblyViewer = lazy(() => import('./AssemblyViewer').then(m => ({ default: m.AssemblyViewer })));
 
@@ -29,8 +31,8 @@ class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?:
     return this.props.children;
   }
 }
-export const LibraryWorkspace = memo(({ document, definition, title, companions = [], compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme, mechanicalProfile, onSaveMechanicalProfile, onMechanicalProfile, onExtractMechanicalProfile }: {
-  document: ProjectDoc; definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2 }[];
+export const LibraryWorkspace = memo(({ document, definition, title, companions = [], rotation = 0, compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme, mechanicalProfile, onSaveMechanicalProfile, onMechanicalProfile, onExtractMechanicalProfile }: {
+  document: ProjectDoc; definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2; rotation?: number; side?: 'front' | 'back' }[]; rotation?: number;
   compiled?: CompiledFootprint[];
   compilePending?: boolean; compileError?: string;
   models?: ComponentPreview[]; modelFilename?: string; modelStatus?: LibraryModelStatus; onRetry?: () => void; show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
@@ -47,7 +49,7 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
     if (next.has(id)) next.delete(id); else next.add(id);
     return { definitionId: definition?.id ?? '', hidden: next };
   });
-  const footprints = useMemo(() => definition ? [{ definition, at: { x: 0, y: 0 } }, ...companions].flatMap((entry) => {
+  const footprints = useMemo(() => definition ? [{ definition, at: { x: 0, y: 0 }, rotation }, ...companions].flatMap((entry) => {
     const ir = compiled.find((item) => item.definition.id === entry.definition.id)?.geometry
       ?? (isErgogen(entry.definition.generator?.source) ? {
         side: 'front' as const,
@@ -57,34 +59,31 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
         vias: [],
       } : undefined);
     if (!ir) return [];
-    const keycap = entry.definition.kind === 'switch' ? entry.definition.keycap : undefined;
+    const keycap = libraryKeycap(entry.definition);
     const generator = entry.definition.generator;
     const keycapToggle = generator?.source === 'infused-kim/choc' ? 'show_keycaps' : 'include_keycap';
     const includeKeycap = generator && isErgogen(generator.source)
       ? generator.parameters[keycapToggle] ?? parameters(generator.source)[keycapToggle]?.value
       : true;
-    const outline = keycap ? includeKeycap === false ? [] : [
-      { x: -keycap.x / 2, y: -keycap.y / 2 }, { x: keycap.x / 2, y: -keycap.y / 2 },
-      { x: keycap.x / 2, y: keycap.y / 2 }, { x: -keycap.x / 2, y: keycap.y / 2 },
-    ] : ir.courtyard;
+    const outline = keycap ? includeKeycap === false ? [] : keycapOutline(keycap) : ir.courtyard;
     const parameterSide = generator?.parameters.side;
     const side = parameterSide === 'B' ? 'back' : parameterSide === 'F' ? 'front' : ir.side;
     return [{ ...entry, ir, keycap, outline, side, graphicLayers: ergogenPreviewLayers(entry.definition, Boolean(keycap)) }];
-  }) : [], [definition, companions, compiled]);
-  const sample = useMemo(() => definition ? sampleAssembly(document, definition, companions) : undefined, [document, definition, companions]);
+  }) : [], [definition, companions, compiled, rotation]);
+  const sample = useMemo(() => definition ? sampleAssembly(document, definition, companions, rotation) : undefined, [document, definition, companions, rotation]);
   if (!definition) return <div className="wb-library-workspace-empty">Select a component or key assembly.</div>;
   if (!footprints.length) return <div className="wb-library-workspace-empty">
     {compilePending && <p role="status">Preparing footprint preview…</p>}
     {compileError && <p role="alert">{compileError}</p>}
   </div>;
   const diagnostics = compiled.find((item) => item.definition.id === definition.id)?.diagnostics ?? [];
-  const points = footprints.flatMap(({ definition: item, ir, outline, at }) => [...outline, ...ir.pads.flatMap((pad) => {
+  const points = footprints.flatMap(({ definition: item, ir, outline, at, rotation = 0 }) => [...outline, ...ir.pads.flatMap((pad) => {
     const angle = (pad.rotation ?? 0) * Math.PI / 180;
     return [-1, 1].flatMap((x) => [-1, 1].map((y) => ({
       x: pad.at.x + x * pad.size.x / 2 * Math.cos(angle) - y * pad.size.y / 2 * Math.sin(angle),
       y: pad.at.y + x * pad.size.x / 2 * Math.sin(angle) + y * pad.size.y / 2 * Math.cos(angle),
     })));
-  }), ...ir.traces.flatMap((trace) => [trace.start, trace.end]), ...ir.vias.flatMap((via) => [{ x: via.at.x - via.size / 2, y: via.at.y - via.size / 2 }, { x: via.at.x + via.size / 2, y: via.at.y + via.size / 2 }]), ...ergogenPreviewPoints(item)].map((point) => ({ x: point.x + at.x, y: point.y + at.y })));
+  }), ...ir.traces.flatMap((trace) => [trace.start, trace.end]), ...ir.vias.flatMap((via) => [{ x: via.at.x - via.size / 2, y: via.at.y - via.size / 2 }, { x: via.at.x + via.size / 2, y: via.at.y + via.size / 2 }]), ...ergogenPreviewPoints(item)].map((point) => previewPoint(point, at, rotation)));
   const minX = Math.min(0, ...points.map((p) => p.x));
   const maxX = Math.max(0, ...points.map((p) => p.x));
   const minY = Math.min(0, ...points.map((p) => p.y));
@@ -118,7 +117,7 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
     {show3d ? <div className="wb-library-model-workspace" aria-label="3D footprint model preview">
       {sample && <ModelPreviewBoundary resetKey={definition.id} onRetry={onRetry}><React.Suspense fallback={<p>Loading assembly preview…</p>}><AssemblyViewer document={sample.project} boardId="sample-board" contours={sample.contours} colorScheme={colorScheme} sample /></React.Suspense></ModelPreviewBoundary>}
     </div> : <div className="wb-library-workspace-geometry wb-layer-surface"><svg viewBox={`${minX - 3} ${-maxY - 3} ${maxX - minX + 6} ${maxY - minY + 6}`} role="img" aria-label="Footprint preview">
-      {footprints.map(({ definition: item, ir, keycap, outline, at, side }, index) => hidden.has(`part:${index}`) ? null : <g key={`${item.id}:${index}`} transform={`translate(${at.x} ${-at.y})`}>
+      {footprints.map(({ definition: item, ir, keycap, outline, at, side, rotation = 0 }, index) => hidden.has(`part:${index}`) ? null : <g key={`${item.id}:${index}`} data-part-source={item.generator?.source} transform={`translate(${at.x} ${-at.y}) rotate(${-rotation})`}>
         <Ergogen2DPreview definition={item} hideKeycap={Boolean(keycap)} hiddenLayers={hidden} />
         {outline.length > 0 && !hidden.has(`outline:${keycap ? 'Keycap' : 'Courtyard'}`) && <polygon points={outline.map((p) => `${p.x},${-p.y}`).join(' ')} className={keycap ? 'wb-preview-keycap' : 'wb-preview-courtyard'} />}
         {ir.traces.filter((trace) => !hidden.has(`copper:${copperLayer(trace.layer)}`)).map((trace, i) => <line key={`trace-${i}`} x1={trace.start.x} y1={-trace.start.y} x2={trace.end.x} y2={-trace.end.y} strokeWidth={trace.width} className="wb-preview-copper" />)}
@@ -131,7 +130,7 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
       </g>)}
     </svg><CanvasLayers hidden={hidden} onToggle={toggleLayer} groups={[
       { title: 'Footprint', layers },
-      { title: 'Parts', layers: footprints.map(({ definition: item }, index) => ({ id: `part:${index}`, label: item.name, accessibilityLabel: `part ${item.name}`, kind: 'part' })) },
+      { title: 'Parts', layers: footprints.map(({ definition: item }, index) => ({ id: `part:${index}`, label: partCatalogLabel(item), accessibilityLabel: `part ${partCatalogLabel(item)}`, kind: 'part' })) },
     ]} /></div>}
     <div className="wb-library-workspace-scale">{show3d ? 'Drag to orbit · Scroll to zoom' : `${keycap ? 'Keycap ' : ''}${size.x.toFixed(1)} × ${size.y.toFixed(1)} mm${visiblePads ? ' · Purple: pads' : ''}${outlineLabels ? ` · Dashed: ${outlineLabels}` : ''}`}</div>
   </div>;

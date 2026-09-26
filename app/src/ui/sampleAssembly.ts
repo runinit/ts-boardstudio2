@@ -6,16 +6,19 @@ import {
   type ProjectDoc,
   type Vec2,
 } from '@boardstudio/v2-contracts';
+import { normalizeDefinition } from '@boardstudio/v2-ergogen';
+import { keycapOutline, libraryKeycap, previewPoint } from './libraryPreviewGeometry';
 
 export function sampleAssembly(
   document: ProjectDoc,
   definition: PartDefinition,
-  companions: { definition: PartDefinition; at: Vec2 }[] = [],
+  companions: { definition: PartDefinition; at: Vec2; rotation?: number; side?: 'front' | 'back' }[] = [],
+  rotation = 0,
 ) {
   const project = emptyProject('sample-pcb', 'Sample PCB');
   project.revision = document.revision;
   project.assets = document.assets;
-  const entries = [{ definition, at: { x: 0, y: 0 } }, ...companions];
+  const entries = [{ definition, at: { x: 0, y: 0 }, rotation, side: 'front' as const }, ...companions];
   project.definitions = [
     ...new Map(
       entries.map((entry) => [entry.definition.id, entry.definition]),
@@ -25,18 +28,17 @@ export function sampleAssembly(
     id: `sample-${i}`,
     definitionId: entry.definition.id,
     reference: `P${i + 1}`,
-    pose: { at: entry.at, rotation: 0 },
-    side: 'front',
+    // A library sample has no project wiring. Override saved terminal nets locally.
+    generatorParameters: Object.fromEntries(Object.keys(entry.definition.terminals ?? {}).map(terminal => [terminal, ''])),
+    pose: { at: entry.at, rotation: entry.rotation ?? 0 },
+    side: entry.side ?? 'front',
   }));
-  const points = entries.flatMap((entry) =>
-    (entry.definition.courtyard.length
-      ? entry.definition.courtyard
-      : [
-          { x: -10, y: -10 },
-          { x: 10, y: 10 },
-        ]
-    ).map((p) => ({ x: p.x + entry.at.x, y: p.y + entry.at.y })),
-  );
+  const points = entries.flatMap((entry) => {
+    const keycap = libraryKeycap(entry.definition);
+    const outline = [...entry.definition.courtyard, ...(keycap ? keycapOutline(keycap) : [])];
+    const envelope = outline.length ? outline : [{ x: -10, y: -10 }, { x: 10, y: 10 }];
+    return envelope.map(point => previewPoint(point, entry.at, entry.rotation));
+  });
   const minX = Math.min(...points.map((p) => p.x)) - 3,
     maxX = Math.max(...points.map((p) => p.x)) + 3,
     minY = Math.min(...points.map((p) => p.y)) - 3,
@@ -100,7 +102,7 @@ export function placeAssembly(
       delete definition.model;
       definition.models = structuredClone(member.models);
     }
-    next.definitions.push(definition);
+    next.definitions.push(normalizeDefinition(definition));
     const part = {
       id: `${id}/${member.id}`,
       definitionId: definition.id,
@@ -132,11 +134,10 @@ export function matrixWithAssembly(
   if (
     primary.pose.at.x ||
     primary.pose.at.y ||
-    primary.pose.rotation ||
     primary.side !== 'front'
   )
     throw new Error(
-      'For matrix placement, keep the first member at the origin, unrotated, on the front',
+      'For matrix placement, keep the first member at the origin on the front',
     );
   const seed = emptyProject('assembly', 'Assembly');
   seed.boards = [
@@ -172,6 +173,7 @@ export function matrixWithAssembly(
         column,
         enabled: old?.enabled ?? true,
         definitionId: placed.definitions[0].id,
+        rotation: (old?.rotation ?? 0) + primary.pose.rotation,
         diode: false,
         assembliesLocal: true,
         assemblies: assembly.members
@@ -179,8 +181,11 @@ export function matrixWithAssembly(
           .map((member, i) => ({
             id: member.id,
             definitionId: placed.definitions[i + 1].id,
-            offset: member.pose.at,
-            rotation: member.pose.rotation,
+            offset: (() => {
+              const angle = -primary.pose.rotation * Math.PI / 180;
+              return { x: member.pose.at.x * Math.cos(angle) - member.pose.at.y * Math.sin(angle), y: member.pose.at.x * Math.sin(angle) + member.pose.at.y * Math.cos(angle) };
+            })(),
+            rotation: member.pose.rotation - primary.pose.rotation,
             side: member.side,
           })),
       };

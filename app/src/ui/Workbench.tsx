@@ -1,3 +1,5 @@
+import { resizeMatrix } from './matrixResize';
+import { partChoices, partCatalogSearchText, partCatalogLabel, replacementPartId } from './partsCatalog';
 import type { GenerationState } from '../generationState';
 import { caseReadiness, mechanicalFindings } from './caseReadiness';
 import { CaseGenerationControls } from './CaseGenerationControls';
@@ -31,7 +33,7 @@ import type {
   JsonValue,
 } from '../../../contracts/src/index';
 import { matrixWithAssembly } from './sampleAssembly';
-import { assemblyPreset } from './assemblyPresets';
+import { assemblyPreset, type SwitchOrientation } from './assemblyPresets';
 import { componentPoseSvgTransform } from './componentPreview';
 import { MechanicalAssemblyPanel } from './MechanicalAssemblyPanel';
 import type { ComponentPreview } from './CasePreview';
@@ -106,7 +108,7 @@ type Props = {
   onExportMechanical?: () => void;
   onMechanicalProfile?: (definitionId: string, source: MechanicalBuiltinProfile, plateToPcb: number) => Promise<MechanicalPartProfile>;
   onExtractMechanicalProfile?: (source: string, mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
-  onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void;
+  onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId, orientation?: SwitchOrientation) => void;
   onProjectMatrices?: (matrices: Matrix[]) => Promise<MatrixScene[] | undefined>;
   onModeChange?: (mode: Mode) => void;
   caseBodies?: import('@boardstudio/v2-contracts').CaseBodyMesh[];
@@ -160,30 +162,25 @@ type SceneHandlers = {
 
 export type MatrixPresetId = 'mx-solder' | 'mx-hotswap' | 'choc-solder' | 'choc-hotswap' | 'mx-rgb' | 'choc-rgb' | 'mx-hotswap-rgb' | 'choc-hotswap-rgb';
 const matrixPresetDefinitions: Record<MatrixPresetId, { definitionId: string; led: boolean }> = {
-  'mx-solder': { definitionId: 'mx-switch', led: false },
-  'mx-hotswap': { definitionId: 'mx-hotswap', led: false },
-  'choc-solder': { definitionId: 'choc-switch', led: false },
-  'choc-hotswap': { definitionId: 'choc-hotswap', led: false },
-  'mx-rgb': { definitionId: 'mx-switch', led: true },
-  'choc-rgb': { definitionId: 'choc-switch', led: true },
-  'mx-hotswap-rgb': { definitionId: 'mx-hotswap', led: true },
-  'choc-hotswap-rgb': { definitionId: 'choc-hotswap', led: true },
+  'mx-solder': { definitionId: 'ergogen:ceoloide/switch_mx', led: false },
+  'mx-hotswap': { definitionId: 'ergogen:ceoloide/switch_mx', led: false },
+  'choc-solder': { definitionId: 'ergogen:ceoloide/switch_choc_v1_v2', led: false },
+  'choc-hotswap': { definitionId: 'ergogen:ceoloide/switch_choc_v1_v2', led: false },
+  'mx-rgb': { definitionId: 'ergogen:ceoloide/switch_mx', led: true },
+  'choc-rgb': { definitionId: 'ergogen:ceoloide/switch_choc_v1_v2', led: true },
+  'mx-hotswap-rgb': { definitionId: 'ergogen:ceoloide/switch_mx', led: true },
+  'choc-hotswap-rgb': { definitionId: 'ergogen:ceoloide/switch_choc_v1_v2', led: true },
 };
 
-const matrixWithPreset = (matrix: Matrix, presetId: MatrixPresetId) => {
-  const preset = matrixPresetDefinitions[presetId];
-  const existingCells = new Map((matrix.cells ?? []).map((cell) => [`${cell.row}:${cell.column}`, cell]));
-  const cells = Array.from({ length: matrix.rows * matrix.columns }, (_, index) => {
-    const row = Math.floor(index / matrix.columns);
-    const column = index % matrix.columns;
-    const existing = existingCells.get(`${row}:${column}`);
-    const assemblies = (existing?.assemblies ?? []).filter((assembly) => assembly.definitionId !== 'rgb-led');
-    if (preset.led) assemblies.push({ id: 'rgb-led', definitionId: 'rgb-led', offset: { x: -5, y: -12 }, side: 'back' });
-    return { ...existing, row, column, enabled: existing?.enabled ?? true, definitionId: preset.definitionId, assemblies };
-  });
-  const required = new Set([preset.definitionId, 'matrix-diode', ...(preset.led ? ['rgb-led'] : [])]);
-  const definitions = builtinDefinitions().filter((definition) => required.has(definition.id));
-  return { matrix: { ...matrix, definitionId: preset.definitionId, diodes: true, cells }, definitions };
+const matrixWithPreset = (matrix: Matrix, presetId: MatrixPresetId, orientation: SwitchOrientation = 'south') => {
+  const definitions = ergogenCatalogue();
+  const assembly = assemblyPreset(presetId, definitions, orientation);
+  assembly.id = `preset-${presetId}-${orientation}`;
+  const prepared = { ...matrix, cells: matrix.cells?.map(cell => ({ ...cell,
+    rotation: (cell.rotation ?? 0) - (cell.variant?.startsWith('preset/') && cell.variant.endsWith('/north') ? 180 : 0),
+  })) };
+  const result = matrixWithAssembly(prepared, assembly, definitions, 0);
+  return { ...result, matrix: { ...result.matrix, cells: result.matrix.cells.map(cell => ({ ...cell, variant: `preset/${presetId}/${orientation}` })) } };
 };
 
 export { matrixWithPreset };
@@ -269,6 +266,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
   const [assembly3d, setAssembly3d] = useState(false);
   const [selectedMechanicalLayer, setSelectedMechanicalLayer] = useState('');
   const [libraryAssembly, setLibraryAssembly] = useState<MatrixPresetId | null>(null);
+  const [assemblyOrientation, setAssemblyOrientation] = useState<SwitchOrientation>('south');
   const [matrixSetup, setMatrixSetup] = useState(false);
   const [pairSetup, setPairSetup] = useState(false);
   const [pairPlacement, setPairPlacement] = useState<PairPlacement | null>(null);
@@ -281,6 +279,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
   const [compiledPreview, setCompiledPreview] = useState<{ key: string; results: CompiledFootprint[]; error?: string; pending: boolean }>({ key: '', results: [], pending: false });
   const compileSequence = useRef(0);
   const [matrixGhost, setMatrixGhost] = useState<Matrix | null>(null);
+  const [matrixGhostDefinitions, setMatrixGhostDefinitions] = useState<PartDefinition[]>([]);
   const [matrixGhostScenes, setMatrixGhostScenes] = useState<MatrixScene[]>([]);
   const matrixDraftSeq = useRef(0);
   const matrixGhostProjections = useMemo(() => new Map(matrixGhostScenes.map((projection) => [projection.matrixId, matrixSceneAdapter(projection)])), [matrixGhostScenes]);
@@ -385,24 +384,25 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
     for (const definition of document.definitions) entries.set(definition.id, definition);
     return [...entries.values()];
   }, [document.definitions]);
-  const libraryCompanions = useMemo(() => libraryAssembly
-    ? libraryDefinitions.filter((definition) => definition.id === 'matrix-diode' || (matrixPresetDefinitions[libraryAssembly].led && definition.id === 'rgb-led')).map((definition) => ({
-      definition,
-      at: definition.id === 'matrix-diode' ? { x: 6, y: -10 } : { x: -5, y: -12 },
-    }))
-    : [], [libraryAssembly, libraryDefinitions]);
+  const availableLibrary = useMemo(() => partChoices(libraryDefinitions), [libraryDefinitions]);
+  const libraryRecipe = useMemo(() => libraryAssembly ? assemblyPreset(libraryAssembly, libraryDefinitions, assemblyOrientation) : undefined, [libraryAssembly, libraryDefinitions, assemblyOrientation]);
+  const libraryRecipeEntries = useMemo(() => libraryRecipe?.members.map(member => {
+    const definition = libraryDefinitions.find(entry => entry.id === member.definitionId)!;
+    return { definition: normalizeDefinition({ ...definition, generator: definition.generator && { ...definition.generator, parameters: { ...definition.generator.parameters, ...member.parameters } } }), at: member.pose.at, rotation: member.pose.rotation, side: member.side };
+  }) ?? [], [libraryRecipe, libraryDefinitions]);
+  const libraryCompanions = useMemo(() => libraryRecipeEntries.slice(1), [libraryRecipeEntries]);
   const filteredLibrary = useMemo(() => {
     const query = librarySearch.trim().toLocaleLowerCase();
-    return libraryDefinitions.filter((definition) => !query || `${definition.name} ${definition.kind}`.toLocaleLowerCase().includes(query));
-  }, [libraryDefinitions, librarySearch]);
-  const selectedLibraryDefinition = libraryDefinitions.find((definition) => definition.id === libraryChoice) ?? filteredLibrary[0] ?? libraryDefinitions[0];
+    return availableLibrary.filter((definition) => !query || partCatalogSearchText(definition).toLocaleLowerCase().includes(query));
+  }, [availableLibrary, librarySearch]);
+  const selectedLibraryDefinition = libraryDefinitions.find((definition) => definition.id === libraryChoice) ?? (!librarySearch.trim() ? availableLibrary.find(definition => definition.id === 'ergogen:ceoloide/switch_mx') : undefined) ?? filteredLibrary[0] ?? availableLibrary[0];
   const copperGenerator = ['builtin:mx-hotswap', 'builtin:choc-hotswap', 'builtin:rgb-led'].includes(selectedLibraryDefinition?.generator?.source ?? '');
   const ergogenGenerator = isErgogen(selectedLibraryDefinition?.generator?.source);
   const parameterSchema = useMemo(() => generatorParameters(selectedLibraryDefinition), [selectedLibraryDefinition?.generator?.source]);
   const generatorPreview = useMemo(() => selectedLibraryDefinition
     ? generatorDraft(selectedLibraryDefinition, libraryParameters, new Map(document.assets.map((asset) => [asset.id, asset.name])))
     : undefined, [selectedLibraryDefinition, libraryParameters, document.assets]);
-  const previewDefinition = generatorPreview?.definition;
+  const previewDefinition = libraryRecipeEntries[0]?.definition ?? generatorPreview?.definition;
   const builtinDefault = previewDefinition?.generator?.source.startsWith('builtin:')
     ? builtinCompiledCatalog.find((entry) => entry.definition.id === previewDefinition.id && entry.geometry.side === 'front')
     : undefined;
@@ -1533,7 +1533,9 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
       diodes: true,
       cells: [],
     };
-    setMatrixGhost(matrixWithPreset(matrix, preset).matrix);
+    const prepared = matrixWithPreset(matrix, preset, assemblyOrientation);
+    setMatrixGhost(prepared.matrix);
+    setMatrixGhostDefinitions(prepared.definitions);
     setPairPlacement(pair ? { ...pair, leftId: makeId(), rightId: makeId(), rightMatrixId: makeId() } : null);
     setPairSetup(false);
     setMatrixSetup(false);
@@ -1617,7 +1619,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
     const pair = pairPlacement ? pairAt(matrixGhost, pairPlacement, point) : undefined;
     const placed = pair?.matrix ?? { ...matrixGhost, origin: point };
     const needed = new Set([placed.definitionId, 'matrix-diode', ...(placed.cells ?? []).flatMap((cell) => [cell.definitionId, ...(cell.assemblies ?? []).map((assembly) => assembly.definitionId)])]);
-    const required = libraryDefinitions.filter((definition) => needed.has(definition.id) && !definitions.has(definition.id));
+    const required = [...libraryDefinitions, ...matrixGhostDefinitions].filter((definition) => needed.has(definition.id) && !definitions.has(definition.id));
     emit(pair ? { kind: 'create-mirrored-pair', matrix: placed, left: pair.left, right: pair.right, definitions: required } : { kind: 'set-matrix', matrix: placed, definitions: required }, [placed.id, ...required.map((definition) => definition.id)]);
     if (pair) setExpandedTree((current) => new Set([...current, `half:${pair.left.id}`, `half:${pair.right.id}`]));
     setPairPlacement(null);
@@ -2306,11 +2308,12 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
     if (mode === 'Library') {
       return <>
         <section aria-label="Saved assemblies"><h2>Assemblies</h2><button onClick={() => setEditingAssembly({ id: makeId(), name: 'New assembly', members: [] })}>New assembly</button>{(document.assemblies ?? []).map(assembly => <div key={assembly.id}><button onClick={() => setEditingAssembly(assembly)}>{assembly.name}</button><button aria-label={`Duplicate ${assembly.name}`} onClick={() => setEditingAssembly({ ...structuredClone(assembly), id: makeId(), name: `${assembly.name} copy` })}>Duplicate</button></div>)}</section>
-        <div className="wb-inspect-head"><h2>{libraryAssembly ? assemblyName(libraryAssembly) : selectedLibraryDefinition?.name ?? 'Select a part'}</h2></div>
-        {libraryAssembly && <section aria-label="Assembly settings"><p className="wb-empty-note">Switch footprint and diode{matrixPresetDefinitions[libraryAssembly].led ? ', with RGB LED' : ''}.</p><button className="wb-primary" onClick={() => beginMatrixPlacement(1, 1, libraryAssembly)}>Place key assembly</button><button onClick={() => setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions))}>Customize 3D assembly</button></section>}
+        <div className="wb-inspect-head"><h2>{libraryAssembly ? assemblyName(libraryAssembly) : (selectedLibraryDefinition ? partCatalogLabel(selectedLibraryDefinition) : 'Select a part')}</h2></div>
+        {!libraryAssembly && selectedLibraryDefinition && replacementPartId(selectedLibraryDefinition) && <p className="wb-empty-note">Existing project part. For new placements, choose {partCatalogLabel(libraryDefinitions.find(item => item.id === replacementPartId(selectedLibraryDefinition))!)} from Parts.</p>}
+        {libraryAssembly && <section aria-label="Assembly settings"><p className="wb-empty-note">{matrixPresetDefinitions[libraryAssembly].led ? 'SK6812 MINI-E mounted underneath, shining through the PCB into the switch. The LED sits opposite the socket or solder pins.' : 'Switch footprint with an underside diode.'}</p><OrientationControl value={assemblyOrientation} onChange={setAssemblyOrientation} /><button className="wb-primary" onClick={() => beginMatrixPlacement(1, 1, libraryAssembly)}>Place key assembly</button><button className="wb-secondary" onClick={() => setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions, assemblyOrientation))}>Customize 3D assembly</button></section>}
         {!libraryAssembly && selectedLibraryDefinition && <section className="wb-library-preview" aria-label="Selected footprint settings">
           <p className="wb-inspector-description">{selectedLibraryDefinition.kind === 'switch' ? 'Switch footprint' : selectedLibraryDefinition.kind === 'custom' ? 'Custom component' : 'Component footprint'} · {formatSize(selectedLibraryDefinition.courtyard)}</p>
-          <button className="wb-primary wb-place-part" disabled={Boolean(generatorPreview?.error)} onClick={() => scope?.kind === 'key' ? placeLibraryDefinition(selectedLibraryDefinition) : beginPartPlacement(selectedLibraryDefinition)}>{scope?.kind === 'key' ? 'Apply to selected key' : 'Place component'} <ArrowIcon /></button>
+          <button className="wb-primary wb-place-part" disabled={Boolean(generatorPreview?.error || replacementPartId(selectedLibraryDefinition))} onClick={() => scope?.kind === 'key' ? placeLibraryDefinition(selectedLibraryDefinition) : beginPartPlacement(selectedLibraryDefinition)}>{scope?.kind === 'key' ? 'Apply to selected key' : 'Place component'} <ArrowIcon /></button>
           {(copperGenerator || ergogenGenerator) && <fieldset className="wb-generator-settings">
             <legend>Part options</legend>
             {ergogenGenerator && <GeneratorFields definition={selectedLibraryDefinition} edits={libraryParameters} onChange={updateGenerator} onImportModel={onImportModel} error={generatorPreview?.error} />}
@@ -2411,7 +2414,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
         {selectedKeycapOverlapReferences.length > 0 && <p className="wb-key-size-warning" role="status">Keycaps overlap: {selectedKeycapOverlapReferences.slice(0, 8).join(', ')}{selectedKeycapOverlapReferences.length > 8 ? ` and ${selectedKeycapOverlapReferences.length - 8} more` : ''}. Adjust their rows or columns to clear the overlap.</p>}
       </>}
       {scope.kind === 'matrix'
-        ? <MatrixEditor document={document} onEdit={onEdit} scope={scope} onDuplicateDesign={onDuplicateDesign} />
+        ? <MatrixEditor catalog={libraryDefinitions} document={document} onEdit={onEdit} scope={scope} onDuplicateDesign={onDuplicateDesign} />
         : <CellInspector projection={matrixScenes.get(selectedMatrix.id)} onSplay={(column, change) => commitSplay(selectedMatrix, column, change)} splayAffect={splayAffect} onAffectChange={setSplayAffect} onPickOrigin={() => { setTransformTool('origin'); setOriginPicking(true); setRightOpen(false); }} matrix={selectedMatrix} scope={scope} definitions={libraryDefinitions} parts={treeParts} members={memberMaps.get(selectedMatrix.id) ?? new Map()} isMirrorTarget={Boolean(activeLayout?.mirrorLink)} onChange={(matrix, definitions) => commitMatrix(matrix, 'commit', undefined, definitions)} />}
       {scope.kind === 'matrix' && <InspectorSection title="Matrix actions"><button className="wb-secondary" onClick={() => { emit({ kind: 'remove-matrix', id: selectedMatrix.id }, [selectedMatrix.id, ...selectedMatrix.partIds]); setScope(null); setSelected([]); }}>Delete matrix</button></InspectorSection>}
 
@@ -2424,7 +2427,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
         {hasMirroredComponent && <InspectorSection title="Mirrored component" detail={mirroredComponentIsSubstitute ? 'Substituted' : 'Linked'} defaultOpen>
           <p className="wb-empty-note">{mirroredComponentIsSubstitute ? 'This component pair is independent. Changes on either half stay local.' : 'Placement and component changes follow the paired half.'}</p>
           <label className="wb-script-select-label">Replace with<select aria-label="Replace mirrored component" value={activePart.definitionId} onChange={(event) => updateComponentDefinition(event.target.value, Boolean(mirroredComponentSourceId))}>
-            {libraryDefinitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+            {partChoices(libraryDefinitions, activePart.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
           </select></label>
           {!mirroredComponentIsSubstitute
             ? <button className="wb-secondary" onClick={() => setComponentSubstitute(true)}>Keep only on this half</button>
@@ -2497,16 +2500,16 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
       <button className="wb-add-matrix" disabled={!unpairedMatrices.length} onClick={() => { setExistingHalfOpen(true); setAddPartOpen(false); }}><MirrorPairIcon /><span>Mirror existing half…<small>Link a copy of your current layouts</small></span></button>
       <button className="wb-add-matrix" aria-label="Matrix…" onClick={createGuidedMatrix}><ScopeIcon kind="matrix" /><span>Matrix…<small>Rows, columns & key assemblies</small></span></button>
     </section>
-    {selectedMatrix && <section className="wb-add-section" aria-label="Selected matrix"><h3>{selectedMatrix.name || 'Selected matrix'}</h3><div className="wb-add-inline"><button data-close-menu onClick={() => commitMatrix({ ...selectedMatrix, rows: selectedMatrix.rows + 1 })}><ToolIcon name="add" />Add row</button><button data-close-menu onClick={() => commitMatrix({ ...selectedMatrix, columns: selectedMatrix.columns + 1 })}><ToolIcon name="add" />Add column</button></div></section>}
+    {selectedMatrix && <section className="wb-add-section" aria-label="Selected matrix"><h3>{selectedMatrix.name || 'Selected matrix'}</h3><div className="wb-add-inline"><button data-close-menu onClick={() => commitMatrix(resizeMatrix(selectedMatrix, selectedMatrix.rows + 1, selectedMatrix.columns))}><ToolIcon name="add" />Add row</button><button data-close-menu onClick={() => commitMatrix(resizeMatrix(selectedMatrix, selectedMatrix.rows, selectedMatrix.columns + 1))}><ToolIcon name="add" />Add column</button></div></section>}
     <section className="wb-add-section" aria-label="Parts"><h3>Parts</h3>
       {boardLayouts.length > 0 && <label className="wb-placement-layout">Place in<select aria-label="Part placement layout" value={layoutTargetId} onChange={(event) => setLayoutTargetId(event.target.value)}><option value="">Board / ungrouped</option>{boardLayouts.map((layout) => <option key={layout.id} value={layout.id}>{layout.name}</option>)}</select></label>}
       <input autoFocus type="search" aria-label="Search parts" placeholder="Find a part…" value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} />
-      {librarySearch.trim() ? <div className="wb-add-part-results">{filteredLibrary.map((definition) => <button key={definition.id} onClick={() => beginPartPlacement(definition)}><PartGlyph kind={definition.kind} /><span>{definition.name}</span></button>)}{!filteredLibrary.length && <p>No parts match this search.</p>}</div> : [
+      {librarySearch.trim() ? <div className="wb-add-part-results">{filteredLibrary.map((definition) => <button key={definition.id} onClick={() => beginPartPlacement(definition)}><PartGlyph kind={definition.kind} /><span>{partCatalogLabel(definition)}</span></button>)}{!filteredLibrary.length && <p>No parts match this search.</p>}</div> : [
         { name: 'Components', match: (item: PartDefinition) => /power|reset|battery/i.test(item.name) },
         { name: 'Controllers', match: (item: PartDefinition) => item.kind === 'controller' },
         { name: 'Displays', match: (item: PartDefinition) => /display|oled|nice.view/i.test(item.name) },
         { name: 'Encoders', match: (item: PartDefinition) => item.kind === 'encoder' || /encoder/i.test(item.name) },
-      ].map((group) => <details className="wb-add-category" key={group.name} open={group.name === 'Components'}><summary>{group.name}</summary><div className="wb-add-part-results">{libraryDefinitions.filter(group.match).map((definition) => <button key={definition.id} onClick={() => beginPartPlacement(definition)}><PartGlyph kind={definition.kind} /><span>{definition.name}</span></button>)}</div></details>)}
+      ].map((group) => <details className="wb-add-category" key={group.name} open={group.name === 'Components'}><summary>{group.name}</summary><div className="wb-add-part-results">{availableLibrary.filter(group.match).map((definition) => <button key={definition.id} onClick={() => beginPartPlacement(definition)}><PartGlyph kind={definition.kind} /><span>{partCatalogLabel(definition)}</span></button>)}</div></details>)}
       <button className="wb-add-browse" data-close-menu onClick={() => { changeMode('Library'); setLeftOpen(true); if (!compactObjects) objectsPanel.setMode('pinned'); }}>Browse all parts<ArrowIcon /></button>
     </section>
     <section className="wb-add-section" aria-label="Board geometry"><h3>Board geometry</h3><button data-close-menu onClick={() => { setOutlineSettingsOpen(true); setRightOpen(true); if (!compactInspector) inspectorPanel.setMode('pinned'); }}>Board outline…</button><button data-close-menu onClick={() => { setScriptsOpen(true); setRightOpen(true); if (!compactInspector) inspectorPanel.setMode('pinned'); }}>Geometry scripts…</button></section>
@@ -2660,7 +2663,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
           {(mode === 'Design' || mode === 'PCB') && !assembly3d && <WorkbenchLayers layers={mode === 'PCB' ? [...pcbLayers, 'Edge.Cuts', 'Courtyards', 'Pads', 'Holes', 'References'] : ['Keys', 'Components', 'Keycaps', 'Footprints', 'Board']} hidden={mode === 'Design' ? new Set([...hiddenLayers, ...(!showFootprints ? ['Footprints'] : [])]) : hiddenLayers} onToggle={(layer) => layer === 'Footprints' ? setShowFootprints(!showFootprints) : toggleLayer(layer)} />}
           {existingHalfOpen && <ExistingHalfSetup matrices={unpairedMatrices} axis={Math.max(0, ...selectionOutline(visibleParts, definitions).map((point) => point.x)) + 12} onCancel={() => setExistingHalfOpen(false)} onCreate={(matrices, axis) => { try { const next = mirrorExistingHalf(document, matrices, axis, makeId); emit({ kind: 'replace-document', document: next }, matrices.map((matrix) => matrix.id)); setExistingHalfOpen(false); setZoom(1); setPan({ x: 0, y: 0 }); return undefined; } catch (error) { return String(error instanceof Error ? error.message : error); } }} />}
           {pairSetup && mode === 'Design'  && <MirroredPairSetup presets={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id) }))} onPreview={(setup) => beginMatrixPlacement(setup.rows, setup.columns, setup.preset as MatrixPresetId, setup)} onCancel={() => { setPairSetup(false); (compactObjects && !leftOpen ? window.document.getElementById('wb-objects-toggle') : addPartRef.current)?.focus(); }} />}
-          {mode === 'Library' && !editingAssembly && <LibraryWorkspace document={document} definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} mechanicalProfile={(previewDefinition as (PartDefinition & { mechanicalProfile?: MechanicalPartProfile }) | undefined)?.mechanicalProfile} onSaveMechanicalProfile={(profile) => { if (!previewDefinition) return; const snapshot = { ...previewDefinition, mechanicalProfile: profile }; const nextDefinitions = document.definitions.some((entry) => entry.id === previewDefinition.id) ? document.definitions.map((entry) => entry.id === previewDefinition.id ? snapshot : entry) : [...document.definitions, snapshot]; emit({ kind: 'replace-document', document: { ...document, definitions: nextDefinitions } }, [previewDefinition.id]); }} onMechanicalProfile={onMechanicalProfile} onExtractMechanicalProfile={onExtractMechanicalProfile} show3d={library3dOpen} onViewChange={value => { if (value && libraryAssembly) setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions)); else setLibrary3dOpen(value); }} colorScheme={colorScheme} />}
+          {mode === 'Library' && !editingAssembly && <LibraryWorkspace document={document} definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : previewDefinition ? partCatalogLabel(previewDefinition) : undefined} companions={libraryCompanions} rotation={libraryRecipeEntries[0]?.rotation ?? 0} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} mechanicalProfile={(previewDefinition as (PartDefinition & { mechanicalProfile?: MechanicalPartProfile }) | undefined)?.mechanicalProfile} onSaveMechanicalProfile={(profile) => { if (!previewDefinition) return; const snapshot = { ...previewDefinition, mechanicalProfile: profile }; const nextDefinitions = document.definitions.some((entry) => entry.id === previewDefinition.id) ? document.definitions.map((entry) => entry.id === previewDefinition.id ? snapshot : entry) : [...document.definitions, snapshot]; emit({ kind: 'replace-document', document: { ...document, definitions: nextDefinitions } }, [previewDefinition.id]); }} onMechanicalProfile={onMechanicalProfile} onExtractMechanicalProfile={onExtractMechanicalProfile} show3d={library3dOpen} onViewChange={setLibrary3dOpen} colorScheme={colorScheme} />}
           {mode === 'Library' && editingAssembly && <React.Suspense fallback={<p>Loading assembly editor…</p>}><AssemblyEditor key={editingAssembly.id} document={document} initial={editingAssembly} matrixName={selectedMatrix ? selectedMatrix.name?.trim() || `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}` : 'selected matrix'} onApply={selectedMatrix ? assembly => { const prepared = matrixWithAssembly(selectedMatrix, assembly, libraryDefinitions, document.revision); emit({ kind: 'set-matrix', ...prepared }, [selectedMatrix.id]); } : undefined} definitions={libraryDefinitions} boardId={selectedBoard?.id} colorScheme={colorScheme} onChange={next => emit({ kind: 'replace-document', document: next }, [editingAssembly.id])} onClose={() => setEditingAssembly(null)} onPlace={next => { emit({ kind: 'replace-document', document: next }, []); setEditingAssembly(null); changeMode('Design'); setAssembly3d(true); }} /></React.Suspense>}
           {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={assemblyDocument} boardId={selectedBoard.id} contours={assemblyContours} bodies={showCaseGeometry ? caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body })) : undefined} generation={showCaseGeometry ? generation : undefined} onGasketChange={configuration => emit({ kind: 'set-mechanical', configuration }, [document.id])} mechanical={showCaseGeometry && generatedCase && mechanicalAssembly?.revision === caseDocument.revision ? mechanicalAssembly : undefined} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
           {mode !== 'Case' && mode !== 'Library' && !assembly3d && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
@@ -3010,8 +3013,9 @@ const CellInspector = ({ matrix, scope, definitions, parts, members, onChange, p
   const cell = matrix.cells?.find((entry) => entry.row === row && entry.column === column) ?? { row, column, enabled: true };
   const update = (changes: Partial<MatrixCell>) => {
     const next = withCell(matrix, row, column, changes);
-    const definition = definitions.find((entry) => entry.id === changes.definitionId);
-    onChange(next, definition ? [definition] : undefined);
+    const needed = new Set([changes.definitionId, ...(changes.assemblies ?? []).map(item => item.definitionId)]);
+    const additions = definitions.filter(entry => needed.has(entry.id));
+    onChange(next, additions.length ? additions : undefined);
   };
   return <section aria-label="Key properties">
     <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Key enabled" checked={cell.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Enabled</label>
@@ -3022,9 +3026,9 @@ const CellInspector = ({ matrix, scope, definitions, parts, members, onChange, p
     </div>
     <button className="wb-secondary" onClick={() => update({ offset: { x: 0, y: 0 }, rotation: 0 })}>Reset local transform</button>
     <label className="wb-script-select-label">Key Assembly<select aria-label="Key Assembly" value={cell.definitionId ?? matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value, variant: event.target.value })}>
-      {definitions.filter((definition) => (definition.matrixTerminals && definition.terminals?.[definition.matrixTerminals.row]?.length && definition.terminals?.[definition.matrixTerminals.column]?.length)
+      {partChoices(definitions, cell.definitionId ?? matrix.definitionId).filter((definition) => (definition.matrixTerminals && definition.terminals?.[definition.matrixTerminals.row]?.length && definition.terminals?.[definition.matrixTerminals.column]?.length)
         || (!definition.matrixTerminals && definition.pads.some((pad) => pad.id === 'one') && definition.pads.some((pad) => pad.id === 'two'))
-        || definition.id === 'mx-hotswap' || definition.id === 'choc-hotswap').map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+        || definition.id === 'mx-hotswap' || definition.id === 'choc-hotswap').map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
     </select></label>
     <h3 className="wb-subtitle">Attached components</h3>
     {matrix.diodes && cell.diode !== false && <p className="wb-empty-note">Matrix diode</p>}
@@ -3033,7 +3037,7 @@ const CellInspector = ({ matrix, scope, definitions, parts, members, onChange, p
       : <p className="wb-empty-note">The key assembly and attached components follow the paired half. Replacing one here keeps this key local.</p>)}
     {(cell.assemblies ?? []).map((assembly) => <div className="wb-pad-row" key={assembly.id}>
       <label className="wb-script-select-label">{definitions.find((entry) => entry.id === assembly.definitionId)?.name ?? assembly.definitionId}<select aria-label={`Replace ${assembly.id}`} value={assembly.definitionId} onChange={(event) => update({ assemblies: cell.assemblies?.map((item) => item.id === assembly.id ? { ...item, definitionId: event.target.value } : item) })}>
-        {definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+        {partChoices(definitions, assembly.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
       </select></label>
       <button aria-label={`Remove ${assembly.id}`} onClick={() => update({ assemblies: cell.assemblies?.filter((entry) => entry.id !== assembly.id) })}>Remove</button>
     </div>)}
@@ -3041,8 +3045,11 @@ const CellInspector = ({ matrix, scope, definitions, parts, members, onChange, p
   </section>;
 };
 
-const MatrixEditor = ({ document, onEdit, scope, onDuplicateDesign }: { document: ProjectDoc; onEdit: (command: EditCommand) => void; scope: SelectionScope | null; onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void }) => {
+const OrientationControl = ({ value, onChange }: { value: SwitchOrientation; onChange: (value: SwitchOrientation) => void }) => <label className="wb-script-select-label">Switch orientation<select aria-label="Switch orientation" value={value} onChange={event => onChange(event.target.value as SwitchOrientation)}><option value="south">South-facing LED</option><option value="north">North-facing LED</option></select><span className="wb-empty-note">Viewed from the keycap side; rotates the switch and attached parts together.</span></label>;
+
+const MatrixEditor = ({ document, catalog, onEdit, scope, onDuplicateDesign }: { document: ProjectDoc; catalog: PartDefinition[]; onEdit: (command: EditCommand) => void; scope: SelectionScope | null; onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId, orientation?: SwitchOrientation) => void }) => {
   const [presetId, setPresetId] = useState<MatrixPresetId>('mx-solder');
+  const [orientation, setOrientation] = useState<SwitchOrientation>('south');
   const matrix = document.matrices.find((item) => item.id === scope?.matrixId);
   const definitions = new Map(document.definitions.map((definition) => [definition.id, definition]));
   const commit = (next: Matrix, definitions?: PartDefinition[]) => onEdit({
@@ -3064,8 +3071,8 @@ const MatrixEditor = ({ document, onEdit, scope, onDuplicateDesign }: { document
     {!matrix ? <p className="wb-empty-state">Select a matrix to edit its layout.</p> : <>
       <InspectorSection title="Layout" detail={`${matrix.rows} × ${matrix.columns}`} defaultOpen>
         <div className="wb-matrix-number-grid">
-          {field('Rows', matrix.rows, 'keys', 'positive-integer', (value) => update({ rows: value }))}
-          {field('Columns', matrix.columns, 'keys', 'positive-integer', (value) => update({ columns: value }))}
+          {field('Rows', matrix.rows, 'keys', 'positive-integer', (value) => commit(resizeMatrix(matrix, value, matrix.columns)))}
+          {field('Columns', matrix.columns, 'keys', 'positive-integer', (value) => commit(resizeMatrix(matrix, matrix.rows, value)))}
           {field('Pitch X', matrix.pitch.x, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, x: value } }))}
           {field('Pitch Y', matrix.pitch.y, 'mm', 'positive', (value) => update({ pitch: { ...matrix.pitch, y: value } }))}
         </div>
@@ -3084,16 +3091,16 @@ const MatrixEditor = ({ document, onEdit, scope, onDuplicateDesign }: { document
         <label className="wb-script-select-label">Assembly preset<select aria-label="Apply matrix preset" value={presetId} onChange={(event) => setPresetId(event.target.value as MatrixPresetId)}>
           {(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => <option key={id} value={id}>{assemblyName(id)}</option>)}
         </select></label>
+        <OrientationControl value={orientation} onChange={setOrientation} />
         <div className="wb-inspector-actions">
           <button className="wb-secondary" onClick={() => {
-            const result = matrixWithPreset(matrix, presetId);
-            const missing = result.definitions.filter((definition) => !definitions.has(definition.id));
-            commit(result.matrix, missing);
-          }}>Apply preset</button>
-          <button className="wb-inspector-link" disabled={!onDuplicateDesign} onClick={() => onDuplicateDesign?.(matrix.id, presetId)}>Duplicate design as variant</button>
+            const result = matrixWithPreset(matrix, presetId, orientation);
+            commit(result.matrix, result.definitions);
+          }}>Update assembly preset</button>
+          <button className="wb-inspector-link" disabled={!onDuplicateDesign} onClick={() => onDuplicateDesign?.(matrix.id, presetId, orientation)}>Duplicate design as variant</button>
         </div>
-        <label className="wb-script-select-label">Switch footprint<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => update({ definitionId: event.target.value })}>
-          {document.definitions.filter((definition) => definition.kind === 'switch' || definition.id === matrix.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+        <label className="wb-script-select-label">Switch footprint<select aria-label="Matrix part definition" value={matrix.definitionId} onChange={(event) => { const definition = catalog.find(item => item.id === event.target.value); if (definition) commit({ ...matrix, definitionId: definition.id }, [definition]); }}>
+          {partChoices(catalog, matrix.definitionId).filter((definition) => definition.kind === 'switch' || definition.id === matrix.definitionId).map((definition) => <option key={definition.id} value={definition.id}>{partCatalogLabel(definition)}</option>)}
         </select></label>
         <label className="wb-matrix-diodes"><input type="checkbox" aria-label="Add matrix diodes" checked={Boolean(matrix.diodes)} onChange={(event) => update({ diodes: event.target.checked })} /> Add one diode per key</label>
         {matrix.diodes && <label className="wb-script-select-label">Diode direction<select aria-label="Diode direction" value={matrix.diodeDirection ?? 'row2col'} onChange={(event) => update({ diodeDirection: event.target.value as Matrix['diodeDirection'] })}>
@@ -3156,7 +3163,7 @@ const EmptyBoard = () => <svg viewBox="0 0 80 58" aria-hidden="true"><path d="M1
 export { Workbench };
 export type { Props as WorkbenchProps };
 
-const assemblyName = (id: MatrixPresetId): string => id.split('-').map((word) => word === 'mx' || word === 'rgb' ? word.toUpperCase() : word[0].toUpperCase() + word.slice(1)).join(' ');
+const assemblyName = (id: MatrixPresetId): string => id.split('-').map((word) => word === 'choc' ? 'Choc V1' : word === 'mx' || word === 'rgb' ? word.toUpperCase() : word[0].toUpperCase() + word.slice(1)).join(' ');
 
 const SplayHandles = ({ handleScale = 1, originOnly, matrix, column, parts, projection, onStart, onOrigin, onAngle }: {
   handleScale?: number; originOnly?: boolean; matrix: Matrix; column: number; parts: Part[]; projection?: MatrixProjection;

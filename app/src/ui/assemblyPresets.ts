@@ -3,14 +3,17 @@ import type {
   AssemblyMember,
   PartDefinition,
 } from '@boardstudio/v2-contracts';
+export type SwitchOrientation = 'south' | 'north';
 export function assemblyPreset(
   id: string,
   definitions: PartDefinition[],
+  orientation: SwitchOrientation = 'south',
 ): AssemblyDefinition {
   const source = id.includes('choc')
     ? 'ceoloide/switch_choc_v1_v2'
     : 'ceoloide/switch_mx';
-  const main = definitions.find((d) => d.generator?.source === source)!;
+  const main = definitions.find((d) => d.generator?.source === source);
+  if (!main) throw new Error(`Missing switch footprint: ${source}`);
   const diode = definitions.find(
     (d) => d.generator?.source === 'ceoloide/diode_tht_sod123',
   )!;
@@ -27,6 +30,8 @@ export function assemblyPreset(
         reversible: false,
         // Generator side names the socket, opposite the switch housing.
         side: 'B',
+        include_keycap: true,
+        ...(id.includes('choc') ? { choc_v1_support: true, choc_v2_support: false, include_choc_v1_led_cutout_marks: true } : {}),
       },
     },
   ];
@@ -34,23 +39,33 @@ export function assemblyPreset(
     members.push({
       id: 'diode',
       definitionId: diode.id,
-      pose: { at: { x: 6, y: -10 }, rotation: 0 },
+      pose: { at: { x: 7.4, y: -1.5 }, rotation: 90 },
       side: 'back',
       models: [],
+      parameters: { side: 'B', reversible: false, include_tht: false },
     });
   if (id.includes('rgb')) {
     const led =
       definitions.find(
         (d) => d.generator?.source === 'ceoloide/led_sk6812mini-e',
-      ) ?? definitions.find((d) => d.id === 'rgb-led');
+      );
+    if (!led) throw new Error('Missing SK6812 MINI-E footprint');
     if (led)
       members.push({
         id: 'led',
         definitionId: led.id,
-        pose: { at: { x: -5, y: -12 }, rotation: 0 },
+        // Ceoloide's switch sockets/pins are north; the LED cavity is south.
+        // Choc PG1350 (also Infused Kim's choc.js): 4.7 mm; MX: 4.75 mm.
+        pose: { at: { x: 0, y: id.includes('choc') ? -4.7 : -4.75 }, rotation: 180 },
         side: 'back',
         models: [],
+        parameters: { side: 'B', reverse_mount: true, reversible: false },
       });
+  }
+  if (orientation === 'north') {
+    for (const member of members) {
+      member.pose = { at: { x: -member.pose.at.x || 0, y: -member.pose.at.y || 0 }, rotation: (member.pose.rotation + 180) % 360 };
+    }
   }
   return {
     id: crypto.randomUUID(),

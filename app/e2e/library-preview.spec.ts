@@ -19,7 +19,7 @@ test('Parts saves standard and custom fits without changing the document on canc
   await expect(editor).toContainText('3.50 mm');
   await expect(editor.getByLabel('Plate cutouts contour 1 vertex 1 X', { exact: true })).not.toHaveValue('');
   await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await library.getByRole('option', { name: /RGB LED/ }).click();
+  await library.getByRole('option', { name: /SK6812 MINI-E/ }).click();
   await page.getByRole('button', { name: 'Define profile', exact: true }).click();
   await editor.getByRole('button', { name: 'Add clearance', exact: true }).click();
   await editor.getByLabel('Component clearances contour 1 vertex 1 X', { exact: true }).fill('-4');
@@ -31,7 +31,7 @@ test('Parts saves standard and custom fits without changing the document on canc
 test('preview layers and part visibility change only the drawing', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /RGB LED/ }).click();
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /SK6812 MINI-E/ }).click();
 
   const preview = page.getByRole('img', { name: 'Footprint preview' });
   const layers = page.getByRole('region', { name: 'Canvas layers' });
@@ -45,9 +45,9 @@ test('preview layers and part visibility change only the drawing', async ({ page
   await layers.getByRole('button', { name: 'Show Pad numbers' }).click();
   await expect(preview.locator('.wb-preview-pad-label')).toHaveCount(padCount);
 
-  await layers.getByRole('button', { name: /Hide part RGB LED/ }).click();
+  await layers.getByRole('button', { name: /Hide part SK6812 MINI-E/ }).click();
   await expect(preview.locator('.wb-preview-pad')).toHaveCount(0);
-  await layers.getByRole('button', { name: /Show part RGB LED/ }).click();
+  await layers.getByRole('button', { name: /Show part SK6812 MINI-E/ }).click();
   await expect(preview.locator('.wb-preview-pad')).toHaveCount(padCount);
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', revision!);
 });
@@ -55,7 +55,7 @@ test('preview layers and part visibility change only the drawing', async ({ page
 test('named footprint graphics layers can be hidden independently', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /switch choc v1 v2/ }).click();
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /Choc V1 \/ V2 switch/ }).click();
 
   const layers = page.getByRole('region', { name: 'Canvas layers' });
   await layers.getByRole('button', { name: 'Layers', exact: true }).click();
@@ -90,32 +90,28 @@ test('assembly companions can be hidden without hiding the switch', async ({ pag
   const layers = page.getByRole('region', { name: 'Canvas layers' });
   await layers.getByRole('button', { name: 'Layers', exact: true }).click();
   const before = await preview.locator('.wb-preview-pad').count();
-  await layers.getByRole('button', { name: 'Hide part RGB LED' }).click();
+  await layers.getByRole('button', { name: 'Hide part SK6812 MINI-E' }).click();
   const remaining = await preview.locator('.wb-preview-pad').count();
   expect(remaining).toBeGreaterThan(0);
   expect(remaining).toBeLessThan(before);
-  await expect(layers.getByRole('button', { name: 'Show part RGB LED' })).toBeVisible();
+  await expect(layers.getByRole('button', { name: 'Show part SK6812 MINI-E' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test('shows live generated footprint geometry in the library workspace', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /RGB LED/ }).click();
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /SK6812 MINI-E/ }).click();
 
   const workspace = page.getByRole('region', { name: 'Parts canvas' });
   const preview = workspace.getByRole('img', { name: 'Footprint preview' });
   await expect(preview).toBeVisible();
   await expect(workspace.locator('.wb-canvas')).toBeHidden();
-  await expect(preview.locator('line')).toHaveCount(0);
-
-  await page.getByRole('checkbox', { name: 'Reversible footprint' }).check();
-  await page.getByRole('checkbox', { name: 'Include traces and vias' }).check();
-  await expect(preview.locator('line')).toHaveCount(4);
-  await expect(preview.locator('circle')).toHaveCount(4);
-
-  await page.getByRole('checkbox', { name: 'Include traces and vias' }).uncheck();
-  await expect(preview.locator('line')).toHaveCount(0);
+  await expect(preview.locator('.wb-preview-pad')).toHaveCount(4);
+  await page.getByRole('checkbox', { name: 'reversible', exact: true }).check();
+  await expect(preview.locator('.wb-preview-pad')).toHaveCount(8);
+  await page.getByRole('checkbox', { name: 'reversible', exact: true }).uncheck();
+  await expect(preview.locator('.wb-preview-pad')).toHaveCount(4);
 });
 
 test('standard parts use their footprint defaults without pad tuning', async ({ page }) => {
@@ -133,19 +129,19 @@ test('standard parts use their footprint defaults without pad tuning', async ({ 
   await expect(preview.locator('rect').first()).toHaveAttribute('width', initialWidth!);
 });
 
-test('RGB assembly companion keeps its customized generated copper geometry', async ({ page }) => {
+test('RGB assembly companion retains saved model settings and uses the preset mounting configuration', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  const library = page.getByRole('listbox', { name: 'Footprint library' });
-  await library.getByRole('option', { name: /RGB LED/ }).click();
-  const preview = page.getByRole('region', { name: 'Parts canvas' }).getByRole('img', { name: 'Footprint preview' });
-  await page.getByRole('checkbox', { name: 'Reversible footprint' }).check();
-  await page.getByRole('checkbox', { name: 'Include traces and vias' }).check();
-  await expect(preview.locator('line')).toHaveCount(4);
-  await expect(preview.locator('circle.wb-preview-via')).toHaveCount(4);
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: 'SK6812 MINI-E', exact: true }).click();
+  await page.locator('summary').filter({ hasText: '3D model placement' }).click();
+  await page.getByRole('textbox', { name: 'led_3dmodel_xyz_offset', exact: true }).fill('[0, 0, 1]');
   await page.getByRole('button', { name: 'Apply generator settings' }).click();
-
   await page.getByRole('listbox', { name: 'Key assemblies' }).getByRole('option', { name: 'MX RGB', exact: true }).click();
-  await expect(preview.locator('line')).toHaveCount(4);
-  await expect(preview.locator('circle.wb-preview-via')).toHaveCount(4);
+  const preview = page.getByRole('img', { name: 'Footprint preview' });
+  const led = preview.locator('[data-part-source="ceoloide/led_sk6812mini-e"]');
+  await expect(led.locator('.wb-preview-pad')).toHaveCount(4);
+  await expect(led.locator('.wb-preview-copper')).toHaveCount(0);
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: 'SK6812 MINI-E', exact: true }).click();
+  await page.locator('summary').filter({ hasText: '3D model placement' }).click();
+  expect(JSON.parse(await page.getByRole('textbox', { name: 'led_3dmodel_xyz_offset', exact: true }).inputValue())).toEqual([0, 0, 1]);
 });

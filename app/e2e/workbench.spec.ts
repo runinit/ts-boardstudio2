@@ -152,8 +152,8 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('button', { name: 'New project' }).click();
   await placeGuidedMatrix(page);
   await page.getByRole('treeitem', { name: 'PCB', exact: true }).click();
-  await expect(page.locator('.wb-net-list')).toContainText('_ROW0');
-  await expect(page.locator('.wb-net-list')).toContainText('_COL0');
+  await expect(page.getByRole('combobox', { name: 'Pin for Scan row 1', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Pin for Scan column 1', exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'Design' }).click();
 
   await page.getByRole('button', { name: 'Objects options', exact: true }).click();
@@ -162,7 +162,7 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await page.getByRole('button', { name: 'Expand Row 1' }).click();
   const row = page.getByRole('treeitem', { name: /^Row 1/ });
   await row.click();
-  await expect(page.getByRole('button', { name: 'Select row', exact: true })).toBeVisible();
+  await expect(page.locator('.wb-scope-outline.is-selected')).toHaveAttribute('data-scope', 'row');
   const firstCell = page.getByRole('button', { name: 'Select key, row 1, column 1' });
   const before = await firstCell.getAttribute('transform');
   await expect(page.locator('.wb-stagger-handle').first()).toBeHidden();
@@ -172,12 +172,12 @@ test('edits a guided matrix, scopes the tree, staggers a row, and zooms the canv
   await expect.poll(() => firstCell.getAttribute('transform')).not.toBe(before);
 
   await page.getByRole('treeitem', { name: /^Key 1\.1/ }).click();
-  await page.getByRole('combobox', { name: 'Key Assembly' }).selectOption('choc-switch');
-  await expect(page.getByRole('combobox', { name: 'Key Assembly' })).toHaveValue('choc-switch');
+  await page.getByRole('combobox', { name: 'Key Assembly' }).selectOption('ergogen:ceoloide/switch_choc_v1_v2');
+  await expect(page.getByRole('combobox', { name: 'Key Assembly' })).toHaveValue('ergogen:ceoloide/switch_choc_v1_v2');
   await chooseScope(page, 'matrix');
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('mx-hotswap-rgb');
-  await page.getByRole('button', { name: 'Apply preset' }).click();
+  await page.getByRole('button', { name: 'Update assembly preset' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(90);
 
   const canvas = page.getByRole('application', { name: /Board layout canvas/ });
@@ -318,19 +318,21 @@ test('matrix rows and columns are nested beneath their matrix in the CAD tree', 
   await expect(page.getByRole('button', { name: 'Select column', exact: true })).toBeVisible();
 });
 
-test('matrix diode direction is editable and survives matrix edits', async ({ page }) => {
+test('legacy matrix diode direction is editable and survives matrix edits', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Project', exact: true }).click();
-  await page.getByRole('button', { name: 'New project' }).click();
-  await placeGuidedMatrix(page);
+  await page.getByRole('treeitem', { name: /^Matrix 1/ }).click();
 
   await page.locator('summary').filter({ hasText: 'Key assembly' }).click();
+  await page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true })).toBeChecked();
   const direction = page.getByRole('combobox', { name: 'Diode direction' });
   await expect(direction).toHaveValue('row2col');
   await direction.selectOption('col2row');
   await expect(direction).toHaveValue('col2row');
   await page.getByRole('combobox', { name: 'Apply matrix preset' }).selectOption('choc-solder');
-  await page.getByRole('button', { name: 'Apply preset' }).click();
+  await page.getByRole('button', { name: 'Update assembly preset' }).click();
+  await page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'Add matrix diodes', exact: true })).toBeChecked();
   await expect(direction).toHaveValue('col2row');
 });
 
@@ -386,17 +388,15 @@ test('snaps part drags unless Alt is held and pans with Space-drag', async ({ pa
 test('previews a library footprint and keeps generator geometry in sync', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts' }).click();
-  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: /MX hotswap socket/ }).click();
+  await page.getByRole('listbox', { name: 'Footprint library' }).getByRole('option', { name: 'MX switch', exact: true }).click();
   const preview = page.getByRole('region', { name: 'Parts canvas' }).getByRole('img', { name: 'Footprint preview' });
   await expect(preview).toBeVisible();
   const before = await preview.innerHTML();
-  await page.getByRole('checkbox', { name: 'Reversible footprint' }).check();
-  await expect(page.getByRole('checkbox', { name: 'Reversible footprint' })).toBeChecked();
-  await page.getByRole('checkbox', { name: 'Include traces and vias' }).check();
-  await expect(page.getByRole('checkbox', { name: 'Include traces and vias' })).toBeChecked();
+  await page.getByRole('checkbox', { name: 'reversible', exact: true }).check();
+  await expect(page.getByRole('checkbox', { name: 'reversible', exact: true })).toBeChecked();
   await expect.poll(() => preview.innerHTML()).not.toBe(before);
   await page.getByRole('button', { name: 'Apply generator settings' }).click();
-  await expect(page.getByRole('checkbox', { name: 'Reversible footprint' })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: 'reversible', exact: true })).toBeChecked();
 });
 
 test('duplicates a matrix as a separate preset project', async ({ page }) => {

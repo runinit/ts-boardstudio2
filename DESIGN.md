@@ -531,6 +531,23 @@ rule, and an optional trailing detail. Summary rows have a 46px minimum height
 
 **The Disclosure Rule.** Separate inspector sections with quiet rules and reveal optional settings in place, preserving the selected object as the editing context.
 
+### Parts catalog
+
+New placements use one preferred entry per supported key part: Ceoloide MX,
+Choc V1/V2, Gateron KS27/KS33, matrix diode, and SK6812 MINI-E. Solder and
+hotswap are settings within a switch entry. The eight assembly presets remain;
+Choc presets explicitly identify V1 compatibility. Parts, Add component, and
+assembly selectors share these choices and searchable labels.
+
+Retired built-in key parts and the duplicate Infused Kim Choc and diode remain
+resolvable in saved projects. Existing assignments retain their current selector
+option; opening a project never replaces them. User-created and imported parts
+remain available, including similarly named parts. Internal placement snapshots
+are not separate catalog products. **Update assembly preset** is an explicit,
+undoable matrix action that refreshes its recipe and definition snapshots. Added
+rows and columns inherit that recipe; linked halves retain their own companion
+parts and existing key edits.
+
 ### Drawing and footprint workspace
 
 Board outlines and component boundaries remain separate from the slate field.

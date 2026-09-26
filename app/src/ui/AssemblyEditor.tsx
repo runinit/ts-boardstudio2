@@ -1,3 +1,4 @@
+import { partChoices, partCatalogLabel } from './partsCatalog';
 import React, { lazy, useMemo, useRef, useState } from 'react';
 import type {
   AssemblyDefinition,
@@ -216,11 +217,11 @@ export function AssemblyEditor({
                   }
                 >
                   <option value="">Visual model only</option>
-                  {definitions
+                  {partChoices(definitions, member.definitionId)
                     .filter((d) => d.kind !== 'utility')
                     .map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.name}
+                        {partCatalogLabel(d)}
                       </option>
                     ))}
                 </select>

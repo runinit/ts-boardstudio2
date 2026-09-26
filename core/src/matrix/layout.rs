@@ -129,18 +129,42 @@ pub(crate) fn reflected(source: &Matrix, target: &Matrix, axis_x: f64) -> Result
         .filter(|cell| cell.row < source.rows && cell.column < source.columns)
         .map(|cell| ((cell.row, cell.column), cell.clone()))
         .collect();
+    let local_preset = target.cells.iter().find(|cell| {
+        cell.assemblies_local == Some(true)
+            && cell.definition_id.as_deref() == Some(target.definition_id.as_str())
+            && cell
+                .variant
+                .as_deref()
+                .is_some_and(|variant| variant.starts_with("preset/"))
+    });
     for (coordinate, source_cell) in &source_cells {
-        cells.entry(*coordinate).or_insert_with(|| MatrixCell {
-            row: source_cell.row,
-            column: source_cell.column,
-            enabled: true,
-            diode: None,
-            definition_id: None,
-            variant: None,
-            offset: None,
-            rotation: None,
-            assemblies: vec![],
-            assemblies_local: None,
+        cells.entry(*coordinate).or_insert_with(|| {
+            // New keys inherit this half's saved hardware, not the other half's
+            // local companion assignments. Existing per-key overrides stay intact.
+            if (source_cell.row >= target.rows || source_cell.column >= target.columns)
+                && let Some(template) = local_preset
+            {
+                return MatrixCell {
+                    row: source_cell.row,
+                    column: source_cell.column,
+                    enabled: true,
+                    offset: None,
+                    rotation: None,
+                    ..template.clone()
+                };
+            }
+            MatrixCell {
+                row: source_cell.row,
+                column: source_cell.column,
+                enabled: true,
+                diode: None,
+                definition_id: None,
+                variant: None,
+                offset: None,
+                rotation: None,
+                assemblies: vec![],
+                assemblies_local: None,
+            }
         });
     }
     for (coordinate, cell) in &mut cells {

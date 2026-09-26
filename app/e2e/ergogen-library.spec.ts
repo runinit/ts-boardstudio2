@@ -1,8 +1,18 @@
+import { zipSync, strToU8 } from 'fflate';
+import { catalogue } from '@boardstudio/v2-ergogen';
+import { demoProject } from '../src/demo';
 import { expect, test } from '@playwright/test';
 
 for (const source of ['ceoloide/switch_choc_v1_v2', 'ceoloide/switch_gateron_ks27_ks33', 'infused-kim/choc']) {
   test(`${source} dashed outline follows the centered keycap dimensions`, async ({ page }) => {
     await page.goto('/');
+    if (source === 'infused-kim/choc') {
+      // User-owned definitions remain available even when their bundled source is retired.
+      const doc = demoProject();
+      doc.definitions.push({ ...catalogue().find(item => item.generator?.source === source)!, id: 'custom-choc' });
+      await page.getByRole('button', { name: 'Project', exact: true }).click();
+      await page.locator('.wb-project-file-input').setInputFiles({ name: 'custom-choc.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
+    }
     await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
     await page.getByRole('tab', { name: 'Parts', exact: true }).click();
     await page.getByRole('searchbox', { name: 'Search footprints' }).fill(source);
@@ -44,7 +54,7 @@ test('keycap outline resizes with settings, survives undo and reload, and leaves
   const search = page.getByRole('searchbox', { name: 'Search footprints' });
   const library = page.getByRole('listbox', { name: 'Footprint library', exact: true });
   await search.fill('ceoloide/switch_mx');
-  await library.getByRole('option', { name: /switch mx/ }).click();
+  await library.getByRole('option', { name: /MX switch/ }).click();
   const keycapBox = () => page.locator('.wb-preview-keycap').evaluate((node) => {
     const { x, y, width, height } = (node as SVGGraphicsElement).getBBox();
     return { x, y, width, height };
@@ -63,7 +73,7 @@ test('keycap outline resizes with settings, survives undo and reload, and leaves
   await page.reload();
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await search.fill('ceoloide/switch_mx');
-  await library.getByRole('option', { name: /switch mx/ }).click();
+  await library.getByRole('option', { name: /MX switch/ }).click();
   await expect.poll(keycapBox).toEqual(resized);
   await expect(page.locator('.wb-preview-courtyard')).toHaveCount(0);
   await expect(page.locator('.wb-library-workspace-scale')).toContainText('Keycap 23.0 × 19.0 mm');
@@ -76,11 +86,11 @@ test('keycap outline resizes with settings, survives undo and reload, and leaves
   await page.reload();
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await search.fill('ceoloide/switch_mx');
-  await library.getByRole('option', { name: /switch mx/ }).click();
+  await library.getByRole('option', { name: /MX switch/ }).click();
   await expect(page.getByRole('checkbox', { name: 'include_keycap', exact: true })).not.toBeChecked();
   await expect(page.locator('.wb-preview-keycap')).toHaveCount(0);
-  await search.fill('RGB LED');
-  await library.getByRole('option', { name: /^RGB LED/ }).click();
+  await search.fill('SK6812 MINI-E');
+  await library.getByRole('option', { name: /^SK6812 MINI-E/ }).click();
   await expect(page.locator('.wb-preview-keycap')).toHaveCount(0);
   await expect(page.locator('.wb-preview-courtyard')).toBeVisible();
   await expect(page.locator('.wb-library-workspace-scale')).toContainText('Dashed: courtyard');
@@ -110,7 +120,7 @@ test('saved Ergogen parameters return when switching library items', async ({ pa
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   const search = page.getByRole('searchbox', { name: 'Search footprints' });
   await search.fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).first().click();
+  await page.getByRole('option', { name: /MX switch/ }).first().click();
   await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   const traceWidth = page.getByRole('spinbutton', { name: 'Trace Width' });
   await traceWidth.fill('0.47');
@@ -118,7 +128,7 @@ test('saved Ergogen parameters return when switching library items', async ({ pa
   await search.fill('ceoloide/utility_text');
   await page.getByRole('option', { name: /utility text/ }).click();
   await search.fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).first().click();
+  await page.getByRole('option', { name: /MX switch/ }).first().click();
   if (!await page.getByRole('spinbutton', { name: 'Trace Width' }).isVisible()) await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Trace Width' })).toHaveValue('0.47');
   await page.getByRole('button', { name: 'Undo' }).click();
@@ -132,7 +142,7 @@ test('attaching a model to an unsaved generator definition stays within the work
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).first().click();
+  await page.getByRole('option', { name: /MX switch/ }).first().click();
   await page.locator('summary').filter({ hasText: '3D model placement' }).click();
   await page.getByRole('group', { name: '3D model placement' }).getByLabel('Attach STEP / STL / WRL').first().setInputFiles({ name: 'switch.step', mimeType: 'model/step', buffer: Buffer.from('not a valid STEP model') });
   await expect(page.getByRole('textbox', { name: 'switch_3dmodel_filename' })).toHaveValue(/^boardstudio-asset:/);
@@ -150,7 +160,7 @@ test('bundled MX models load and generator settings are grouped', async ({ page 
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).click();
+  await page.getByRole('option', { name: /MX switch/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText('2 / 2 models · 1.6 mm PCB', {exact:true})).toBeVisible({ timeout: 20_000 });
   const canvasBox = (await page.locator('.wb-library-model-workspace canvas').boundingBox())!;
@@ -185,7 +195,7 @@ test('model failures can retry and parts without models do not keep loading', as
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   const search = page.getByRole('searchbox', { name: 'Search footprints' });
   await search.fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).click();
+  await page.getByRole('option', { name: /MX switch/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await page.getByText('Sample PCB', {exact:true}).click();
   await expect(page.getByRole('button', { name: 'Retry models' })).toBeVisible();

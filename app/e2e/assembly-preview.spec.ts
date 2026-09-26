@@ -183,7 +183,7 @@ test('custom assembly saves member placement and places it on the board',async({
   await page.getByRole('button',{name:'New assembly',exact:true}).click();
   const editor=page.locator('.wb-assembly-editor-layout');await editor.getByRole('textbox',{name:'Name',exact:true}).fill('Test assembly');
   await editor.getByRole('button',{name:'Add component',exact:true}).click();
-  await editor.getByRole('combobox',{name:'Component',exact:true}).selectOption('mx-switch');
+  await editor.getByRole('combobox',{name:'Component',exact:true}).selectOption('ergogen:ceoloide/switch_mx');
   await editor.getByRole('button',{name:'Save assembly',exact:true}).click();await expect(editor.getByText(/Assembly saved/)).toBeVisible();
   await editor.getByRole('button',{name:'Place on selected board',exact:true}).click();
   await expect(page.getByRole('tab',{name:'Design',exact:true})).toHaveAttribute('aria-selected','true');await expect(page.getByLabel('Complete PCB assembly preview')).toBeVisible();
@@ -195,8 +195,8 @@ test('applies a configured assembly to an existing matrix with undo', async ({pa
   await page.getByRole('treeitem', {name:'Matrix 1 15 keys',exact:true}).click();
   const revision = Number(await page.locator('.wb-root').getAttribute('data-revision'));
   await page.getByRole('tab',{name:'Parts',exact:true}).click();
-  await page.getByRole('option',{name:'Choc Hotswap',exact:true}).click();
-  await page.getByRole('button',{name:'3D model',exact:true}).click();
+  await page.getByRole('option',{name:'Choc V1 Hotswap',exact:true}).click();
+  await page.getByRole('button',{name:'Customize 3D assembly',exact:true}).click();
   await page.getByRole('button',{name:'Apply to Matrix 1',exact:true}).click();
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision',String(revision + 1));
   await page.getByRole('tab',{name:'Design',exact:true}).click();

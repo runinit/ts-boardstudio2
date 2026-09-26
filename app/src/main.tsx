@@ -601,7 +601,7 @@ function App() {
     });
   }
 
-  function duplicateDesign(matrixId: string, presetId: Parameters<typeof matrixWithPreset>[1]): void {
+  function duplicateDesign(matrixId: string, presetId: Parameters<typeof matrixWithPreset>[1], orientation?: Parameters<typeof matrixWithPreset>[2]): void {
     schedule(async () => {
       if (!client.current) {
         return;
@@ -614,7 +614,7 @@ function App() {
         throw new Error('Select a matrix to duplicate the design');
       }
 
-      const variant = matrixWithPreset(matrix, presetId);
+      const variant = matrixWithPreset(matrix, presetId, orientation);
       const document: ProjectDoc = {
         ...structuredClone(original),
         id: crypto.randomUUID(),

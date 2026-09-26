@@ -2927,3 +2927,69 @@ fn replacing_matrix_switch_remaps_existing_terminal_nets_and_undoes() {
     assert_eq!(undone.nets, placed.nets);
     assert_eq!(undone.parts, placed.parts);
 }
+
+#[test]
+fn mirrored_resize_keeps_each_halves_local_preset_companions() {
+    for changed_side in [0, 1] {
+        let (mut engine, mut doc) = linked_pair();
+        for side in [0, 1] {
+            let mut matrix = doc.matrices[side].clone();
+            matrix.cells = (0..matrix.rows)
+                .flat_map(|row| {
+                    (0..matrix.columns).map(move |column| MatrixCell {
+                        row,
+                        column,
+                        enabled: true,
+                        diode: Some(false),
+                        definition_id: Some("switch".into()),
+                        variant: Some("preset/mx-rgb/south".into()),
+                        offset: None,
+                        rotation: None,
+                        assemblies_local: Some(true),
+                        assemblies: vec![MatrixAssembly {
+                            id: format!("local-{side}"),
+                            definition_id: "switch".into(),
+                            offset: Vec2 { x: 2.0, y: 3.0 },
+                            rotation: None,
+                            side: None,
+                        }],
+                    })
+                })
+                .collect();
+            doc = scene(engine.handle(edit(
+                doc.revision,
+                EditPhase::Commit,
+                EditOperation::SetMatrix {
+                    matrix,
+                    definitions: None,
+                },
+            )))
+            .1;
+        }
+        let mut matrix = doc.matrices[changed_side].clone();
+        matrix.rows = 3;
+        for column in 0..matrix.columns {
+            let mut cell = matrix.cells[0].clone();
+            cell.row = 2;
+            cell.column = column;
+            matrix.cells.push(cell);
+        }
+        doc = scene(engine.handle(edit(
+            doc.revision,
+            EditPhase::Commit,
+            EditOperation::SetMatrix {
+                matrix,
+                definitions: None,
+            },
+        )))
+        .1;
+        for side in [0, 1] {
+            let cells = &doc.matrices[side].cells;
+            assert_eq!(cells.len(), 9);
+            for cell in cells {
+                assert_eq!(cell.assemblies.len(), 1, "side {side}, row {}", cell.row);
+                assert_eq!(cell.assemblies[0].id, format!("local-{side}"));
+            }
+        }
+    }
+}

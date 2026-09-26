@@ -101,15 +101,15 @@ test('linked components keep both halves through save, reopen and geometry edits
   await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Part placement layout', exact: true }).locator('option:checked')).toHaveText('Right half');
   await page.getByRole('searchbox', { name: 'Search parts', exact: true }).fill('RGB LED');
-  await page.getByRole('dialog', { name: 'Add', exact: true }).getByRole('button', { name: 'RGB LED', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Add', exact: true }).getByRole('button', { name: 'SK6812 MINI-E', exact: true }).click();
   await page.locator('.wb-canvas').press('Enter');
   await expect(page.locator('.wb-scene-part')).toHaveCount(27);
   const saved = await archive(page);
   expect(saved.document.layouts![0].partIds).toHaveLength(1);
   expect(saved.document.layouts![1].partIds).toHaveLength(2);
-  const rightComponentId = saved.document.layouts![1].partIds.find(id => saved.document.parts.find(p => p.id === id)?.definitionId === 'rgb-led')!;
+  const rightComponentId = saved.document.layouts![1].partIds.find(id => saved.document.parts.find(p => p.id === id)?.definitionId === 'ergogen:ceoloide/led_sk6812mini-e')!;
   const rightComponent = saved.document.parts.find((part) => part.id === rightComponentId)!;
-  expect(rightComponent.definitionId).toBe('rgb-led');
+  expect(rightComponent.definitionId).toBe('ergogen:ceoloide/led_sk6812mini-e');
   const componentId = saved.document.layouts![0].partIds[0];
   const component = saved.document.parts.find((part) => part.id === componentId)!;
   expect(saved.document.definitions.find((definition) => definition.id === component.definitionId)?.name).toBe('rotary encoder ec11 ec12');

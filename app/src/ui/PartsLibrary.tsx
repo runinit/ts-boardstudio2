@@ -1,3 +1,4 @@
+import { partChoices, partCatalogSearchText, partCatalogLabel } from './partsCatalog';
 import type { PartDefinition } from '../../../contracts/src/index';
 
 export type AssemblyOption = { id: string; name: string; definitionId: string };
@@ -11,7 +12,7 @@ export function PartsLibrary({ definitions, assemblies, query, selected, onSearc
   const search = query.trim().toLowerCase();
   const matches = (text: string) => !search || text.toLowerCase().includes(search);
   const filteredAssemblies = assemblies.filter((item) => matches(`${item.name} key assembly`));
-  const groups = categories.map(([kind, name]) => ({ name, items: definitions.filter((item) => (item.kind as string) === kind && matches(`${item.name} ${kind} ${name} ${item.generator?.source ?? ''}`)) })).filter((group) => group.items.length);
+  const groups = categories.map(([kind, name]) => ({ name, items: partChoices(definitions).filter((item) => (item.kind as string) === kind && matches(`${partCatalogSearchText(item)} ${name}`)) })).filter((group) => group.items.length);
   return <div className="wb-parts-catalog">
     <h2>Parts library</h2>
     <label className="wb-library-search">Search parts<input type="search" aria-label="Search footprints" placeholder="Name or category" value={query} onChange={(event) => onSearch(event.target.value)} /></label>
@@ -20,7 +21,7 @@ export function PartsLibrary({ definitions, assemblies, query, selected, onSearc
         <div role="listbox" aria-label="Key assemblies">{filteredAssemblies.map((item) => <button role="option" aria-selected={selected === `assembly:${item.id}`} key={item.id} onClick={() => onAssembly(item.id)}>{item.name}</button>)}</div>
       </details>
       <details open><summary>Components <small>{groups.reduce((sum, group) => sum + group.items.length, 0)}</small></summary>
-        <div role="listbox" aria-label="Footprint library">{groups.map((group) => <section key={group.name} aria-label={group.name}><h3>{group.name}</h3>{group.items.map((item) => <button key={item.id} role="option" title={item.generator?.source} aria-selected={selected === item.id} onClick={() => onSelect(item.id)}>{item.name}</button>)}</section>)}</div>
+        <div role="listbox" aria-label="Footprint library">{groups.map((group) => <section key={group.name} aria-label={group.name}><h3>{group.name}</h3>{group.items.map((item) => <button key={item.id} role="option" title={item.generator?.source} aria-selected={selected === item.id} onClick={() => onSelect(item.id)}>{partCatalogLabel(item)}</button>)}</section>)}</div>
       </details>
       {!filteredAssemblies.length && !groups.length && <p>No parts match this search.</p>}
     </div>
