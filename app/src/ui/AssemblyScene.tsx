@@ -1,37 +1,23 @@
+import { defaultGasketLayout, moveGasket, gasketAnchors } from '../gasketEditing';
+import type { MechanicalGasketSupport } from '@boardstudio/v2-contracts';
+import { generationMessage, type GenerationState } from '../generationState';
 import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { BoardReference, Contour, MechanicalAssembly, MechanicalConfiguration, PcbPreview } from '@boardstudio/v2-contracts';
+import type { BoardReference, MechanicalAssembly, MechanicalConfiguration, PcbPreview } from '@boardstudio/v2-contracts';
 import type { ModelMesh } from '../modelMesh';
-import { mechanicalExplodedOffset } from './mechanicalExplode';
-import {
-  boardObject,
-  disposeScene,
-  meshGeometry,
-  pcbModelMatrix,
-} from './pcbScene';
+import { createRendererCanvas, type RendererCanvas } from '../renderClient';
 import './assembly-preview.css';
 
 export type LoadedModel = { id: string; mesh: ModelMesh };
 export type AssemblyBody = { id: string; name: string; mesh: ModelMesh };
 type AssemblyView = 'assembled' | 'exploded' | 'section';
 
-export function AssemblyScene({
-  board,
-  models,
-  bodies = [],
-  mechanical,
-  mechanicalConfiguration,
-  selectedLayer = '',
-  reference,
-  onSelect,
-  onSelectLayer,
-  colorScheme,
-}: {
+export function AssemblyScene({ board, models, bodies = [], mechanical, generation, onGasketChange, mechanicalConfiguration, selectedLayer = '', reference, onSelect, onSelectLayer, colorScheme }: {
   board: PcbPreview;
   models: LoadedModel[];
   bodies?: AssemblyBody[];
   mechanical?: MechanicalAssembly;
+  generation?: GenerationState;
+  onGasketChange?: (config: MechanicalConfiguration) => void;
   mechanicalConfiguration?: MechanicalConfiguration;
   selectedLayer?: string;
   reference?: BoardReference;
@@ -40,20 +26,10 @@ export function AssemblyScene({
   colorScheme: 'light' | 'dark';
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const runtime = useRef<{
-    scene: THREE.Scene;
-    camera: THREE.PerspectiveCamera;
-    controls: OrbitControls;
-    render: () => void;
-    fit: (direction?: THREE.Vector3) => void;
-    root?: THREE.Group;
-  }>();
-  const [ready, setReady] = useState(false),
-    [error, setError] = useState(''),
-    [hidden, setHidden] = useState<Set<string>>(new Set()),
-    [selected, setSelected] = useState(''),
-    [view, setView] = useState<AssemblyView>('assembled');
+  const renderer = useRef<RendererCanvas>();
+  const sceneRevision = useRef(0);
   const interacted = useRef(false);
+  const fitted = useRef(false);
   const fittedModels = useRef(false);
   const selectRef = useRef(onSelect);
   selectRef.current = onSelect;
@@ -61,343 +37,194 @@ export function AssemblyScene({
   selectLayerRef.current = onSelectLayer;
   const mechanicalRef = useRef(mechanical);
   mechanicalRef.current = mechanical;
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState('');
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState('');
+  const [view, setView] = useState<AssemblyView>('assembled');
+  const [displayMode, setDisplayMode] = useState<'shaded' | 'wireframe' | 'hybrid'>('hybrid');
+  const stableBodies = useRef(bodies);
+  if (bodies.length !== stableBodies.current.length || bodies.some((b,i) => b.id !== stableBodies.current[i]?.id || b.mesh.positions !== stableBodies.current[i]?.mesh.positions)) stableBodies.current = bodies;
+  const geometryBodies = stableBodies.current;
+  const stackKey = JSON.stringify(mechanical?.stack ?? []);
+  const batteryKey = JSON.stringify(mechanicalConfiguration?.battery);
+  const [preparing, setPreparing] = useState(false);
+  const [editingGaskets, setEditingGaskets] = useState(false);
+  const [gasketMessage, setGasketMessage] = useState('');
+  const [activeGasket, setActiveGasket] = useState('');
+
   useEffect(() => {
-    if (!canvas.current) return;
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({
-        canvas: canvas.current,
-        antialias: true,
-        alpha: true,
-      });
-    } catch {
-      setError('WebGL is unavailable. The 2D editor remains available.');
-      return;
-    }
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.localClippingEnabled = true;
-    const scene = new THREE.Scene(),
-      camera = new THREE.PerspectiveCamera(34, 1, 0.01, 10000);
-    camera.up.set(0, 0, 1);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x687181, 2.4));
-    const light = new THREE.DirectionalLight(0xffffff, 2.8);
-    light.position.set(-50, 50, 100);
-    scene.add(light);
-    const controls = new OrbitControls(camera, canvas.current);
-    controls.enableDamping = true;
-    let frame = 0;
-    const render = () => {
-      if (!frame)
-        frame = requestAnimationFrame(() => {
-          frame = 0;
-          const moving = controls.update();
-          renderer.render(scene, camera);
-          if (moving) render();
-        });
-    };
-    const fit = (direction = new THREE.Vector3(0.7, -0.8, 0.65)) => {
-      const root = runtime.current?.root;
-      if (!root) return;
-      root.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(root);
-      if (box.isEmpty()) return;
-      const sphere = box.getBoundingSphere(new THREE.Sphere());
-      const radius = Math.max(sphere.radius, 1);
-      const distance =
-        (radius /
-          Math.sin(
-            Math.min(
-              (camera.fov * Math.PI) / 360,
-              Math.atan(Math.tan((camera.fov * Math.PI) / 360) * camera.aspect),
-            ),
-          )) *
-        1.12;
-      controls.target.copy(sphere.center);
-      camera.position
-        .copy(sphere.center)
-        .add(direction.normalize().multiplyScalar(distance));
-      camera.near = Math.max(radius / 1000, 0.01);
-      camera.far = distance + radius * 20;
-      camera.updateProjectionMatrix();
-      controls.update();
-      render();
-    };
-    runtime.current = { scene, camera, controls, render, fit };
-    controls.addEventListener('change', render);
-    controls.addEventListener('start', () => { interacted.current = true; });
-    const resize = () => {
-      if (!canvas.current) return;
-      const w = Math.max(canvas.current.clientWidth, 1),
-        h = Math.max(canvas.current.clientHeight, 1);
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      render();
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas.current);
-    resize();
-    let down = { x: 0, y: 0 };
-    const pointerDown = (e: PointerEvent) => {
-      down = { x: e.clientX, y: e.clientY };
-    };
-    const pointerUp = (e: PointerEvent) => {
-      if (
-        Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4 ||
-        !runtime.current?.root
-      )
-        return;
-      const bounds = canvas.current!.getBoundingClientRect();
-      const ray = new THREE.Raycaster();
-      ray.setFromCamera(
-        new THREE.Vector2(
-          ((e.clientX - bounds.left) / bounds.width) * 2 - 1,
-          (-(e.clientY - bounds.top) / bounds.height) * 2 + 1,
-        ),
-        camera,
-      );
-      const hit = ray
-        .intersectObject(runtime.current.root, true)
-        .find((hit) => {
-          let p: THREE.Object3D | null = hit.object;
-          while (p) {
-            if (!p.visible) return false;
-            p = p.parent;
-          }
-          return true;
-        });
-      if (hit) {
-        let p: THREE.Object3D | null = hit.object;
-        while (p && !p.userData.reference) p = p.parent;
-        const label = p?.userData.reference ?? 'PCB';
-        setSelected(label);
-        if (mechanicalRef.current?.stack.some((layer) => layer.id === label)) selectLayerRef.current?.(label);
-        selectRef.current?.(label);
-      }
-    };
-    canvas.current.addEventListener('pointerdown', pointerDown);
-    canvas.current.addEventListener('pointerup', pointerUp);
     const element = canvas.current;
-    setReady(true);
+    if (!element) return;
+    let disposed = false;
+    setError('');
+    createRendererCanvas(element, (id) => {
+      setSelected(id);
+      if (mechanicalRef.current?.stack.some((layer) => layer.id === id) || id === 'pcb' || id === 'battery') selectLayerRef.current?.(id);
+      selectRef.current?.(id === 'pcb' ? 'PCB' : id);
+    }, () => { interacted.current = true; }).then((instance) => {
+      if (disposed) { instance.dispose(); return; }
+      renderer.current = instance;
+      setReady(true);
+    }).catch(() => {
+      if (!disposed) setError('WebGL2 could not start. The 2D editor remains available.');
+    });
     return () => {
+      disposed = true;
       setReady(false);
-      observer.disconnect();
-      element.removeEventListener('pointerdown', pointerDown);
-      element.removeEventListener('pointerup', pointerUp);
-      cancelAnimationFrame(frame);
-      controls.dispose();
-      if (runtime.current?.root) disposeScene(runtime.current.root);
-      renderer.dispose();
-      runtime.current = undefined;
+      renderer.current?.dispose();
+      renderer.current = undefined;
     };
   }, []);
-  const fitted = useRef(false);
+
   useEffect(() => {
-    const rt = runtime.current;
-    if (!ready || !rt) return;
-    const root = new THREE.Group(),
-      pcb = new THREE.Group();
-    root.add(pcb);
-    if (reference) {
-      pcb.position.set(
-        reference.pose.at.x,
-        reference.pose.at.y,
-        reference.elevation,
-      );
-      pcb.rotation.z = (reference.pose.rotation * Math.PI) / 180;
-    }
+    const current = renderer.current;
+    if (!ready || !current) return;
+    const keepCamera = fitted.current && (models.length === 0 || fittedModels.current || interacted.current);
+    const revision = ++sceneRevision.current;
     try {
-      const pcbLayerIndex = mechanical?.stack.findIndex((layer) => layer.id === 'pcb') ?? -1;
-      if (mechanical) pcb.position.z += -board.thickness + (view === 'exploded' ? mechanicalExplodedOffset(pcbLayerIndex) : 0);
-      const boardGeometry = boardObject(board, hidden);
-      if (mechanical) boardGeometry.userData.reference = 'pcb';
-      if (selectedLayer === 'pcb') {
-        boardGeometry.traverse((child) => {
-          if (!(child instanceof THREE.Mesh) || !child.material) return;
-          for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
-            if (material instanceof THREE.MeshStandardMaterial) {
-              material.emissive.set('#604613');
-              material.emissiveIntensity = 0.3;
-            }
-          }
-        });
+      setPreparing(true);
+      const packet = {
+        revision,
+        kind: 'assembly',
+        theme: colorScheme,
+        view,
+        keepCamera,
+        selectedLayer,
+        hidden: [...hidden],
+        board,
+        models,
+        bodies: geometryBodies,
+        mechanicalStack: mechanical?.stack ?? [],
+        battery: mechanicalConfiguration?.battery,
+        reference,
+      };
+      void current.setScene(packet).then(accepted => {
+      if (accepted) {
+        if (!keepCamera) fitted.current = true;
+        if (models.length > 0) fittedModels.current = true;
+        setError('');
+        setPreparing(false);
       }
-      pcb.add(boardGeometry);
-      const cache = new Map<ModelMesh, THREE.BufferGeometry>();
-      for (const loaded of models) {
-        const model = board.models.find((m) => m.id === loaded.id);
-        if (!model) continue;
-        let geometry = cache.get(loaded.mesh);
-        if (!geometry) {
-          geometry = meshGeometry(loaded.mesh);
-          cache.set(loaded.mesh, geometry);
-        }
-        const material = new THREE.MeshStandardMaterial({
-          color: loaded.mesh.colors ? '#ffffff' : '#aeb7c2',
-          vertexColors: Boolean(loaded.mesh.colors),
-          roughness: 0.55,
-          metalness: 0.12,
-        });
-        const object = new THREE.Mesh(geometry, material);
-        object.applyMatrix4(pcbModelMatrix(model, board.thickness));
-        object.userData.reference = model.reference;
-        object.visible =
-          !hidden.has('Models') &&
-          !hidden.has(model.id) &&
-          !(/keycap/i.test(model.path) && hidden.has('Keycaps'));
-        pcb.add(object);
-      }
-      const layerOrder = new Map((mechanical?.stack ?? []).map((layer, index) => [layer.id, index]));
-      for (const body of bodies) {
-        const layerIndex = layerOrder.get(body.id);
-        const isMechanical = layerIndex !== undefined;
-        const isSelectedLayer = isMechanical && selectedLayer === body.id;
-        const isFoam = /foam|gasket/i.test(body.id);
-        const object = new THREE.Mesh(
-          meshGeometry(body.mesh),
-          new THREE.MeshStandardMaterial({
-            color: isSelectedLayer ? '#d8a63d' : isFoam ? '#8e5aa5' : isMechanical && /plate/i.test(body.id) ? '#559077' : colorScheme === 'dark' ? '#a2aaba' : '#adb6c3',
-            roughness: 0.68,
-            transparent: isFoam,
-            opacity: isFoam ? 0.62 : 1,
-            emissive: isSelectedLayer ? '#604613' : '#000000',
-          }),
-        );
-        object.position.z = isMechanical && view === 'exploded' ? mechanicalExplodedOffset(layerIndex ?? -1) : 0;
-        object.userData.reference = body.id;
-        object.visible = !hidden.has(body.id);
-        root.add(object);
-      }
-      if (mechanical) {
-        const battery = mechanicalConfiguration?.battery;
-        if (battery) {
-          const object = new THREE.Mesh(new THREE.BoxGeometry(battery.size.x, battery.size.y, battery.size.z), new THREE.MeshStandardMaterial({ color: selectedLayer === 'battery' ? '#d8a63d' : '#c77d45', roughness: 0.7, emissive: selectedLayer === 'battery' ? '#604613' : '#000000' }));
-          const batteryLayer = mechanical.stack.find((layer) => layer.id === 'battery');
-          object.position.set(battery.at.x, battery.at.y, batteryLayer ? batteryLayer.z + batteryLayer.thickness / 2 : battery.size.z / 2);
-          if (view === 'exploded') object.position.z += mechanicalExplodedOffset(layerOrder.get('battery') ?? -1);
-          object.userData.reference = 'battery';
-          object.visible = !hidden.has('battery');
-          root.add(object);
-          const cable = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(battery.at.x, battery.at.y, object.position.z), new THREE.Vector3(battery.cableExit.x, battery.cableExit.y, object.position.z)]), new THREE.LineBasicMaterial({ color: '#cf5b4d' }));
-          cable.userData.reference = 'battery';
-          cable.visible = !hidden.has('battery');
-          root.add(cable);
-        }
-      }
-      if (view === 'section') {
-        const points = board.contours.flatMap((contour) => contour.points);
-        const centreX = points.length ? (Math.min(...points.map((point) => point.x)) + Math.max(...points.map((point) => point.x))) / 2 : 0;
-        const plane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), centreX);
-        root.traverse((object) => {
-          const mesh = object as THREE.Mesh;
-          if (!mesh.material) return;
-          for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.clippingPlanes = [plane];
-        });
-      }
-      const previous = rt.root;
-      rt.scene.add(root);
-      rt.root = root;
-      if (previous) {
-        rt.scene.remove(previous);
-        disposeScene(previous);
-      }
-      if (!fitted.current || (models.length > 0 && !fittedModels.current && !interacted.current)) {
-        rt.fit();
-        fitted.current = true;
-      }
-      if (models.length > 0) fittedModels.current = true;
-      rt.render();
-      setError('');
+      }).catch(cause => { setError(String(cause)); setPreparing(false); });
     } catch (cause) {
-      disposeScene(root);
-      setError(String(cause));
+      setError(cause instanceof Error ? cause.message : 'The assembly preview could not be updated.');
     }
-  }, [ready, board, models, bodies, reference, hidden, colorScheme, mechanical, mechanicalConfiguration, selectedLayer, view]);
-  const toggle = (id: string) =>
-    setHidden((old) => {
-      const next = new Set(old);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  }, [ready, board, models, geometryBodies, reference, stackKey, batteryKey]);
+
+  useEffect(() => {
+    renderer.current?.setState({ hidden: [...hidden, ...(!editingGaskets ? ['GasketHandles'] : [])], selectedLayer, view, mode: displayMode, theme: colorScheme });
+  }, [ready, hidden, selectedLayer, view, displayMode, colorScheme, editingGaskets]);
+
+  useEffect(() => {
+    const current = renderer.current;
+    if (!current || !ready || !mechanical || !mechanicalConfiguration) return;
+    const original = mechanical.gasketSupports ?? [];
+    const z = mechanical.stack.find(layer => layer.id === 'retainer');
+    const handleZ = z ? z.z + z.thickness + 0.7 : 9;
+    const handles = (supports: MechanicalGasketSupport[], invalid = false) => supports.map(support => ({ ...support, z: handleZ, invalid }));
+    current.setHandles(editingGaskets ? handles(original) : []);
+    let moving = '';
+    let pending = original;
+    let valid = true;
+    current.setDrag(editingGaskets ? {
+      start(id) {
+        if (!id.startsWith('gasket-handle:')) return undefined;
+        moving = id.slice('gasket-handle:'.length);
+        setActiveGasket(moving);
+        pending = original;
+        return handleZ;
+      },
+      move(point) {
+        const next = moveGasket(point, moving, original, mechanical.gasketTracks ?? []);
+        valid = Boolean(next);
+        if (next) pending = next;
+        current.setHandles(handles(pending, !valid));
+        setGasketMessage(valid ? 'Release to save positions · Generate updates the solids' : 'That position is blocked · move along the perimeter');
+      },
+      end(cancelled) {
+        if (!cancelled && valid && pending !== original && onGasketChange) {
+          const layout = mechanicalConfiguration.gasketLayout ?? defaultGasketLayout();
+          onGasketChange({ ...mechanicalConfiguration, gasketLayout: { ...layout, supports: gasketAnchors(layout, original, pending) } });
+        } else current.setHandles(handles(original));
+        setGasketMessage(cancelled ? 'Move cancelled' : !valid ? 'Blocked move was not saved' : '');
+        moving = '';
+      },
+    } : undefined);
+    return () => current.setDrag(undefined);
+  }, [ready, editingGaskets, mechanical, mechanicalConfiguration, onGasketChange]);
+
+  const unlinkGasket = () => {
+    if (!mechanical || !mechanicalConfiguration || !onGasketChange) return;
+    const original = mechanical.gasketSupports ?? [];
+    const next = original.map(support => support.id === activeGasket || support.pairId === activeGasket ? { ...support, unlinked: true } : support);
+    const layout = mechanicalConfiguration.gasketLayout ?? defaultGasketLayout();
+    onGasketChange({ ...mechanicalConfiguration, gasketLayout: { ...layout, supports: gasketAnchors(layout, original, next) } });
+  };
+
+  const toggle = (id: string) => setHidden((old) => {
+    const next = new Set(old);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
   const controls = [
     ['PCB', 'PCB'],
     ['Copper', 'Copper'],
+    ['Mask', 'Mask openings'],
     ['Silkscreen', 'Silkscreen'],
     ['Models', 'Models'],
     ['Keycaps', 'Keycaps'],
-    ...bodies.map((b) => [b.id, b.name]),
+    ...bodies.map((body) => [body.id, body.name]),
     ...(mechanical?.stack ?? []).map((layer) => layer.id === 'pcb' ? ['PCB', 'PCB'] : [layer.id, layer.id]),
   ].filter(([id], index, all) => all.findIndex(([candidate]) => candidate === id) === index);
-  return (
-    <div
-      className="wb-assembly-scene"
-      aria-label="Complete PCB assembly preview"
-    >
-      <canvas
-        ref={canvas}
-        aria-label="3D PCB assembly. Drag to orbit, scroll to zoom."
-      />
-      <details className="wb-assembly-layers">
-        <summary>Visibility</summary>
-        {controls.map(([id, label]) => (
-          <label key={id}>
-            <input
-              type="checkbox"
-              checked={!hidden.has(id)}
-              onChange={() => toggle(id)}
-            />
-            {label}
-          </label>
-        ))}
-        <details>
-          <summary>Components ({board.models.length})</summary>
-          {board.models.map((m) => (
-            <label key={m.id}>
-              <input
-                type="checkbox"
-                checked={!hidden.has(m.id)}
-                onChange={() => toggle(m.id)}
-              />
-              {m.reference} · {m.path.split('/').pop()}
-            </label>
-          ))}
-        </details>
+  const generatedBodyCount = mechanical
+    ? bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length
+    : 0;
+  const solidsBlocked = mechanical?.generationBlocked ?? false;
+  const hasManufacturingFindings = mechanical?.diagnostics.some((finding) => finding.severity === 'error') ?? false;
+  const showView = (preset: 'fit' | 'top' | 'bottom' | 'isometric') => {
+    renderer.current?.view(preset);
+    interacted.current = preset !== 'fit' ? interacted.current : false;
+    if (preset === 'fit') fitted.current = true;
+  };
+
+  return <div className="wb-assembly-scene" aria-label="Complete PCB assembly preview">
+    <canvas ref={canvas} aria-label="3D PCB assembly. Drag to orbit, scroll to zoom." />
+    <details className="wb-assembly-layers">
+      <summary>Visibility</summary>
+      {controls.map(([id, label]) => <label key={id}>
+        <input type="checkbox" checked={!hidden.has(id)} onChange={() => toggle(id)} />
+        {label}
+      </label>)}
+      <details>
+        <summary>Components ({board.models.length})</summary>
+        {board.models.map((model) => <label key={model.id}>
+          <input type="checkbox" checked={!hidden.has(model.id)} onChange={() => toggle(model.id)} />
+          {model.reference} · {model.path.split('/').pop()}
+        </label>)}
       </details>
-      <div
-        className="wb-assembly-controls"
-        role="group"
-        aria-label="Assembly camera"
-      >
-        <button onClick={() => runtime.current?.fit()}>Fit</button>
-        <button
-          onClick={() => runtime.current?.fit(new THREE.Vector3(0, 0, 1))}
-        >
-          Top
-        </button>
-        <button
-          onClick={() => runtime.current?.fit(new THREE.Vector3(0, 0, -1))}
-        >
-          Bottom
-        </button>
-        <button onClick={() => runtime.current?.fit()}>Isometric</button>
-      </div>
-      {mechanical && <div className="wb-mechanical-view-controls" role="group" aria-label="Mechanical assembly view">
-        <button aria-pressed={view === 'assembled'} onClick={() => setView('assembled')}>Assembled</button>
-        <button aria-pressed={view === 'exploded'} onClick={() => setView('exploded')}>Exploded</button>
-        <button aria-pressed={view === 'section'} onClick={() => setView('section')}>Section</button>
-      </div>}
-      {mechanical && <output role="status" className="wb-mechanical-preview-status">{bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length === mechanical.case.bodies.length ? `Generated CAD solids · ${mechanical.case.bodies.length} parts at revision ${mechanical.revision}` : `Building generated solids… ${bodies.filter((body) => mechanical.case.bodies.some((entry) => entry.body.id === body.id)).length}/${mechanical.case.bodies.length} parts at revision ${mechanical.revision}`}</output>}
-      {view === 'section' && <output className="wb-mechanical-section-label">Section at board centre · half removed</output>}
-      <output className="wb-assembly-caption">
-        {selected ||
-          `${models.length} / ${board.models.length} models · ${board.thickness} mm PCB`}
-      </output>
-      {error && (
-        <p className="wb-assembly-error" role="alert">
-          {error}
-        </p>
-      )}
+    </details>
+    <div className="wb-render-modes" role="group" aria-label="Display mode">
+      {(['shaded', 'wireframe', 'hybrid'] as const).map(mode => <button key={mode} aria-pressed={displayMode === mode} onClick={() => setDisplayMode(mode)}>{mode[0].toUpperCase() + mode.slice(1)}</button>)}
     </div>
-  );
+    {preparing && <span role="status" className="wb-scene-preparing">Preparing 3D geometry…</span>}
+    <div className="wb-assembly-controls" role="group" aria-label="Assembly camera">
+      <button disabled={!ready} onClick={() => showView('fit')}>Fit</button>
+      <button disabled={!ready} onClick={() => showView('top')}>Top</button>
+      <button disabled={!ready} onClick={() => showView('bottom')}>Bottom</button>
+      <button disabled={!ready} onClick={() => showView('isometric')}>Isometric</button>
+    </div>
+    {mechanical && <div className="wb-mechanical-view-controls" role="group" aria-label="Mechanical assembly view">
+      <button aria-pressed={view === 'assembled'} onClick={() => setView('assembled')}>Assembled</button>
+      <button aria-pressed={view === 'exploded'} onClick={() => setView('exploded')}>Exploded</button>
+      <button aria-pressed={view === 'section'} onClick={() => setView('section')}>Section</button>
+      {Boolean(mechanical.gasketSupports?.length) && <button aria-pressed={editingGaskets} onClick={() => { setEditingGaskets(value => !value); setGasketMessage(editingGaskets ? '' : 'Drag a gasket handle along the perimeter · linked supports move together'); setView('assembled'); renderer.current?.view('top'); }}>Edit gaskets</button>}
+      {editingGaskets && activeGasket && <button onClick={unlinkGasket}>Unlink selected support</button>}
+    </div>}
+    {mechanical && <output role="status" className="wb-mechanical-preview-status">{generation && generation.status !== 'ready' ? `${generationMessage(generation)}${bodies.length ? ' · showing previous geometry' : ''}` : solidsBlocked ? 'Case solids blocked · see mechanical diagnostics' : generatedBodyCount === mechanical.case.bodies.length ? `Generated CAD solids${hasManufacturingFindings ? ' · manufacturing findings to review' : ''} · ${mechanical.case.bodies.length} parts at revision ${mechanical.revision}` : 'Generate required'}</output>}
+    {gasketMessage && <output className="wb-gasket-message" role="status">{gasketMessage}</output>}
+    {view === 'section' && <output className="wb-mechanical-section-label">Section at board centre · half removed</output>}
+    <output className="wb-assembly-caption">{selected || `${models.length} / ${board.models.length} models · ${board.thickness} mm PCB`}</output>
+    {error && <p className="wb-assembly-error" role="alert">{error}</p>}
+  </div>;
 }

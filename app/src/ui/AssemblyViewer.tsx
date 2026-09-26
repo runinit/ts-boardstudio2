@@ -1,8 +1,10 @@
+import type { GenerationState } from '../generationState';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   BoardReference,
   Contour,
   MechanicalAssembly,
+  MechanicalConfiguration,
   PcbPreview,
   ProjectDoc,
 } from '@boardstudio/v2-contracts';
@@ -29,6 +31,8 @@ export function AssemblyViewer({
   contours,
   bodies = noBodies,
   mechanical,
+  generation,
+  onGasketChange,
   selectedLayer,
   onSelectLayer,
   onSelect,
@@ -40,6 +44,8 @@ export function AssemblyViewer({
   contours: Contour[];
   bodies?: AssemblyBody[];
   mechanical?: MechanicalAssembly;
+  generation?: GenerationState;
+  onGasketChange?: (config: MechanicalConfiguration) => void;
   selectedLayer?: string;
   onSelectLayer?: (id: string) => void;
   onSelect?: (reference: string) => void;
@@ -73,6 +79,8 @@ export function AssemblyViewer({
       `models/preview/${index}.${(document.assets.find((a) => a.id === id)?.name ?? bundledModel(id)?.filename ?? 'model.step').split('.').pop()}`,
     ]);
   }, [document.assets, document.definitions]);
+  const pcbKey = JSON.stringify({ board: document.boards.find(b => b.id === boardId), parts: document.parts,
+    definitions: document.definitions, assets: document.assets, contours, reference, paths });
   useEffect(
     () => () => {
       client.current?.close();
@@ -186,7 +194,7 @@ export function AssemblyViewer({
     return () => {
       current = false;
     };
-  }, [document, boardId, contours, paths, reference, attempt]);
+  }, [pcbKey, attempt]);
   return (
     <div className="wb-assembly-view">
       {board && (
@@ -195,6 +203,8 @@ export function AssemblyViewer({
           models={models}
           bodies={bodies}
           mechanical={mechanical}
+          generation={generation}
+          onGasketChange={onGasketChange}
           mechanicalConfiguration={document.mechanical}
           selectedLayer={selectedLayer}
           onSelectLayer={onSelectLayer}

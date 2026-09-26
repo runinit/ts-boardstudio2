@@ -2,6 +2,7 @@
 import type { CaseOpening } from "./CaseOpening";
 import type { MechanicalPcbHole } from "./MechanicalPcbHole";
 import type { MechanicalProfileSource } from "./MechanicalProfileSource";
+import type { MechanicalSwitchFamily } from "./MechanicalSwitchFamily";
 import type { Vec2 } from "./Vec2";
 
-export type MechanicalPartProfile = { sourceGeometry?: MechanicalProfileSource, pcbHoles?: Array<MechanicalPcbHole>, clearanceVolumes?: Array<CaseOpening>, openings?: Array<CaseOpening>, clearances?: Array<Array<Vec2>>, supportedThickness?: Vec2, definitionId: string, source: string, cutouts: Array<Array<Vec2>>, plateToPcb: number, };
+export type MechanicalPartProfile = { sourceGeometry?: MechanicalProfileSource, pcbHoles?: Array<MechanicalPcbHole>, clearanceVolumes?: Array<CaseOpening>, openings?: Array<CaseOpening>, clearances?: Array<Array<Vec2>>, supportedThickness?: Vec2, switchFamily?: MechanicalSwitchFamily, definitionId: string, source: string, cutouts: Array<Array<Vec2>>, plateToPcb: number, };

@@ -1,5 +1,23 @@
 import { expect, test } from '@playwright/test';
 
+test('Design keeps its 2D canvas usable when WebGL2 is unavailable', async ({ page }) => {
+  await page.addInitScript(() => {
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value: function (type: string, ...args: unknown[]) {
+        if (type === 'webgl2') return null;
+        return Reflect.apply(originalGetContext, this, [type, ...args]);
+      },
+    });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: '3D assembly', exact: true }).click();
+  await expect(page.getByText('WebGL2 could not start. The 2D editor remains available.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '2D', exact: true }).click();
+  await expect(page.getByRole('application', { name: /Board layout canvas/ })).toBeVisible();
+});
+
 for (const theme of ['dark', 'light'] as const) {
   test(`${theme} Case preview uses one set of working 3D controls across viewport sizes`, async ({ page }) => {
     test.setTimeout(60_000);
@@ -7,7 +25,8 @@ for (const theme of ['dark', 'light'] as const) {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
     await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
-    await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
+    await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
     await expect(page.locator('.wb-assembly-scene canvas')).toBeVisible();
 
     // Case owns the camera: no duplicate 2D zoom, axes, scale or snap claims.

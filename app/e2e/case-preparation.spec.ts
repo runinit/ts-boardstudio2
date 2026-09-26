@@ -22,12 +22,25 @@ test('lazily loads CAD and prepares a current case preview and STEP export offli
   await page.goto('/');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await expect.poll(() => wasmRequests.size).toBeGreaterThan(0);
+  expect([...wasmRequests].some((url) => /boardstudio_renderer_wasm_bg/i.test(url))).toBe(false);
   const wasmBeforeCase = wasmRequests.size;
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => wasmRequests.size).toBeGreaterThan(wasmBeforeCase);
+  await expect(page.locator('.wb-assembly-scene canvas')).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Assembly camera' }).getByRole('button', { name: 'Fit', exact: true })).toBeEnabled();
+  const rendererTiming = await page.evaluate(() => {
+    const wasm = performance.getEntriesByName('boardstudio.renderer.wasm.cold-start').at(-1);
+    const canvas = performance.getEntriesByName('boardstudio.renderer.canvas.cold-start').at(-1);
+    const resource = performance.getEntriesByType('resource').find((entry) => /boardstudio_renderer_wasm_bg/i.test(entry.name));
+    return { wasmInitMs: wasm?.duration ?? NaN, canvasSceneMs: canvas?.duration ?? NaN, transferMs: resource?.duration ?? NaN, bytes: resource?.encodedBodySize ?? NaN };
+  });
+  expect(rendererTiming.canvasSceneMs).toBeGreaterThan(0);
+  console.info(`Renderer WASM cold start: ${JSON.stringify(rendererTiming)}`);
   await page.getByRole('combobox', { name: 'Body type' }).selectOption('tray');
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '1');
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
 
   const requests = await page.evaluate(() => (window as typeof window & { __casePreparationRequests: unknown[] }).__casePreparationRequests);
@@ -85,6 +98,7 @@ test('lazily loads CAD and prepares a current case preview and STEP export offli
   await page.reload();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
 
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();

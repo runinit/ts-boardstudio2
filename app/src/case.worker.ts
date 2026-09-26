@@ -1,9 +1,11 @@
 import type { CaseResult, PreparedCaseAssemblyIR } from '@boardstudio/v2-contracts';
-import { buildAssembly, readStepModel } from '@boardstudio/v2-cad';
-import type { StepModel } from '@boardstudio/v2-cad';
+import { buildAssembly, readStepModel, previewAssembly } from '@boardstudio/v2-cad';
+import type { StepModel, CasePreviewResult, CadProgress } from '@boardstudio/v2-cad';
 
-type CaseMessage = { id: string; kind: 'case'; ir: PreparedCaseAssemblyIR } | { id: string; kind: 'model'; bytes: Uint8Array };
+type CaseMessage = { id: string; kind: 'case' | 'preview'; ir: PreparedCaseAssemblyIR } | { id: string; kind: 'model'; bytes: Uint8Array };
 type CaseReply =
+  | { id: string; kind: 'progress'; progress: CadProgress }
+  | { id: string; kind: 'preview'; result: CasePreviewResult }
   | { id: string; kind: 'case'; result: CaseResult }
   | { id: string; kind: 'model'; result: StepModel }
   | { id: string; kind: 'error'; message: string; revision: number };
@@ -22,6 +24,12 @@ async function handle(message: CaseMessage): Promise<void> {
       return;
     }
 
+    if (message.kind === 'preview') {
+      const result = await previewAssembly(message.ir, progress => self.postMessage({ id, kind: 'progress', progress }));
+      self.postMessage({ id, kind: 'preview', result }, [result.mesh.positions.buffer, result.mesh.normals.buffer,
+        ...(result.bodies ?? []).flatMap(body => [body.positions.buffer, body.normals.buffer])]);
+      return;
+    }
     const result = await buildAssembly(message.ir);
     const reply: CaseReply = { id, kind: 'case', result };
 
@@ -31,7 +39,7 @@ async function handle(message: CaseMessage): Promise<void> {
       id,
       kind: 'error',
       message: cause instanceof Error ? cause.message : String(cause),
-      revision: message.kind === 'case' ? message.ir.revision : 0,
+      revision: message.kind !== 'model' ? message.ir.revision : 0,
     };
 
     self.postMessage(reply);

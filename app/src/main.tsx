@@ -8,13 +8,15 @@ import { catalogue as ergogenCatalogue, isErgogen, modelBindings, normalizeDefin
 import type { StepModel } from '@boardstudio/v2-cad';
 import { CoreClient } from './CoreClient';
 import { CaseClient } from './CaseClient';
-import { buildCasePreview } from './buildCasePreview';
-import { casePreviewContextMatches, currentCaseResult } from './casePreviewContext';
+import type { CasePreviewResult } from '@boardstudio/v2-cad';
+import type { GenerationState } from './generationState';
+import { casePreviewContextMatches } from './casePreviewContext';
 import type { CasePreviewContext, ContextualCaseResult } from './casePreviewContext';
 import { prepareCase } from './prepareCase';
 import { resolveMechanical } from './resolveMechanical';
 import { exportMechanicalAssembly } from './exportMechanicalAssembly';
 import { ExportClient } from './ExportClient';
+import { normalizeMechanicalConfiguration } from './mechanicalPresets';
 import { demoProject } from './demo';
 import { activeProjectId, loadAsset, loadProject, packProject, saveAsset, saveProject, unpackProject } from './storage';
 import { bundledModelBytes, bundledModel } from './bundledModels';
@@ -119,9 +121,11 @@ function App() {
   const [scene, setScene] = useState<SceneDelta>(EMPTY_SCENE);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
-  const [casePreview, setCasePreview] = useState<ContextualCaseResult<CaseResult> | undefined>();
+  const [casePreview, setCasePreview] = useState<ContextualCaseResult<CasePreviewResult> | undefined>();
   const [mechanicalAssembly, setMechanicalAssembly] = useState<ContextualCaseResult<MechanicalAssembly> | undefined>();
-  const [mechanicalRefresh, setMechanicalRefresh] = useState(0);
+  const [generation, setGeneration] = useState<GenerationState>({ status: 'required' });
+  const generationSeq = useRef(0);
+  const generationRunning = useRef(false);
   const [modelErrors, setModelErrors] = useState<Record<string, string>>({});
   const [modelMeshes, setModelMeshes] = useState<Record<string, StepModel>>({});
   const [libraryDefinitionId, setLibraryDefinitionId] = useState('');
@@ -143,8 +147,8 @@ function App() {
   };
   const currentPreviewContext = useRef(previewContext);
   currentPreviewContext.current = previewContext;
-  const visibleCasePreview = currentCaseResult(casePreview, previewContext);
-  const visibleMechanicalAssembly = currentCaseResult(mechanicalAssembly, previewContext);
+  const visibleCasePreview = casePreview?.context.documentId === project.id && casePreview.context.boardId === selectedBoardId ? casePreview.result : undefined;
+  const visibleMechanicalAssembly = mechanicalAssembly?.context.documentId === project.id && mechanicalAssembly.context.boardId === selectedBoardId ? mechanicalAssembly.result : undefined;
   const queue = useRef<Promise<void>>(Promise.resolve());
 
   function ensureExportClient(): ExportClient {
@@ -206,6 +210,9 @@ function App() {
       const saved = await loadProject(activeProjectId(STARTER_ID));
       const loaded = saved ?? demoProject();
       const document = { ...loaded, definitions: loaded.definitions.map((definition) => normalizeDefinition(definition)) };
+      if (document.mechanical) {
+        document.mechanical = normalizeMechanicalConfiguration(document, document.mechanical);
+      }
       const reply = await core.request({ id: crypto.randomUUID(), kind: 'open', document });
 
       await accept(reply, 'open');
@@ -224,6 +231,13 @@ function App() {
   }, []);
 
   useEffect(() => {
+    generationSeq.current += 1;
+    if (generationRunning.current) { caseClient.current?.cancel(); generationRunning.current = false; }
+    setGeneration(casePreview?.context.documentId === project.id && casePreview.context.boardId === selectedBoardId && casePreview.result.revision === project.revision
+      ? { status: 'ready', revision: project.revision } : { status: 'required' });
+  }, [project, scene, selectedBoardId]);
+
+  useEffect(() => {
     const sequence = ++caseSeq.current;
     const context = currentPreviewContext.current;
     const isCurrent = () => sequence === caseSeq.current && casePreviewContextMatches(context, {
@@ -232,9 +246,6 @@ function App() {
     if (activeMode !== 'Case') {
       return;
     }
-
-    setCasePreview(undefined);
-    setMechanicalAssembly(undefined);
 
     const boardReady = scene.boardReadiness.find((entry) => entry.boardId === selectedBoardId);
 
@@ -250,39 +261,76 @@ function App() {
     }
 
     const timer = setTimeout(async () => {
-      caseClient.current ??= new CaseClient();
-      let ir = caseAssembly(project, scene, selectedBoardId);
-
       try {
         if (generated) {
           const contours = scene.boardContours.find((entry) => entry.boardId === selectedBoardId)?.contours ?? [];
           const assembly = await resolveMechanical(client.current!, project, contours, isCurrent);
           if (!assembly) return;
           setMechanicalAssembly({ context, result: assembly });
-          if (assembly.diagnostics.some((finding) => finding.severity === 'error')) {
-            setCasePreview(undefined);
+          if (assembly.generationBlocked) {
+            setGeneration({ status: 'blocked' });
             return;
           }
-          ir = assembly.case;
         } else {
           setMechanicalAssembly(undefined);
-        }
-        const result = await buildCasePreview(client.current!, caseClient.current, ir, isCurrent);
-        if (result && isCurrent()) {
-          setCasePreview({ context, result });
         }
       } catch (cause) {
         if (isCurrent()) {
           setError(String(cause));
         }
       }
-    }, 350);
+    }, 100);
 
     return () => {
       clearTimeout(timer);
       if (sequence === caseSeq.current) caseSeq.current += 1;
     };
-  }, [activeMode, ready, project, scene, selectedBoardId, mechanicalRefresh]);
+  }, [activeMode, ready, project, scene, selectedBoardId]);
+
+  function cancelGeneration(): void {
+    generationSeq.current += 1;
+    generationRunning.current = false;
+    caseClient.current?.cancel();
+    setGeneration({ status: 'cancelled' });
+  }
+
+  async function generateCase(): Promise<void> {
+    if (generationRunning.current) return;
+    const context = currentPreviewContext.current;
+    const document = projectRef.current;
+    const sequence = ++generationSeq.current;
+    const isCurrent = () => sequence === generationSeq.current && casePreviewContextMatches(context, currentPreviewContext.current);
+    generationRunning.current = true;
+    setGeneration({ status: 'preparing', revision: document.revision });
+    try {
+      // Allow the progress state to paint before scheduling preparation.
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+      let ir = caseAssembly(document, context.scene, context.boardId);
+      if (document.mechanical?.boardId === context.boardId) {
+        const contours = context.scene.boardContours.find(entry => entry.boardId === context.boardId)?.contours ?? [];
+        const assembly = await resolveMechanical(client.current!, document, contours, isCurrent);
+        if (!assembly || !isCurrent()) return;
+        setMechanicalAssembly({ context, result: assembly });
+        if (assembly.generationBlocked) { setGeneration({ status: 'blocked' }); return; }
+        ir = assembly.case;
+      }
+      const prepared = await prepareCase(client.current!, ir);
+      if (!isCurrent()) return;
+      caseClient.current ??= new CaseClient();
+      const started = performance.now();
+      const result = await caseClient.current.preview(prepared, progress => {
+        if (isCurrent()) setGeneration({ status: 'running', revision: document.revision, progress });
+      });
+      if (!isCurrent()) return;
+      performance.measure('boardstudio.cad.preview', { start: started, end: performance.now() });
+      setCasePreview({ context, result });
+      setGeneration({ status: 'ready', revision: result.revision });
+    } catch (cause) {
+      if (isCurrent()) setGeneration({ status: 'failed', message: String(cause) });
+    } finally {
+      if (sequence === generationSeq.current) generationRunning.current = false;
+    }
+  }
 
   const requestModels = useCallback((definitionIds: string[], instances: Part[] = []) => {
     const document = projectRef.current;
@@ -717,6 +765,7 @@ function App() {
       const document = projectRef.current;
       const resolved = committedScene.current;
       const configuration = document.mechanical;
+      if (generation.status !== 'ready' || generation.revision !== document.revision) throw new Error('Generate the current geometry before export');
       if (!configuration || configuration.boardId !== selectedBoardId) {
         throw new Error('Enable a mechanical assembly for the selected board before export');
       }
@@ -762,7 +811,9 @@ function App() {
       casePreview={visibleCasePreview && { revision: visibleCasePreview.revision, ...visibleCasePreview.mesh }}
       caseBodies={visibleCasePreview?.bodies}
       mechanicalAssembly={project.mechanical?.boardId === selectedBoardId ? visibleMechanicalAssembly : undefined}
-      onResolveMechanical={() => setMechanicalRefresh((value) => value + 1)}
+      onResolveMechanical={() => { void generateCase(); }}
+      onCancelGeneration={cancelGeneration}
+      generation={generation}
       onExportMechanical={exportMechanical}
       onMechanicalProfile={requestMechanicalProfile}
       onExtractMechanicalProfile={extractMechanicalProfile}

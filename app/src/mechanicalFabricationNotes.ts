@@ -2,6 +2,7 @@ import type { MechanicalAssembly, MechanicalConfiguration } from '@boardstudio/v
 
 /** Record explicit fit allowances so a CAM operator does not apply them twice. */
 export function mechanicalFabricationNotes(config: MechanicalConfiguration, assembly: MechanicalAssembly): string {
+  const hardware = [...(config.hardware ?? []), ...(assembly.generatedHardware ?? [])];
   const mounts = assembly.case.bodies.find(body => body.body.id === 'plate')?.body.mounts ?? [];
   return `# Mechanical fabrication specification
 
@@ -22,11 +23,13 @@ The assembled STEP includes a nominal, unpopulated PCB reference. Component soli
 ${config.method === 'pcb-fr4' ? 'Plate substrate: FR4, no copper or plated holes. Confirm grade, finish and thickness tolerance with the fabricator.' : 'Material grade, finish and mechanical properties must be selected with the fabricator; no material grade is inferred from the process choice.'}
 Plate mounting holes: ${mounts.length ? mounts.map(mount => `${mount.id}: diameter ${mount.holeDiameter} mm at (${mount.at.x}, ${mount.at.y}) mm`).join('; ') : 'none'}.
 Hardware specifications (metadata only; threads are not modeled):
-${config.hardware?.map(item => `- ${item.id}: ${item.quantity} × ${item.designation}; thread ${item.thread}; length ${item.length} mm; part ${item.partId}, mount ${item.featureId}${item.tolerance ? `; tolerance ${item.tolerance}` : ''}${item.notes ? `; ${item.notes}` : ''}`).join('\n') || '- No hardware specifications recorded.'}
+${hardware.map(item => `- ${item.id}: ${item.quantity} × ${item.designation}; thread ${item.thread}; length ${item.length} mm; part ${item.partId}, mount ${item.featureId}${item.tolerance ? `; tolerance ${item.tolerance}` : ''}${item.notes ? `; ${item.notes}` : ''}`).join('\n') || '- No hardware specifications recorded.'}
 Fastener compatibility, washers, inserts, torque, gasket material and adhesive specifications are not inferred from hole diameter. Review recorded hardware against the assembled stack before ordering.
 
 Per-part process specifications:
 ${config.partProcesses?.map(part => `- ${part.partId}: ${part.method}; material ${part.material}; finished thickness ${part.thickness} mm; constraint set ${part.constraintsVersion}`).join('\n') || '- No per-part overrides.'}
+
+${config.mount === 'gasket' ? `Gasket stock: EVA, ${config.gasketLayout?.thickness ?? 2} mm uncompressed; ${100 * (config.gasketLayout?.compression ?? 0.15)}% nominal assembly compression. Exported assembly strips depict compressed thickness; cut the strip outlines from the specified uncompressed stock.` : ''}
 
 ## Critical fit and process allowances
 
@@ -57,7 +60,7 @@ const xml = (value: string): string => value.replace(/[&<>"']/g, character => ({
 export function criticalFitDrawing(assembly: MechanicalAssembly, config?: MechanicalConfiguration): string {
   const contours = assembly.nominalPlateContours ?? assembly.plateContours;
   const fits = config?.criticalFits ?? [];
-  const hardware = config?.hardware ?? [];
+  const hardware = [...(config?.hardware ?? []), ...(assembly.generatedHardware ?? [])];
   const referencedParts = new Set([...fits.map(fit => fit.partId), ...hardware.map(item => item.partId)]);
   const referenceBodies = assembly.case.bodies.filter(entry => entry.body.id !== 'plate' && referencedParts.has(entry.body.id));
   const points = [...contours.flatMap(contour => contour.points), ...fits.flatMap(fit => [fit.from, fit.to]),

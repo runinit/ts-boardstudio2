@@ -1,8 +1,380 @@
 //! Stateless mechanical assembly resolution. Explicit profiles are the geometry authority.
 use crate::model::*;
+mod gasket;
+use i_overlay::core::{fill_rule::FillRule, overlay_rule::OverlayRule};
+use i_overlay::float::single::SingleFloatOverlay;
+
+type FloatPath = Vec<[f64; 2]>;
+type FloatShapes = Vec<Vec<FloatPath>>;
+
+fn profile_source_for_family(family: MechanicalSwitchFamily) -> MechanicalBuiltinProfile {
+    match family {
+        MechanicalSwitchFamily::Mx => MechanicalBuiltinProfile::MxSwitch,
+        MechanicalSwitchFamily::ChocV1 => MechanicalBuiltinProfile::ChocV1Switch,
+        MechanicalSwitchFamily::ChocV2 => MechanicalBuiltinProfile::ChocV2Switch,
+    }
+}
+
+fn switch_mounting_datum(family: MechanicalSwitchFamily) -> f64 {
+    match family {
+        MechanicalSwitchFamily::ChocV1 => 3.5,
+        MechanicalSwitchFamily::Mx | MechanicalSwitchFamily::ChocV2 => 5.0,
+    }
+}
+
+fn default_switch_plate_thickness(family: MechanicalSwitchFamily) -> f64 {
+    match family {
+        MechanicalSwitchFamily::ChocV1 => 1.3,
+        MechanicalSwitchFamily::Mx | MechanicalSwitchFamily::ChocV2 => 1.5,
+    }
+}
+
+fn inferred_switch_family(
+    part: &Part,
+    definition: &PartDefinition,
+) -> Option<MechanicalSwitchFamily> {
+    let id = definition.id.to_ascii_lowercase();
+    let source = definition
+        .generator
+        .as_ref()
+        .map(|generator| generator.source.to_ascii_lowercase())
+        .unwrap_or_default();
+    if matches!(id.as_str(), "mx-switch" | "mx-hotswap")
+        || source.ends_with("/switch_mx")
+        || matches!(source.as_str(), "builtin:mx-switch" | "builtin:mx-hotswap")
+    {
+        return Some(MechanicalSwitchFamily::Mx);
+    }
+    if matches!(id.as_str(), "choc-switch" | "choc-hotswap")
+        || source == "infused-kim/choc"
+        || matches!(
+            source.as_str(),
+            "builtin:choc-switch" | "builtin:choc-hotswap"
+        )
+    {
+        return Some(MechanicalSwitchFamily::ChocV1);
+    }
+    if !source.ends_with("/switch_choc_v1_v2") {
+        return None;
+    }
+    let flag = |key: &str| {
+        part.generator_parameters
+            .as_ref()
+            .and_then(|values| values.get(key))
+            .or_else(|| definition.generator.as_ref()?.parameters.get(key))
+            .and_then(|value| {
+                value.as_bool().or_else(|| {
+                    value
+                        .as_object()
+                        .and_then(|object| object.get("value"))
+                        .and_then(serde_json::Value::as_bool)
+                })
+            })
+    };
+    let v1 = flag("choc_v1_support").unwrap_or(true);
+    let v2 = flag("choc_v2_support").unwrap_or(true);
+    match (v1, v2) {
+        (true, false) => Some(MechanicalSwitchFamily::ChocV1),
+        (false, true) => Some(MechanicalSwitchFamily::ChocV2),
+        _ => None,
+    }
+}
+
+fn is_switch_position(part: &Part, definition: &PartDefinition) -> bool {
+    matches!(definition.kind, PartKind::Switch)
+        || inferred_switch_family(part, definition).is_some()
+        || definition.generator.as_ref().is_some_and(|g| g.source.ends_with("/switch_choc_v1_v2"))
+}
+
+fn default_material(part_id: &str, method: &PlateMethod) -> &'static str {
+    if part_id.ends_with("foam") {
+        return "EVA";
+    }
+    match method {
+        PlateMethod::Printed => "PLA",
+        PlateMethod::Cnc => "Aluminium",
+        PlateMethod::CutSheet => "Acrylic",
+        PlateMethod::PcbFr4 => "FR-4",
+    }
+}
+
+fn default_layer_process(
+    part_id: &str,
+    method: PlateMethod,
+    thickness: f64,
+) -> MechanicalPartProcess {
+    let method = if part_id.ends_with("foam") {
+        PlateMethod::CutSheet
+    } else {
+        method
+    };
+    MechanicalPartProcess {
+        part_id: part_id.into(),
+        material: default_material(part_id, &method).into(),
+        method,
+        thickness,
+        constraints_version: "2026-09-24".into(),
+    }
+}
+
+fn default_foam_thickness(gap: f64) -> f64 {
+    if !gap.is_finite() {
+        return 0.0;
+    }
+    ((gap - 0.2).min(3.0).max(0.0) * 10.0).floor() / 10.0
+}
+
+fn material_is_valid(part_id: &str, method: &PlateMethod, material: &str) -> bool {
+    if part_id.ends_with("foam") {
+        return material == "EVA";
+    }
+    match method {
+        PlateMethod::Printed => matches!(material, "PLA" | "ABS"),
+        PlateMethod::Cnc => material == "Aluminium",
+        PlateMethod::CutSheet => material == "Acrylic",
+        PlateMethod::PcbFr4 => material == "FR-4",
+    }
+}
+
+fn normalized_processes(config: &MechanicalConfiguration) -> Vec<MechanicalPartProcess> {
+    let mut processes = config.part_processes.clone().unwrap_or_default();
+    for (part_id, thickness) in [
+        ("plate", config.plate_thickness),
+        ("plate-foam", config.plate_foam_thickness),
+        ("bottom-foam", config.bottom_foam_thickness),
+        ("bottom", config.bottom_thickness),
+    ] {
+        if !processes.iter().any(|process| process.part_id == part_id) {
+            processes.push(default_layer_process(
+                part_id,
+                config.method.clone(),
+                thickness,
+            ));
+        }
+    }
+    for process in &mut processes {
+        if process.part_id.ends_with("foam") {
+            process.method = PlateMethod::CutSheet;
+        } else if process.part_id == "plate" {
+            process.method = config.method.clone();
+        }
+        if !material_is_valid(&process.part_id, &process.method, &process.material) {
+            process.material = default_material(&process.part_id, &process.method).into();
+        }
+        if process.constraints_version.trim().is_empty() {
+            process.constraints_version = "2026-09-24".into();
+        }
+        let stack_thickness = match process.part_id.as_str() {
+            "plate" => Some(config.plate_thickness),
+            "plate-foam" => Some(config.plate_foam_thickness),
+            "bottom-foam" => Some(config.bottom_foam_thickness),
+            "bottom" => Some(config.bottom_thickness),
+            _ => None,
+        };
+        if let Some(thickness) = stack_thickness {
+            process.thickness = thickness;
+        } else if process.thickness < 0.0 {
+            process.thickness = 1.0;
+        }
+    }
+    processes
+}
+
+fn transform_footprint_polygon(part: &Part, points: &[Vec2]) -> Vec<Vec2> {
+    let (sin, cos) = part.pose.rotation.to_radians().sin_cos();
+    points
+        .iter()
+        .map(|point| {
+            let x = if part.side == Side::Back {
+                -point.x
+            } else {
+                point.x
+            };
+            Vec2 {
+                x: part.pose.at.x + x * cos - point.y * sin,
+                y: part.pose.at.y + x * sin + point.y * cos,
+            }
+        })
+        .collect()
+}
+
+fn fallback_foam_geometry(
+    part: &Part,
+    definition: &PartDefinition,
+) -> Option<(Vec<Vec2>, &'static str)> {
+    if definition.courtyard.len() >= 3 {
+        return Some((definition.courtyard.clone(), "footprint courtyard"));
+    }
+
+    let mut pad_corners = Vec::new();
+    for pad in &definition.pads {
+        if !pad.at.x.is_finite()
+            || !pad.at.y.is_finite()
+            || !pad.size.x.is_finite()
+            || !pad.size.y.is_finite()
+            || pad.size.x <= 0.0
+            || pad.size.y <= 0.0
+        {
+            continue;
+        }
+        let (sin, cos) = pad.rotation.unwrap_or(0.0).to_radians().sin_cos();
+        for (x, y) in [
+            (-pad.size.x / 2.0, -pad.size.y / 2.0),
+            (pad.size.x / 2.0, -pad.size.y / 2.0),
+            (pad.size.x / 2.0, pad.size.y / 2.0),
+            (-pad.size.x / 2.0, pad.size.y / 2.0),
+        ] {
+            pad_corners.push(Vec2 {
+                x: pad.at.x + x * cos - y * sin,
+                y: pad.at.y + x * sin + y * cos,
+            });
+        }
+    }
+    if pad_corners.len() >= 3 {
+        return Some((convex_envelope(pad_corners), "conservative pad bounds"));
+    }
+
+    let keycap = part.keycap.or(definition.keycap)?;
+    if !keycap.x.is_finite() || !keycap.y.is_finite() || keycap.x <= 0.0 || keycap.y <= 0.0 {
+        return None;
+    }
+    Some((
+        vec![
+            Vec2 {
+                x: -keycap.x / 2.0,
+                y: -keycap.y / 2.0,
+            },
+            Vec2 {
+                x: keycap.x / 2.0,
+                y: -keycap.y / 2.0,
+            },
+            Vec2 {
+                x: keycap.x / 2.0,
+                y: keycap.y / 2.0,
+            },
+            Vec2 {
+                x: -keycap.x / 2.0,
+                y: keycap.y / 2.0,
+            },
+        ],
+        "keycap bounds",
+    ))
+}
+
+fn expanded_clearance(points: &[Vec2], amount: f64, revision: u64) -> Result<Vec<Vec2>, String> {
+    if points.len() < 3
+        || points
+            .iter()
+            .any(|point| !point.x.is_finite() || !point.y.is_finite())
+    {
+        return Err("Foam clearance needs a finite closed polygon".into());
+    }
+    if amount == 0.0 {
+        return Ok(points.to_vec());
+    }
+    let expanded = expanded_outline(
+        &[Contour {
+            hole: false,
+            points: points.to_vec(),
+        }],
+        amount,
+        revision,
+    )?;
+    expanded
+        .into_iter()
+        .find(|contour| !contour.hole)
+        .map(|contour| contour.points)
+        .ok_or_else(|| "Foam clearance collapsed while applying its margin".into())
+}
+
+fn add_foam_clearance(
+    target: &mut Vec<Contour>,
+    part: &Part,
+    points: &[Vec2],
+    margin: f64,
+    revision: u64,
+) -> Result<(), String> {
+    let expanded = expanded_clearance(points, margin, revision)?;
+    target.push(Contour {
+        hole: true,
+        points: transform_footprint_polygon(part, &expanded),
+    });
+    Ok(())
+}
+
+fn subtract_foam_exclusions(
+    base: &[Contour],
+    exclusions: &[Contour],
+) -> Result<Vec<Contour>, String> {
+    let mut solids: FloatShapes = Vec::new();
+    let mut cuts: FloatShapes = Vec::new();
+    let path = |contour: &Contour| -> Result<FloatPath, String> {
+        if contour.points.len() < 3
+            || contour.points.iter().any(|point| {
+                !point.x.is_finite()
+                    || !point.y.is_finite()
+                    || point.x.abs() > 1_000_000.0
+                    || point.y.abs() > 1_000_000.0
+            })
+        {
+            return Err("Foam contours must contain finite, in-range polygons".into());
+        }
+        Ok(contour
+            .points
+            .iter()
+            .map(|point| [point.x, point.y])
+            .collect())
+    };
+    let add_union = |shapes: &mut FloatShapes, polygon: FloatPath| {
+        let next = vec![vec![polygon]];
+        if shapes.is_empty() {
+            *shapes = next;
+        } else {
+            *shapes = shapes.overlay(&next, OverlayRule::Union, FillRule::EvenOdd);
+        }
+    };
+
+    for contour in base {
+        if !contour.hole {
+            add_union(&mut solids, path(contour)?);
+        }
+    }
+    if solids.is_empty() {
+        return Err("Foam geometry requires at least one outer contour".into());
+    }
+    for contour in base.iter().filter(|contour| contour.hole).chain(exclusions) {
+        add_union(&mut cuts, path(contour)?);
+    }
+    if cuts.is_empty() {
+        return Ok(base.to_vec());
+    }
+    let output = solids.overlay(&cuts, OverlayRule::Difference, FillRule::EvenOdd);
+    if output.is_empty() {
+        return Err("Foam clearances remove the complete sheet".into());
+    }
+    Ok(output
+        .into_iter()
+        .flat_map(|shape| {
+            shape
+                .into_iter()
+                .enumerate()
+                .map(|(index, points)| Contour {
+                    hole: index > 0,
+                    points: points
+                        .into_iter()
+                        .map(|point| Vec2 {
+                            x: point[0],
+                            y: point[1],
+                        })
+                        .collect(),
+                })
+        })
+        .collect())
+}
 
 pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembly {
     let mut result = MechanicalAssembly {
+        gasket_supports:vec![],gasket_tracks:vec![],generated_hardware:vec![],
         pcb_reference: None,
         suggested_mounts: vec![],
         nominal_plate_contours: vec![],
@@ -14,36 +386,169 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         },
         stack: vec![],
         diagnostics: vec![],
+        generation_blocked: false,
     };
     let Some(config) = &document.mechanical else {
         return result;
     };
-    // Switch engagement owns stack spacing; the persisted scalar is only an initial
-    // value for assemblies without a selected switch profile.
+    // Normalize legacy configurations before geometry checks. Negative values are
+    // serde sentinels for omitted dimensions; explicit zero remains meaningful for
+    // optional foam and battery layers.
     let mut effective_config = config.clone();
-    if let Some(board) = document
+    let board = document
         .boards
         .iter()
-        .find(|board| board.id == config.board_id)
-    {
-        if let Some(profile) = document
-            .parts
-            .iter()
-            .filter(|part| board.part_ids.contains(&part.id))
-            .filter(|part| {
-                document.definitions.iter().any(|definition| {
-                    definition.id == part.definition_id && definition.kind == PartKind::Switch
-                })
-            })
-            .find_map(|part| {
-                config
-                    .profiles
+        .find(|board| board.id == config.board_id);
+    let switch_parts = board
+        .into_iter()
+        .flat_map(|board| {
+            document.parts.iter().filter_map(move |part| {
+                if !board.part_ids.contains(&part.id) {
+                    return None;
+                }
+                let definition = document
+                    .definitions
                     .iter()
-                    .find(|profile| profile.definition_id == part.definition_id)
+                    .find(|definition| definition.id == part.definition_id)?;
+                is_switch_position(part, definition).then_some((part, definition))
             })
+        })
+        .collect::<Vec<_>>();
+    let selected_family = switch_parts.iter().find_map(|(part, definition)| {
+        effective_config
+            .profiles
+            .iter()
+            .find(|profile| profile.definition_id == part.definition_id)
+            .and_then(|profile| profile.switch_family)
+            .or_else(|| inferred_switch_family(part, definition))
+    });
+    let default_family = selected_family.unwrap_or(MechanicalSwitchFamily::Mx);
+    if effective_config.plate_thickness < 0.0 {
+        effective_config.plate_thickness = default_switch_plate_thickness(default_family);
+    }
+    if effective_config.pcb_thickness < 0.0 {
+        effective_config.pcb_thickness = board
+            .map(|board| board.thickness)
+            .filter(|thickness| thickness.is_finite() && *thickness > 0.0)
+            .unwrap_or(1.6);
+    }
+    if effective_config.bottom_thickness < 0.0 {
+        effective_config.bottom_thickness = 3.0;
+    }
+    if effective_config.bottom_foam_thickness < 0.0 {
+        effective_config.bottom_foam_thickness = 2.0;
+    }
+    if effective_config.wall_thickness < 0.0 {
+        effective_config.wall_thickness = 2.0;
+    }
+    if effective_config.clearance < 0.0 {
+        effective_config.clearance = 0.3;
+    }
+    if effective_config.battery.is_none() || effective_config.battery_height < 0.0 {
+        effective_config.battery_height = 0.0;
+    }
+    let default_gap = switch_mounting_datum(default_family) - effective_config.plate_thickness;
+    if effective_config.plate_to_pcb < 0.0 {
+        effective_config.plate_to_pcb = default_gap;
+    }
+    if effective_config.plate_foam_thickness < 0.0 {
+        effective_config.plate_foam_thickness = default_foam_thickness(default_gap);
+    }
+    effective_config.part_processes = Some(normalized_processes(&effective_config));
+    for (part, definition) in &switch_parts {
+        let family = effective_config
+            .profiles
+            .iter()
+            .find(|profile| profile.definition_id == part.definition_id)
+            .and_then(|profile| profile.switch_family)
+            .or_else(|| inferred_switch_family(part, definition));
+        let Some(family) = family else {
+            continue;
+        };
+        if !effective_config
+            .profiles
+            .iter()
+            .any(|profile| profile.definition_id == part.definition_id)
         {
-            effective_config.plate_to_pcb = profile.plate_to_pcb;
+            let gap = switch_mounting_datum(family) - effective_config.plate_thickness;
+            if let Ok(mut profile) = builtin_profile(
+                part.definition_id.clone(),
+                profile_source_for_family(family),
+                gap,
+            ) {
+                profile.switch_family = Some(family);
+                effective_config.profiles.push(profile);
+            }
         }
+        if let Some(profile) = effective_config
+            .profiles
+            .iter_mut()
+            .find(|profile| profile.definition_id == part.definition_id)
+        {
+            let legacy_standard = profile.cutouts.len() == 1 && (
+                profile.source.starts_with("marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/SW_MX_1u.kicad_mod:")
+                || (profile.source_geometry.is_none() && !profile.source.contains("Board Studio standard") &&
+                    (profile.source.starts_with("Kailh PG1350 drawing CPG135001D01-16:") || profile.source.starts_with("Kailh PG1353 drawing CPG135301D03:")))
+            );
+            if legacy_standard {
+                if let Ok(standard) = builtin_profile(profile.definition_id.clone(), profile_source_for_family(family), switch_mounting_datum(family) - effective_config.plate_thickness) {
+                    profile.cutouts = standard.cutouts;
+                    profile.source_geometry = None;
+                    profile.source = standard.source;
+                }
+            }
+            if profile.switch_family.is_none() {
+                profile.switch_family = Some(family);
+            }
+            profile.plate_to_pcb = switch_mounting_datum(family) - effective_config.plate_thickness;
+        }
+    }
+    let resolved_family = switch_parts.iter().find_map(|(part, definition)| {
+        effective_config
+            .profiles
+            .iter()
+            .find(|profile| profile.definition_id == part.definition_id)
+            .and_then(|profile| profile.switch_family)
+            .or_else(|| inferred_switch_family(part, definition))
+    });
+    let incompatible_switches = resolved_family
+        .map(|family| {
+            let datum = switch_mounting_datum(family);
+            switch_parts
+                .iter()
+                .filter_map(|(part, definition)| {
+                    let other = effective_config
+                        .profiles
+                        .iter()
+                        .find(|profile| profile.definition_id == part.definition_id)
+                        .and_then(|profile| profile.switch_family)
+                        .or_else(|| inferred_switch_family(part, definition))?;
+                    ((switch_mounting_datum(other) - datum).abs() > 0.001)
+                        .then_some(part.id.clone())
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let mut incompatible_switches = incompatible_switches;
+    for (part, definition) in &switch_parts {
+        let assigned = effective_config
+            .profiles
+            .iter()
+            .find(|profile| profile.definition_id == part.definition_id)
+            .and_then(|profile| profile.switch_family);
+        let inferred = inferred_switch_family(part, definition);
+        if assigned.is_some() && inferred.is_some() && assigned != inferred {
+            incompatible_switches.push(part.id.clone());
+        }
+    }
+    incompatible_switches.sort();
+    incompatible_switches.dedup();
+    if let Some(family) = resolved_family {
+        effective_config.plate_to_pcb =
+            switch_mounting_datum(family) - effective_config.plate_thickness;
+    }
+    if effective_config.mount == MechanicalMount::Gasket && effective_config.gasket_travel.is_none() {
+        effective_config.gasket_travel = Some(0.3);
     }
     let config = &effective_config;
     let mut frame_contours = contours.to_vec();
@@ -61,20 +566,27 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
                 frame_contours = expanded;
                 result.plate_contours = frame_contours.clone();
             }
-            Err(message) => result.diagnostics.push(Finding {
-                id: "mechanical:frame-outline".into(),
-                severity: Severity::Error,
-                scope: Scope::Case,
-                message,
-                target_ids: vec![],
-            }),
+            Err(message) => {
+                result.generation_blocked = true;
+                result.diagnostics.push(Finding {
+                    id: "mechanical:frame-outline".into(),
+                    severity: Severity::Error,
+                    scope: Scope::Case,
+                    message,
+                    target_ids: vec![],
+                });
+            }
         }
     }
     let mut pcb_reference_contours = contours.to_vec();
     let mut component_volumes: Vec<(String, CaseOpening)> = Vec::new();
     let mut profile_openings = Vec::new();
-    let mut foam_clearances = Vec::new();
+    let mut plate_foam_clearances = Vec::new();
+    let mut bottom_foam_clearances = Vec::new();
     let mut issue = |id: &str, severity: Severity, message: &str, targets: Vec<String>| {
+        if severity == Severity::Error {
+            result.generation_blocked = true;
+        }
         result.diagnostics.push(Finding {
             id: format!("mechanical:{id}"),
             severity,
@@ -83,6 +595,14 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
             target_ids: targets,
         });
     };
+    if !incompatible_switches.is_empty() {
+        issue(
+            "switch-family",
+            Severity::Error,
+            "Switches with different mounting heights cannot share one plate; split the assembly or choose compatible switch fits.",
+            incompatible_switches,
+        );
+    }
     let dimensions = [
         config.plate_thickness,
         config.pcb_thickness,
@@ -107,6 +627,8 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         );
         return result;
     }
+    let pcb_bottom = -config.pcb_thickness;
+    let bottom_foam_z = pcb_bottom - config.bottom_foam_thickness;
     if contours.iter().any(|c| {
         c.points.len() < 3
             || c.points
@@ -184,14 +706,7 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
             vec!["plate".into()],
         );
     }
-    if config.mount == MechanicalMount::Gasket && config.gasket.is_none() {
-        issue(
-            "gasket-support",
-            Severity::Error,
-            "Gasket support seats and travel clearance are not yet specified; manufacturing export is blocked.",
-            vec!["plate".into()],
-        );
-    }
+
     if config.mounts.is_empty() && config.mount != MechanicalMount::Gasket {
         issue(
             "mounts",
@@ -243,29 +758,116 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         .iter()
         .filter(|part| board.part_ids.contains(&part.id))
     {
-        let Some(profile) = config
+        let definition = document
+            .definitions
+            .iter()
+            .find(|definition| definition.id == part.definition_id);
+        let is_switch =
+            definition.is_some_and(|definition| is_switch_position(part, definition));
+        if !part.pose.at.x.is_finite()
+            || !part.pose.at.y.is_finite()
+            || !part.pose.rotation.is_finite()
+        {
+            issue(
+                &format!("pose:{}", part.id),
+                Severity::Error,
+                "Mechanical part pose must be finite.",
+                vec![part.id.clone()],
+            );
+            continue;
+        }
+        let profile = config
             .profiles
             .iter()
-            .find(|p| p.definition_id == part.definition_id)
-        else {
-            if document
-                .definitions
-                .iter()
-                .any(|d| d.id == part.definition_id && d.kind == PartKind::Switch)
-            {
+            .find(|p| p.definition_id == part.definition_id);
+        let explicit_clearances = profile.is_some_and(|profile| {
+            profile
+                .clearances
+                .as_ref()
+                .is_some_and(|items| !items.is_empty())
+                || profile
+                    .clearance_volumes
+                    .as_ref()
+                    .is_some_and(|items| !items.is_empty())
+        });
+        if !explicit_clearances
+            && (config.plate_foam_thickness > 0.0 || config.bottom_foam_thickness > 0.0)
+        {
+            if let Some(definition) = definition {
+                if let Some((polygon, source)) = fallback_foam_geometry(part, definition) {
+                    let target = if part.side == Side::Back {
+                        &mut bottom_foam_clearances
+                    } else {
+                        &mut plate_foam_clearances
+                    };
+                    match add_foam_clearance(
+                        target,
+                        part,
+                        &polygon,
+                        config.clearance,
+                        document.revision,
+                    ) {
+                        Ok(()) => issue(
+                            &format!("foam-approximation:{}", part.id),
+                            Severity::Warning,
+                            &format!(
+                                "Foam clearance uses the {source} as a conservative footprint approximation because no explicit mechanical clearance is assigned; a 3D model is not required."
+                            ),
+                            vec![part.id.clone()],
+                        ),
+                        Err(message) => issue(
+                            &format!("foam-approximation:{}", part.id),
+                            Severity::Error,
+                            &message,
+                            vec![part.id.clone()],
+                        ),
+                    }
+                } else {
+                    issue(
+                        &format!("foam-bounds:{}", part.id),
+                        Severity::Warning,
+                        "No courtyard, closed pad bounds, or keycap dimensions are available for a foam clearance; no component model was used to guess one.",
+                        vec![part.id.clone()],
+                    );
+                }
+            } else {
                 issue(
-                    &format!("profile:{}", part.id),
+                    &format!("foam-bounds:{}", part.id),
+                    Severity::Warning,
+                    "The footprint definition is missing, so no outline-based foam clearance could be generated.",
+                    vec![part.id.clone()],
+                );
+            }
+        }
+        let Some(profile) = profile else {
+            if is_switch {
+                let unresolved = definition
+                    .is_some_and(|definition| inferred_switch_family(part, definition).is_none());
+                issue(
+                    if unresolved {
+                        "switch-family"
+                    } else {
+                        "profile"
+                    },
                     Severity::Error,
-                    "Switch has no qualified mechanical profile; no cutout was guessed.",
+                    if unresolved {
+                        "Choose the MX, Choc v1, or Choc v2 fit for this switch before generating its plate cutout."
+                    } else {
+                        "Switch has no qualified mechanical profile; no cutout was guessed."
+                    },
                     vec![part.id.clone()],
                 );
             }
             continue;
         };
-        let is_switch = document
-            .definitions
-            .iter()
-            .any(|d| d.id == part.definition_id && d.kind == PartKind::Switch);
+        if is_switch && profile.switch_family.is_none() {
+            issue(
+                "switch-family",
+                Severity::Error,
+                "Choose the switch family before generating a plate for this imported footprint.",
+                vec![part.id.clone()],
+            );
+        }
         let has_access = profile.openings.as_ref().is_some_and(|v| !v.is_empty())
             || profile.clearances.as_ref().is_some_and(|v| !v.is_empty())
             || profile
@@ -281,18 +883,6 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
                 "Mechanical profile requires cutout geometry and source provenance.",
                 vec![part.id.clone()],
             );
-        }
-        if !part.pose.at.x.is_finite()
-            || !part.pose.at.y.is_finite()
-            || !part.pose.rotation.is_finite()
-        {
-            issue(
-                &format!("pose:{}", part.id),
-                Severity::Error,
-                "Mechanical part pose must be finite.",
-                vec![part.id.clone()],
-            );
-            continue;
         }
         if !profile.plate_to_pcb.is_finite()
             || (profile.plate_to_pcb - config.plate_to_pcb).abs() > 0.001
@@ -535,6 +1125,49 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
                     vec![part.id.clone()],
                 );
             } else {
+                let volume_bottom = transformed.z;
+                let volume_top = transformed.z + transformed.height;
+                let plate_foam_top = config.plate_foam_thickness;
+                if config.plate_foam_thickness > 0.0
+                    && volume_bottom < plate_foam_top
+                    && volume_top > 0.0
+                {
+                    match add_foam_clearance(
+                        &mut plate_foam_clearances,
+                        part,
+                        &volume.points,
+                        config.clearance,
+                        document.revision,
+                    ) {
+                        Ok(()) => {}
+                        Err(message) => issue(
+                            &format!("clearance-volume:{}", part.id),
+                            Severity::Error,
+                            &message,
+                            vec![part.id.clone()],
+                        ),
+                    }
+                }
+                if config.bottom_foam_thickness > 0.0
+                    && volume_bottom < pcb_bottom
+                    && volume_top > bottom_foam_z
+                {
+                    match add_foam_clearance(
+                        &mut bottom_foam_clearances,
+                        part,
+                        &volume.points,
+                        config.clearance,
+                        document.revision,
+                    ) {
+                        Ok(()) => {}
+                        Err(message) => issue(
+                            &format!("clearance-volume:{}", part.id),
+                            Severity::Error,
+                            &message,
+                            vec![part.id.clone()],
+                        ),
+                    }
+                }
                 component_volumes.push((part.id.clone(), transformed));
             }
         }
@@ -564,23 +1197,25 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
                     vec![part.id.clone()],
                 );
             } else {
-                foam_clearances.push(Contour {
-                    hole: true,
-                    points: polygon
-                        .iter()
-                        .map(|p| {
-                            let x = if part.side == Side::Back { -p.x } else { p.x };
-                            Vec2 {
-                                x: part.pose.at.x + x * cos - p.y * sin,
-                                y: part.pose.at.y + x * sin + p.y * cos,
-                            }
-                        })
-                        .collect(),
-                });
+                let target = if part.side == Side::Back {
+                    &mut bottom_foam_clearances
+                } else {
+                    &mut plate_foam_clearances
+                };
+                if let Err(message) =
+                    add_foam_clearance(target, part, polygon, config.clearance, document.revision)
+                {
+                    issue(
+                        &format!("clearance:{}", part.id),
+                        Severity::Error,
+                        &message,
+                        vec![part.id.clone()],
+                    );
+                }
                 issue(
                     &format!("access:{}", part.id),
                     Severity::Warning,
-                    "Component clearance is excluded from plate foam; case wall access still requires review.",
+                    "Explicit component clearance is excluded from foam on the component side; case wall access still requires review.",
                     vec![part.id.clone()],
                 );
             }
@@ -746,8 +1381,6 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         );
     }
     // PCB top is the stable zero plane; layers below it have negative Z.
-    let pcb_bottom = -config.pcb_thickness;
-    let bottom_foam_z = pcb_bottom - config.bottom_foam_thickness;
     let battery_z = bottom_foam_z - battery_height;
     let bottom_z = battery_z - config.bottom_thickness;
     for (id, z, thickness) in [
@@ -866,22 +1499,45 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
             );
         }
     }
-    let mut plate_foam_contours = result.plate_contours.clone();
-    plate_foam_contours.extend(foam_clearances);
+    let plate_foam_contours = if plate_foam_clearances.is_empty() {
+        result.plate_contours.clone()
+    } else {
+        match subtract_foam_exclusions(&result.plate_contours, &plate_foam_clearances) {
+            Ok(contours) => contours,
+            Err(message) => {
+                issue(
+                    "plate-foam-clearance",
+                    Severity::Error,
+                    &message,
+                    vec!["plate-foam".into()],
+                );
+                result.plate_contours.clone()
+            }
+        }
+    };
+    let bottom_foam_contours = if bottom_foam_clearances.is_empty() {
+        bottom_foam_contours
+    } else {
+        match subtract_foam_exclusions(&bottom_foam_contours, &bottom_foam_clearances) {
+            Ok(contours) => contours,
+            Err(message) => {
+                issue(
+                    "bottom-foam-clearance",
+                    Severity::Error,
+                    &message,
+                    vec!["bottom-foam".into()],
+                );
+                bottom_foam_contours
+            }
+        }
+    };
     let board_id = config.board_id.clone();
     let sheet_bottom = config.bottom_style == Some(MechanicalBottomStyle::Sheet)
         || config.part_processes.iter().flatten().any(|process| {
             process.part_id == "bottom"
                 && matches!(process.method, PlateMethod::PcbFr4 | PlateMethod::CutSheet)
         });
-    if sheet_bottom && config.mount == MechanicalMount::Gasket {
-        issue(
-            "gasket-sheet",
-            Severity::Error,
-            "Gasket grooves require a shell bottom; sheet/frame gasket seats are not configured.",
-            vec!["bottom".into()],
-        );
-    }
+
     if sheet_bottom && !config.middle_frame.unwrap_or(false) && !config.integrated_plate_frame {
         issue(
             "sheet-enclosure",
@@ -1005,11 +1661,7 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
                 } else {
                     vec![]
                 }),
-                gasket: if id == "bottom" && config.mount == MechanicalMount::Gasket {
-                    config.gasket.clone()
-                } else {
-                    None
-                },
+                gasket: None,
             },
         });
     }
@@ -1113,61 +1765,14 @@ pub fn resolve(document: &ProjectDoc, contours: &[Contour]) -> MechanicalAssembl
         }
     }
     crate::mechanical_checks::apply_allowance(config, &mut result);
-    if config.mount == MechanicalMount::Gasket {
-        if let (Some(gasket), Some(travel), Ok(prepared)) = (
-            &config.gasket,
-            config.gasket_travel,
-            crate::case::prepare(&result.case),
-        ) {
-            if travel.is_finite() && travel > 0.0 {
-                let gasket_contours: Vec<Contour> = prepared
-                    .bodies
-                    .iter()
-                    .filter(|body| body.body.id == "bottom")
-                    .flat_map(|body| body.regions.iter())
-                    .flat_map(|region| region.gaskets.iter())
-                    .flat_map(|ring| {
-                        std::iter::once(Contour {
-                            hole: false,
-                            points: ring.outer.clone(),
-                        })
-                        .chain(ring.holes.iter().map(|points| Contour {
-                            hole: true,
-                            points: points.clone(),
-                        }))
-                    })
-                    .collect();
-                if !gasket_contours.is_empty() {
-                    let z = config.plate_to_pcb - travel - gasket.depth;
-                    result.stack.push(MechanicalStackLayer {
-                        id: "gasket".into(),
-                        z,
-                        thickness: travel + gasket.depth,
-                    });
-                    result.case.bodies.push(CaseIR {
-                        revision: document.revision,
-                        contours: gasket_contours,
-                        body: CaseBody {
-                            id: "gasket".into(),
-                            name: "Gasket support".into(),
-                            board_id: config.board_id.clone(),
-                            kind: CaseKind::Plate,
-                            thickness: travel + gasket.depth,
-                            clearance: 0.0,
-                            material_id: None,
-                            z: Some(z),
-                            wall_height: None,
-                            wall_thickness: None,
-                            mounts: None,
-                            gasket: None,
-                            openings: None,
-                        },
-                    });
-                }
-            }
+    if config.mount == MechanicalMount::Gasket && !result.generation_blocked {
+        if let Err(message) = gasket::generate(document, config, &mut result) {
+            result.generation_blocked = true;
+            result.diagnostics.push(Finding {id:"mechanical:gasket-layout".into(),severity:Severity::Error,scope:Scope::Case,message,target_ids:vec!["plate".into()]});
         }
     }
     if let Err(message) = crate::case::prepare(&result.case) {
+        result.generation_blocked = true;
         result.diagnostics.push(Finding {
             id: "mechanical:case-preparation".into(),
             severity: Severity::Error,
@@ -1304,6 +1909,7 @@ mod tests {
     use super::*;
     fn config() -> MechanicalConfiguration {
         MechanicalConfiguration {
+            gasket_layout:None,
             hardware: None,
             critical_fits: None,
             bottom_style: None,
@@ -1363,9 +1969,259 @@ mod tests {
         assert_eq!(result.revision, 7);
         assert_eq!(
             result.stack.iter().find(|l| l.id == "bottom").unwrap().z,
-            -7.1
+            -4.1
         );
         assert_eq!(result.case.bodies[0].contours, result.plate_contours);
+    }
+    #[test]
+    fn legacy_mechanical_settings_get_generation_defaults_for_every_process() {
+        for (method, material) in [
+            (PlateMethod::Printed, "PLA"),
+            (PlateMethod::Cnc, "Aluminium"),
+            (PlateMethod::CutSheet, "Acrylic"),
+            (PlateMethod::PcbFr4, "FR-4"),
+        ] {
+            let mut doc = ProjectDoc::empty("legacy", "legacy");
+            doc.boards.push(Board {
+                id: "board".into(),
+                name: "Board".into(),
+                outline_ids: vec![],
+                part_ids: vec![],
+                net_ids: vec![],
+                thickness: 1.2,
+                traces: vec![],
+                vias: vec![],
+            });
+            let mut old = serde_json::to_value(config()).unwrap();
+            old["method"] = serde_json::to_value(&method).unwrap();
+            for field in [
+                "plateThickness",
+                "plateFoamThickness",
+                "pcbThickness",
+                "bottomFoamThickness",
+                "batteryHeight",
+                "bottomThickness",
+                "plateToPcb",
+                "wallThickness",
+                "clearance",
+            ] {
+                old.as_object_mut().unwrap().remove(field);
+            }
+            old["partProcesses"] = serde_json::json!([
+                {"partId":"plate", "method":"printed", "material":"", "thickness":0.5},
+                {"partId":"plate-foam", "method":"printed", "material":"", "thickness":0.5}
+            ]);
+            doc.mechanical = Some(serde_json::from_value(old).unwrap());
+            let outline = [Contour {
+                hole: false,
+                points: vec![
+                    Vec2 { x: 0.0, y: 0.0 },
+                    Vec2 { x: 80.0, y: 0.0 },
+                    Vec2 { x: 80.0, y: 45.0 },
+                    Vec2 { x: 0.0, y: 45.0 },
+                ],
+            }];
+
+            let assembly = resolve(&doc, &outline);
+            assert!(
+                !assembly.generation_blocked,
+                "{method:?}: {:#?}",
+                assembly.diagnostics
+            );
+            assert_eq!(
+                assembly
+                    .stack
+                    .iter()
+                    .find(|layer| layer.id == "pcb")
+                    .unwrap()
+                    .thickness,
+                1.2
+            );
+            for (id, thickness) in [
+                ("plate", 1.5),
+                ("plate-foam", 3.0),
+                ("bottom-foam", 2.0),
+                ("bottom", 3.0),
+            ] {
+                assert_eq!(
+                    assembly
+                        .stack
+                        .iter()
+                        .find(|layer| layer.id == id)
+                        .unwrap()
+                        .thickness,
+                    thickness,
+                    "{id} thickness for {method:?}"
+                );
+            }
+            assert!(assembly.diagnostics.iter().all(|finding| {
+                !(finding.id.starts_with("mechanical:process:")
+                    && finding.severity == Severity::Error)
+            }));
+            let mut effective = doc.mechanical.as_ref().unwrap().clone();
+            effective.plate_thickness = 1.5;
+            effective.plate_foam_thickness = 3.0;
+            effective.pcb_thickness = 1.2;
+            effective.bottom_foam_thickness = 2.0;
+            effective.bottom_thickness = 3.0;
+            let processes = normalized_processes(&effective);
+            let plate = processes
+                .iter()
+                .find(|item| item.part_id == "plate")
+                .unwrap();
+            let plate_foam = processes
+                .iter()
+                .find(|item| item.part_id == "plate-foam")
+                .unwrap();
+            let bottom_foam = processes
+                .iter()
+                .find(|item| item.part_id == "bottom-foam")
+                .unwrap();
+            assert_eq!(plate.material, material);
+            assert_eq!(plate.thickness, 1.5);
+            assert_eq!(plate_foam.method, PlateMethod::CutSheet);
+            assert_eq!(plate_foam.material, "EVA");
+            assert_eq!(plate_foam.thickness, 3.0);
+            assert_eq!(bottom_foam.material, "EVA");
+            assert_eq!(bottom_foam.thickness, 2.0);
+        }
+    }
+
+    #[test]
+    fn custom_dimensions_and_disabled_foam_survive_normalization() {
+        let mut c = config();
+        c.plate_thickness = 1.8;
+        c.plate_foam_thickness = 0.0;
+        c.bottom_foam_thickness = 0.0;
+        c.bottom_thickness = 4.2;
+        c.clearance = 0.45;
+        let processes = normalized_processes(&c);
+        assert_eq!(c.plate_thickness, 1.8);
+        assert_eq!(c.bottom_thickness, 4.2);
+        assert_eq!(c.clearance, 0.45);
+        assert_eq!(
+            processes
+                .iter()
+                .find(|item| item.part_id == "plate-foam")
+                .unwrap()
+                .thickness,
+            0.0
+        );
+        assert_eq!(
+            processes
+                .iter()
+                .find(|item| item.part_id == "bottom-foam")
+                .unwrap()
+                .thickness,
+            0.0
+        );
+    }
+    #[test]
+    fn no_model_foam_fallbacks_transform_union_and_warn() {
+        let mut doc = ProjectDoc::empty("foam", "foam");
+        doc.boards.push(Board {
+            id: "board".into(),
+            name: "Board".into(),
+            outline_ids: vec![],
+            part_ids: vec!["front-a".into(), "front-b".into(), "back".into()],
+            net_ids: vec![],
+            thickness: 1.6,
+            traces: vec![],
+            vias: vec![],
+        });
+        doc.parts.extend([
+            serde_json::from_value(serde_json::json!({
+                "id":"front-a", "definitionId":"courtyard-part", "reference":"U1",
+                "pose":{"at":{"x":20,"y":20},"rotation":0}, "side":"front"
+            }))
+            .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id":"front-b", "definitionId":"courtyard-part", "reference":"U2",
+                "pose":{"at":{"x":23,"y":20},"rotation":0}, "side":"front"
+            }))
+            .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id":"back", "definitionId":"pad-only-part", "reference":"J1",
+                "pose":{"at":{"x":70,"y":70},"rotation":0}, "side":"back"
+            }))
+            .unwrap(),
+        ]);
+        doc.definitions.extend([
+            serde_json::from_value(serde_json::json!({
+                "id":"courtyard-part", "name":"No model front component", "kind":"custom",
+                "courtyard":[{"x":-4,"y":-3},{"x":4,"y":-3},{"x":4,"y":3},{"x":-4,"y":3}],
+                "pads":[]
+            }))
+            .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id":"pad-only-part", "name":"No model back component", "kind":"connector",
+                "courtyard":[], "pads":[{"id":"1","number":"1","at":{"x":1,"y":0},
+                "size":{"x":4,"y":2},"shape":"rect","rotation":90}]
+            }))
+            .unwrap(),
+        ]);
+        let mut configuration = config();
+        configuration.clearance = 0.3;
+        doc.mechanical = Some(configuration);
+        let outline = [Contour {
+            hole: false,
+            points: vec![
+                Vec2 { x: 0.0, y: 0.0 },
+                Vec2 { x: 100.0, y: 0.0 },
+                Vec2 { x: 100.0, y: 100.0 },
+                Vec2 { x: 0.0, y: 100.0 },
+            ],
+        }];
+
+        let assembly = resolve(&doc, &outline);
+        let plate_foam = assembly
+            .case
+            .bodies
+            .iter()
+            .find(|body| body.body.id == "plate-foam")
+            .unwrap();
+        let bottom_foam = assembly
+            .case
+            .bodies
+            .iter()
+            .find(|body| body.body.id == "bottom-foam")
+            .unwrap();
+        let hole_bounds = |body: &CaseIR| {
+            body.contours
+                .iter()
+                .filter(|contour| contour.hole)
+                .map(|contour| {
+                    let min_x = contour
+                        .points
+                        .iter()
+                        .map(|point| point.x)
+                        .fold(f64::INFINITY, f64::min);
+                    let max_x = contour
+                        .points
+                        .iter()
+                        .map(|point| point.x)
+                        .fold(f64::NEG_INFINITY, f64::max);
+                    (min_x, max_x)
+                })
+                .collect::<Vec<_>>()
+        };
+        let front_holes = hole_bounds(plate_foam);
+        let back_holes = hole_bounds(bottom_foam);
+        assert_eq!(
+            front_holes.len(),
+            1,
+            "overlapping courtyard clearances are unioned"
+        );
+        assert!((front_holes[0].0 - 15.7).abs() < 0.01);
+        assert!((front_holes[0].1 - 27.3).abs() < 0.01);
+        assert_eq!(back_holes.len(), 1, "back-side pads clear only bottom foam");
+        assert!((back_holes[0].0 - 67.7).abs() < 0.01);
+        assert!((back_holes[0].1 - 70.3).abs() < 0.01);
+        assert!(assembly.diagnostics.iter().any(|finding| {
+            finding.id == "mechanical:foam-approximation:front-a"
+                && finding.severity == Severity::Warning
+        }));
+        assert!(!assembly.generation_blocked);
     }
     #[test]
     fn integrated_frame_uses_lid_and_separate_bottom() {
@@ -1418,6 +2274,40 @@ mod tests {
         );
     }
     #[test]
+    fn gasket_mode_places_discrete_supports_and_retaining_frame_from_defaults() {
+        let mut doc=ProjectDoc::empty("gaskets","Gaskets");
+        doc.boards.push(Board{id:"board".into(),name:"Board".into(),outline_ids:vec![],part_ids:vec![],net_ids:vec![],thickness:1.6,traces:vec![],vias:vec![]});
+        let mut settings=config();settings.mount=MechanicalMount::Gasket;
+        doc.mechanical=Some(settings);
+        let contours=vec![Contour{hole:false,points:vec![Vec2{x:0.,y:0.},Vec2{x:130.,y:0.},Vec2{x:130.,y:90.},Vec2{x:0.,y:90.}]}];
+        let result=resolve(&doc,&contours);
+        assert!(!result.generation_blocked,"{:?}",result.diagnostics);
+        assert!(result.case.bodies.iter().any(|b|b.body.id=="retainer"));
+        assert_eq!(result.case.bodies.iter().filter(|b|b.body.id.starts_with("gasket:")).count(),12);
+    }
+
+    #[test]
+    fn manual_gasket_anchors_are_exact_persistent_and_invalidated_by_outline_changes() {
+        let mut doc = ProjectDoc::empty("gaskets", "Gaskets");
+        doc.boards.push(Board { id:"board".into(),name:"Board".into(),outline_ids:vec![],part_ids:vec![],net_ids:vec![],thickness:1.6,traces:vec![],vias:vec![] });
+        let mut settings=config(); settings.mount=MechanicalMount::Gasket;
+        doc.mechanical=Some(settings);
+        let mut contours=vec![Contour{hole:false,points:vec![Vec2{x:0.,y:0.},Vec2{x:130.,y:0.},Vec2{x:130.,y:90.},Vec2{x:0.,y:90.}]}];
+        let first=resolve(&doc,&contours);
+        let support=&first.gasket_supports[0];
+        let anchor=support.anchor+0.0007;
+        doc.mechanical.as_mut().unwrap().gasket_layout=Some(MechanicalGasketLayout {length:12.,width:3.,thickness:2.,compression:0.15,supports:vec![MechanicalGasketAnchor{id:support.id.clone(),region_id:support.region_id.clone(),outline_key:support.outline_key.clone(),anchor,unlinked:false}]});
+        let moved=resolve(&doc,&contours);
+        assert!(!moved.generation_blocked,"{:?}",moved.diagnostics);
+        assert!((moved.gasket_supports[0].anchor-anchor).abs()<1e-9);
+        let saved=serde_json::to_string(&doc).unwrap();
+        let reopened:ProjectDoc=serde_json::from_str(&saved).unwrap();
+        assert_eq!(moved.gasket_supports,resolve(&reopened,&contours).gasket_supports);
+        contours[0].points[1].x+=1.;
+        assert!(resolve(&doc,&contours).generation_blocked);
+    }
+
+    #[test]
     fn gasket_support_reaches_plate_without_rigid_contact() {
         let mut doc = ProjectDoc::empty("test", "test");
         doc.boards.push(Board {
@@ -1458,18 +2348,16 @@ mod tests {
             .find(|b| b.body.id == "bottom")
             .unwrap()
             .body;
-        let ring = &resolved
-            .case
-            .bodies
-            .iter()
-            .find(|b| b.body.id == "gasket")
-            .unwrap()
-            .body;
-        assert!(
-            (bottom.z.unwrap() + bottom.thickness + bottom.wall_height.unwrap() - 3.0).abs() < 1e-9
-        );
-        assert!((ring.z.unwrap() + ring.thickness - 3.5).abs() < 1e-9);
-        assert!(bottom.mounts.as_ref().unwrap().is_empty());
+        let strips = resolved.case.bodies.iter().filter(|b|b.body.id.starts_with("gasket:")).collect::<Vec<_>>();
+        assert_eq!(strips.len(),12);
+        for strip in strips {
+            if strip.body.id.ends_with(":lower") {assert!((strip.body.z.unwrap()+strip.body.thickness-3.5).abs()<1e-9);}
+            else {assert!((strip.body.z.unwrap()-5.0).abs()<1e-9);}
+        }
+        let retainer=resolved.case.bodies.iter().find(|b|b.body.id=="retainer").unwrap();
+        assert!((bottom.z.unwrap()+bottom.thickness-retainer.body.z.unwrap()).abs()<1e-9);
+        assert!(bottom.mounts.as_ref().unwrap().iter().all(|m|m.id.starts_with("closure:")));
+        assert!(bottom.openings.as_ref().unwrap().iter().any(|o|(o.z-1.8).abs()<1e-9));
     }
     #[test]
     fn cable_exit_regenerates_single_foam_envelope_without_mutation() {
@@ -1566,18 +2454,216 @@ mod tests {
                 .find(|layer| layer.id == "plate")
                 .unwrap()
                 .z,
-            4.0
+            3.5
         );
         assert_eq!(doc.mechanical.as_ref().unwrap().plate_to_pcb, 5.0);
-        doc.mechanical.as_mut().unwrap().profiles[1].plate_to_pcb = 3.5;
+        doc.mechanical.as_mut().unwrap().profiles[1].switch_family =
+            Some(MechanicalSwitchFamily::ChocV1);
+        doc.mechanical.as_mut().unwrap().profiles[1].plate_to_pcb = 2.0;
         let second = resolve(&doc, &[]);
         assert!(
             second
                 .diagnostics
                 .iter()
-                .any(|finding| finding.id == "mechanical:engagement:key2"
+                .any(|finding| finding.id == "mechanical:switch-family"
                     && finding.severity == Severity::Error)
         );
+        assert!(second.generation_blocked);
+    }
+    #[test]
+    fn legacy_standard_mx_profile_uses_the_new_square_but_custom_profiles_keep_their_geometry() {
+        let mut doc=ProjectDoc::empty("legacy-fit","Legacy fit");
+        doc.definitions=crate::artifact::builtins::builtin_definitions();
+        doc.parts.push(serde_json::from_value(serde_json::json!({"id":"switch","definitionId":"mx-hotswap","reference":"SW1","side":"front","pose":{"at":{"x":20,"y":20},"rotation":0}})).unwrap());
+        doc.boards.push(Board{id:"board".into(),name:"Board".into(),outline_ids:vec![],part_ids:vec!["switch".into()],net_ids:vec![],thickness:1.6,traces:vec![],vias:vec![]});
+        let mut profile=builtin_profile("mx-hotswap".into(),MechanicalBuiltinProfile::MxSwitch,3.5).unwrap();
+        profile.source="marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/SW_MX_1u.kicad_mod:CERN-OHL-P-2.0:Eco2.User; chord deviation <=0.005mm; engagement user-specified; PCB-mount stabilizers only".into();
+        profile.cutouts[0].iter_mut().for_each(|p|{p.x*=1.05;p.y*=1.05;});
+        let mut settings=config();settings.profiles=vec![profile];doc.mechanical=Some(settings);
+        let outline=Contour{hole:false,points:vec![Vec2{x:0.,y:0.},Vec2{x:40.,y:0.},Vec2{x:40.,y:40.},Vec2{x:0.,y:40.}]};
+        let width=|result:MechanicalAssembly| {let hole=result.plate_contours.into_iter().find(|c|c.hole).unwrap();hole.points.iter().map(|p|p.x).fold(f64::NEG_INFINITY,f64::max)-hole.points.iter().map(|p|p.x).fold(f64::INFINITY,f64::min)};
+        assert!((width(resolve(&doc,std::slice::from_ref(&outline)))-14.).abs()<0.001);
+        doc.mechanical.as_mut().unwrap().profiles[0].source="Custom qualified opening".into();
+        assert!((width(resolve(&doc,&[outline]))-14.7).abs()<0.001);
+    }
+
+    #[test]
+    fn real_hotswap_catalogue_produces_seventy_square_openings() {
+        for definition_id in ["mx-hotswap", "choc-hotswap"] {
+            let mut doc = ProjectDoc::empty("split", "split");
+            doc.definitions = crate::artifact::builtins::builtin_definitions();
+            for half in 0..2 {
+                for row in 0..5 {
+                    for column in 0..7 {
+                        let index = half * 35 + row * 7 + column;
+                        doc.parts.push(serde_json::from_value(serde_json::json!({
+                            "id":format!("switch-{index}"), "definitionId":definition_id,
+                            "reference":format!("SW{index}"), "side":"back",
+                            "pose":{"at":{"x":half as f64 * 160.0 + column as f64 * 19.0 + 15.0,
+                                "y": row as f64 * 19.0 + 15.0},"rotation":0}
+                        })).unwrap());
+                    }
+                }
+            }
+            doc.boards.push(Board { id:"board".into(), name:"Board".into(),
+                outline_ids:vec![], part_ids:doc.parts.iter().map(|p|p.id.clone()).collect(),
+                net_ids:vec![], thickness:1.6, traces:vec![], vias:vec![] });
+            let mut settings = config();
+            settings.plate_thickness = -1.0;
+            settings.plate_to_pcb = -1.0;
+            settings.plate_foam_thickness = -1.0;
+            doc.mechanical = Some(settings);
+            let outlines = (0..2).map(|half| {
+                let x = half as f64 * 160.0;
+                Contour { hole:false, points:vec![Vec2{x,y:0.0},Vec2{x:x+145.0,y:0.0},
+                    Vec2{x:x+145.0,y:105.0},Vec2{x,y:105.0}] }
+            }).collect::<Vec<_>>();
+            let assembly = resolve(&doc, &outlines);
+            assert!(!assembly.generation_blocked, "{:?}", assembly.diagnostics);
+            let openings = assembly.plate_contours.iter().filter(|c|c.hole).collect::<Vec<_>>();
+            assert_eq!(openings.len(),70,"{definition_id}");
+            for opening in openings {
+                for axis in [true,false] {
+                    let values = opening.points.iter().map(|p|if axis {p.x}else{p.y});
+                    let min = values.clone().fold(f64::INFINITY,f64::min);
+                    let max = values.fold(f64::NEG_INFINITY,f64::max);
+                    assert!((max-min-14.0).abs()<0.001,"{definition_id}: {min}..{max}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn builtin_and_generator_switches_derive_their_fit_and_plate_gap() {
+        for (source, parameters, family, plate_thickness, gap) in [
+            (
+                "builtin:mx-hotswap",
+                serde_json::json!({}),
+                MechanicalSwitchFamily::Mx,
+                1.5,
+                3.5,
+            ),
+            (
+                "builtin:choc-hotswap",
+                serde_json::json!({}),
+                MechanicalSwitchFamily::ChocV1,
+                1.3,
+                2.2,
+            ),
+            (
+                "ceoloide/switch_choc_v1_v2",
+                serde_json::json!({"choc_v1_support":{"value":false},"choc_v2_support":{"value":true}}),
+                MechanicalSwitchFamily::ChocV2,
+                1.5,
+                3.5,
+            ),
+        ] {
+            let mut doc = ProjectDoc::empty("switch-fit", "switch-fit");
+            doc.boards.push(Board {
+                id: "board".into(),
+                name: "Board".into(),
+                outline_ids: vec![],
+                part_ids: vec!["switch".into()],
+                net_ids: vec![],
+                thickness: 1.6,
+                traces: vec![],
+                vias: vec![],
+            });
+            doc.parts.push(serde_json::from_value(serde_json::json!({
+                "id":"switch", "definitionId":"switch-def", "reference":"SW1",
+                "pose":{"at":{"x":50,"y":50},"rotation":0}, "side":"front"
+            })).unwrap());
+            doc.definitions.push(serde_json::from_value(serde_json::json!({
+                "id":"switch-def", "name":"Switch", "kind":"switch", "courtyard":[], "pads":[],
+                "generator":{"source":source,"version":"1","parameters":parameters}
+            })).unwrap());
+            let mut configuration = config();
+            configuration.plate_thickness = -1.0;
+            configuration.plate_to_pcb = -1.0;
+            configuration.plate_foam_thickness = -1.0;
+            doc.mechanical = Some(configuration);
+            let outline = [Contour {
+                hole: false,
+                points: vec![
+                    Vec2 { x: 0.0, y: 0.0 },
+                    Vec2 { x: 100.0, y: 0.0 },
+                    Vec2 { x: 100.0, y: 100.0 },
+                    Vec2 { x: 0.0, y: 100.0 },
+                ],
+            }];
+
+            let assembly = resolve(&doc, &outline);
+            assert!(!assembly.generation_blocked, "{source}: {:#?}", assembly.diagnostics);
+            let plate = assembly.stack.iter().find(|layer| layer.id == "plate").unwrap();
+            assert_eq!(plate.z, gap, "{source} mounting datum gap");
+            assert_eq!(plate.thickness, plate_thickness, "{source} plate preset");
+            let cutout = assembly.plate_contours.iter().find(|contour| contour.hole).unwrap();
+            let min_x = cutout.points.iter().map(|point| point.x).fold(f64::INFINITY, f64::min);
+            let max_x = cutout.points.iter().map(|point| point.x).fold(f64::NEG_INFINITY, f64::max);
+            let expected_width = match family {
+                MechanicalSwitchFamily::Mx => 14.0,
+                MechanicalSwitchFamily::ChocV1 => 14.0,
+                MechanicalSwitchFamily::ChocV2 => 14.0,
+            };
+            assert!((max_x - min_x - expected_width).abs() < 0.01, "{source} cutout width");
+        }
+    }
+
+    #[test]
+    fn unknown_switch_requires_a_fit_choice_before_plate_generation() {
+        let mut doc = ProjectDoc::empty("unknown-switch", "unknown-switch");
+        doc.boards.push(Board {
+            id: "board".into(),
+            name: "Board".into(),
+            outline_ids: vec![],
+            part_ids: vec!["switch".into()],
+            net_ids: vec![],
+            thickness: 1.6,
+            traces: vec![],
+            vias: vec![],
+        });
+        doc.parts.push(serde_json::from_value(serde_json::json!({
+            "id":"switch", "definitionId":"imported", "reference":"SW1",
+            "pose":{"at":{"x":50,"y":50},"rotation":0}, "side":"front"
+        })).unwrap());
+        doc.definitions.push(serde_json::from_value(serde_json::json!({
+            "id":"imported", "name":"Imported switch", "kind":"switch", "courtyard":[], "pads":[]
+        })).unwrap());
+        let mut configuration = config();
+        configuration.plate_thickness = -1.0;
+        configuration.plate_to_pcb = -1.0;
+        configuration.plate_foam_thickness = -1.0;
+        doc.mechanical = Some(configuration);
+        let outline = [Contour {
+            hole: false,
+            points: vec![
+                Vec2 { x: 0.0, y: 0.0 },
+                Vec2 { x: 100.0, y: 0.0 },
+                Vec2 { x: 100.0, y: 100.0 },
+                Vec2 { x: 0.0, y: 100.0 },
+            ],
+        }];
+
+        let unresolved = resolve(&doc, &outline);
+        assert!(unresolved.generation_blocked);
+        assert!(unresolved.diagnostics.iter().any(|finding| finding.id == "mechanical:switch-family"));
+
+        let family = MechanicalSwitchFamily::ChocV1;
+        let mut profile = builtin_profile(
+            "imported".into(),
+            profile_source_for_family(family),
+            switch_mounting_datum(family) - 1.3,
+        )
+        .unwrap();
+        profile.switch_family = Some(family);
+        let configuration = doc.mechanical.as_mut().unwrap();
+        configuration.plate_thickness = 1.3;
+        configuration.plate_to_pcb = 2.2;
+        configuration.plate_foam_thickness = 2.0;
+        configuration.profiles.push(profile);
+        let selected = resolve(&doc, &outline);
+        assert!(!selected.generation_blocked, "{:#?}", selected.diagnostics);
+        assert_eq!(selected.stack.iter().find(|layer| layer.id == "plate").unwrap().z, 2.2);
     }
     #[test]
     fn duplicate_rings_ignore_winding_start_and_closure() {
@@ -1616,6 +2702,7 @@ mod tests {
             clearance_volumes: None,
             openings: None,
             clearances: None,
+            switch_family: None,
             definition_id: "switch".into(),
             source: "custom".into(),
             cutouts: vec![vec![
@@ -1709,7 +2796,6 @@ mod tests {
     #[test]
     fn builtin_profiles_have_library_cutouts() {
         for source in [
-            MechanicalBuiltinProfile::MxSwitch,
             MechanicalBuiltinProfile::MxStab2u,
             MechanicalBuiltinProfile::MxStab625u,
         ] {
@@ -1717,6 +2803,40 @@ mod tests {
             assert!(!profile.cutouts.is_empty());
             assert!(profile.cutouts.iter().all(|p| p.len() >= 3));
             assert!(profile.supported_thickness.is_none());
+        }
+        for (source, family, cutout_width, provenance) in [
+            (
+                MechanicalBuiltinProfile::MxSwitch,
+                MechanicalSwitchFamily::Mx,
+                14.0,
+                "Cherry MX datasheet",
+            ),
+            (
+                MechanicalBuiltinProfile::ChocV1Switch,
+                MechanicalSwitchFamily::ChocV1,
+                14.0,
+                "CPG135001D01-16",
+            ),
+            (
+                MechanicalBuiltinProfile::ChocV2Switch,
+                MechanicalSwitchFamily::ChocV2,
+                14.0,
+                "CPG135301D03",
+            ),
+        ] {
+            let profile = builtin_profile("switch".into(), source, 2.0).unwrap();
+            assert_eq!(profile.switch_family, Some(family));
+            assert!(profile.source.contains(provenance));
+            let min_x = profile.cutouts[0]
+                .iter()
+                .map(|point| point.x)
+                .fold(f64::INFINITY, f64::min);
+            let max_x = profile.cutouts[0]
+                .iter()
+                .map(|point| point.x)
+                .fold(f64::NEG_INFINITY, f64::max);
+            assert!((max_x - min_x - cutout_width).abs() < 0.001);
+            assert!(profile.supported_thickness.is_some());
         }
     }
     #[test]
@@ -1743,8 +2863,7 @@ mod tests {
     }
 }
 
-/// Reviewed library geometry, with an explicit caller-supplied engagement distance.
-/// The footprints establish cutout geometry only, not switch stack qualification.
+/// Reviewed library fit geometry with a manufacturer-sourced switch datum.
 pub fn builtin_profile(
     definition_id: String,
     source: MechanicalBuiltinProfile,
@@ -1757,65 +2876,127 @@ pub fn builtin_profile(
     if !plate_to_pcb.is_finite() || plate_to_pcb <= 0.0 {
         return Err("Profile engagement must be positive finite millimetres".into());
     }
-    let (name, source_text) = match source {
+    let (name, source_text, family, square_cutout) = match source {
         MechanicalBuiltinProfile::MxSwitch => (
             "SW_MX_1u",
-            include_str!("../tests/fixtures/mechanical/SW_MX_1u.kicad_mod"),
+            None,
+            Some(MechanicalSwitchFamily::Mx),
+            Some((14.0, 1.5, Vec2 { x: 1.4, y: 1.6 })),
+        ),
+        MechanicalBuiltinProfile::ChocV1Switch => (
+            "Kailh PG1350 Choc v1",
+            None,
+            Some(MechanicalSwitchFamily::ChocV1),
+            Some((14.0, 1.3, Vec2 { x: 1.2, y: 1.4 })),
+        ),
+        MechanicalBuiltinProfile::ChocV2Switch => (
+            "Kailh PG1353 Choc v2",
+            None,
+            Some(MechanicalSwitchFamily::ChocV2),
+            Some((14.0, 1.5, Vec2 { x: 1.4, y: 1.6 })),
         ),
         MechanicalBuiltinProfile::MxStab2u => (
             "STAB_MX_2u",
-            include_str!("../tests/fixtures/mechanical/STAB_MX_2u.kicad_mod"),
+            Some(include_str!(
+                "../tests/fixtures/mechanical/STAB_MX_2u.kicad_mod"
+            )),
+            None,
+            None,
         ),
         MechanicalBuiltinProfile::MxStab625u => (
             "STAB_MX_6.25u",
-            include_str!("../tests/fixtures/mechanical/STAB_MX_6.25u.kicad_mod"),
+            Some(include_str!(
+                "../tests/fixtures/mechanical/STAB_MX_6.25u.kicad_mod"
+            )),
+            None,
+            None,
         ),
     };
-    let raw = extract(source_text, &[]).map_err(|e| format!("{e:?}"))?;
-    let mappings: Vec<_> = raw
-        .primitives
-        .iter()
-        .filter_map(|primitive| {
-            let purpose = if primitive.layer.as_deref() == Some("Eco2.User") {
-                MechanicalPurpose::PlateCutout
-            } else if matches!(
-                &primitive.geometry,
-                MechanicalShape::Drill {
-                    plated: Some(false),
-                    ..
-                }
-            ) {
-                MechanicalPurpose::ElectricalPcbMountingHole
-            } else {
-                return None;
-            };
-            Some(PurposeMapping {
-                source_id: Some(primitive.id.clone()),
-                kind: None,
-                layer: None,
-                purpose,
+    let is_library_geometry = source_text.is_some();
+    let mut source_geometry = None;
+    let mut pcb_holes = None;
+    let cutouts = if let Some(source_text) = source_text {
+        let raw = extract(source_text, &[]).map_err(|e| format!("{e:?}"))?;
+        let mappings: Vec<_> = raw
+            .primitives
+            .iter()
+            .filter_map(|primitive| {
+                let purpose = if primitive.layer.as_deref() == Some("Eco2.User") {
+                    MechanicalPurpose::PlateCutout
+                } else if matches!(
+                    &primitive.geometry,
+                    MechanicalShape::Drill {
+                        plated: Some(false),
+                        ..
+                    }
+                ) {
+                    MechanicalPurpose::ElectricalPcbMountingHole
+                } else {
+                    return None;
+                };
+                Some(PurposeMapping {
+                    source_id: Some(primitive.id.clone()),
+                    kind: None,
+                    layer: None,
+                    purpose,
+                })
             })
-        })
-        .collect();
-    let geometry = extract(source_text, &mappings).map_err(|e| format!("{e:?}"))?;
-    let cutouts = plate_cutout_contours(&geometry, 0.005).map_err(|e| format!("{e:?}"))?;
+            .collect();
+        let geometry = extract(source_text, &mappings).map_err(|e| format!("{e:?}"))?;
+        source_geometry =
+            Some(profile_source(source_text, &mappings).map_err(|e| format!("{e:?}"))?);
+        pcb_holes = Some(pcb_mounting_holes(&geometry).map_err(|e| format!("{e:?}"))?);
+        plate_cutout_contours(&geometry, 0.005).map_err(|e| format!("{e:?}"))?
+    } else if let Some((width, _, _)) = square_cutout {
+        let half = width / 2.0;
+        vec![vec![
+            Vec2 { x: -half, y: -half },
+            Vec2 { x: half, y: -half },
+            Vec2 { x: half, y: half },
+            Vec2 { x: -half, y: half },
+        ]]
+    } else {
+        Vec::new()
+    };
     if cutouts.is_empty() {
         return Err("Bundled profile has no mapped plate contours".into());
     }
+    let supported_thickness = if let Some((_, _, range)) = square_cutout {
+        Some(range)
+    } else if family == Some(MechanicalSwitchFamily::Mx) {
+        Some(Vec2 { x: 1.4, y: 1.6 })
+    } else {
+        None
+    };
+    let manufacturer_source = match family {
+        Some(MechanicalSwitchFamily::Mx) => {
+            "Cherry MX datasheet: https://datasheet.octopart.com/MX1A-11NW-Cherry-datasheet-34676.pdf; 5.0 mm nominal mounting datum; 1.5 mm nominal plate"
+        }
+        Some(MechanicalSwitchFamily::ChocV1) => {
+            "Kailh PG1350 drawing CPG135001D01-16: https://m.kailhswitch.com/Content/upload/pdf/202215927/CPG135001D01-16.pdf?rnd=121; 3.5 mm mounting datum; 1.3 mm nominal plate"
+        }
+        Some(MechanicalSwitchFamily::ChocV2) => {
+            "Kailh PG1353 drawing CPG135301D03: https://www.kailhswitch.com/Content/upload/pdf/202015927/PG135301D03.pdf; 5.0 mm mounting datum; 1.5 mm nominal plate"
+        }
+        None => "",
+    };
     Ok(MechanicalPartProfile {
-        source_geometry: Some(
-            profile_source(source_text, &mappings).map_err(|e| format!("{e:?}"))?,
-        ),
-        pcb_holes: Some(pcb_mounting_holes(&geometry).map_err(|e| format!("{e:?}"))?),
+        source_geometry,
+        pcb_holes,
         clearance_volumes: None,
         openings: None,
         clearances: None,
+        switch_family: family,
         definition_id,
-        source: format!(
-            "marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/{name}.kicad_mod:CERN-OHL-P-2.0:Eco2.User; chord deviation <=0.005mm; engagement user-specified; PCB-mount stabilizers only"
-        ),
+        source: if is_library_geometry {
+            format!(
+                "marbastlib@6b0a9a73f579e377816d60b58eac2b3252de7868:footprints/marbastlib-mx.pretty/{name}.kicad_mod:CERN-OHL-P-2.0:Eco2.User; chord deviation <=0.005mm; {manufacturer_source}; PCB-mount stabilizers only"
+            )
+        } else {
+            format!("{manufacturer_source}; Board Studio standard 14 x 14 mm plate opening")
+        },
         cutouts,
         plate_to_pcb,
-        supported_thickness: None,
+        supported_thickness,
     })
 }

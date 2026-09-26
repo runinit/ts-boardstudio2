@@ -80,6 +80,7 @@ test('previews and exports the case assembly as STEP', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await expect(page.getByLabel('Complete PCB assembly preview')).toBeVisible({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current')).toBeVisible();
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
@@ -467,6 +468,7 @@ test('creates a case from a new keyboard project', async ({ page }) => {
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
   await page.getByRole('button', { name: '+ New case body' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current')).toBeVisible({ timeout: 30_000 });
 });
 

@@ -4,6 +4,7 @@ import type { Gasket } from "./Gasket";
 import type { MechanicalBattery } from "./MechanicalBattery";
 import type { MechanicalBottomStyle } from "./MechanicalBottomStyle";
 import type { MechanicalCriticalFit } from "./MechanicalCriticalFit";
+import type { MechanicalGasketLayout } from "./MechanicalGasketLayout";
 import type { MechanicalHardwareSpecification } from "./MechanicalHardwareSpecification";
 import type { MechanicalMount } from "./MechanicalMount";
 import type { MechanicalPartProcess } from "./MechanicalPartProcess";
@@ -12,4 +13,4 @@ import type { MechanicalStabilizerOverride } from "./MechanicalStabilizerOverrid
 import type { Mount } from "./Mount";
 import type { PlateMethod } from "./PlateMethod";
 
-export type MechanicalConfiguration = { hardware?: Array<MechanicalHardwareSpecification>, criticalFits?: Array<MechanicalCriticalFit>, bottomStyle?: MechanicalBottomStyle, middleFrame?: boolean, gasketTravel?: number, openings?: Array<CaseOpening>, openingAllowance?: number, stabilizers?: Array<MechanicalStabilizerOverride>, partProcesses?: Array<MechanicalPartProcess>, gasket?: Gasket, closureMounts?: Array<Mount>, boardId: string, integratedPlateFrame: boolean, battery?: MechanicalBattery, mounts: Array<Mount>, method: PlateMethod, mount: MechanicalMount, plateThickness: number, plateFoamThickness: number, pcbThickness: number, bottomFoamThickness: number, batteryHeight: number, bottomThickness: number, plateToPcb: number, wallThickness: number, clearance: number, profiles: Array<MechanicalPartProfile>, };
+export type MechanicalConfiguration = { gasketLayout?: MechanicalGasketLayout, hardware?: Array<MechanicalHardwareSpecification>, criticalFits?: Array<MechanicalCriticalFit>, bottomStyle?: MechanicalBottomStyle, middleFrame?: boolean, gasketTravel?: number, openings?: Array<CaseOpening>, openingAllowance?: number, stabilizers?: Array<MechanicalStabilizerOverride>, partProcesses?: Array<MechanicalPartProcess>, gasket?: Gasket, closureMounts?: Array<Mount>, boardId: string, integratedPlateFrame: boolean, battery?: MechanicalBattery, mounts: Array<Mount>, method: PlateMethod, mount: MechanicalMount, plateThickness: number, plateFoamThickness: number, pcbThickness: number, bottomFoamThickness: number, batteryHeight: number, bottomThickness: number, plateToPcb: number, wallThickness: number, clearance: number, profiles: Array<MechanicalPartProfile>, };

@@ -1688,6 +1688,20 @@ pub enum PlateMethod {
     CutSheet,
 }
 
+impl Default for PlateMethod {
+    fn default() -> Self {
+        Self::Printed
+    }
+}
+
+fn unset_mechanical_dimension() -> f64 {
+    -1.0
+}
+
+fn default_battery_height() -> f64 {
+    0.0
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "kebab-case")]
@@ -1714,6 +1728,8 @@ pub struct MechanicalPartProfile {
     pub clearances: Option<Vec<Vec<Vec2>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub supported_thickness: Option<Vec2>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub switch_family: Option<MechanicalSwitchFamily>,
     pub definition_id: String,
     pub source: String,
     pub cutouts: Vec<Vec<Vec2>>,
@@ -1723,8 +1739,67 @@ pub struct MechanicalPartProfile {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
+pub struct MechanicalGasketLayout {
+    pub length: f64,
+    pub width: f64,
+    pub thickness: f64,
+    pub compression: f64,
+    #[serde(default)]
+    pub supports: Vec<MechanicalGasketAnchor>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalGasketAnchor {
+    pub id: String,
+    pub region_id: String,
+    pub outline_key: String,
+    pub anchor: f64,
+    #[serde(default)]
+    pub unlinked: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalGasketSupport {
+    pub id: String,
+    pub region_id: String,
+    pub outline_key: String,
+    pub anchor: f64,
+    pub at: Vec2,
+    pub tangent: Vec2,
+    pub normal: Vec2,
+    pub length: f64,
+    pub width: f64,
+    pub z: f64,
+    pub thickness: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pair_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirror_axis: Option<f64>,
+    pub unlinked: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
+pub struct MechanicalGasketTrack {
+    pub region_id: String,
+    pub start: Vec2,
+    pub end: Vec2,
+    pub start_anchor: f64,
+    pub end_anchor: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "export-types", ts(optional_fields))]
 pub struct MechanicalConfiguration {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gasket_layout: Option<MechanicalGasketLayout>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hardware: Option<Vec<MechanicalHardwareSpecification>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1757,14 +1832,23 @@ pub struct MechanicalConfiguration {
     pub mounts: Vec<Mount>,
     pub method: PlateMethod,
     pub mount: MechanicalMount,
+    #[serde(default = "unset_mechanical_dimension")]
     pub plate_thickness: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub plate_foam_thickness: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub pcb_thickness: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub bottom_foam_thickness: f64,
+    #[serde(default = "default_battery_height")]
     pub battery_height: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub bottom_thickness: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub plate_to_pcb: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub wall_thickness: f64,
+    #[serde(default = "unset_mechanical_dimension")]
     pub clearance: f64,
     pub profiles: Vec<MechanicalPartProfile>,
 }
@@ -1782,6 +1866,12 @@ pub struct MechanicalStackLayer {
 #[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
 pub struct MechanicalAssembly {
+    #[serde(default)]
+    pub gasket_supports: Vec<MechanicalGasketSupport>,
+    #[serde(default)]
+    pub gasket_tracks: Vec<MechanicalGasketTrack>,
+    #[serde(default)]
+    pub generated_hardware: Vec<MechanicalHardwareSpecification>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "export-types", ts(optional))]
     pub pcb_reference: Option<CaseIR>,
@@ -1792,6 +1882,8 @@ pub struct MechanicalAssembly {
     pub case: CaseAssemblyIR,
     pub stack: Vec<MechanicalStackLayer>,
     pub diagnostics: Vec<Finding>,
+    #[serde(default)]
+    pub generation_blocked: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -1811,8 +1903,19 @@ pub struct MechanicalBattery {
 #[serde(rename_all = "kebab-case")]
 pub enum MechanicalBuiltinProfile {
     MxSwitch,
+    ChocV1Switch,
+    ChocV2Switch,
     MxStab2u,
     MxStab625u,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "export-types", derive(ts_rs::TS))]
+#[serde(rename_all = "kebab-case")]
+pub enum MechanicalSwitchFamily {
+    Mx,
+    ChocV1,
+    ChocV2,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -1820,9 +1923,17 @@ pub enum MechanicalBuiltinProfile {
 #[serde(rename_all = "camelCase")]
 pub struct MechanicalPartProcess {
     pub part_id: String,
+    #[serde(default)]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<PlateMethod>", optional))]
     pub method: PlateMethod,
+    #[serde(default)]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<String>", optional))]
     pub material: String,
+    #[serde(default = "unset_mechanical_dimension")]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<f64>", optional))]
     pub thickness: f64,
+    #[serde(default)]
+    #[cfg_attr(feature = "export-types", ts(as = "Option<String>", optional))]
     pub constraints_version: String,
 }
 

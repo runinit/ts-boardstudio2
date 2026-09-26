@@ -116,6 +116,7 @@ pub(crate) fn apply_allowance(config: &MechanicalConfiguration, assembly: &mut M
     };
     if !allowance.is_finite() || allowance.abs() > 1.0 {
         assembly.diagnostics.push(failure("Opening allowance must be finite and within ±1 mm. Confirm fit against the profile's functional engagement dimensions.".into()));
+        assembly.generation_blocked = true;
         return;
     }
     let mut adjusted = vec![];
@@ -128,6 +129,7 @@ pub(crate) fn apply_allowance(config: &MechanicalConfiguration, assembly: &mut M
             Some(points) => adjusted.push(Contour { hole: true, points }),
             None => {
                 assembly.diagnostics.push(failure("Opening allowance collapses or splits a functional opening. Reduce the allowance or choose a compatible profile.".into()));
+                assembly.generation_blocked = true;
                 return;
             }
         }
@@ -218,9 +220,12 @@ pub(crate) fn check(config: &MechanicalConfiguration, contours: &[Contour]) -> V
                 ),
             );
         }
+        let disabled_foam = matches!(process.part_id.as_str(), "plate-foam" | "bottom-foam")
+            && process.thickness == 0.0
+            && expected_layer_thickness(config, &process.part_id) == Some(0.0);
         if process.material.trim().is_empty()
             || !process.thickness.is_finite()
-            || process.thickness <= 0.0
+            || (process.thickness <= 0.0 && !disabled_foam)
         {
             add(
                 format!("stock:{}", process.part_id),
@@ -231,13 +236,7 @@ pub(crate) fn check(config: &MechanicalConfiguration, contours: &[Contour]) -> V
                 ),
             );
         }
-        let expected_thickness = match process.part_id.as_str() {
-            "plate" => Some(config.plate_thickness),
-            "bottom" => Some(config.bottom_thickness),
-            "plate-foam" => Some(config.plate_foam_thickness),
-            "bottom-foam" => Some(config.bottom_foam_thickness),
-            _ => None,
-        };
+        let expected_thickness = expected_layer_thickness(config, &process.part_id);
         if expected_thickness.is_some_and(|expected| (process.thickness - expected).abs() > EPSILON)
         {
             add(
@@ -398,6 +397,16 @@ pub(crate) fn check(config: &MechanicalConfiguration, contours: &[Contour]) -> V
         }
     }
     findings
+}
+
+fn expected_layer_thickness(config: &MechanicalConfiguration, part_id: &str) -> Option<f64> {
+    match part_id {
+        "plate" => Some(config.plate_thickness),
+        "bottom" => Some(config.bottom_thickness),
+        "plate-foam" => Some(config.plate_foam_thickness),
+        "bottom-foam" => Some(config.bottom_foam_thickness),
+        _ => None,
+    }
 }
 
 fn bounds(points: &[Vec2]) -> (Vec2, Vec2) {

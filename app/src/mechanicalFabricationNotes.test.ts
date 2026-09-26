@@ -6,7 +6,8 @@ function fixture(): { assembly: MechanicalAssembly; config: MechanicalConfigurat
   const contours = [{ hole: false, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 30 }, { x: 0, y: 30 }] }];
   return {
     assembly: {
-      revision: 7, plateContours: contours, nominalPlateContours: contours, suggestedMounts: [], stack: [], diagnostics: [],
+      gasketSupports: [], gasketTracks: [], generatedHardware: [],
+      revision: 7, plateContours: contours, nominalPlateContours: contours, suggestedMounts: [], stack: [], diagnostics: [], generationBlocked: false,
       case: { revision: 7, bodies: [{ revision: 7, contours, body: {
         id: 'plate', name: 'Plate', boardId: 'board', kind: 'plate', thickness: 1.5, clearance: 0,
         mounts: [{ id: 'mount-1', kind: 'hole', at: { x: 4, y: 6 }, holeDiameter: 2.2 }],

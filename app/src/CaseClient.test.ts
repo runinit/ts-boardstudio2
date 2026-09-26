@@ -75,3 +75,58 @@ test('rejects pending CAD work when its worker fails and serves later work on th
   await expect(later).resolves.toBe(result);
   client.close();
 });
+
+test('does not settle a request when progress arrives before its result', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  const client = new CaseClient();
+  const pending = client.request({ revision: 4, bodies: [] } as PreparedCaseAssemblyIR);
+  const request = workers[0].sent[0].message as { id: string };
+  let settled = false;
+  void pending.then(() => { settled = true; }, () => { settled = true; });
+  workers[0].reply({ id: request.id, kind: 'progress', progress: { stage: 'building', completed: 0, total: 2, revision: 4 } });
+  await Promise.resolve();
+  expect(settled).toBe(false);
+  workers[0].reply({ id: request.id, kind: 'case', result: { revision: 4 } });
+  await expect(pending).resolves.toMatchObject({ revision: 4 });
+  client.close();
+});
+
+test('cancellation discards the old worker and ignores its late errors', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  const client = new CaseClient();
+  const pending = client.preview({ revision: 4, bodies: [] }, () => {});
+  const old = workers[0];
+  client.cancel();
+  await expect(pending).rejects.toThrow('cancelled');
+  old.fail();
+  expect(workers).toHaveLength(2);
+  const later = client.preview({ revision: 5, bodies: [] }, () => {});
+  const request = workers[1].sent[0].message as { id: string };
+  workers[1].reply({ id: request.id, kind: 'preview', result: { revision: 5 } });
+  await expect(later).resolves.toMatchObject({ revision: 5 });
+  client.close();
+});
+
+test('stale progress is ignored and stale terminal revisions are rejected', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  const client = new CaseClient();
+  const progress = vi.fn();
+  const pending = client.preview({ revision: 6, bodies: [] }, progress);
+  const request = workers[0].sent[0].message as { id: string };
+  workers[0].reply({ id: request.id, kind: 'progress', progress: { revision: 5 } });
+  expect(progress).not.toHaveBeenCalled();
+  workers[0].reply({ id: request.id, kind: 'preview', result: { revision: 5 } });
+  await expect(pending).rejects.toThrow('stale');
+  client.close();
+});
+
+test('disposal rejects pending work and cannot restart the worker', async () => {
+  vi.stubGlobal('Worker', FakeWorker);
+  const client = new CaseClient();
+  const pending = client.preview({ revision: 6, bodies: [] }, () => {});
+  client.close();
+  await expect(pending).rejects.toThrow('closed');
+  workers[0].fail();
+  expect(workers).toHaveLength(1);
+  await expect(client.preview({ revision: 7, bodies: [] }, () => {})).rejects.toThrow('closed');
+});

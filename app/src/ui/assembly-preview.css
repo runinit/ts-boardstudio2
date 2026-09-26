@@ -239,8 +239,8 @@
 }
 .wb-mechanical-preview-status {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  left: 12px;
+  bottom: 92px;
   z-index: 2;
   max-width: calc(100% - 24px);
   padding: 6px 9px;
@@ -251,3 +251,13 @@
   font: 11px var(--wb-mono);
   pointer-events: none;
 }
+
+.wb-render-modes { position:absolute; right:12px; top:12px; display:flex; gap:4px; background:var(--wb-panel); padding:5px; border-radius:5px; }
+.wb-render-modes button { color:inherit; background:transparent; border:1px solid transparent; padding:5px 8px; }
+.wb-render-modes button[aria-pressed="true"] { border-color:#8199d0; background:#394e71; color:white; }
+.wb-scene-preparing { position:absolute; left:12px; top:60px; pointer-events:none; }
+
+.wb-gasket-message { position:absolute; bottom:110px; left:12px; padding:6px; background:#1d2934; color:white; }
+
+.wb-canvas-column:has(> .wb-canvas-toolbar.is-floating) .wb-render-modes { top:64px; right:50%; transform:translateX(50%); }
+@media (max-width: 600px) { .wb-canvas-column:has(> .wb-canvas-toolbar.is-floating) .wb-render-modes { top:112px; } }

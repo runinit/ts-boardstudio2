@@ -10,14 +10,17 @@ test('Pages subpath loads workers, CAD, models and offline exports', async ({ pa
   });
   await page.goto('./');
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
+  expect(wasmRequests.some((url) => /boardstudio_renderer_wasm_bg/i.test(url))).toBe(false);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
   await page.getByRole('option', { name: /switch mx/ }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText('2 / 2 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 45_000 });
+  expect(wasmRequests.some((url) => /boardstudio_renderer_wasm_bg/i.test(url) && new URL(url).pathname.startsWith('/boardstudio/'))).toBe(true);
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   const wasmBeforeCad = wasmRequests.length;
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect.poll(() => wasmRequests.length).toBeGreaterThan(wasmBeforeCad);
   expect(wasmRequests.some((url) => /cadrum/i.test(url) && new URL(url).pathname.startsWith('/boardstudio/'))).toBe(true);
@@ -28,6 +31,7 @@ test('Pages subpath loads workers, CAD, models and offline exports', async ({ pa
   await page.reload();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('treeitem', { name: 'Case', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByText('Preview current', { exact: true })).toBeVisible({ timeout: 45_000 });
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');

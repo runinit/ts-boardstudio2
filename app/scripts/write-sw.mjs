@@ -25,7 +25,9 @@ async function files(dir) {
 }
 
 const rootPath = root.pathname;
-const paths = (await files(rootPath)).map((path) => `./${relative(rootPath, path)}`);
+const paths = (await files(rootPath))
+  .filter((path) => !/boardstudio_renderer_wasm(?:_bg)?-[^/]+\.(?:js|wasm)$/u.test(path))
+  .map((path) => `./${relative(rootPath, path)}`);
 const version = createHash('sha256').update(JSON.stringify(paths)).digest('hex').slice(0, 12);
 const source = `const CACHE = 'boardstudio-v2-${version}';
 const FILES = ${JSON.stringify(['./', ...paths])};
@@ -37,7 +39,12 @@ self.addEventListener('activate', (event) => {
 });
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).catch(() => event.request.mode === 'navigate' ? caches.match('./') : Response.error())));
+  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+    if (response.ok && /boardstudio_renderer_wasm(?:_bg)?-[^/]+\\.(?:js|wasm)$/u.test(new URL(event.request.url).pathname)) {
+      return caches.open(CACHE).then((cache) => cache.put(event.request, response.clone()).then(() => response));
+    }
+    return response;
+  }).catch(() => event.request.mode === 'navigate' ? caches.match('./') : Response.error())));
 });
 `;
 

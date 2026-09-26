@@ -1,9 +1,12 @@
+import { defaultGasketLayout } from '../gasketEditing';
+import { generationMessage, type GenerationState } from '../generationState';
 import React from 'react';
 import type {
   Finding,
   CaseOpening,
   MechanicalAssembly,
   MechanicalCriticalFit,
+  MechanicalBuiltinProfile,
   MechanicalConfiguration,
   MechanicalExtraction,
   MechanicalGeometry,
@@ -12,6 +15,7 @@ import type {
   MechanicalPurposeMapping,
   MechanicalPurpose,
   MechanicalStabilizerOverride,
+  MechanicalSwitchFamily,
   Mount,
   PartDefinition,
   ProjectDoc,
@@ -20,6 +24,18 @@ import type {
 import { FindingList } from './FindingList';
 import { MechanicalDraft } from './mechanicalDraft';
 import { InspectorSection } from './InspectorSection';
+import {
+  createMechanicalConfiguration,
+  defaultPlateFoamThickness,
+  defaultPlateThickness,
+  inferSwitchFamily,
+  initialSwitchFamily,
+  materialForProcess,
+  materialOptionsForProcess,
+  plateToPcbGap,
+  profileSwitchFamily,
+  switchMountingDatum,
+} from '../mechanicalPresets';
 import './mechanical-assembly.css';
 
 const numericFields = [
@@ -29,13 +45,18 @@ const numericFields = [
   ['bottomFoamThickness', 'Bottom foam'],
   ['batteryHeight', 'Battery height'],
   ['bottomThickness', 'Bottom thickness'],
-  ['plateToPcb', 'Plate underside to PCB top'],
   ['wallThickness', 'Wall thickness'],
   ['clearance', 'Clearance'],
 ] as const;
 const supportedConstraintVersion = '2026-09-24';
 const layerProcessIds = ['plate', 'plate-foam', 'bottom-foam', 'bottom'] as const;
-const defaultProcess = (partId: string, method: MechanicalConfiguration['method'], thickness: number, material = '') => ({ partId, method, material, thickness, constraintsVersion: supportedConstraintVersion });
+const defaultProcess = (partId: string, method: MechanicalConfiguration['method'], thickness: number) => ({
+  partId,
+  method: partId.endsWith('foam') ? 'cut-sheet' as const : method,
+  material: materialForProcess(partId, partId.endsWith('foam') ? 'cut-sheet' : method),
+  thickness,
+  constraintsVersion: supportedConstraintVersion,
+});
 type HardwareSpec = MechanicalHardwareSpecification;
 type CriticalFit = MechanicalCriticalFit;
 
@@ -48,40 +69,15 @@ type Props = {
   assembly?: MechanicalAssembly;
   onChange: (configuration: MechanicalConfiguration | null) => void;
   onResolve?: () => void;
+  onCancel?: () => void;
+  generation?: GenerationState;
   onExport?: () => void;
   onShowFinding?: (finding: Finding) => void;
   selectedLayer?: string;
   onSelectLayer?: (id: string) => void;
-  onMechanicalProfile?: (definitionId: string, source: 'mx-switch' | 'mx-stab2u' | 'mx-stab625u', plateToPcb: number) => Promise<MechanicalPartProfile>;
+  onMechanicalProfile?: (definitionId: string, source: MechanicalBuiltinProfile, plateToPcb: number) => Promise<MechanicalPartProfile>;
   onExtractMechanicalProfile?: (source: string, mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
 };
-
-const makeConfiguration = (document: ProjectDoc, boardId?: string): MechanicalConfiguration => ({
-  boardId: boardId ?? document.boards[0]?.id ?? '',
-  method: 'printed',
-  mount: 'tray',
-  integratedPlateFrame: false,
-  bottomStyle: 'shell',
-  middleFrame: false,
-  plateThickness: 1.5,
-  plateFoamThickness: 3,
-  pcbThickness: 1.6,
-  bottomFoamThickness: 2,
-  batteryHeight: 6,
-  bottomThickness: 3,
-  plateToPcb: 5,
-  wallThickness: 2,
-  clearance: 0.3,
-  mounts: [],
-  closureMounts: [],
-  partProcesses: [
-    defaultProcess('plate', 'printed', 1.5),
-    defaultProcess('plate-foam', 'printed', 3, 'foam (specify grade)'),
-    defaultProcess('bottom-foam', 'printed', 2, 'foam (specify grade)'),
-    defaultProcess('bottom', 'printed', 3),
-  ],
-  profiles: [],
-});
 
 function MountList({ title, value, onChange }: { title: string; value: Mount[]; onChange: (value: Mount[]) => void }) {
   const update = (id: string, patch: Partial<Mount>) => onChange(value.map((mount) => mount.id === id ? { ...mount, ...patch } : mount));
@@ -138,12 +134,13 @@ function OpeningListEditor({ title, openings, onChange }: { title: string; openi
   </div>;
 }
 
-function ProfileEditor({ profile, definitions, onChange, onRemove, onExtract }: {
+function ProfileEditor({ profile, definitions, onChange, onRemove, onExtract, onSelectSwitchFamily }: {
   profile: MechanicalPartProfile;
   definitions: PartDefinition[];
   onChange: (profile: MechanicalPartProfile) => void;
   onRemove: () => void;
   onExtract?: (mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
+  onSelectSwitchFamily?: (family: MechanicalSwitchFamily) => void;
 }) {
   const [geometry, setGeometry] = React.useState<MechanicalGeometry>();
   const [selectedPrimitives, setSelectedPrimitives] = React.useState<Set<string>>(new Set());
@@ -196,7 +193,8 @@ function ProfileEditor({ profile, definitions, onChange, onRemove, onExtract }: 
     <PolygonListEditor title="Component clearance zones" polygons={profile.clearances ?? []} onChange={(clearances) => onChange({ ...profile, clearances })} />
     <OpeningListEditor title="Access openings" openings={profile.openings ?? []} onChange={(openings) => onChange({ ...profile, openings })} />
     <OpeningListEditor title="Clearance volumes" openings={profile.clearanceVolumes ?? []} onChange={(clearanceVolumes) => onChange({ ...profile, clearanceVolumes })} />
-    <div className="wb-mech-profile-offset"><NumberField label="Profile engagement · plate underside to PCB top" value={profile.plateToPcb} onCommit={(plateToPcb) => onChange({ ...profile, plateToPcb })} /><label className="wb-mech-field"><span>Supported thickness</span><span className="wb-mech-range"><input aria-label="Minimum supported plate thickness" type="number" min="0" step="0.1" placeholder="Min" value={profile.supportedThickness?.x ?? ''} onChange={(event) => onChange({ ...profile, supportedThickness: { x: Number(event.target.value), y: profile.supportedThickness?.y ?? 0 } })} /><input aria-label="Maximum supported plate thickness" type="number" min="0" step="0.1" placeholder="Max" value={profile.supportedThickness?.y ?? ''} onChange={(event) => onChange({ ...profile, supportedThickness: { x: profile.supportedThickness?.x ?? 0, y: Number(event.target.value) } })} /></span></label></div>
+    {definition?.kind === 'switch' && <label className="wb-mech-field"><span>Switch fit family</span><select value={profile.switchFamily ?? ''} onChange={(event) => { if (event.target.value) onSelectSwitchFamily?.(event.target.value as MechanicalSwitchFamily); }}><option value="">Choose switch family…</option><option value="mx">MX</option><option value="choc-v1">Choc v1</option><option value="choc-v2">Choc v2</option></select></label>}
+    <div className="wb-mech-profile-offset"><label className="wb-mech-field"><span>Plate underside to PCB top</span><output>{profile.plateToPcb.toFixed(2)} mm · derived from switch fit</output></label><label className="wb-mech-field"><span>Supported plate thickness</span><output>{profile.supportedThickness ? `${profile.supportedThickness.x.toFixed(2)}–${profile.supportedThickness.y.toFixed(2)} mm` : 'Supplier review needed'}</output></label></div>
   </section>;
 }
 
@@ -265,7 +263,7 @@ function HardwareAndFits({ configuration, assembly, onChange }: {
   </InspectorSection>;
 }
 
-export function MechanicalAssemblyPanel({ document, boardId, projectSession, definitions, configuration, assembly, onChange: commitConfiguration, onResolve, onExport, onShowFinding, selectedLayer, onSelectLayer, onMechanicalProfile, onExtractMechanicalProfile }: Props) {
+export function MechanicalAssemblyPanel({ document, boardId, projectSession, definitions, configuration, assembly, onChange: commitConfiguration, onResolve, onCancel, generation, onExport, onShowFinding, selectedLayer, onSelectLayer, onMechanicalProfile, onExtractMechanicalProfile }: Props) {
   const draftScope = `${document.id}:${boardId ?? configuration?.boardId ?? ''}:${projectSession ?? 0}`;
   const draft = React.useRef(new MechanicalDraft(configuration, draftScope, document.revision));
   draft.current.receive(configuration, draftScope, document.revision);
@@ -274,62 +272,146 @@ export function MechanicalAssemblyPanel({ document, boardId, projectSession, def
   const onChange = (next: MechanicalConfiguration | null) => {
     draft.current.submit(next); redraw(); commitConfiguration(next);
   };
-  const [profileSource, setProfileSource] = React.useState<'mx-switch' | 'mx-stab2u' | 'mx-stab625u'>('mx-switch');
+  const [profileSource, setProfileSource] = React.useState<MechanicalBuiltinProfile | ''>(() => {
+    const family = (configuration && profileSwitchFamily(configuration))
+      ?? initialSwitchFamily(document, boardId ?? configuration?.boardId ?? '');
+    return family === 'choc-v1' ? 'choc-v1-switch' : family === 'choc-v2' ? 'choc-v2-switch' : family === 'mx' ? 'mx-switch' : '';
+  });
   const [profilePending, setProfilePending] = React.useState(false);
   const [profileError, setProfileError] = React.useState('');
+  React.useEffect(() => {
+    const family = initialSwitchFamily(document, boardId ?? configuration?.boardId ?? '');
+    setProfileSource(family === 'choc-v1' ? 'choc-v1-switch' : family === 'choc-v2' ? 'choc-v2-switch' : family === 'mx' ? 'mx-switch' : '');
+  }, [boardId, configuration?.boardId, document.id]);
   const usedDefinitions = [...new Set(document.parts.map((part) => part.definitionId))].map((id) => definitions.find((definition) => definition.id === id)).filter((definition): definition is PartDefinition => Boolean(definition));
   const processTargets = [...layerProcessIds.map((partId) => ({ partId, name: partId.replace(/-/g, ' ') })), ...document.parts.map((part) => ({ partId: part.id, name: `${part.reference} · ${definitions.find((definition) => definition.id === part.definitionId)?.name ?? part.definitionId}` }))];
   const update = (patch: Partial<MechanicalConfiguration>) => {
-    const current = draft.current.value ?? makeConfiguration(document, boardId);
-    let partProcesses = patch.partProcesses ?? current.partProcesses ?? [];
-    if (patch.method || patch.plateThickness !== undefined || patch.bottomThickness !== undefined || patch.plateFoamThickness !== undefined || patch.bottomFoamThickness !== undefined) {
-      partProcesses = partProcesses.map((process) => ({
-        ...process,
-        ...(patch.method && layerProcessIds.includes(process.partId as (typeof layerProcessIds)[number]) ? { method: patch.method } : {}),
-        ...(patch.method === 'pcb-fr4' && process.partId === 'plate' && !process.material ? { material: 'FR4' } : {}),
-        ...(process.partId === 'plate' && patch.plateThickness !== undefined ? { thickness: patch.plateThickness } : {}),
-        ...(process.partId === 'bottom' && patch.bottomThickness !== undefined ? { thickness: patch.bottomThickness } : {}),
-        ...(process.partId === 'plate-foam' && patch.plateFoamThickness !== undefined ? { thickness: patch.plateFoamThickness } : {}),
-        ...(process.partId === 'bottom-foam' && patch.bottomFoamThickness !== undefined ? { thickness: patch.bottomFoamThickness } : {}),
-      }));
+    const current = draft.current.value ?? createMechanicalConfiguration(document, boardId);
+    const family = profileSwitchFamily({ ...current, ...patch })
+      ?? initialSwitchFamily(document, current.boardId);
+    const previousGap = family ? plateToPcbGap(family, current.plateThickness) : current.plateToPcb;
+    const next = { ...current, ...patch };
+    if (patch.plateThickness !== undefined && family) {
+      next.plateToPcb = plateToPcbGap(family, patch.plateThickness);
+      next.profiles = next.profiles.map((profile) => profile.switchFamily === family
+        ? { ...profile, plateToPcb: next.plateToPcb }
+        : profile);
+      if (Math.abs(current.plateFoamThickness - defaultPlateFoamThickness(previousGap)) < 0.001) {
+        next.plateFoamThickness = defaultPlateFoamThickness(next.plateToPcb);
+      }
     }
-    onChange({ ...current, ...patch, partProcesses });
+    const thicknessFor = (partId: string) => partId === 'plate' ? next.plateThickness
+      : partId === 'plate-foam' ? next.plateFoamThickness
+        : partId === 'bottom-foam' ? next.bottomFoamThickness
+          : partId === 'bottom' ? next.bottomThickness : undefined;
+    const priorProcesses = patch.partProcesses ?? current.partProcesses ?? [];
+    const partProcesses = priorProcesses.map((process) => {
+      const isLayer = layerProcessIds.includes(process.partId as (typeof layerProcessIds)[number]);
+      const foam = process.partId.endsWith('foam');
+      const method = foam ? 'cut-sheet' : process.partId === 'plate' || (patch.method && isLayer)
+        ? next.method : process.method ?? next.method;
+      const priorMethod = process.method ?? next.method;
+      const priorMaterial = process.material ?? '';
+      const methodChanged = method !== priorMethod || (patch.method !== undefined && isLayer && !foam);
+      const material = methodChanged || !materialOptionsForProcess(process.partId, method).includes(priorMaterial)
+        ? materialForProcess(process.partId, method) : priorMaterial;
+      const thickness = thicknessFor(process.partId);
+      return {
+        ...process,
+        ...(isLayer ? { method, material } : {}),
+        ...(thickness !== undefined ? { thickness } : {}),
+      };
+    });
+    onChange({ ...next, partProcesses });
   };
   const assignProfile = async (definitionId: string) => {
-    if (!config || !onMechanicalProfile || config.profiles.some((profile) => profile.definitionId === definitionId)) return;
+    if (!config || !onMechanicalProfile || !profileSource || config.profiles.some((profile) => profile.definitionId === definitionId)) return;
+    const selectedFamily: MechanicalSwitchFamily | undefined = profileSource === 'mx-switch' ? 'mx'
+      : profileSource === 'choc-v1-switch' ? 'choc-v1'
+        : profileSource === 'choc-v2-switch' ? 'choc-v2' : undefined;
+    const familyChanged = selectedFamily !== undefined && selectedFamily !== profileSwitchFamily(config);
+    const plateThickness = familyChanged && selectedFamily
+      ? defaultPlateThickness(selectedFamily)
+      : config.plateThickness;
+    const plateToPcb = selectedFamily
+      ? plateToPcbGap(selectedFamily, plateThickness)
+      : config.plateToPcb;
     setProfilePending(true); setProfileError('');
     try {
-      const profile = await onMechanicalProfile(definitionId, profileSource, config.plateToPcb);
-      if (draft.current.value) update({ profiles: [...draft.current.value.profiles, profile] });
+      const loaded = await onMechanicalProfile(definitionId, profileSource, plateToPcb);
+      const profile = selectedFamily
+        ? { ...loaded, switchFamily: selectedFamily, plateToPcb }
+        : loaded;
+      if (draft.current.value) update({
+        ...(familyChanged && selectedFamily ? {
+          plateThickness,
+          plateToPcb,
+          plateFoamThickness: defaultPlateFoamThickness(plateToPcb),
+        } : {}),
+        profiles: [...draft.current.value.profiles, profile],
+      });
     } catch (cause) {
       setProfileError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setProfilePending(false);
     }
   };
+  const selectProfileFamily = (definitionId: string, family: MechanicalSwitchFamily) => {
+    if (!config) return;
+    const plateThickness = defaultPlateThickness(family);
+    const plateToPcb = plateToPcbGap(family, plateThickness);
+    const profiles = config.profiles.map((profile) => {
+      if (profile.definitionId === definitionId) {
+        return { ...profile, switchFamily: family, plateToPcb };
+      }
+      return profile.switchFamily
+        ? { ...profile, plateToPcb: switchMountingDatum(profile.switchFamily) - plateThickness }
+        : profile;
+    });
+    update({
+      plateThickness,
+      plateToPcb,
+      plateFoamThickness: defaultPlateFoamThickness(plateToPcb),
+      profiles,
+    });
+  };
   const layers = assembly?.stack ?? [];
-  const findings = assembly?.diagnostics ?? [];
-  const profileSpacing = config?.profiles.find((profile) => definitions.find((definition) => definition.id === profile.definitionId)?.kind === 'switch')?.plateToPcb;
+  const groupedFindings = new Map<string, Finding>();
+  for (const finding of assembly?.diagnostics ?? []) {
+    const key = `${finding.severity}:${finding.message}`;
+    const existing = groupedFindings.get(key);
+    groupedFindings.set(key, existing ? { ...existing, targetIds: [...new Set([...existing.targetIds, ...finding.targetIds])] } : finding);
+  }
+  const findings = [...groupedFindings.values()].map(finding => ({ ...finding, message: finding.targetIds.length > 1 ? `${finding.message} (${finding.targetIds.length} affected parts)` : finding.message }));
+  const profileSpacing = assembly?.stack.find((layer) => layer.id === 'plate')?.z
+    ?? (config && (profileSwitchFamily(config) ?? initialSwitchFamily(document, config.boardId))
+      ? plateToPcbGap(profileSwitchFamily(config) ?? initialSwitchFamily(document, config.boardId)!, config.plateThickness)
+      : undefined);
 
   return <div className="wb-mechanical-panel">
     <div className="wb-inspect-head"><h2>Mechanical assembly</h2><span className="wb-mini-tag">{config ? 'Configured' : 'Optional'}</span></div>
-    {!config ? <div className="wb-mech-start"><p>Resolve the keyboard stack from assigned part profiles, plate settings, and the case outline.</p><button className="wb-primary" disabled={!document.boards.length} onClick={() => onChange(makeConfiguration(document, boardId))}>Configure mechanical stack</button></div> : <>
-      <div className="wb-mech-actions"><span className="wb-mech-revision">{assembly ? `Resolved r${assembly.revision}` : 'Waiting for resolution'}</span><button type="button" onClick={onResolve}>Resolve stack</button><button type="button" className="wb-primary" onClick={onExport} disabled={!assembly || assembly.revision !== document.revision}>Export geometry</button><button type="button" className="wb-mech-disable" onClick={() => onChange(null)}>Disable mechanical stack</button></div>
+    {!config ? <div className="wb-mech-start"><p>Resolve the keyboard stack from assigned part profiles, plate settings, and the case outline.</p><button className="wb-primary" disabled={!document.boards.length} onClick={() => onChange(createMechanicalConfiguration(document, boardId))}>Configure mechanical stack</button></div> : <>
+      <div className="wb-mech-actions"><span className="wb-mech-revision">{assembly ? `Resolved r${assembly.revision}` : 'Waiting for resolution'}</span><button type="button" onClick={onResolve} disabled={generation?.status === 'running' || generation?.status === 'preparing'}>Generate</button>{(generation?.status === 'running' || generation?.status === 'preparing') && <button type="button" onClick={onCancel}>Cancel</button>}<button type="button" className="wb-primary" onClick={onExport} disabled={!assembly || assembly.revision !== document.revision || generation?.status !== 'ready'}>Export geometry</button><button type="button" className="wb-mech-disable" onClick={() => onChange(null)}>Disable mechanical stack</button></div>
+      {generation && <div role="status" aria-live="polite"><p>{generationMessage(generation)}</p>{(generation.status === 'running' || generation.status === 'preparing') && <progress aria-label="Generation progress" max={generation.progress?.total} value={generation.progress?.completed || undefined} />}</div>}
       <InspectorSection title="Manufacturing" detail={config.method} defaultOpen>
         <label className="wb-mech-field"><span>Method</span><select value={config.method} onChange={(event) => update({ method: event.target.value as MechanicalConfiguration['method'] })}><option value="pcb-fr4">PCB FR-4</option><option value="printed">3D printed</option><option value="cnc">CNC machined</option><option value="cut-sheet">Cut sheet</option></select></label>
-        <label className="wb-mech-field"><span>Mount style</span><select value={config.mount} onChange={(event) => update({ mount: event.target.value as MechanicalConfiguration['mount'] })}><option value="tray">Tray</option><option value="rigid">Rigid mount</option><option value="gasket">Gasket mount</option></select></label>
+        <label className="wb-mech-field"><span>Mount style</span><select value={config.mount} onChange={(event) => update({ mount: event.target.value as MechanicalConfiguration['mount'], ...(event.target.value === 'gasket' ? { gasketLayout: config.gasketLayout ?? defaultGasketLayout(), gasketTravel: config.gasketTravel ?? 0.3, integratedPlateFrame: false, bottomStyle: 'shell', middleFrame: false } : {}) })}><option value="tray">Tray</option><option value="rigid">Rigid mount</option><option value="gasket">Gasket mount</option></select></label>
         <label className="wb-mech-field"><span>Bottom construction</span><select value={config.bottomStyle ?? 'shell'} onChange={(event) => update({ bottomStyle: event.target.value as MechanicalConfiguration['bottomStyle'] })}><option value="shell">Tray shell</option><option value="sheet">Flat sheet</option></select></label>
         {config.bottomStyle === 'sheet' && <label className="wb-mech-check"><input type="checkbox" checked={config.middleFrame ?? false} onChange={(event) => update({ middleFrame: event.target.checked })} /><span>Add middle frame</span></label>}
         <label className="wb-mech-field"><span>Board</span><select aria-label="Board for mechanical stack" value={config.boardId} onChange={(event) => update({ boardId: event.target.value })}>{document.boards.map((board) => <option key={board.id} value={board.id}>{board.name}</option>)}</select></label>
         <label className="wb-mech-check"><input type="checkbox" checked={config.integratedPlateFrame} onChange={(event) => update({ integratedPlateFrame: event.target.checked })} /><span>Integrate plate frame into case</span></label>
-        <div className="wb-mech-numbers">{numericFields.filter(([key]) => key !== 'plateToPcb' || profileSpacing === undefined).map(([key, label]) => <NumberField key={key} label={label} value={config[key]} onCommit={(value) => update({ [key]: value })} />)}</div>
-        {profileSpacing !== undefined && <p className="wb-mech-hint">Plate underside to PCB top: {profileSpacing.toFixed(2)} mm, derived from the switch profile. Edit the profile engagement below.</p>}
+        <div className="wb-mech-numbers">{numericFields.map(([key, label]) => <NumberField key={key} label={label} value={config[key]} onCommit={(value) => update({ [key]: value })} />)}</div>
+        <p className="wb-mech-hint">Plate underside to PCB top: {profileSpacing?.toFixed(2) ?? 'Choose a supported switch family to resolve'}{profileSpacing !== undefined && ' mm, derived from the switch mounting dimensions.'}</p>
         <NumberField label="Radial opening allowance" value={config.openingAllowance ?? 0} min={-1} max={1} onCommit={(openingAllowance) => update({ openingAllowance })} />
       </InspectorSection>
-      <InspectorSection title="Gasket" detail={config.gasket ? 'Configured' : 'Optional'} defaultOpen={Boolean(config.gasket)}>
-        <label className="wb-mech-check"><input type="checkbox" checked={Boolean(config.gasket)} onChange={(event) => update({ gasket: event.target.checked ? { inset: 2, width: 2, depth: 1.5 } : undefined })} /><span>Configure gasket groove</span></label>
-        {config.gasket && <div className="wb-mech-numbers"><NumberField label="Inset" value={config.gasket.inset} onCommit={(inset) => update({ gasket: { ...config.gasket!, inset } })} /><NumberField label="Width" value={config.gasket.width} onCommit={(width) => update({ gasket: { ...config.gasket!, width } })} min={0.1} /><NumberField label="Depth" value={config.gasket.depth} onCommit={(depth) => update({ gasket: { ...config.gasket!, depth } })} min={0.1} /><NumberField label="Gasket travel" value={config.gasketTravel ?? 1} onCommit={(gasketTravel) => update({ gasketTravel })} min={0.1} /></div>}
-      </InspectorSection>
+      {config.mount === 'gasket' && <InspectorSection title="Gasket supports" detail={`${assembly?.gasketSupports?.length ?? 0} strips per side`} defaultOpen>
+        <p>Plate tabs are captured between upper and lower EVA strips. Drag supports using Edit gaskets in the preview. Linked halves move together.</p>
+        <div className="wb-mech-numbers">{(['length', 'width', 'thickness'] as const).map(key => <NumberField key={key} label={`Gasket ${key}`} value={(config.gasketLayout ?? defaultGasketLayout())[key]} min={0.1} onCommit={value => update({ gasketLayout: { ...(config.gasketLayout ?? defaultGasketLayout()), [key]: value } })} />)}
+        <NumberField label="Compression" unit="%" value={(config.gasketLayout ?? defaultGasketLayout()).compression * 100} min={0} onCommit={value => update({ gasketLayout: { ...(config.gasketLayout ?? defaultGasketLayout()), compression: value / 100 } })} />
+        <NumberField label="Gasket travel" value={config.gasketTravel ?? 0.3} min={0.1} onCommit={gasketTravel => update({ gasketTravel })} /></div>
+        <button type="button" onClick={() => update({ gasketLayout: { ...(config.gasketLayout ?? defaultGasketLayout()), supports: [] } })}>Reset gasket positions</button>
+        <p>{assembly?.generatedHardware?.length ? `${assembly.generatedHardware.filter(item => item.designation === 'Socket screw').length} M2 closure screws and captive nuts included in the fabrication notes.` : 'Closure locations are generated with the supports.'}</p>
+      </InspectorSection>}
       <InspectorSection title="Case openings" detail={`${config.openings?.length ?? 0}`}>
         <OpeningListEditor title="Document-coordinate access openings" openings={config.openings ?? []} onChange={(openings) => update({ openings })} />
       </InspectorSection>
@@ -356,11 +438,49 @@ export function MechanicalAssemblyPanel({ document, boardId, projectSession, def
         {processTargets.map(({ partId, name }) => {
           const process = config.partProcesses?.find((entry) => entry.partId === partId);
           const defaultThickness = partId === 'plate' ? config.plateThickness : partId === 'plate-foam' ? config.plateFoamThickness : partId === 'bottom-foam' ? config.bottomFoamThickness : partId === 'bottom' ? config.bottomThickness : config.plateThickness;
-          const setProcess = (patch: Partial<NonNullable<MechanicalConfiguration['partProcesses']>[number]>) => update({ partProcesses: [...(config.partProcesses ?? []).filter((entry) => entry.partId !== partId), { ...(process ?? defaultProcess(partId, config.method, defaultThickness)), ...patch }] });
+          const setProcess = (patch: Partial<NonNullable<MechanicalConfiguration['partProcesses']>[number]>) => {
+            if (partId === 'plate' && patch.method) {
+              update({ method: patch.method });
+              return;
+            }
+            const base = process ?? defaultProcess(partId, config.method, defaultThickness);
+            if (partId === 'plate' && patch.thickness !== undefined) {
+              update({ plateThickness: patch.thickness });
+              return;
+            }
+            if (partId === 'bottom' && patch.thickness !== undefined) {
+              update({ bottomThickness: patch.thickness });
+              return;
+            }
+            if (partId === 'plate-foam' && patch.thickness !== undefined) {
+              update({ plateFoamThickness: patch.thickness });
+              return;
+            }
+            if (partId === 'bottom-foam' && patch.thickness !== undefined) {
+              update({ bottomFoamThickness: patch.thickness });
+              return;
+            }
+            const baseMethod = base.method ?? config.method;
+            const baseMaterial = base.material ?? '';
+            const method = partId.endsWith('foam') ? 'cut-sheet' : patch.method ?? baseMethod;
+            const methodChanged = patch.method !== undefined && patch.method !== baseMethod;
+            const material = patch.material ?? (methodChanged || !materialOptionsForProcess(partId, method).includes(baseMaterial)
+              ? materialForProcess(partId, method)
+              : baseMaterial || materialForProcess(partId, method));
+            const next = {
+              ...base,
+              ...patch,
+              method,
+              material,
+              thickness: patch.thickness ?? base.thickness ?? defaultThickness,
+              constraintsVersion: base.constraintsVersion || supportedConstraintVersion,
+            };
+            update({ partProcesses: [...(config.partProcesses ?? []).filter((entry) => entry.partId !== partId), next] });
+          };
           return <div className="wb-mech-process" key={partId}><header><strong>{name}</strong>{process && <button type="button" className="wb-mech-quiet" onClick={() => update({ partProcesses: config.partProcesses?.filter((entry) => entry.partId !== partId) })}>Remove</button>}</header>
             {!process ? <button type="button" className="wb-mech-quiet" onClick={() => setProcess({})}>Add process override</button> : <>
-              <div className="wb-mech-process-fields"><label className="wb-mech-field"><span>Method</span><select value={process.method} onChange={(event) => setProcess({ method: event.target.value as MechanicalConfiguration['method'] })}><option value="pcb-fr4">PCB FR-4</option><option value="printed">3D printed</option><option value="cnc">CNC machined</option><option value="cut-sheet">Cut sheet</option></select></label><label className="wb-mech-field"><span>Material</span><input value={process.material} placeholder="Specify grade" onChange={(event) => setProcess({ material: event.target.value })} /></label><NumberField label="Finished thickness" value={process.thickness} onCommit={(thickness) => setProcess({ thickness })} min={0.1}/></div>
-              <div className="wb-mech-version">Constraint set <code>{process.constraintsVersion}</code>{process.constraintsVersion !== supportedConstraintVersion && <small role="alert">Unsupported constraint set. Diagnostics will block export.</small>}</div>
+              <div className="wb-mech-process-fields"><label className="wb-mech-field"><span>Method</span>{partId.endsWith('foam') ? <output>Cut sheet</output> : <select value={process.method ?? config.method} onChange={(event) => setProcess({ method: event.target.value as MechanicalConfiguration['method'] })}><option value="pcb-fr4">PCB FR-4</option><option value="printed">3D printed</option><option value="cnc">CNC machined</option><option value="cut-sheet">Cut sheet</option></select>}</label><label className="wb-mech-field"><span>Material</span><select value={process.material || materialForProcess(partId, process.method ?? config.method)} onChange={(event) => setProcess({ material: event.target.value })}>{materialOptionsForProcess(partId, process.method ?? config.method).map((material) => <option key={material} value={material}>{material}</option>)}</select></label><NumberField label="Finished thickness" value={process.thickness ?? defaultThickness} onCommit={(thickness) => setProcess({ thickness })} min={partId.endsWith('foam') ? 0 : 0.1}/></div>
+              <div className="wb-mech-version">Constraint set <code>{process.constraintsVersion ?? supportedConstraintVersion}</code>{(process.constraintsVersion ?? supportedConstraintVersion) !== supportedConstraintVersion && <small role="alert">Unsupported constraint set. Diagnostics will block export.</small>}</div>
             </>}
           </div>;
         })}
@@ -387,11 +507,11 @@ export function MechanicalAssemblyPanel({ document, boardId, projectSession, def
         {!document.parts.some((part) => definitions.find((definition) => definition.id === part.definitionId)?.kind === 'switch') && <p className="wb-mech-hint">Place switch instances to set stabilizer fit.</p>}
       </InspectorSection>
       <InspectorSection title="Part profiles" detail={`${config.profiles.length} assigned`} defaultOpen>
-        <p className="wb-mech-hint">Library entries supply cutout geometry. Engagement spacing and stock compatibility are user-defined and unqualified until checked against the component drawing.</p>
-        {usedDefinitions.length === 0 ? <p className="wb-mech-hint">Place parts to assign mechanical profiles.</p> : <div className="wb-mech-profile-add"><label className="wb-mech-field"><span>Library fit profile</span><select value={profileSource} onChange={(event) => setProfileSource(event.target.value as typeof profileSource)}><option value="mx-switch">MX switch</option><option value="mx-stab2u">MX stabilizer · 2u</option><option value="mx-stab625u">MX stabilizer · 6.25u</option></select><select aria-label="Assign library fit profile to" value="" disabled={profilePending || !onMechanicalProfile} onChange={(event) => void assignProfile(event.target.value)}><option value="">Choose a placed part type…</option>{usedDefinitions.filter((definition) => !config.profiles.some((profile) => profile.definitionId === definition.id)).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}</select></label><label className="wb-mech-field"><span>Custom KiCad geometry</span><select aria-label="Assign custom geometry profile to" value="" onChange={(event) => { const definitionId = event.target.value; if (!definitionId) return; const definition = usedDefinitions.find((entry) => entry.id === definitionId); if (!definition) return; update({ profiles: [...config.profiles, { definitionId, source: `KiCad ${definition.name}`, cutouts: [], plateToPcb: config.plateToPcb }] }); }}><option value="">Choose imported part type…</option>{usedDefinitions.filter((definition) => Boolean(definition.kicadSource) && !config.profiles.some((profile) => profile.definitionId === definition.id)).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}</select></label></div>}
+        <p className="wb-mech-hint">Switch mounting height and plate thickness come from the selected fit drawing. Unknown switch families must be selected before plate generation.</p>
+        {usedDefinitions.length === 0 ? <p className="wb-mech-hint">Place parts to assign mechanical profiles.</p> : <div className="wb-mech-profile-add"><label className="wb-mech-field"><span>Library fit profile</span><select value={profileSource} onChange={(event) => setProfileSource(event.target.value as typeof profileSource)}><option value="">Choose a switch family…</option><option value="mx-switch">MX switch</option><option value="choc-v1-switch">Choc v1 switch</option><option value="choc-v2-switch">Choc v2 switch</option><option value="mx-stab2u">MX stabilizer · 2u</option><option value="mx-stab625u">MX stabilizer · 6.25u</option></select><select aria-label="Assign library fit profile to" value="" disabled={profilePending || !onMechanicalProfile || !profileSource} onChange={(event) => void assignProfile(event.target.value)}><option value="">Choose a placed part type…</option>{usedDefinitions.filter((definition) => !config.profiles.some((profile) => profile.definitionId === definition.id)).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}</select></label><label className="wb-mech-field"><span>Custom KiCad geometry</span><select aria-label="Assign custom geometry profile to" value="" onChange={(event) => { const definitionId = event.target.value; if (!definitionId) return; const definition = usedDefinitions.find((entry) => entry.id === definitionId); if (!definition) return; const family = inferSwitchFamily(definition); update({ profiles: [...config.profiles, { definitionId, source: `KiCad ${definition.name}`, cutouts: [], plateToPcb: family ? plateToPcbGap(family, config.plateThickness) : config.plateToPcb, ...(family ? { switchFamily: family } : {}) }] }); }}><option value="">Choose imported part type…</option>{usedDefinitions.filter((definition) => Boolean(definition.kicadSource) && !config.profiles.some((profile) => profile.definitionId === definition.id)).map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}</select></label></div>}
         {profilePending && <p className="wb-mech-hint" role="status">Loading library profile…</p>}
         {profileError && <p className="wb-mech-error" role="alert">{profileError}</p>}
-        {config.profiles.map((profile) => <ProfileEditor key={profile.definitionId} profile={profile} definitions={definitions} onExtract={onExtractMechanicalProfile ? (mappings) => onExtractMechanicalProfile(definitions.find((definition) => definition.id === profile.definitionId)?.kicadSource?.source ?? '', mappings) : undefined} onChange={(next) => update({ profiles: config.profiles.map((entry) => entry.definitionId === next.definitionId ? next : entry) })} onRemove={() => update({ profiles: config.profiles.filter((entry) => entry.definitionId !== profile.definitionId) })} />)}
+        {config.profiles.map((profile) => <ProfileEditor key={profile.definitionId} profile={profile} definitions={definitions} onSelectSwitchFamily={(family) => selectProfileFamily(profile.definitionId, family)} onExtract={onExtractMechanicalProfile ? (mappings) => onExtractMechanicalProfile(definitions.find((definition) => definition.id === profile.definitionId)?.kicadSource?.source ?? '', mappings) : undefined} onChange={(next) => update({ profiles: config.profiles.map((entry) => entry.definitionId === next.definitionId ? next : entry) })} onRemove={() => update({ profiles: config.profiles.filter((entry) => entry.definitionId !== profile.definitionId) })} />)}
       </InspectorSection>
       <InspectorSection title="Resolved stack" detail={`${layers.length} layers`} defaultOpen>
         {layers.length ? <div className="wb-mech-stack" aria-label="Resolved mechanical stack">{layers.map((layer) => <button type="button" className={`wb-mech-layer${selectedLayer === layer.id ? ' is-selected' : ''}`} aria-pressed={selectedLayer === layer.id} onClick={() => onSelectLayer?.(selectedLayer === layer.id ? '' : layer.id)} key={layer.id}><span className="wb-mech-layer-swatch" /><strong>{layer.id}</strong><span>{layer.thickness.toFixed(2)} mm</span><small>Z {layer.z.toFixed(2)}</small></button>)}</div> : <p className="wb-mech-hint">The stack appears after the current revision resolves.</p>}

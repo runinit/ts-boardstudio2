@@ -107,3 +107,63 @@ The full browser run measured pointer-to-painted p95 of 24.5, 32.2, and
 painted at 53.3/51.2/51.9 ms p95. The generated WASM is 647.33 kB gzip;
 the Design workbench chunk is 72.57 kB gzip. These browser measurements
 used the built app and Chromium 153; they do not cover a deployed site.
+
+## Rust 3D renderer artifact, 2026-09-25
+
+The production build emits the renderer and Cadrum as separate lazy WASM
+artifacts. The renderer WASM is 524,023 bytes (524.02 kB; 216.91 kB gzip),
+with 23.68 kB of JavaScript glue (6.67 kB gzip). The Cadrum WASM is
+12,821,079 bytes (12,821.08 kB; 4,381.46 kB gzip). The earlier workbench
+baseline recorded Three.js at 182.6 kB gzip and OpenCascade at 12.36 MB gzip;
+these are different artifacts, so the figures are informational and set no
+bundle-reduction target.
+
+One production browser run on Chromium 153.0.8010.47, at 1280 × 720 and DPR 1,
+measured renderer WASM initialization at 12.1 ms and first-scene setup/render
+at 61.9 ms. The renderer WASM resource reported 2.7 ms duration and 524,023
+encoded bytes. These are local-preview diagnostics, not release gates. The
+historical baseline has no matching 3D cold-start measurement for a direct
+timing comparison.
+
+## Split assembly and manual generation, 2026-09-25
+
+Measured on the uncommitted implementation based on `66c6fb08`, using Chromium
+153, a production build, a 1280 × 720 viewport and DPR 1. The new fixture in
+`app/e2e/manual-generation.spec.ts` contains two mirrored halves, 70 MX hotswap
+switches and 70 diodes, with no component models. Both plates contain a total
+of 70 square 14 mm openings. These are single-run local diagnostics, not the
+five-session interaction gates above.
+
+| Operation | Duration |
+| --- | ---: |
+| Renderer WASM initialization | 25.4 ms |
+| Initial canvas and scene setup | 378.8 ms |
+| Initial scene preparation in worker | 163.8 ms |
+| Initial scene upload | 102.8 ms |
+| Fresh CAD preview after cancellation/restart | 663.6 ms |
+| CAD preview using cached bodies | 3.3 ms |
+| Subsequent scene preparation in worker | 164.2–183.1 ms |
+| Subsequent scene upload | 20.8–23.5 ms |
+
+In the same split fixture, scene upload measured 853.4 ms before replacing
+per-float JavaScript iteration with bulk typed-array copies into WASM. The
+post-fix warm upload measured 20.8 ms. Camera, display mode, section/exploded
+view and visibility changes perform neither scene preparation nor upload.
+Rendering requests are coalesced into animation frames; an idle preview does
+not continuously redraw. CAD generation is explicit and cancellable, emits
+per-body progress, caches unchanged regions and postpones STEP serialization
+until export. There is no equivalent pre-change split CAD timing baseline.
+
+The current production renderer WASM is 838,078 bytes (326,229 bytes gzip).
+Its generated JavaScript glue is 50,982 bytes (8,734 bytes gzip), before Vite
+bundling. The independent Cadrum WASM is 12,846,887 bytes (4,397,513 bytes
+gzip). These replace the earlier artifact sizes in the preceding snapshot;
+they do not establish a bundle-size reduction target.
+
+The companion gasket browser fixture generates 12 supports across two halves,
+24 EVA strips, a removable retainer and 29 CAD bodies. It exercises actual
+pointer dragging, mirrored placement, undo/redo and saved-anchor restoration.
+A repeat after the final core/app rebuild measured 690.2 ms for fresh CAD,
+4.3 ms cached, 100.7 ms initial upload and 22.5 ms subsequent upload. The
+production, development and `/boardstudio/` checks also passed local/offline
+loading and STEP export. These runs do not measure a public deployment.

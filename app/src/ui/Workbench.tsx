@@ -1,3 +1,5 @@
+import type { GenerationState } from '../generationState';
+import { generationMessage } from '../generationState';
 import { FindingList } from './FindingList';
 import { presentedFindings, findingTarget } from './findings';
 import { getBounds, cameraBounds, aspectBounds, fitCamera } from './canvasBounds';
@@ -14,6 +16,7 @@ import type {
   MatrixCell,
   MatrixSplayChange,
   MechanicalAssembly,
+  MechanicalBuiltinProfile,
   MechanicalConfiguration,
   MechanicalExtraction,
   MechanicalPartProfile,
@@ -28,7 +31,7 @@ import type {
 } from '../../../contracts/src/index';
 import { matrixWithAssembly } from './sampleAssembly';
 import { assemblyPreset } from './assemblyPresets';
-import { componentPoseSvgTransform } from './CasePreview';
+import { componentPoseSvgTransform } from './componentPreview';
 import { MechanicalAssemblyPanel } from './MechanicalAssemblyPanel';
 import type { ComponentPreview } from './CasePreview';
 import { DefinitionKeycapControls, OutlineInspector, PartOutlineControls } from './OutlineInspector';
@@ -88,8 +91,10 @@ type Props = {
   onRequestCaseModels?: (boardId: string) => void;
   mechanicalAssembly?: MechanicalAssembly;
   onResolveMechanical?: () => void;
+  onCancelGeneration?: () => void;
+  generation?: GenerationState;
   onExportMechanical?: () => void;
-  onMechanicalProfile?: (definitionId: string, source: 'mx-switch' | 'mx-stab2u' | 'mx-stab625u', plateToPcb: number) => Promise<MechanicalPartProfile>;
+  onMechanicalProfile?: (definitionId: string, source: MechanicalBuiltinProfile, plateToPcb: number) => Promise<MechanicalPartProfile>;
   onExtractMechanicalProfile?: (source: string, mappings: MechanicalPurposeMapping[]) => Promise<MechanicalExtraction>;
   onDuplicateDesign?: (matrixId: string, presetId: MatrixPresetId) => void;
   onProjectMatrices?: (matrices: Matrix[]) => Promise<MatrixScene[] | undefined>;
@@ -199,7 +204,7 @@ const systemColorScheme = (): 'light' | 'dark' => {
   }
 };
 
-const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, mechanicalAssembly, onResolveMechanical, onExportMechanical, onMechanicalProfile, onExtractMechanicalProfile, onDuplicateDesign, onProjectMatrices, onModeChange, caseBodies, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
+const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo, onRedo, onExport, compileFootprints, onNewProject, onImport, onImportFootprint, onImportModel, onSelectLibraryModel, libraryModelPreviews, libraryModelStatus, onRequestCaseModels, mechanicalAssembly, onResolveMechanical, onCancelGeneration, generation, onExportMechanical, onMechanicalProfile, onExtractMechanicalProfile, onDuplicateDesign, onProjectMatrices, onModeChange, caseBodies, casePreview, componentPreviews, embedUsedModels = true, onEmbedUsedModelsChange, selectedBoardId: selectedBoardIdProp, onSelectBoard }: Props) => {
   const [mode, setMode] = useState<Mode>('Design');
   const [lastDesignMode, setLastDesignMode] = useState<Mode>('Design');
   const [commandMenu, setCommandMenu] = useState<string | null>(null);
@@ -560,7 +565,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
   const boardReady = selectedBoardReadiness?.pcb ?? (document.boards.length <= 1 ? scene.readiness.pcb : false);
   const authoredCaseReady = Boolean(activeCaseBody) && (selectedBoardReadiness?.case ?? (document.boards.length <= 1 ? scene.readiness.case : false));
   const generatedCase = document.mechanical?.boardId === selectedBoardId;
-  const generatedCaseReady = generatedCase && mechanicalAssembly?.revision === document.revision && casePreview?.revision === document.revision && !mechanicalAssembly.diagnostics.some((finding) => finding.severity === 'error');
+  const generatedCaseReady = generatedCase && generation?.status === 'ready' && mechanicalAssembly?.revision === document.revision && casePreview?.revision === document.revision && !mechanicalAssembly.diagnostics.some((finding) => finding.severity === 'error');
   const caseReady = generatedCase ? generatedCaseReady : authoredCaseReady;
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
   useEffect(() => {
@@ -2027,7 +2032,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
       const configuredBoard = document.boards.find((board) => board.id === document.mechanical?.boardId);
       const mechanicalPanel = document.mechanical && !generatedCase
         ? <section className="wb-mechanical-panel"><h3>Mechanical stack belongs to {configuredBoard?.name ?? document.mechanical.boardId}</h3><p>One generated assembly is configured per project. This board shows its authored case bodies.</p><button className="wb-secondary" disabled={!configuredBoard} onClick={() => configuredBoard && selectBoard(configuredBoard.id)}>Show configured board</button></section>
-        : <MechanicalAssemblyPanel document={document} boardId={selectedBoardId} projectSession={projectSession} definitions={libraryDefinitions} configuration={document.mechanical} assembly={mechanicalAssembly} onChange={(configuration) => emit({ kind: 'set-mechanical', configuration }, [document.id])} onResolve={onResolveMechanical} onExport={onExportMechanical} onMechanicalProfile={onMechanicalProfile} onExtractMechanicalProfile={onExtractMechanicalProfile} onShowFinding={showFinding} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} />;
+        : <MechanicalAssemblyPanel document={document} boardId={selectedBoardId} projectSession={projectSession} definitions={libraryDefinitions} configuration={document.mechanical} assembly={mechanicalAssembly} onChange={(configuration) => emit({ kind: 'set-mechanical', configuration }, [document.id])} onResolve={onResolveMechanical} onCancel={onCancelGeneration} generation={generation} onExport={onExportMechanical} onMechanicalProfile={onMechanicalProfile} onExtractMechanicalProfile={onExtractMechanicalProfile} onShowFinding={showFinding} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} />;
       if (generatedCase) return <>{mechanicalPanel}<p className="wb-empty-note">Generated assembly preview · {document.caseBodies.filter((body) => body.boardId === selectedBoardId).length} authored case bodies remain saved. Disable the mechanical stack to preview and edit them.</p><p role="status">{generatedCaseReady ? 'Generated assembly ready' : 'Generated assembly requires review'}</p></>;
       const caseFindings = activeCaseBody ? scene.findings.filter((finding) => finding.scope === 'case' && (finding.targetIds.length === 0 || finding.targetIds.includes(activeCaseBody.id))) : [];
       return <>
@@ -2035,7 +2040,7 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
         <div className="wb-panel-rule" />
         <div className="wb-inspect-head"><h2>Case stack</h2><button className="wb-case-new-body" onClick={addCaseBody} disabled={!selectedBoard}>+ New case body</button></div>
         <div className="wb-case-preview-state"><span className={`wb-ready-dot ${activeCaseBody && casePreview?.revision === scene.revision && caseReady ? 'is-ready' : ''}`} />
-          <span><strong>{!activeCaseBody ? 'No case body on this board' : casePreview?.revision === scene.revision && caseReady ? 'Preview current' : 'Waiting for settled edit'}</strong><small>{activeCaseBody && casePreview ? `${Math.floor(casePreview.positions.length / 3)} mesh vertices · r${casePreview.revision}` : '3D preview builds after edits settle'}</small></span>
+          <span><strong>{!activeCaseBody ? 'No case body on this board' : casePreview?.revision === scene.revision && caseReady ? 'Preview current' : 'Generate required'}</strong><small>{activeCaseBody && casePreview ? `${Math.floor(casePreview.positions.length / 3)} mesh vertices · r${casePreview.revision}` : 'Generate builds the current case solids'}</small></span>
         </div>
         {document.caseBodies.some((body) => !selectedBoard || body.boardId === selectedBoard.id) && <div className="wb-case-body-list">{document.caseBodies.filter((body) => !selectedBoard || body.boardId === selectedBoard.id).map((body, index) => <button className={`wb-case-body-tab ${body.id === activeCaseBody?.id ? 'is-active' : ''}`} key={body.id} onClick={() => setCaseBodyId(body.id)}>
           <span>{String(index + 1).padStart(2, '0')}</span><strong>{body.name}</strong><small>{body.kind}</small>
@@ -2444,7 +2449,8 @@ const Workbench = ({ document, scene, saveStatus, projectSession, onEdit, onUndo
           {pairSetup && mode === 'Design'  && <MirroredPairSetup presets={(Object.keys(matrixPresetDefinitions) as MatrixPresetId[]).map((id) => ({ id, name: assemblyName(id) }))} onPreview={(setup) => beginMatrixPlacement(setup.rows, setup.columns, setup.preset as MatrixPresetId, setup)} onCancel={() => { setPairSetup(false); (compactObjects && !leftOpen ? window.document.getElementById('wb-objects-toggle') : addPartRef.current)?.focus(); }} />}
           {mode === 'Library' && !editingAssembly && <LibraryWorkspace document={document} definition={previewDefinition} title={libraryAssembly ? assemblyName(libraryAssembly) : undefined} companions={libraryCompanions} compiled={libraryCompiled} compilePending={previewCompilePending} compileError={previewCompileError} models={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelPreviews : []} modelStatus={libraryModelStatus?.definitionId === selectedLibraryDefinition?.id ? libraryModelStatus : undefined} onRetry={() => selectedLibraryDefinition && onSelectLibraryModel?.(selectedLibraryDefinition.id)} modelFilename={document.assets.find((asset) => asset.id === previewDefinition?.model?.assetId)?.name} show3d={library3dOpen} onViewChange={value => { if (value && libraryAssembly) setEditingAssembly(assemblyPreset(libraryAssembly, libraryDefinitions)); else setLibrary3dOpen(value); }} colorScheme={colorScheme} />}
           {mode === 'Library' && editingAssembly && <React.Suspense fallback={<p>Loading assembly editor…</p>}><AssemblyEditor key={editingAssembly.id} document={document} initial={editingAssembly} matrixName={selectedMatrix ? selectedMatrix.name?.trim() || `Matrix ${document.matrices.indexOf(selectedMatrix) + 1}` : 'selected matrix'} onApply={selectedMatrix ? assembly => { const prepared = matrixWithAssembly(selectedMatrix, assembly, libraryDefinitions, document.revision); emit({ kind: 'set-matrix', ...prepared }, [selectedMatrix.id]); } : undefined} definitions={libraryDefinitions} boardId={selectedBoard?.id} colorScheme={colorScheme} onChange={next => emit({ kind: 'replace-document', document: next }, [editingAssembly.id])} onClose={() => setEditingAssembly(null)} onPlace={next => { emit({ kind: 'replace-document', document: next }, []); setEditingAssembly(null); changeMode('Design'); setAssembly3d(true); }} /></React.Suspense>}
-          {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={document} boardId={selectedBoard.id} contours={visibleContours} bodies={casePreview?.revision === document.revision ? caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body })) : undefined} mechanical={mechanicalAssembly?.revision === document.revision ? mechanicalAssembly : undefined} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
+          {mode === 'Case' && !generatedCase && <div className="wb-mech-actions"><button onClick={onResolveMechanical}>Generate</button><button onClick={onCancelGeneration} disabled={!['running','preparing'].includes(generation?.status ?? '')}>Cancel</button><span role="status">{generation && generationMessage(generation)}</span></div>}
+          {(mode === 'Case' || (mode === 'Design' && assembly3d)) && selectedBoard && <React.Suspense fallback={<p role="status">Loading assembly viewer…</p>}><AssemblyViewer document={document} boardId={selectedBoard.id} contours={visibleContours} bodies={caseBodies?.map(body => ({ id: body.id, name: body.name, mesh: body }))} generation={generation} onGasketChange={configuration => emit({ kind: 'set-mechanical', configuration }, [document.id])} mechanical={mechanicalAssembly?.revision === document.revision ? mechanicalAssembly : undefined} selectedLayer={selectedMechanicalLayer} onSelectLayer={setSelectedMechanicalLayer} colorScheme={colorScheme} onSelect={reference => { const part = document.parts.find(p => p.reference === reference); if (part) choosePart(part.id); }} /></React.Suspense>}
           {mode !== 'Case' && mode !== 'Library' && !assembly3d && !matrixGhost && !pendingPart && visibleParts.length === 0 && visibleContours.length === 0 && visibleMatrices.length === 0 && <div className="wb-canvas-empty"><div className="wb-empty-cursor"><CursorIcon /></div><h2>Start with the geometry</h2><p>Place keys or components to generate an outline that follows your layout.</p><button className="wb-primary" onClick={() => changeMode('Library')}>Browse parts <ArrowIcon /></button></div>}
           {snapGuide && <div className="wb-canvas-hint" role="status">{snapGuide.label}</div>}
           {originPicking && <div className="wb-canvas-hint" role="status">Pick splay origin · Click the canvas · Esc cancels</div>}

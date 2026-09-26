@@ -7,6 +7,7 @@ node_modules/
 **/playwright-report/
 cad/.cache/
 cad/wasm/pkg/
+renderer/pkg/
 .env.local
 
 # Local AI agents, skills, indexes, and memory.

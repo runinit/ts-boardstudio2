@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createInstance } from 'libcascade/single/init';
-import { buildAssembly, buildCase, readStepModel } from '../src/index.ts';
+import { buildAssembly, buildCase, readStepModel, previewAssembly } from '../src/index.ts';
 import { prepareAssembly, prepareCase, resolveMechanical } from './native-prepare.mjs';
 
 const rawCase = async (ir) => buildCase(prepareCase(ir));
@@ -315,25 +315,31 @@ test('resolved allowance, integrated frame and gasket assemblies retain fit geom
     doc.mechanical.mount = mount;
     doc.mechanical.gasketTravel = mount === 'gasket' ? 0.5 : undefined;
     doc.mechanical.gasket = mount === 'gasket' ? { inset: 0.5, width: 1, depth: 0.5 } : undefined;
-    const resolved = resolveMechanical(doc, contours);
+    const resolved = resolveMechanical(doc, mount === 'gasket' ? [{ hole: false, points: square(0, 80) }, contours[1]] : contours);
     const plateBody = resolved.case.bodies.find(body => body.body.id === 'plate').body;
     assert.equal(plateBody.kind, mount === 'rigid' ? 'lid' : 'plate');
     if (mount === 'gasket') {
       const bottom = resolved.case.bodies.find(body => body.body.id === 'bottom');
-      const gasket = resolved.case.bodies.find(body => body.body.id === 'gasket');
-      const ring = await inspectStep((await rawCase(gasket)).step);
+      const strips = resolved.case.bodies.filter(body => body.body.id.startsWith('gasket:'));
+      assert.equal(strips.length, 12);
+      assert.equal(resolved.generatedHardware.length, 12);
+      const lower = await inspectStep((await rawCase(strips.find(body => body.body.id.endsWith(':lower')))).step);
+      const upper = await inspectStep((await rawCase(strips.find(body => body.body.id.endsWith(':upper')))).step);
       const tray = await inspectStep((await rawCase(bottom)).step);
+      const retainer = await inspectStep((await rawCase(resolved.case.bodies.find(body => body.body.id === 'retainer'))).step);
       const plateShape = await inspectStep((await rawCase(resolved.case.bodies.find(body => body.body.id === 'plate'))).step);
-      assert.ok(Math.abs(tray.maxZ - 3.0) < 0.01, 'rigid rim stays below the plate');
-      assert.ok(Math.abs(ring.minZ - 2.5) < 0.01, 'gasket seats in the machined groove');
-      assert.ok(Math.abs(ring.maxZ - 3.5) < 0.01, 'gasket reaches plate underside');
-      assert.ok(Math.abs(plateShape.minZ - ring.maxZ) < 0.01, 'plate meets gasket without rigid rim contact');
-      assert.ok(ring.volume > 0);
+      assert.ok(Math.abs(lower.minZ - 1.8) < 0.01, 'lower strip seats on the case ledge');
+      assert.ok(Math.abs(lower.maxZ - plateShape.minZ) < 0.01, 'lower strip contacts plate underside');
+      assert.ok(Math.abs(upper.minZ - plateShape.maxZ) < 0.01, 'upper strip contacts plate top');
+      assert.ok(Math.abs(upper.maxZ - retainer.minZ) < 0.01, 'retainer compresses the upper strip');
+      assert.ok(Math.abs(tray.maxZ - retainer.minZ) < 0.01, 'retainer seats on the case rim');
+      assert.ok(Math.abs(lower.volume - 12 * 3 * 1.7) < 0.1);
+      assert.ok(Math.abs(retainer.maxZ - 9.7) < 0.01);
     }
     const result = await rawAssembly(resolved.case);
     const imported = await readStepModel(result.step);
     assert.ok(imported.mesh.positions.length > 0);
-    assert.ok(Math.abs(imported.bounds.max[2] - 5) < 0.01);
+    assert.ok(Math.abs(imported.bounds.max[2] - (mount === 'gasket' ? 9.7 : 5)) < 0.01);
   }
 });
 
@@ -355,4 +361,26 @@ test('component-local connector access transforms into a real side-wall opening'
   const before = await inspectStep((await rawCase(originalBottom)).step);
   const after = await inspectStep((await rawCase(bottom)).step);
   assert.ok(Math.abs(before.volume - after.volume - 60) < 0.1);
+});
+
+
+test('mesh-only preview preserves revision and reuses geometry for export', async () => {
+  const ir = prepareAssembly({ revision: 91, bodies: [{ revision: 91,
+    body: { id: 'preview', name: 'Preview', boardId: 'board', kind: 'plate', thickness: 2, clearance: 0 },
+    contours: [{ hole: false, points: square(0, 40) }, { hole: true, points: square(10, 24) }],
+  }] });
+  const progress = [];
+  const preview = await previewAssembly(ir, value => progress.push(value));
+  assert.equal(preview.revision, 91);
+  assert.equal('step' in preview, false);
+  assert.ok(preview.mesh.positions.length > 0);
+  assert.ok(progress.some(value => value.stage === 'building'));
+  assert.ok(progress.some(value => value.stage === 'tessellating'));
+  const next = { ...ir, revision: 92, bodies: ir.bodies.map(body => ({ ...body, revision: 92 })) };
+  const cached = await previewAssembly(next, () => {});
+  assert.equal(cached.revision, 92);
+  assert.deepEqual(cached.mesh, preview.mesh);
+  const exported = await buildAssembly(next);
+  assert.deepEqual(exported.mesh, cached.mesh);
+  assert.ok(exported.step.length > 0);
 });
