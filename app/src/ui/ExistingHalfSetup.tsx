@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Matrix } from '../../../contracts/src/index';
 export function ExistingHalfSetup({ matrices, axis, onCreate, onCancel }: { matrices: Matrix[]; axis: number; onCreate: (matrices: Matrix[], axis: number) => string | undefined; onCancel: () => void }) {
   const [choice, setChoice] = useState('all');

@@ -1,5 +1,5 @@
 import { peripheralFirmware } from './firmwarePeripherals';
-import type { ElectricalPlan, FirmwareKey, FirmwareRequest, FirmwareScanMode, PeripheralRequirement, ProjectDoc, ScanPin, SplitTransport } from '@boardstudio/v2-contracts';
+import type { ElectricalPlan, FirmwareKey, FirmwareRequest, FirmwareScanMode, PeripheralRequirement, ProjectDoc, ScanPin } from '@boardstudio/v2-contracts';
 
 export type FirmwareHandoffResult = { request: FirmwareRequest; warnings: string[] };
 type PlanExtensions = ElectricalPlan & { moduleAliases?: Record<string, string>; peripheralTerminals?: Record<string, string>; jumpers?: unknown[]; instanceId?: string | null };

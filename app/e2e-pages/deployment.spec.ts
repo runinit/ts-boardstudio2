@@ -13,7 +13,7 @@ test('Pages subpath loads workers, CAD, models and offline exports', async ({ pa
   expect(wasmRequests.some((url) => /boardstudio_renderer_wasm_bg/i.test(url))).toBe(false);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).click();
+  await page.getByRole('option', { name: 'MX switch', exact: true }).click();
   await page.getByRole('button', { name: '3D model', exact: true }).click();
   await expect(page.getByText('2 / 2 models · 1.6 mm PCB', { exact: true })).toBeVisible({ timeout: 45_000 });
   expect(wasmRequests.some((url) => /boardstudio_renderer_wasm_bg/i.test(url) && new URL(url).pathname.startsWith('/boardstudio/'))).toBe(true);

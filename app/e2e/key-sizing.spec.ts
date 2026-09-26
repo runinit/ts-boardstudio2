@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { chooseScope } from './selection';
 
 test('key size sliders support wide and tall keys, rows and columns, undo and reload', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -17,7 +18,7 @@ test('key size sliders support wide and tall keys, rows and columns, undo and re
   await expect(key.locator('.wb-keycap-overlay > rect').first()).toHaveAttribute('height', '27.575000000000003');
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(key.locator('.wb-keycap-overlay > rect').first()).toHaveAttribute('width', '27.575000000000003');
-  await page.getByRole('button', { name: 'Select row', exact: true }).click();
+  await chooseScope(page, 'row');
   await width.focus();
   await width.press('End');
   await expect(page.locator('.wb-scene-part.is-selected .wb-keycap-overlay > rect:first-child')).toHaveCount(5);
@@ -25,7 +26,7 @@ test('key size sliders support wide and tall keys, rows and columns, undo and re
   for (const cap of await page.locator('.wb-scene-part.is-selected .wb-keycap-overlay > rect:first-child').all()) {
     expect(Number(await cap.getAttribute('width'))).toBeCloseTo(132.35);
   }
-  await page.getByRole('button', { name: 'Select column', exact: true }).click();
+  await chooseScope(page, 'column');
   const height = page.getByRole('slider', { name: 'Key height' });
   await height.focus();
   await height.press('Home');

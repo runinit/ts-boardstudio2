@@ -1,41 +1,25 @@
+import { ModelPreviewBoundary } from './ModelPreviewBoundary';
 import { partCatalogLabel } from './partsCatalog';
 import { CanvasLayers } from './CanvasLayers';
 import React, { lazy, memo, useMemo, useState } from 'react';
 import type { PartDefinition, Vec2, ProjectDoc, MechanicalPartProfile, MechanicalBuiltinProfile, MechanicalPurposeMapping, MechanicalExtraction } from '../../../contracts/src/index';
 import type { CompiledFootprint } from '../../../contracts/src/index';
-import type { ComponentPreview } from './CasePreview';
 import { Ergogen2DPreview, ergogenPreviewLayers, ergogenPreviewPoints } from './Ergogen2DPreview';
 import { isErgogen, parameters } from '@boardstudio/v2-ergogen';
 
-export type LibraryModelStatus = { definitionId: string; state: 'empty' | 'loading' | 'ready' | 'unsupported' | 'error'; message?: string };
 import './library-workspace.css';
 import { sampleAssembly } from './sampleAssembly';
 import { keycapOutline, libraryKeycap, previewPoint } from './libraryPreviewGeometry';
 import { PartMechanicalProfileEditor } from './PartMechanicalProfileEditor';
 const AssemblyViewer = lazy(() => import('./AssemblyViewer').then(m => ({ default: m.AssemblyViewer })));
 
-const CasePreview = lazy(() => import('./CasePreview').then((module) => ({ default: module.CasePreview })));
 const copperLayer = (side: 'front' | 'back') => side === 'back' ? 'B.Cu' : 'F.Cu';
 type PreviewLayer = { id: string; label: string; kind: 'copper' | 'graphic' | 'outline' | 'drill' | 'label' | 'part' };
-class ModelPreviewBoundary extends React.Component<{ resetKey: string; onRetry?: () => void; children: React.ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-
-  static getDerivedStateFromError(): { failed: boolean } { return { failed: true }; }
-
-  componentDidUpdate(previous: Readonly<{ resetKey: string }>): void {
-    if (this.state.failed && previous.resetKey !== this.props.resetKey) this.setState({ failed: false });
-  }
-
-  render(): React.ReactNode {
-    if (this.state.failed) return <div className="wb-model-message" role="alert"><p>The 3D preview could not be displayed. Switch to 2D or retry the model.</p><button className="wb-secondary" onClick={this.props.onRetry}>Retry model loading</button></div>;
-    return this.props.children;
-  }
-}
-export const LibraryWorkspace = memo(({ document, definition, title, companions = [], rotation = 0, compiled = [], compilePending = false, compileError, models = [], modelFilename, modelStatus, onRetry, show3d, onViewChange, colorScheme, mechanicalProfile, onSaveMechanicalProfile, onMechanicalProfile, onExtractMechanicalProfile }: {
+export const LibraryWorkspace = memo(({ document, definition, title, companions = [], rotation = 0, compiled = [], compilePending = false, compileError, show3d, onViewChange, colorScheme, mechanicalProfile, onSaveMechanicalProfile, onMechanicalProfile, onExtractMechanicalProfile }: {
   document: ProjectDoc; definition?: PartDefinition; title?: string; companions?: { definition: PartDefinition; at: Vec2; rotation?: number; side?: 'front' | 'back' }[]; rotation?: number;
   compiled?: CompiledFootprint[];
   compilePending?: boolean; compileError?: string;
-  models?: ComponentPreview[]; modelFilename?: string; modelStatus?: LibraryModelStatus; onRetry?: () => void; show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
+  show3d: boolean; onViewChange: (value: boolean) => void; colorScheme: 'light' | 'dark';
   mechanicalProfile?: MechanicalPartProfile;
   onSaveMechanicalProfile?: (profile: MechanicalPartProfile) => void;
   onMechanicalProfile?: (definitionId: string, source: MechanicalBuiltinProfile, gap: number) => Promise<MechanicalPartProfile>;
@@ -115,7 +99,7 @@ export const LibraryWorkspace = memo(({ document, definition, title, companions 
     <section className="wb-library-fit-profile" aria-label="Mechanical fit profile"><div><h3>Mechanical fit</h3><p>{mechanicalProfile ? 'Defined with this part and inherited by layouts and cases.' : 'Define this part’s fit once so every layout and case uses the same profile.'}</p></div><button type="button" className="wb-secondary" onClick={() => setEditingProfile(true)} disabled={!onSaveMechanicalProfile}>{mechanicalProfile ? 'Edit profile' : 'Define profile'}</button></section>
     <div className="wb-library-workspace-title"><h2>{title ?? definition.name}</h2><div role="group" aria-label="Part preview view"><button aria-pressed={!show3d} onClick={() => onViewChange(false)}>2D footprint</button><button aria-pressed={show3d} onClick={() => onViewChange(true)}>3D model</button></div></div>
     {show3d ? <div className="wb-library-model-workspace" aria-label="3D footprint model preview">
-      {sample && <ModelPreviewBoundary resetKey={definition.id} onRetry={onRetry}><React.Suspense fallback={<p>Loading assembly preview…</p>}><AssemblyViewer document={sample.project} boardId="sample-board" contours={sample.contours} colorScheme={colorScheme} sample /></React.Suspense></ModelPreviewBoundary>}
+      {sample && <ModelPreviewBoundary resetKey={definition.id}><React.Suspense fallback={<p>Loading assembly preview…</p>}><AssemblyViewer document={sample.project} boardId="sample-board" contours={sample.contours} colorScheme={colorScheme} sample /></React.Suspense></ModelPreviewBoundary>}
     </div> : <div className="wb-library-workspace-geometry wb-layer-surface"><svg viewBox={`${minX - 3} ${-maxY - 3} ${maxX - minX + 6} ${maxY - minY + 6}`} role="img" aria-label="Footprint preview">
       {footprints.map(({ definition: item, ir, keycap, outline, at, side, rotation = 0 }, index) => hidden.has(`part:${index}`) ? null : <g key={`${item.id}:${index}`} data-part-source={item.generator?.source} transform={`translate(${at.x} ${-at.y}) rotate(${-rotation})`}>
         <Ergogen2DPreview definition={item} hideKeycap={Boolean(keycap)} hiddenLayers={hidden} />

@@ -33,8 +33,11 @@ test('imports, keeps source pads read-only, and exports the original KiCad sourc
   await expect(page.getByText(/Imported pad geometry stays linked/u)).toBeVisible();
 
   const width = page.getByRole('spinbutton', { name: 'Courtyard width' });
+  const revision = await page.locator('.wb-root').getAttribute('data-revision');
   await width.fill('14');
   await width.blur();
+  await expect(page.locator('.wb-root')).not.toHaveAttribute('data-revision', revision!);
+  await expect(page.locator('.wb-save-state summary')).toHaveAccessibleName('Saved locally');
   await page.reload();
   await page.getByRole('tab', { name: 'Parts' }).click();
   await search.fill('Rich Imported');

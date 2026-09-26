@@ -1,6 +1,7 @@
 > Historical migration evidence: paths and commands below describe the recorded
 > revisions. Current packages live at the repository root, commands have no `:v2`
 > suffix, and timing-only browser tests run through `pnpm test:perf`, not `check`.
+> See [current architecture](architecture.md) for module ownership and validation.
 
 # KiCad Rust migration
 

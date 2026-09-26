@@ -1,4 +1,3 @@
-import React from 'react';
 import type { HardwareConfiguration, PhysicalBoardInstance, ProjectDoc } from '@boardstudio/v2-contracts';
 import { createMechanicalConfiguration } from '../mechanicalPresets';
 

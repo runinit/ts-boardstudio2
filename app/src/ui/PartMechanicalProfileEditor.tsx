@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { MechanicalBuiltinProfile, MechanicalExtraction, MechanicalGeometry, MechanicalPartProfile, MechanicalPurpose, MechanicalPurposeMapping, MechanicalSwitchFamily, PartDefinition, Vec2 } from '@boardstudio/v2-contracts';
 import { defaultPlateThickness, inferSwitchFamily, plateToPcbGap } from '../mechanicalPresets';
 

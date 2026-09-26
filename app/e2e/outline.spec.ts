@@ -4,6 +4,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { strToU8, zipSync } from 'fflate';
 import { emptyProject } from '@boardstudio/v2-contracts';
+import { downloadDraftBoard } from './pcb-package';
+import { openCustomSwitchProject } from './custom-switch';
 
 type Point = { x: number; y: number };
 async function contours(page: Page): Promise<Point[][]> {
@@ -40,7 +42,7 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
   await expect.poll(async () => contains(await contours(page), { x: 0, y: 0 })).toBe(false);
   const deleted = await contours(page);
   expect(contains(deleted, { x: 19.05, y: 0 })).toBe(true);
-  expect(contains(deleted, { x: 0, y: -19.05 })).toBe(true);
+  expect(contains(deleted, { x: 0, y: 19.05 })).toBe(true);
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect.poll(() => contours(page)).toEqual(before);
   await page.getByRole('button', { name: 'Redo', exact: true }).click();
@@ -55,13 +57,18 @@ test('deleting a corner changes the perimeter, finishing and exports follow it, 
   expect(contains(finished, { x: 0, y: 0 })).toBe(false);
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
   const download = page.waitForEvent('download');
-  await page.locator('.wb-export-row').filter({ hasText: 'SVG board outline' }).getByRole('button', { name: 'Export', exact: true }).click();
+  await page.getByRole('button', { name: 'Export SVG board outline', exact: true }).click();
   const svg = await readFile((await (await download).path())!, 'utf8');
   for (const path of finished) for (const p of path) expect(svg).toContain(`${p.x} ${-p.y}`);
   for (const [label, kind] of [['DXF board outline', 'dxf'], ['KiCad board', 'pcb']]) {
-    const downloading = page.waitForEvent('download');
-    await page.locator('.wb-export-row').filter({ hasText: label }).getByRole('button', { name: 'Export', exact: true }).click();
-    const content = await readFile((await (await downloading).path())!, 'utf8');
+    let content: string;
+    if (kind === 'pcb') {
+      content = (await downloadDraftBoard(page, { reviewExistingConnections: true })).board;
+    } else {
+      const downloading = page.waitForEvent('download');
+      await page.getByRole('button', { name: `Export ${label}`, exact: true }).click();
+      content = await readFile((await (await downloading).path())!, 'utf8');
+    }
     for (const path of finished) for (const p of path) {
       expect(content).toContain(kind === 'dxf' ? `10\n${p.x}\n20\n${p.y}\n` : `(start ${p.x} ${-p.y})`);
     }
@@ -149,7 +156,7 @@ test('deleted matrix corners remain empty after resizing and rotation follows th
   await page.getByRole('button', { name: 'Ghost key, row 1, column 1' }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
   await chooseScope(page, 'key');
-  await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
+  await page.getByRole('button', { name: /^SW1, switch mx,/ }).click();
   await page.keyboard.press('Delete');
   await expect(page.locator('.wb-scene-part')).toHaveCount(58);
   await expect(page.locator('.wb-matrix-cell.is-empty')).toHaveCount(0);
@@ -162,20 +169,20 @@ test('deleted matrix corners remain empty after resizing and rotation follows th
   const rotation = page.getByRole('spinbutton', { name: 'Rotation °', exact: true });
   await rotation.fill('30');
   await rotation.blur();
-  await expect(page.getByRole('button', { name: /^SW2, MX switch/ })).toHaveAttribute('transform', /rotate\(30\)/);
+  await expect(page.getByRole('button', { name: /^SW3, switch mx,/ })).toHaveAttribute('transform', /rotate\(30\)/);
   await expect(page.getByRole('button', { name: 'Select key, row 1, column 2' })).toHaveAttribute('transform', /rotate\(30\)/);
 });
 
 test('definition keycaps update the outline and per-instance overrides can be reset', async ({ page }) => {
-  await page.goto('/');
+  await openCustomSwitchProject(page);
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
-  await page.getByRole('listbox', { name: 'Footprint library', exact: true }).getByRole('option', { name: 'MX switch', exact: true }).click();
+  await page.getByRole('listbox', { name: 'Footprint library', exact: true }).getByRole('option', { name: 'Fixture switch', exact: true }).click();
   await page.getByLabel('Definition keycap width', { exact: true }).fill('30');
   await page.getByLabel('Definition keycap width', { exact: true }).blur();
   await page.getByRole('tab', { name: 'Design', exact: true }).click();
   await expect.poll(async () => contains(await contours(page), { x: -18, y: 0 })).toBe(true);
-  await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
+  await page.getByRole('button', { name: /^SW1, Fixture switch,/ }).click();
   await chooseScope(page, 'component');
   await page.locator('summary').filter({ hasText: 'Board outline' }).click();
   await page.getByLabel('Keycap width', { exact: true }).fill('18');
@@ -195,7 +202,7 @@ test('a newly introduced library definition joins the board automatic envelope',
   await page.getByRole('button', { name: 'Project', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Project name' })).toHaveValue('Empty import');
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
-  await page.getByRole('option', { name: /^Choc switch/ }).click();
+  await page.getByRole('option', { name: 'Choc V1 / V2 switch', exact: true }).click();
   await page.getByRole('button', { name: 'Place component', exact: true }).click();
   await page.keyboard.press('Enter');
   await expect(page.locator('.wb-scene-part')).toHaveCount(1);

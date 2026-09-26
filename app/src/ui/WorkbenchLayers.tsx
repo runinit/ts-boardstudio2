@@ -1,4 +1,3 @@
-import React from 'react';
 import { CanvasLayers } from './CanvasLayers';
 import type { Part, PartDefinition } from '../../../contracts/src/index';
 import { Ergogen2DPreview, ergogenPreviewLayers } from './Ergogen2DPreview';

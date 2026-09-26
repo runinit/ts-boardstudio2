@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 
 const cadRoot = fileURLToPath(new URL('..', import.meta.url));
 const image = 'boardstudio-cadrum-wasm:0.8.20-rust-1.98.0-wasi-sdk-33';
@@ -16,6 +17,9 @@ if (!runtime) throw new Error('Building the Cadrum WASM module requires Podman o
 
 run(runtime, ['build', '--file', 'wasm/Containerfile', '--tag', image, '.'], cadRoot);
 const cadMount = `${cadRoot}:/workspace/cad${runtime === 'podman' ? ':Z' : ''}`;
+// wasm-pack 0.15 mistakes its previous package manifest for wasm-bindgen's
+// dependency map. Remove only the generated manifest before rebuilding it.
+rmSync(new URL('../wasm/pkg/package.json', import.meta.url), { force: true });
 run(runtime, [
   'run', '--rm', '--volume', cadMount, '--workdir', '/workspace/cad',
   '--env', `OCCT_ROOT=/workspace/cad/${occtRelative}`,

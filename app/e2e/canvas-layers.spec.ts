@@ -4,6 +4,7 @@ test('keycap layers and PCB visibility are view-only and preserve selection', as
   await page.goto('/');
   const layers = page.getByRole('region', { name: 'Canvas layers' });
   await expect(page.locator('.wb-keycap-overlay').first()).toBeVisible();
+  await layers.getByRole('button', { name: 'Layers', exact: true }).click();
   const revision = await page.locator('.wb-root').getAttribute('data-revision');
   await layers.getByRole('button', { name: 'Hide Keycaps', exact: true }).click();
   await expect(page.locator('.wb-keycap-overlay')).toHaveCount(0);

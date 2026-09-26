@@ -1,5 +1,7 @@
 # V2-only repository and test audit
 
+> Historical validation record. Counts, paths, and commands describe the recorded migration. See [current architecture and validation](architecture.md) for the maintained entrypoints.
+
 ## Migration boundary
 
 Branch `codex/v2-only-cleanup` starts at `aaaf3f8` with the existing staged and

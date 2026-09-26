@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { componentPoseSvgTransform, componentSideSvgTransform } from './CasePreview';
+import { componentPoseSvgTransform, componentSideSvgTransform } from './componentPreview';
 
 describe('component side preview transform', () => {
   it('keeps front models unchanged and mirrors back footprint previews', () => {

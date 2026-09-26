@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 import { unzipSync } from 'fflate';
 import { buildCase } from '@boardstudio/v2-cad';
 import { prepareCase } from '../../cad/test/native-prepare.mjs';
+import { downloadDraftBoard } from './pcb-package';
+import { openCustomSwitchProject } from './custom-switch';
 
 const placeGuidedMatrix = async (page: import('@playwright/test').Page) => {
   await configureMatrix(page);
@@ -14,15 +16,15 @@ const placeGuidedMatrix = async (page: import('@playwright/test').Page) => {
   await expect(page.locator('.wb-scene-part')).toHaveCount(60);
 };
 
-test('opens the starter workbench and exports a KiCad board', async ({ page }) => {
+test('opens the starter workbench and exports a draft KiCad handoff', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Add object', exact: true })).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
-  const download = page.waitForEvent('download');
-  await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
-  expect((await download).suggestedFilename()).toBe('Main_board.kicad_pcb');
+  const result = await downloadDraftBoard(page, { reviewExistingConnections: true });
+  expect(result.boardName).toBe('Main_board.kicad_pcb');
+  expect(result.filename).toBe('Starter keyboard-draft-pcb-handoff.zip');
 });
 
 test('reopens offline after the app shell is cached', async ({ page, context }) => {
@@ -90,8 +92,9 @@ test('previews and exports the case assembly as STEP', async ({ page }) => {
 });
 
 test('packages a local model with relative KiCad paths', async ({ page }) => {
-  await page.goto('/');
+  await openCustomSwitchProject(page);
   await page.getByRole('tab', { name: 'Parts' }).click();
+  await page.getByRole('option', { name: 'Fixture switch', exact: true }).click();
   await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'sample.step',
@@ -101,19 +104,14 @@ test('packages a local model with relative KiCad paths', async ({ page }) => {
   await expect(page.getByText('Bound asset: sample.step')).toBeVisible();
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
-  const download = page.waitForEvent('download');
-  await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
-  const result = await download;
-
-  expect(result.suggestedFilename()).toBe('Main board-kicad.zip');
-  const files = unzipSync(new Uint8Array(await readFile(await result.path())));
+  const { files } = await downloadDraftBoard(page, { reviewExistingConnections: true });
   expect(Object.keys(files)).toContain('Main_board.kicad_pcb');
   expect(Object.keys(files).some((path) => /^models\/[a-f0-9]{64}\.step$/u.test(path))).toBe(true);
 
   const footprintsDownload = page.waitForEvent('download');
   await page.locator('.wb-export-row').filter({ hasText: 'KiCad footprints' }).getByRole('button', { name: 'Export' }).click();
   const footprintArchive = unzipSync(new Uint8Array(await readFile(await (await footprintsDownload).path())));
-  expect(Object.keys(footprintArchive)).toContain('BoardStudio.pretty/MX_switch.kicad_mod');
+  expect(Object.keys(footprintArchive)).toContain('BoardStudio.pretty/Fixture_switch.kicad_mod');
   expect(Object.keys(footprintArchive)).toContain('fp-lib-table');
   expect(Object.keys(footprintArchive).some((path) => /^models\/[a-f0-9]{64}\.step$/u.test(path))).toBe(true);
 });
@@ -204,9 +202,9 @@ test('canvas drags follow the selected matrix, row, and column scope', async ({ 
     await page.mouse.up();
   };
 
-  const switch1 = page.getByRole('button', { name: /^SW1, MX switch/ });
-  const switch2 = page.getByRole('button', { name: /^SW2, MX switch/ });
-  const switch6 = page.getByRole('button', { name: /^SW6, MX switch/ });
+  const switch1 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(0);
+  const switch2 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(1);
+  const switch6 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(5);
 
   const switch2Before = await switch2.getAttribute('aria-label');
   await chooseScope(page, 'matrix');
@@ -239,11 +237,11 @@ test('row and column scope drags follow the key under the pointer', async ({ pag
     await page.mouse.up();
   };
 
-  const switch2 = page.getByRole('button', { name: /^SW2, MX switch/ });
-  const switch16 = page.getByRole('button', { name: /^SW16, MX switch/ });
-  const switch17 = page.getByRole('button', { name: /^SW17, MX switch/ });
-  const switch3 = page.getByRole('button', { name: /^SW3, MX switch/ });
-  const switch8 = page.getByRole('button', { name: /^SW8, MX switch/ });
+  const switch2 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(1);
+  const switch16 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(15);
+  const switch17 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(16);
+  const switch3 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(2);
+  const switch8 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(7);
   const row1Before = await switch2.getAttribute('aria-label');
 
   await chooseScope(page, 'row');
@@ -274,8 +272,8 @@ test('matrix scope drag follows world direction on a rotated mirrored matrix', a
   await page.getByRole('combobox', { name: 'Mirror matrix' }).selectOption('x');
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '3');
 
-  const switch1 = page.getByRole('button', { name: /^SW1, MX switch/ });
-  const switch2 = page.getByRole('button', { name: /^SW2, MX switch/ });
+  const switch1 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(0);
+  const switch2 = page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(1);
   const before = await switch2.getAttribute('aria-label');
   const beforeX = Number(before?.match(/X (-?[\d.]+)/)?.[1]);
   const box = await switch1.boundingBox();
@@ -315,7 +313,7 @@ test('matrix rows and columns are nested beneath their matrix in the CAD tree', 
   await page.keyboard.press('Escape');
   await column.click();
   await expect(column).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('button', { name: 'Select column', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Select: Column', exact: true })).toBeVisible();
 });
 
 test('legacy matrix diode direction is editable and survives matrix edits', async ({ page }) => {
@@ -450,9 +448,8 @@ test('keeps board outlines and KiCad exports scoped to the selected board', asyn
   await expect(page.getByRole('treeitem', { name: /60 parts/ }).first()).toBeVisible();
   await expect(page.locator('.wb-outline-shape')).toHaveCount(1);
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
-  const download = page.waitForEvent('download');
-  await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export' }).click();
-  expect((await download).suggestedFilename()).toBe('Board_2.kicad_pcb');
+  const result = await downloadDraftBoard(page);
+  expect(result.boardName).toBe('Board_2.kicad_pcb');
 
   await page.getByRole('combobox', { name: 'Selected board' }).selectOption({ label: 'Main board' });
   await expect(page.getByRole('treeitem', { name: /60 parts/ }).first()).toBeVisible();
@@ -500,6 +497,8 @@ test('authors a custom component and exports a KiCad footprint library', async (
   await page.getByRole('textbox', { name: 'Definition name' }).blur();
   await expect(editor.getByRole('heading', { level: 2, name: 'Controller mount', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '+ Add pad' }).click();
+  await expect(editor.locator('details').filter({ has: page.getByRole('group', { name: 'Pad 1', includeHidden: true }) })).not.toHaveAttribute('open', '');
+  await editor.locator('summary').filter({ hasText: 'Edit footprint' }).click();
   await expect(page.getByRole('group', { name: 'Pad 1' })).toBeVisible();
   await page.locator('.wb-topbar').getByRole('button', { name: 'Export', exact: true }).click();
 
@@ -517,8 +516,9 @@ test('shows attached STEP components in the 3D case preview', async ({ page }) =
     contours: [{ hole: false, points: [{ x: -3, y: -3 }, { x: 3, y: -3 }, { x: 3, y: 3 }, { x: -3, y: 3 }] }],
   }));
 
-  await page.goto('/');
+  await openCustomSwitchProject(page);
   await page.getByRole('tab', { name: 'Parts' }).click();
+  await page.getByRole('option', { name: 'Fixture switch', exact: true }).click();
   await page.locator('.wb-inspector-section > summary').filter({ hasText: '3D model' }).click();
   await page.locator('.wb-model-import input[type=file]').setInputFiles({
     name: 'preview.step',

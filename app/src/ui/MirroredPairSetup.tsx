@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Layout, Matrix, Vec2 } from '../../../contracts/src/index';
 import './mirrored-layouts.css';
 

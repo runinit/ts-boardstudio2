@@ -1,4 +1,3 @@
-import React from 'react';
 import './firmware-keymap-panel.css';
 
 export type FirmwareKeymapKey = { id: string; label: string };

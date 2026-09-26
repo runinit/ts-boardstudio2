@@ -1,10 +1,10 @@
-import React, { useId, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import type { CaseReadiness } from './caseReadiness';
 import { createPortal } from 'react-dom';
 import { generationMessage, type GenerationState } from '../generationState';
 import './mechanical-assembly.css';
 
-export function CaseGenerationControls({ generation, onGenerate, onCancel, onExport, exportReady = false, onReview, children, target, readiness, onConfigure }: {
+export function CaseGenerationControls({ generation, onGenerate, onCancel, onExport, exportReady = false, children, target, readiness, onConfigure }: {
   onConfigure?: () => void;
   readiness?: CaseReadiness;
   target?: HTMLElement | null;
@@ -13,7 +13,6 @@ export function CaseGenerationControls({ generation, onGenerate, onCancel, onExp
   onCancel?: () => void;
   onExport?: () => void;
   exportReady?: boolean;
-  onReview?: () => void;
   children?: ReactNode;
 }) {
   exportReady = readiness?.canExport ?? exportReady;

@@ -160,6 +160,9 @@ Browser storage and the app shell work offline after the first
 load. The CAD kernel loads when a case preview, imported STEP component mesh,
 or case STEP is requested.
 
+See [current architecture and validation](docs/architecture.md) for module ownership,
+compatibility boundaries, and maintained check commands.
+
 Validation covers deterministic core transactions, KiCad 10 parsing and DRC,
 OpenCascade STEP reimport, browser editing/export, and outline preview latency.
 The 6 × 5 MX/Choc solder/hotswap assembly geometry passes KiCad DRC without

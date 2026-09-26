@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 import type { ProjectDoc } from '../../contracts/src/index';
+import { downloadDraftBoard } from './pcb-package';
 
 async function newProject(page: Page) {
   await page.goto('/');
@@ -68,9 +69,7 @@ test('mirrored creation is cancellable, atomic and edits either half', async ({ 
   await expect(page.locator('#wb-inventory')).toContainText('Left half');
   await page.screenshot({ path: testInfo.outputPath('dark-linked-halves.png'), animations: 'disabled' });
   const saved = (await archive(page)).document;
-  const pcbDownload = page.waitForEvent('download');
-  await page.locator('.wb-export-row').filter({ hasText: 'KiCad board' }).getByRole('button', { name: 'Export', exact: true }).click();
-  const pcb = await readFile((await (await pcbDownload).path())!, 'utf8');
+  const { board: pcb } = await downloadDraftBoard(page);
   expect((pcb.match(/\(footprint /gu) ?? []).length).toBe(36);
   const left = saved.layouts!.find((layout) => layout.name === 'Left half')!;
   const right = saved.layouts!.find((layout) => layout.name === 'Right half')!;

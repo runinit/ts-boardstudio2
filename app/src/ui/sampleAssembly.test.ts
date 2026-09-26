@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AssemblyDefinition } from '@boardstudio/v2-contracts';
 import { demoProject } from '../demo';
-import { placeAssembly, matrixWithAssembly } from './sampleAssembly';
+import { placeAssembly, matrixWithAssembly } from './assemblyPlacement';
 
 describe('saved assemblies',()=>{
   const assembly:AssemblyDefinition={id:'a',name:'Key',members:[{id:'switch',definitionId:'mx-switch',pose:{at:{x:2,y:3},rotation:30},side:'back',models:[]},{id:'cap',pose:{at:{x:2,y:3},rotation:30},side:'front',models:[{assetId:'cap',offset:{x:0,y:0,z:10},rotation:{x:0,y:0,z:0},scale:{x:1,y:1,z:1}}]}]};

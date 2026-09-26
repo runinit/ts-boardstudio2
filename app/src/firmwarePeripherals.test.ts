@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import type { ElectricalPlan } from '@boardstudio/v2-contracts';
 import { peripheralFirmware } from './firmwarePeripherals';
 

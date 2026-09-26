@@ -2,7 +2,7 @@ import { CanvasLayers } from './CanvasLayers';
 import { defaultGasketLayout, moveGasket, gasketAnchors } from '../gasketEditing';
 import type { MechanicalGasketSupport } from '@boardstudio/v2-contracts';
 import type { GenerationState } from '../generationState';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { BoardReference, MechanicalAssembly, MechanicalConfiguration, PcbPreview } from '@boardstudio/v2-contracts';
 import type { ModelMesh } from '../modelMesh';
 import { createRendererCanvas, type RendererCanvas } from '../renderClient';

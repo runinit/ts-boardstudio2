@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { BoardReference, ProjectDoc } from '@boardstudio/v2-contracts';
 import { ExportClient } from '../ExportClient';
 import { loadAsset, saveAsset } from '../storage';

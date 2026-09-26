@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import './canvas-layers.css';
 
 type Layer = { id: string; label: string; accessibilityLabel?: string; availabilityLabel?: string; kind?: string; available?: boolean };

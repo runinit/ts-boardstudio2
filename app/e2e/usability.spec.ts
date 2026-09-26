@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { chooseScope } from './selection';
 
 test('desktop scopes and compact review retain status and fit actions', async ({ page }) => {
  await page.goto('/');
- await expect(page.getByRole('button', { name: /^Select:/ })).toBeHidden();
+ await expect(page.getByRole('button', { name: /^Select:/ })).toBeVisible();
  await page.getByRole('treeitem', { name: 'Column 1 3 keys', exact: true }).click();
- await page.getByRole('button', { name: 'Select key', exact: true }).click();
- await expect(page.getByRole('button', { name: 'Select key', exact: true })).toHaveAttribute('aria-pressed', 'true');
+ await chooseScope(page, 'key');
+ await expect(page.getByRole('button', { name: 'Select: Key', exact: true })).toBeVisible();
  const before = await page.locator('.wb-canvas').getAttribute('viewBox');
  await page.getByRole('button', { name: 'Fit selection', exact: true }).click();
  await expect(page.locator('.wb-canvas')).not.toHaveAttribute('viewBox', before!);
@@ -16,7 +17,7 @@ test('desktop scopes and compact review retain status and fit actions', async ({
   if (await inspect.getAttribute('aria-expanded') === 'true') await inspect.click();
   await expect(page.locator('.wb-compact-board')).toBeVisible();
   await expect(page.getByRole('button', { name: /^Select:/ })).toBeVisible();
-  await expect(page.getByRole('group', { name: 'Selection types' })).toBeHidden();
+  await expect(page.getByRole('group', { name: 'Selection scope' })).toBeHidden();
   await expect(page.locator('.wb-save-state summary')).toHaveAccessibleName('Saved locally');
   await page.locator('.wb-save-state summary').click();
   await expect(page.getByRole('status').filter({ hasText: 'Changes are saved' })).toBeVisible();

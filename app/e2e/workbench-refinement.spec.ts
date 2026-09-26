@@ -69,7 +69,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
   await page.getByRole('button', { name: /^SW1, MX switch/ }).click();
   await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
-  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
+  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc V1 / V2 switch', exact: true }).click();
   await expect(page.locator('#wb-add-part')).toHaveCount(0);
   await expect(page.locator('.wb-placement-preview')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -77,7 +77,7 @@ test('Add Part searches, cancels, and places a standalone snapped component in o
   await expect(page.locator('.wb-root')).toHaveAttribute('data-revision', '0');
   await page.getByRole('button', { name: 'Add object', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search parts' }).fill('choc');
-  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc switch', exact: true }).click();
+  await page.locator('#wb-add-part').getByRole('button', { name: 'Choc V1 / V2 switch', exact: true }).click();
   const canvas = page.locator('.wb-canvas');
   await canvas.focus();
   await page.keyboard.press('ArrowRight');
@@ -165,7 +165,7 @@ test('generated overlays track rotation, mirroring, stagger and disabled slots',
   await page.getByText('Position & rotation', { exact: true }).click();
   await editNumber(page, 'Offset Y mm', '4');
   const overlay = page.getByRole('button', { name: 'Select key, row 1, column 2', exact: true });
-  const part = page.getByRole('button', { name: /^SW2, MX switch/ });
+  const part = page.getByRole('button', { name: /^SW3, switch mx,/ });
   await expect.poll(async () => overlay.getAttribute('transform')).toBe(await part.getAttribute('transform'));
   await chooseScope(page, 'key');
   await part.click();

@@ -1,3 +1,4 @@
+import { matrixPresetDefinitions, type MatrixPresetId } from './assemblyCatalog';
 import type {
   AssemblyDefinition,
   AssemblyMember,
@@ -9,9 +10,9 @@ export function assemblyPreset(
   definitions: PartDefinition[],
   orientation: SwitchOrientation = 'south',
 ): AssemblyDefinition {
-  const source = id.includes('choc')
-    ? 'ceoloide/switch_choc_v1_v2'
-    : 'ceoloide/switch_mx';
+  const preset = matrixPresetDefinitions[id as MatrixPresetId];
+  if (!preset) throw new Error(`Unknown assembly preset: ${id}`);
+  const source = preset.definitionId.slice('ergogen:'.length);
   const main = definitions.find((d) => d.generator?.source === source);
   if (!main) throw new Error(`Missing switch footprint: ${source}`);
   const diode = definitions.find(
@@ -25,13 +26,13 @@ export function assemblyPreset(
       side: 'front',
       models: [],
       parameters: {
-        hotswap: id.includes('hotswap'),
-        solder: !id.includes('hotswap'),
+        hotswap: preset.hotswap,
+        solder: !preset.hotswap,
         reversible: false,
         // Generator side names the socket, opposite the switch housing.
         side: 'B',
         include_keycap: true,
-        ...(id.includes('choc') ? { choc_v1_support: true, choc_v2_support: false, include_choc_v1_led_cutout_marks: true } : {}),
+        ...(preset.family === 'choc' ? { choc_v1_support: true, choc_v2_support: false, include_choc_v1_led_cutout_marks: true } : {}),
       },
     },
   ];
@@ -44,7 +45,7 @@ export function assemblyPreset(
       models: [],
       parameters: { side: 'B', reversible: false, include_tht: false },
     });
-  if (id.includes('rgb')) {
+  if (preset.led) {
     const led =
       definitions.find(
         (d) => d.generator?.source === 'ceoloide/led_sk6812mini-e',
@@ -56,7 +57,7 @@ export function assemblyPreset(
         definitionId: led.id,
         // Ceoloide's switch sockets/pins are north; the LED cavity is south.
         // Choc PG1350 (also Infused Kim's choc.js): 4.7 mm; MX: 4.75 mm.
-        pose: { at: { x: 0, y: id.includes('choc') ? -4.7 : -4.75 }, rotation: 180 },
+        pose: { at: { x: 0, y: preset.family === 'choc' ? -4.7 : -4.75 }, rotation: 180 },
         side: 'back',
         models: [],
         parameters: { side: 'B', reverse_mount: true, reversible: false },

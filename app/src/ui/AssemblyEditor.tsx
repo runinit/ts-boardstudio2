@@ -9,7 +9,8 @@ import type {
 } from '@boardstudio/v2-contracts';
 import { isErgogen, modelBindings } from '@boardstudio/v2-ergogen';
 import { bundledModels } from '../bundledModels';
-import { placeAssembly, sampleAssembly } from './sampleAssembly';
+import { sampleAssembly } from './sampleAssembly';
+import { placeAssembly } from './assemblyPlacement';
 import { storePreviewAsset } from './BoardReferencePanel';
 const AssemblyViewer = lazy(() =>
   import('./AssemblyViewer').then((m) => ({ default: m.AssemblyViewer })),

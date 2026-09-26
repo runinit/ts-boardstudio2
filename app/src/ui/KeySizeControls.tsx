@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Vec2 } from '../../../contracts/src/index';
 
 type KeySizeItem = { size: Vec2; pitch: Vec2; gap: Vec2 };

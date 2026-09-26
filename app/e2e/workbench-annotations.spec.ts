@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { strToU8, zipSync } from 'fflate';
 import { demoProject } from '../src/demo';
+import { chooseScope } from './selection';
 
 test('matrix members without switch metadata still have keycap overlays', async ({ page }) => {
   const doc = demoProject();
@@ -13,6 +14,7 @@ test('matrix members without switch metadata still have keycap overlays', async 
   await page.locator('.wb-project-file-input').setInputFiles({ name: 'socket-keys.boardstudio', mimeType: 'application/zip', buffer: Buffer.from(zipSync({ 'project.json': strToU8(JSON.stringify(doc)) })) });
   await expect(page.getByRole('button', { name: /^SW1, Socket key fixture/ })).toBeVisible();
   await expect(page.locator('.wb-keycap-overlay')).toHaveCount(15);
+  await page.getByRole('button', { name: 'Layers', exact: true }).click();
   await page.getByRole('button', { name: 'Hide Keycaps', exact: true }).click();
   await expect(page.locator('.wb-keycap-overlay')).toHaveCount(0);
 });
@@ -54,6 +56,7 @@ test('transform handles are opt-in, and keys and components have independent vis
   await expect(page.getByRole('button', { name: 'Drag to splay', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Finish transform', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Drag to splay', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Layers', exact: true }).click();
   await page.getByRole('button', { name: 'Hide Keys', exact: true }).click();
   await expect(page.locator('.wb-scene-part')).toHaveCount(0);
   await page.getByRole('button', { name: 'Show Keys', exact: true }).click();
@@ -71,7 +74,7 @@ test('add groups specialist hardware and stagger is an explicit keyboard-accessi
   await expect(page.locator('.wb-add-part-results').getByText('MX switch', { exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await page.getByRole('treeitem', { name: /^Column 1/ }).click();
-  await page.getByRole('button', { name: 'Select column', exact: true }).click();
+  await chooseScope(page, 'column');
   await page.getByRole('button', { name: 'Transform', exact: true }).click();
   await page.getByRole('button', { name: 'Stagger', exact: true }).click();
   const key = page.locator('.wb-scene-part.is-selected').first();

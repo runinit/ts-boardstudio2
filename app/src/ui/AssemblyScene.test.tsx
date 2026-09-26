@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import type { MechanicalAssembly, PcbPreview } from '@boardstudio/v2-contracts';

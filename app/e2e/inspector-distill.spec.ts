@@ -8,7 +8,8 @@ test('assembly selection has one placement action and no unrelated footprint set
   const inspector = page.getByRole('complementary', { name: 'Parts inspector' });
   await expect(inspector.getByRole('button', { name: 'Place key assembly' })).toBeVisible();
   await expect(inspector.getByRole('button', { name: 'Place component' })).toHaveCount(0);
-  await expect(inspector.locator('input, select, textarea')).toHaveCount(0);
+  await expect(inspector.getByRole('combobox', { name: 'Switch orientation', exact: true })).toBeVisible();
+  await expect(inspector.locator('input, select, textarea')).toHaveCount(1);
   await page.getByRole('button', { name: 'Place key assembly' }).click();
   await page.keyboard.press('Escape');
   await expect(page.locator('.wb-scene-part')).toHaveCount(15);
@@ -43,7 +44,7 @@ test('advanced generator options keep saved values while the normal inspector st
   await page.goto('/');
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).click();
+  await page.getByRole('option', { name: 'MX switch', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'reversible', exact: true })).toBeVisible();
   const trace = page.getByRole('spinbutton', { name: 'Trace Width', exact: true });
   await expect(trace).toBeHidden();
@@ -56,7 +57,7 @@ test('advanced generator options keep saved values while the normal inspector st
   await page.reload();
   await page.getByRole('tab', { name: 'Parts', exact: true }).click();
   await page.getByRole('searchbox', { name: 'Search footprints' }).fill('ceoloide/switch_mx');
-  await page.getByRole('option', { name: /switch mx/ }).click();
+  await page.getByRole('option', { name: 'MX switch', exact: true }).click();
   await expect(trace).toBeHidden();
   await page.locator('summary').filter({ hasText: 'Advanced footprint options' }).click();
   await expect(trace).toHaveValue('0.47');

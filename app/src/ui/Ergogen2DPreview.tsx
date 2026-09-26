@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PartDefinition } from '../../../contracts/src/index';
 import { child, isErgogen, render, type Expression, value } from '@boardstudio/v2-ergogen';
 

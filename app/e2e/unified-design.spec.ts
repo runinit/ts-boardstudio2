@@ -50,7 +50,7 @@ test('labeled commands expose scope, snap and context actions with focus recover
   await page.goto('/');
   await page.getByRole('treeitem', { name: 'Column 3 3 keys', exact: true }).click();
   await chooseScope(page, 'key');
-  await expect(page.getByRole('button', { name: 'Select key', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Select: Key', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Snap', exact: true }).click();
   await page.getByRole('combobox', { name: 'Snap increment' }).selectOption('0');
   await page.getByRole('checkbox', { name: 'Geometry snap', exact: true }).uncheck();

@@ -1,3 +1,4 @@
+import { chooseScope } from './selection';
 import { configureMatrix } from './matrix-setup';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -11,28 +12,30 @@ async function createMatrix(page: Page): Promise<void> {
   await page.keyboard.press('Escape');
 }
 
-const key = (page: Page, reference: number) => page.getByRole('button', { name: new RegExp(`^SW${reference}, MX switch`) });
+// Select logical keys independently of companion numbering.
+const key = (page: Page, index: number) => page.getByRole('button', { name: /^SW\d+, switch mx,/ }).nth(index - 1);
 
 test('selection type can be chosen before selecting a matrix key', async ({ page }) => {
   await createMatrix(page);
 
-  const rowScope = page.getByRole('button', { name: 'Select row', exact: true });
-  await expect(rowScope).not.toHaveAttribute('aria-disabled', 'true');
+  await page.getByRole('button', { name: /^Select:/ }).click();
+  const rowScope = page.getByRole('group', { name: 'Selection scope' }).getByRole('button', { name: 'Row', exact: true });
+  await expect(rowScope).toBeEnabled();
   await rowScope.click();
-  await expect(rowScope).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Select: Row', exact: true })).toBeVisible();
 
   await key(page, 1).click();
   await expect(page.locator('.wb-scene-part.is-selected')).toHaveCount(10);
-  await page.getByRole('button', { name: 'Select key', exact: true }).click();
+  await chooseScope(page, 'key');
   await expect(page.locator('.wb-scene-part.is-selected')).toHaveCount(1);
-  await rowScope.click();
+  await chooseScope(page, 'row');
   await expect(page.locator('.wb-scene-part.is-selected')).toHaveCount(10);
 });
 
 test('Ctrl-click toggles keys into the selection so Delete removes the group', async ({ page }) => {
   await createMatrix(page);
 
-  await page.getByRole('button', { name: 'Select key', exact: true }).click();
+  await chooseScope(page, 'key');
   await key(page, 1).click();
   await key(page, 2).click({ modifiers: ['Control'] });
   await expect(page.locator('.wb-scene-part.is-selected')).toHaveCount(2);
@@ -44,7 +47,7 @@ test('Ctrl-click toggles keys into the selection so Delete removes the group', a
 test('Shift-click selects the inclusive rectangle between matrix keys', async ({ page }) => {
   await createMatrix(page);
 
-  await page.getByRole('button', { name: 'Select key', exact: true }).click();
+  await chooseScope(page, 'key');
   await key(page, 1).click();
   await key(page, 13).click({ modifiers: ['Shift'] });
 
@@ -145,5 +148,6 @@ test('cross-axis keycap collisions show a visible warning', async ({ page }) => 
   await width.focus();
   await width.press('End');
   await expect(page.locator('.wb-key-size-warning')).toBeVisible();
-  await expect(page.locator('.wb-key-size-warning')).toContainText('SW6');
+  // The adjacent row's switches have odd references; each key also places a diode.
+  await expect(page.locator('.wb-key-size-warning')).toContainText(/SW(?:11|13|15|17|19)\b/);
 });

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Finding, MechanicalAssembly, ProjectDoc } from '../../../contracts/src/index';
 import { findingTarget, presentedFindings } from './findings';
 

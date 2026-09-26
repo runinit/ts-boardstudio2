@@ -43,3 +43,17 @@ and material/finish details are not reproduced exactly. STEP/STL models without
 colors use neutral shading; static WRL geometry/material colors are retained,
 but external resources and executable nodes are rejected. Existing component
 placements are not automatically migrated to the new presets.
+
+## Implementation ownership
+
+`AssemblyViewer` owns preview model loading, retries, and its asset cache for both
+Parts and Design. `ModelPreviewBoundary` handles render failures and clears its
+failure state on retry or a different selected definition. The app controller
+retains geometry revision/context checks, but no longer loads a second copy of
+preview models. Export model packaging remains a separate operation.
+
+`assemblyCatalog` defines the eight preset identities and hardware options;
+`assemblyPresets` constructs their recipes. `assemblyPlacement` snapshots and
+applies recipes to documents, while `sampleAssembly` only constructs a preview
+project. Retired catalog definitions remain resolvable for existing documents.
+See [architecture](architecture.md) for the other ownership boundaries.

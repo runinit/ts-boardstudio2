@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { emptyProject } from '@boardstudio/v2-contracts';
 import type { EditCommand, Matrix, Part, PartDefinition, ProjectDoc, SceneDelta } from '@boardstudio/v2-contracts';

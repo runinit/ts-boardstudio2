@@ -61,7 +61,7 @@ test('shrinks a custom matrix after moving a key in the removed row', async ({ p
   await expect(page.locator('.wb-scene-part')).toHaveCount(84);
 
   await chooseScope(page, 'key');
-  await drag(page, page.getByRole('button', { name: /^SW42, MX switch/ }), 20);
+  await drag(page, page.getByRole('button', { name: /^SW\d+, switch mx,/ }).last(), 20);
   await shrinkRows(page, 70);
 });
 
@@ -74,7 +74,7 @@ test('shrinks a custom matrix without losing a moved surviving key', async ({ pa
   await expect(page.locator('.wb-scene-part')).toHaveCount(84);
 
   await chooseScope(page, 'key');
-  const key = page.getByRole('button', { name: /^SW1, MX switch/ });
+  const key = page.getByRole('button', { name: /^SW1, switch mx,/ });
   const before = await key.getAttribute('transform');
   await drag(page, key, 20);
   const moved = await key.getAttribute('transform');

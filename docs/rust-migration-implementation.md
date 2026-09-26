@@ -1,5 +1,7 @@
 # Rust Migration Implementation Report
 
+> Historical validation record. Counts, paths, and commands describe the recorded migration. See [current architecture and validation](architecture.md) for the maintained entrypoints.
+
 **Base revision:** `17f9380418b9c30314027e98bab6db853a1e19bb`  
 **Implementation:** GPT-6 Luna, medium  
 **Independent review:** GPT-6 Astra, low  
